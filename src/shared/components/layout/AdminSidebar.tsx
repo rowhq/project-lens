@@ -22,42 +22,42 @@ import { cn } from "@/shared/lib/utils";
 const navigation = [
   {
     name: "Dashboard",
-    href: "/dashboard",
+    href: "/admin/dashboard",
     icon: LayoutDashboard,
   },
   {
     name: "Appraisers",
-    href: "/appraisers",
+    href: "/admin/appraisers",
     icon: Users,
   },
   {
     name: "Organizations",
-    href: "/organizations",
+    href: "/admin/organizations",
     icon: Building2,
   },
   {
     name: "Jobs",
-    href: "/jobs",
+    href: "/admin/jobs",
     icon: Briefcase,
   },
   {
     name: "Disputes",
-    href: "/disputes",
+    href: "/admin/disputes",
     icon: AlertTriangle,
   },
   {
     name: "Pricing",
-    href: "/pricing",
+    href: "/admin/pricing",
     icon: DollarSign,
   },
   {
     name: "Analytics",
-    href: "/analytics",
+    href: "/admin/analytics",
     icon: BarChart3,
   },
   {
     name: "Settings",
-    href: "/settings",
+    href: "/admin/settings",
     icon: Settings,
   },
 ];
@@ -69,7 +69,7 @@ export function AdminSidebar() {
     <aside className="flex w-64 flex-shrink-0 flex-col bg-gray-900">
       {/* Logo */}
       <div className="flex h-16 items-center px-6">
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/admin/dashboard" className="flex items-center gap-2">
           <span className="text-2xl font-bold text-white">LENS</span>
           <span className="rounded bg-amber-500 px-1.5 py-0.5 text-xs font-semibold text-gray-900">
             Admin

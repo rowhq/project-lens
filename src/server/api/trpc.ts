@@ -6,18 +6,19 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/server/auth/auth";
 import { prisma } from "@/server/db/prisma";
 
 /**
  * Context creation for each request
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const { userId } = await auth();
+  const session = await auth();
 
   return {
     prisma,
-    userId,
+    userId: session?.user?.id ?? null,
+    session,
     headers: opts.headers,
   };
 };
@@ -64,7 +65,7 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 
   // Get user from database
   const user = await ctx.prisma.user.findUnique({
-    where: { externalAuthId: ctx.userId },
+    where: { id: ctx.userId },
     include: { organization: true },
   });
 

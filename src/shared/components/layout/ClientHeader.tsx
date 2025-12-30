@@ -6,7 +6,7 @@
 "use client";
 
 import { Bell, Search, Menu } from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
+import { UserMenu } from "@/shared/components/common/UserMenu";
 
 export function ClientHeader() {
   return (
@@ -37,14 +37,7 @@ export function ClientHeader() {
         </button>
 
         {/* User Menu */}
-        <UserButton
-          afterSignOutUrl="/login"
-          appearance={{
-            elements: {
-              avatarBox: "h-9 w-9",
-            },
-          }}
-        />
+        <UserMenu />
       </div>
     </header>
   );

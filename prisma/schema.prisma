@@ -136,12 +136,14 @@ enum DisputeStatus {
 
 model User {
   id             String     @id @default(cuid())
-  externalAuthId String?    @unique // Clerk Auth ID
   email          String     @unique
+  password       String?    // Hashed password (bcrypt)
   phone          String?
   firstName      String
   lastName       String
   avatarUrl      String?
+  jobTitle       String?
+  location       String?
   role           UserRole   @default(CLIENT)
   status         UserStatus @default(PENDING)
 
@@ -151,6 +153,9 @@ model User {
 
   // Appraiser profile (if role is APPRAISER)
   appraiserProfile AppraiserProfile?
+
+  // Notification preferences
+  notificationPreferences NotificationPreferences?
 
   // Timestamps
   createdAt   DateTime  @default(now())
@@ -163,11 +168,11 @@ model User {
   payments          Payment[]
   notifications     Notification[]
   auditLogs         AuditLog[]
+  disputeComments   DisputeComment[]
 
   @@index([organizationId])
   @@index([email])
   @@index([role])
-  @@index([externalAuthId])
 }
 
 model Organization {
@@ -198,6 +203,10 @@ model Organization {
   payments          Payment[]
   disputes          Dispute[]
   apiKeys           ApiKey[]
+
+  // Marketplace
+  marketplaceListings  MarketplaceListing[] @relation("ListingSeller")
+  marketplacePurchases MarketplacePurchase[] @relation("ListingBuyer")
 
   @@index([slug])
   @@index([stripeCustomerId])
@@ -337,8 +346,9 @@ model Report {
   lockedAt    DateTime? // Immutable after this
 
   // Relations
-  appraisalRequest AppraisalRequest?
-  relatedDisputes  Dispute[]
+  appraisalRequest    AppraisalRequest?
+  relatedDisputes     Dispute[]
+  marketplaceListings MarketplaceListing[]
 
   @@index([type])
   @@index([generatedAt])
@@ -553,9 +563,27 @@ model Dispute {
   updatedAt  DateTime  @updatedAt
   resolvedAt DateTime?
 
+  // Relations
+  comments DisputeComment[]
+
   @@index([organizationId])
   @@index([status])
   @@index([category])
+}
+
+model DisputeComment {
+  id         String   @id @default(cuid())
+  disputeId  String
+  dispute    Dispute  @relation(fields: [disputeId], references: [id])
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id])
+  content    String   @db.Text
+  isInternal Boolean  @default(false) // For admin-only notes
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([disputeId])
+  @@index([authorId])
 }
 
 model Notification {
@@ -685,4 +713,152 @@ model FeatureFlag {
 
   @@index([name])
   @@index([isEnabled])
+}
+
+// ============================================
+// SHARE LINKS
+// ============================================
+
+model ShareLink {
+  id String @id @default(cuid())
+
+  // Token for public access
+  token String @unique
+
+  // What is being shared
+  resourceType String // report, appraisal
+  resourceId   String
+
+  // Access control
+  createdById    String
+  organizationId String
+
+  // Settings
+  allowDownload Boolean @default(true)
+  password      String? // Optional password protection
+  maxViews      Int?    // Optional view limit
+  viewCount     Int     @default(0)
+
+  // Validity
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([resourceType, resourceId])
+  @@index([expiresAt])
+}
+
+// ============================================
+// DD MARKETPLACE
+// ============================================
+
+enum ListingStatus {
+  ACTIVE
+  SOLD_OUT
+  ARCHIVED
+}
+
+model MarketplaceListing {
+  id String @id @default(cuid())
+
+  // What is being sold
+  reportId String
+  report   Report @relation(fields: [reportId], references: [id])
+
+  // Seller (organization that owns the report)
+  sellerId String
+  seller   Organization @relation("ListingSeller", fields: [sellerId], references: [id])
+
+  // Listing details
+  title       String
+  description String?  @db.Text
+  category    String   // residential, commercial, land, etc.
+  price       Decimal  @db.Decimal(10, 2)
+  currency    String   @default("USD")
+
+  // Preview
+  previewUrl  String?  // Redacted preview PDF URL
+  thumbnailUrl String? // Property thumbnail
+
+  // Status & stats
+  status    ListingStatus @default(ACTIVE)
+  soldCount Int           @default(0)
+  viewCount Int           @default(0)
+
+  // Featured/promotion
+  isFeatured Boolean @default(false)
+  featuredAt DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  purchases MarketplacePurchase[]
+
+  @@index([sellerId])
+  @@index([status])
+  @@index([category])
+  @@index([price])
+  @@index([createdAt])
+  @@index([isFeatured])
+}
+
+model MarketplacePurchase {
+  id String @id @default(cuid())
+
+  // What was purchased
+  listingId String
+  listing   MarketplaceListing @relation(fields: [listingId], references: [id])
+
+  // Buyer (organization making the purchase)
+  buyerId String
+  buyer   Organization @relation("ListingBuyer", fields: [buyerId], references: [id])
+
+  // Purchase details
+  price    Decimal @db.Decimal(10, 2)
+  currency String  @default("USD")
+
+  // Payment
+  stripePaymentIntentId String? @unique
+  paymentStatus         PaymentStatus @default(PENDING)
+
+  // Download tracking
+  downloadCount Int       @default(0)
+  lastDownloadAt DateTime?
+
+  // Timestamps
+  purchasedAt DateTime @default(now())
+
+  @@unique([listingId, buyerId]) // One purchase per org per listing
+  @@index([buyerId])
+  @@index([purchasedAt])
+}
+
+// ============================================
+// NOTIFICATION PREFERENCES
+// ============================================
+
+model NotificationPreferences {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Email notifications
+  emailReportReady   Boolean @default(true)
+  emailStatusUpdate  Boolean @default(true)
+  emailTeamActivity  Boolean @default(true)
+  emailBilling       Boolean @default(true)
+  emailMarketing     Boolean @default(false)
+
+  // Push notifications
+  pushUrgent   Boolean @default(true)
+  pushReports  Boolean @default(true)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -2,75 +2,78 @@
  * Middleware
  * Project LENS - Texas V1
  *
- * Handles authentication and role-based routing
+ * Handles authentication and role-based routing with NextAuth
  */
 
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import NextAuth from "next-auth";
+import { authConfig } from "@/server/auth/auth.config";
 import { NextResponse } from "next/server";
 
-// Public routes that don't require authentication
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/login(.*)",
-  "/register(.*)",
-  "/forgot-password(.*)",
-  "/api/webhooks/(.*)",
-  "/shared/(.*)", // Shared report links
-]);
+// Create edge-compatible auth from config (no Prisma/bcrypt)
+const { auth } = NextAuth(authConfig);
 
-// Admin routes
-const isAdminRoute = createRouteMatcher([
-  "/admin(.*)",
-  "/(admin)/(.*)",
-]);
+// Auth middleware wrapper
+export default auth(async (req) => {
+  const { pathname } = req.nextUrl;
+  const isAuthenticated = !!req.auth;
+  const user = req.auth?.user;
+  const userRole = (user as { role?: string } | undefined)?.role;
 
-// Appraiser routes
-const isAppraiserRoute = createRouteMatcher([
-  "/appraiser(.*)",
-  "/(appraiser)/(.*)",
-]);
-
-// Client routes
-const isClientRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/appraisals(.*)",
-  "/jobs(.*)",
-  "/team(.*)",
-  "/billing(.*)",
-  "/settings(.*)",
-  "/(client)/(.*)",
-]);
-
-export default clerkMiddleware(async (auth, req) => {
-  const { userId, sessionClaims } = await auth();
+  // Public routes that don't require authentication
+  const isPublicRoute =
+    pathname === "/" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/api/webhooks") ||
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/share/");
 
   // Allow public routes
-  if (isPublicRoute(req)) {
+  if (isPublicRoute) {
+    // Redirect to dashboard if already authenticated and trying to access login/register
+    if (isAuthenticated && (pathname.startsWith("/login") || pathname.startsWith("/register"))) {
+      if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+        return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+      }
+      if (userRole === "APPRAISER") {
+        return NextResponse.redirect(new URL("/appraiser/dashboard", req.url));
+      }
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
     return NextResponse.next();
   }
 
   // Redirect to login if not authenticated
-  if (!userId) {
+  if (!isAuthenticated) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("redirect_url", req.url);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Get user role from session claims (set up in Clerk Dashboard)
-  const userRole = sessionClaims?.metadata?.role as string | undefined;
-
   // Role-based route protection
-  if (isAdminRoute(req)) {
+  const isAdminRoute = pathname.startsWith("/admin");
+  const isAppraiserRoute = pathname.startsWith("/appraiser");
+  const isClientRoute =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/appraisals") ||
+    pathname.startsWith("/orders") ||
+    pathname.startsWith("/team") ||
+    pathname.startsWith("/billing") ||
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/marketplace");
+
+  if (isAdminRoute) {
     if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
       // Redirect non-admins to their appropriate dashboard
       if (userRole === "APPRAISER") {
-        return NextResponse.redirect(new URL("/jobs", req.url));
+        return NextResponse.redirect(new URL("/appraiser/dashboard", req.url));
       }
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }
 
-  if (isAppraiserRoute(req)) {
+  if (isAppraiserRoute) {
     if (userRole !== "APPRAISER") {
       if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
         return NextResponse.redirect(new URL("/admin/dashboard", req.url));
@@ -79,9 +82,9 @@ export default clerkMiddleware(async (auth, req) => {
     }
   }
 
-  if (isClientRoute(req)) {
+  if (isClientRoute) {
     if (userRole === "APPRAISER") {
-      return NextResponse.redirect(new URL("/jobs", req.url));
+      return NextResponse.redirect(new URL("/appraiser/dashboard", req.url));
     }
     if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
       return NextResponse.redirect(new URL("/admin/dashboard", req.url));

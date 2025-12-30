@@ -4,7 +4,7 @@
  */
 
 import { redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/server/auth/auth";
 import { ClientSidebar } from "@/shared/components/layout/ClientSidebar";
 import { ClientHeader } from "@/shared/components/layout/ClientHeader";
 
@@ -13,13 +13,11 @@ export default async function ClientLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = await auth();
+  const session = await auth();
 
-  if (!userId) {
+  if (!session?.user?.id) {
     redirect("/login");
   }
-
-  // TODO: Verify user has CLIENT role
 
   return (
     <div className="flex h-screen bg-gray-50">
