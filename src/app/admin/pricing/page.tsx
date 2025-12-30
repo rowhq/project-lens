@@ -365,8 +365,9 @@ export default function PricingPage() {
                             <input
                               type="number"
                               step="0.01"
-                              value={rule.type === "MULTIPLIER" ? editingRule.multiplier : editingRule.basePrice}
+                              value={rule.type === "MULTIPLIER" ? editingRule?.multiplier : editingRule?.basePrice}
                               onChange={(e) => {
+                                if (!editingRule) return;
                                 const val = parseFloat(e.target.value) || 0;
                                 setEditingRule({
                                   ...editingRule,
