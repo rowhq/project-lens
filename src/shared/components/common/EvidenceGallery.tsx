@@ -106,7 +106,7 @@ export function EvidenceGallery({
     return (
       <div className={`text-center py-12 ${className}`}>
         <svg
-          className="mx-auto h-12 w-12 text-gray-400"
+          className="mx-auto h-12 w-12 text-muted-foreground"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -118,8 +118,8 @@ export function EvidenceGallery({
             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
           />
         </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No evidence</h3>
-        <p className="mt-1 text-sm text-gray-500">
+        <h3 className="mt-2 text-sm font-medium text-foreground">No evidence</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           No photos or documents have been uploaded yet.
         </p>
       </div>
@@ -135,8 +135,8 @@ export function EvidenceGallery({
             onClick={() => setFilter("all")}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
               filter === "all"
-                ? "bg-blue-100 text-blue-700"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-primary/10 text-primary"
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}
           >
             All ({items.length})
@@ -149,8 +149,8 @@ export function EvidenceGallery({
                 onClick={() => setFilter(category)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
                   filter === category
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
               >
                 {categoryLabels[category] || category} ({count})
@@ -165,7 +165,7 @@ export function EvidenceGallery({
         {filteredItems.map((item) => (
           <div
             key={item.id}
-            className="group relative aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-pointer"
+            className="group relative aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer"
             onClick={() => handleItemClick(item)}
           >
             {item.type === "photo" || item.type === "video" ? (
@@ -176,9 +176,9 @@ export function EvidenceGallery({
                 loading="lazy"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+              <div className="w-full h-full flex items-center justify-center bg-muted">
                 <svg
-                  className="w-12 h-12 text-gray-400"
+                  className="w-12 h-12 text-muted-foreground"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -296,15 +296,15 @@ export function EvidenceGallery({
             {/* Details */}
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-gray-500">Captured:</span>
-                <span className="ml-2 text-gray-900">
+                <span className="text-muted-foreground">Captured:</span>
+                <span className="ml-2 text-foreground">
                   {new Date(selectedItem.capturedAt).toLocaleString()}
                 </span>
               </div>
               {selectedItem.location && (
                 <div>
-                  <span className="text-gray-500">Location:</span>
-                  <span className="ml-2 text-gray-900">
+                  <span className="text-muted-foreground">Location:</span>
+                  <span className="ml-2 text-foreground">
                     {selectedItem.location.latitude.toFixed(6)},{" "}
                     {selectedItem.location.longitude.toFixed(6)}
                   </span>
@@ -322,7 +322,7 @@ export function EvidenceGallery({
 
             {/* Description */}
             {selectedItem.description && (
-              <p className="text-gray-600">{selectedItem.description}</p>
+              <p className="text-muted-foreground">{selectedItem.description}</p>
             )}
 
             {/* Actions */}
@@ -380,12 +380,12 @@ export function EvidenceChecklist({
       {/* Progress bar */}
       <div className="mb-4">
         <div className="flex justify-between text-sm mb-1">
-          <span className="text-gray-600">Progress</span>
-          <span className="font-medium text-gray-900">
+          <span className="text-muted-foreground">Progress</span>
+          <span className="font-medium text-foreground">
             {completedCount} / {required.length}
           </span>
         </div>
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div
             className="h-full bg-green-500 transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -403,13 +403,13 @@ export function EvidenceChecklist({
               onClick={() => onCategoryClick?.(category)}
               className={`w-full flex items-center gap-3 p-3 rounded-lg border transition ${
                 isComplete
-                  ? "border-green-200 bg-green-50"
-                  : "border-gray-200 bg-white hover:bg-gray-50"
+                  ? "border-green-500/30 bg-green-500/10"
+                  : "border-border bg-card hover:bg-muted"
               }`}
             >
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                  isComplete ? "bg-green-500" : "border-2 border-gray-300"
+                  isComplete ? "bg-green-500" : "border-2 border-border"
                 }`}
               >
                 {isComplete && (
@@ -430,14 +430,14 @@ export function EvidenceChecklist({
               </div>
               <span
                 className={`flex-1 text-left ${
-                  isComplete ? "text-green-700" : "text-gray-700"
+                  isComplete ? "text-green-500" : "text-foreground"
                 }`}
               >
                 {categoryLabels[category] || category}
               </span>
               {!isComplete && (
                 <svg
-                  className="w-5 h-5 text-gray-400"
+                  className="w-5 h-5 text-muted-foreground"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"

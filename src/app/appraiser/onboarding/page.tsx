@@ -69,8 +69,12 @@ export default function AppraiserOnboardingPage() {
 
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [profileCreated, setProfileCreated] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
+
+  // Get upload URL for license
+  const getUploadUrl = trpc.appraiser.license.getUploadUrl.useMutation();
 
   // Submit license to create profile
   const submitLicense = trpc.appraiser.license.submit.useMutation({
@@ -119,24 +123,54 @@ export default function AppraiserOnboardingPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("File size must be less than 10MB");
+      return;
+    }
+
+    // Validate file type
+    const validTypes = ["application/pdf", "image/jpeg", "image/png"];
+    if (!validTypes.includes(file.type)) {
+      setUploadError("Only PDF, JPG, and PNG files are allowed");
+      return;
+    }
+
     setLicenseFile(file);
     setUploadProgress(0);
+    setUploadError(null);
 
-    // Simulate upload progress (would use real upload in production)
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
+    try {
+      // Get presigned upload URL from server
+      const uploadData = await getUploadUrl.mutateAsync({
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
       });
-    }, 200);
 
-    // In production, upload to S3/R2 and get URL
-    setTimeout(() => {
-      handleInputChange("licenseFileUrl", `https://storage.example.com/licenses/${file.name}`);
-    }, 2000);
+      // Upload file directly to storage using presigned URL
+      setUploadProgress(10);
+
+      const uploadResponse = await fetch(uploadData.uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Upload failed");
+      }
+
+      setUploadProgress(100);
+      handleInputChange("licenseFileUrl", uploadData.publicUrl);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setUploadError("Failed to upload file. Please try again.");
+      setUploadProgress(0);
+      setLicenseFile(null);
+    }
   };
 
   const validateStep = (): boolean => {
@@ -202,6 +236,7 @@ export default function AppraiserOnboardingPage() {
         licenseType: formData.licenseType,
         licenseNumber: formData.licenseNumber,
         licenseExpiry: formData.licenseExpiry,
+        licenseFileUrl: formData.licenseFileUrl || undefined,
         homeBaseLat: formData.homeBaseLat,
         homeBaseLng: formData.homeBaseLng,
         coverageRadiusMiles: formData.coverageRadiusMiles,
@@ -397,9 +432,26 @@ export default function AppraiserOnboardingPage() {
                 <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Upload License Document
                 </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-[var(--border)] border-dashed rounded-lg">
+                <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg ${
+                  uploadError ? "border-red-500" : "border-[var(--border)]"
+                }`}>
                   <div className="space-y-1 text-center">
-                    {formData.licenseFileUrl ? (
+                    {uploadError ? (
+                      <div className="flex flex-col items-center gap-2 text-red-400">
+                        <AlertCircle className="w-8 h-8" />
+                        <span>{uploadError}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUploadError(null);
+                            setLicenseFile(null);
+                          }}
+                          className="text-sm underline hover:no-underline"
+                        >
+                          Try again
+                        </button>
+                      </div>
+                    ) : formData.licenseFileUrl ? (
                       <div className="flex items-center gap-2 text-green-400">
                         <Check className="w-5 h-5" />
                         <span>License uploaded successfully</span>

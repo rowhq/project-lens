@@ -140,16 +140,69 @@ class AppraiserMatcher {
     const maxConcurrent = 5;
     if (activeJobs >= maxConcurrent) return false;
 
-    // Check schedule (if appraiser has availability settings)
+    // Get appraiser's preferred schedule
+    const profile = await prisma.appraiserProfile.findUnique({
+      where: { userId: appraiserId },
+      select: { preferredSchedule: true },
+    });
+
     const now = new Date();
     const dayOfWeek = now.getDay();
     const hour = now.getHours();
+    const minutes = now.getMinutes();
+    const currentTime = hour * 60 + minutes; // Convert to minutes for easier comparison
 
-    // Simple business hours check (8am - 6pm, Mon-Sat)
+    // Day names mapping
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dayName = dayNames[dayOfWeek];
+
+    // Check schedule from appraiser's preferredSchedule
+    const schedule = profile?.preferredSchedule as Record<string, unknown> | null;
+
+    if (schedule) {
+      // Check date-specific overrides first
+      const dateStr = now.toISOString().split("T")[0];
+      const dateOverrides = schedule.dateOverrides as Record<string, { isAvailable?: boolean; startTime?: string; endTime?: string }> | undefined;
+
+      if (dateOverrides && dateOverrides[dateStr]) {
+        const override = dateOverrides[dateStr];
+        if (!override.isAvailable) return false;
+        if (override.startTime && override.endTime) {
+          const startMinutes = this.parseTimeToMinutes(override.startTime);
+          const endMinutes = this.parseTimeToMinutes(override.endTime);
+          return currentTime >= startMinutes && currentTime <= endMinutes;
+        }
+        return true;
+      }
+
+      // Check weekly schedule
+      const daySchedule = schedule[dayName] as { isAvailable?: boolean; startTime?: string; endTime?: string } | undefined;
+
+      if (daySchedule) {
+        if (!daySchedule.isAvailable) return false;
+        if (daySchedule.startTime && daySchedule.endTime) {
+          const startMinutes = this.parseTimeToMinutes(daySchedule.startTime);
+          const endMinutes = this.parseTimeToMinutes(daySchedule.endTime);
+          return currentTime >= startMinutes && currentTime <= endMinutes;
+        }
+        return true;
+      }
+    }
+
+    // Fallback to default business hours if no schedule is configured
+    // (8am - 6pm, Mon-Sat)
     if (dayOfWeek === 0) return false; // Sunday
     if (hour < 8 || hour > 18) return false;
 
     return true;
+  }
+
+  /**
+   * Parse time string (HH:MM) to minutes since midnight
+   */
+  private parseTimeToMinutes(time: string): number {
+    const [hours, mins] = time.split(":").map(Number);
+    return (hours || 0) * 60 + (mins || 0);
   }
 
   /**

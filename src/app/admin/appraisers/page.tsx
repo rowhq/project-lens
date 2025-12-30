@@ -17,6 +17,7 @@ import {
   Download,
   Plus,
 } from "lucide-react";
+import { EmptyState } from "@/shared/components/common/EmptyState";
 
 type VerificationStatus = "PENDING" | "VERIFIED" | "EXPIRED" | "REVOKED" | "ALL";
 
@@ -167,7 +168,7 @@ export default function AppraisersPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
           <p className="text-sm text-[var(--muted-foreground)]">Total Appraisers</p>
           <p className="text-2xl font-bold text-[var(--foreground)]">{appraisers?.length || 0}</p>
@@ -221,8 +222,8 @@ export default function AppraisersPage() {
       </div>
 
       {/* Appraisers Table */}
-      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden">
-        <table className="w-full">
+      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden overflow-x-auto">
+        <table className="w-full min-w-[800px]">
           <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Appraiser</th>
@@ -242,8 +243,12 @@ export default function AppraisersPage() {
               </tr>
             ) : filteredAppraisers?.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-[var(--muted-foreground)]">
-                  No appraisers found
+                <td colSpan={6}>
+                  <EmptyState
+                    icon={UserCheck}
+                    title="No appraisers found"
+                    description={searchQuery ? "Try adjusting your search or filters" : "Appraisers will appear here once they complete onboarding"}
+                  />
                 </td>
               </tr>
             ) : (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
 import {
@@ -28,6 +28,9 @@ export default function EarningsPage() {
 
   // Fixed: Use nested router path - appraiser.earnings.history
   const { data: payouts } = trpc.appraiser.earnings.history.useQuery({ limit: 10 });
+
+  // Get payout settings (Stripe Connect status)
+  const { data: payoutSettings } = trpc.billing.payout.settings.useQuery();
 
   // Payout settings mutation for changing payout method
   const setupPayoutLink = trpc.billing.payout.setupLink.useMutation({
@@ -122,16 +125,39 @@ export default function EarningsPage() {
     ? earnings.monthlyEarnings / earnings.completedJobsThisMonth
     : 0;
 
-  // Mock daily earnings data - would come from API in production
-  const dailyEarningsData = [
-    { name: "Mon", earnings: 125, jobs: 2 },
-    { name: "Tue", earnings: 200, jobs: 3 },
-    { name: "Wed", earnings: 75, jobs: 1 },
-    { name: "Thu", earnings: 275, jobs: 4 },
-    { name: "Fri", earnings: 150, jobs: 2 },
-    { name: "Sat", earnings: 50, jobs: 1 },
-    { name: "Sun", earnings: 0, jobs: 0 },
-  ];
+  // Calculate daily earnings from payout history (last 30 days)
+  const dailyEarningsData = useMemo(() => {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dayData: Record<string, { earnings: number; jobs: number }> = {
+      Mon: { earnings: 0, jobs: 0 },
+      Tue: { earnings: 0, jobs: 0 },
+      Wed: { earnings: 0, jobs: 0 },
+      Thu: { earnings: 0, jobs: 0 },
+      Fri: { earnings: 0, jobs: 0 },
+      Sat: { earnings: 0, jobs: 0 },
+      Sun: { earnings: 0, jobs: 0 },
+    };
+
+    // Group payouts by day of week (from last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    payouts?.items?.forEach((payout) => {
+      const date = new Date(payout.createdAt);
+      if (date >= thirtyDaysAgo && payout.status === "COMPLETED") {
+        const dayName = days[date.getDay()];
+        dayData[dayName].earnings += Number(payout.amount);
+        dayData[dayName].jobs += 1;
+      }
+    });
+
+    // Return in Mon-Sun order
+    return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => ({
+      name: day,
+      earnings: Math.round(dayData[day].earnings),
+      jobs: dayData[day].jobs,
+    }));
+  }, [payouts]);
 
   const stats = [
     {
@@ -246,14 +272,38 @@ export default function EarningsPage() {
           </button>
         </div>
         <div className="p-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-8 bg-[var(--secondary)] rounded flex items-center justify-center">
-              <CreditCard className="w-5 h-5 text-[var(--muted-foreground)]" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-8 bg-[var(--secondary)] rounded flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-[var(--muted-foreground)]" />
+              </div>
+              <div>
+                {payoutSettings?.payoutEnabled ? (
+                  <>
+                    <p className="font-medium text-[var(--foreground)]">Stripe Connect Account</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">Payouts enabled - weekly on Monday</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium text-[var(--foreground)]">No payout method configured</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">Set up your bank account to receive payouts</p>
+                  </>
+                )}
+              </div>
             </div>
-            <div>
-              <p className="font-medium text-[var(--foreground)]">Bank Account ending in 4832</p>
-              <p className="text-sm text-[var(--muted-foreground)]">Payouts every Monday</p>
-            </div>
+            <button
+              onClick={() => setupPayoutLink.mutate()}
+              disabled={setupPayoutLink.isPending}
+              className="px-3 py-1.5 text-sm bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50"
+            >
+              {setupPayoutLink.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : payoutSettings?.payoutEnabled ? (
+                "Update"
+              ) : (
+                "Set Up"
+              )}
+            </button>
           </div>
         </div>
       </div>

@@ -327,3 +327,46 @@ export async function createRefund(params: {
     reason: params.reason,
   });
 }
+
+/**
+ * Create a Stripe Checkout Session for marketplace purchases
+ */
+export async function createMarketplaceCheckout(params: {
+  organizationId: string;
+  listingIds: string[];
+  lineItems: Array<{
+    name: string;
+    description: string;
+    amount: number;
+    quantity: number;
+  }>;
+  customerEmail: string;
+  successUrl: string;
+  cancelUrl: string;
+}): Promise<Stripe.Checkout.Session> {
+  const stripe = getStripe();
+
+  return stripe.checkout.sessions.create({
+    mode: "payment",
+    payment_method_types: ["card"],
+    customer_email: params.customerEmail,
+    line_items: params.lineItems.map((item) => ({
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: item.name,
+          description: item.description,
+        },
+        unit_amount: item.amount,
+      },
+      quantity: item.quantity,
+    })),
+    metadata: {
+      type: "marketplace",
+      organizationId: params.organizationId,
+      listingIds: params.listingIds.join(","),
+    },
+    success_url: params.successUrl,
+    cancel_url: params.cancelUrl,
+  });
+}

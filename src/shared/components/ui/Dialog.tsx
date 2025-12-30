@@ -49,7 +49,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
           role="dialog"
           aria-modal="true"
           className={cn(
-            "relative bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-auto animate-scale-in",
+            "relative bg-card text-card-foreground rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-auto animate-scale-in",
             className
           )}
           onClick={(e) => e.stopPropagation()}
@@ -70,12 +70,12 @@ interface DialogHeaderProps {
 
 export function DialogHeader({ children, onClose, className }: DialogHeaderProps) {
   return (
-    <div className={cn("flex items-center justify-between p-6 border-b border-neutral-100", className)}>
-      <div className="font-semibold text-lg text-neutral-900">{children}</div>
+    <div className={cn("flex items-center justify-between p-6 border-b border-border", className)}>
+      <div className="font-semibold text-lg text-foreground">{children}</div>
       {onClose && (
         <button
           onClick={onClose}
-          className="p-2 -m-2 text-neutral-400 hover:text-neutral-600 transition-colors rounded-lg hover:bg-neutral-100"
+          className="p-2 -m-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
           aria-label="Close dialog"
         >
           <X className="w-5 h-5" />
@@ -107,7 +107,7 @@ interface DialogFooterProps {
 
 export function DialogFooter({ children, className }: DialogFooterProps) {
   return (
-    <div className={cn("flex items-center justify-end gap-3 p-6 border-t border-neutral-100 bg-neutral-50 rounded-b-xl", className)}>
+    <div className={cn("flex items-center justify-end gap-3 p-6 border-t border-border bg-muted rounded-b-xl", className)}>
       {children}
     </div>
   );

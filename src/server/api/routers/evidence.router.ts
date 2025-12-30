@@ -8,6 +8,8 @@ import { createTRPCRouter, appraiserProcedure, protectedProcedure } from "../trp
 import { TRPCError } from "@trpc/server";
 import crypto from "crypto";
 import * as storage from "@/shared/lib/storage";
+import { calculateDistanceMiles } from "@/shared/lib/geo";
+import { Errors } from "@/shared/lib/errors";
 
 export const evidenceRouter = createTRPCRouter({
   /**
@@ -92,7 +94,7 @@ export const evidenceRouter = createTRPCRouter({
         fileName: z.string(),
         fileSize: z.number(),
         mimeType: z.string(),
-        mediaType: z.enum(["PHOTO", "VIDEO", "DOCUMENT", "FLOOR_PLAN"]),
+        mediaType: z.enum(["PHOTO", "VIDEO", "DOCUMENT", "FLOOR_PLAN", "AUDIO"]),
         category: z.string().optional(),
         latitude: z.number().optional(),
         longitude: z.number().optional(),
@@ -104,10 +106,43 @@ export const evidenceRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const job = await ctx.prisma.job.findUnique({
         where: { id: input.jobId },
+        include: { property: true },
       });
 
       if (!job || job.assignedAppraiserId !== ctx.user.id) {
-        throw new TRPCError({ code: "FORBIDDEN" });
+        throw Errors.forbidden("Not your job");
+      }
+
+      // Validate timestamp - photo should not be older than job start or in the future
+      const capturedAt = new Date(input.capturedAt);
+      const now = new Date();
+      const maxAgeHours = 72; // Allow photos up to 72 hours old
+      const oldestAllowed = new Date(now.getTime() - maxAgeHours * 60 * 60 * 1000);
+
+      let timestampSuspicious = false;
+      let locationSuspicious = false;
+
+      // Check if timestamp is suspicious
+      if (capturedAt > now) {
+        timestampSuspicious = true; // Future timestamp
+      } else if (capturedAt < oldestAllowed) {
+        timestampSuspicious = true; // Too old
+      } else if (job.startedAt && capturedAt < job.startedAt) {
+        timestampSuspicious = true; // Before job started
+      }
+
+      // Validate geolocation if provided
+      if (input.latitude && input.longitude && job.property.latitude && job.property.longitude) {
+        const distanceFromProperty = calculateDistanceMiles(
+          input.latitude,
+          input.longitude,
+          job.property.latitude,
+          job.property.longitude
+        );
+        // Flag if photo taken more than 0.5 miles from property
+        if (distanceFromProperty > 0.5) {
+          locationSuspicious = true;
+        }
       }
 
       // Generate integrity hash
@@ -118,6 +153,18 @@ export const evidenceRouter = createTRPCRouter({
 
       // Get the public URL for the file
       const fileUrl = storage.getPublicUrl(input.fileKey);
+
+      // Build metadata for suspicious flags
+      const metadata = {
+        ...(input.exifData || {}),
+        _flags: {
+          timestampSuspicious,
+          locationSuspicious,
+          distanceFromPropertyMiles: input.latitude && input.longitude && job.property.latitude && job.property.longitude
+            ? calculateDistanceMiles(input.latitude, input.longitude, job.property.latitude, job.property.longitude)
+            : null,
+        },
+      };
 
       const evidence = await ctx.prisma.evidence.create({
         data: {
@@ -130,10 +177,12 @@ export const evidenceRouter = createTRPCRouter({
           category: input.category,
           latitude: input.latitude,
           longitude: input.longitude,
-          capturedAt: new Date(input.capturedAt),
-          exifData: input.exifData,
+          capturedAt,
+          exifData: metadata,
           integrityHash,
           notes: input.notes,
+          // Mark as unverified if suspicious
+          verified: !timestampSuspicious && !locationSuspicious,
         },
       });
 

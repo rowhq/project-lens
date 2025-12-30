@@ -166,10 +166,10 @@ export function AddressInput({
             "w-full pl-10 pr-10 py-3 text-base border rounded-lg",
             "placeholder:text-neutral-400",
             "focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent",
-            "disabled:bg-neutral-50 disabled:cursor-not-allowed",
+            "disabled:bg-muted disabled:cursor-not-allowed bg-card text-foreground",
             error
               ? "border-red-500 focus:ring-red-500"
-              : "border-neutral-200"
+              : "border-border"
           )}
           aria-invalid={error ? "true" : "false"}
           aria-autocomplete="list"
@@ -193,10 +193,10 @@ export function AddressInput({
         <ul
           ref={listRef}
           role="listbox"
-          className="absolute z-dropdown w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden"
+          className="absolute z-dropdown w-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden"
         >
           {isLoading ? (
-            <li className="px-4 py-3 text-sm text-neutral-500 flex items-center gap-2">
+            <li className="px-4 py-3 text-sm text-muted-foreground flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
               Searching addresses...
             </li>
@@ -210,15 +210,15 @@ export function AddressInput({
                 className={cn(
                   "px-4 py-3 cursor-pointer transition-colors",
                   index === selectedIndex
-                    ? "bg-brand-50 text-brand-700"
-                    : "hover:bg-neutral-50"
+                    ? "bg-brand-500/10 text-brand-400"
+                    : "hover:bg-muted"
                 )}
               >
                 <div className="flex items-start gap-3">
                   <MapPin className="w-4 h-4 text-neutral-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-sm">{suggestion.street}</p>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-muted-foreground">
                       {suggestion.city}, {suggestion.state} {suggestion.zipCode}
                     </p>
                   </div>

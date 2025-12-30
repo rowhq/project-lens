@@ -18,12 +18,17 @@ import {
   Plus,
   X,
   Info,
+  Bell,
+  BellOff,
+  Loader2,
 } from "lucide-react";
+import { usePushNotifications } from "@/shared/hooks/use-push-notifications";
 
 export default function AppraiserProfilePage() {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"profile" | "license" | "service">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "license" | "service" | "notifications">("profile");
+  const pushNotifications = usePushNotifications();
 
   // Form state for editable fields
   const [coverageRadiusMiles, setCoverageRadiusMiles] = useState<number>(50);
@@ -136,6 +141,7 @@ export default function AppraiserProfilePage() {
             { id: "profile", label: "Profile", icon: User },
             { id: "license", label: "License", icon: Shield },
             { id: "service", label: "Service Area", icon: MapPin },
+            { id: "notifications", label: "Notifications", icon: Bell },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -362,6 +368,132 @@ export default function AppraiserProfilePage() {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Notifications Tab */}
+      {activeTab === "notifications" && (
+        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+          <h3 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+            <Bell className="w-5 h-5 text-[var(--muted-foreground)]" />
+            Push Notifications
+          </h3>
+
+          <div className="space-y-6">
+            {/* Browser Support Check */}
+            {!pushNotifications.isSupported && (
+              <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-yellow-300 font-medium">Browser Not Supported</p>
+                  <p className="text-sm text-yellow-300/80 mt-1">
+                    Your browser doesn&apos;t support push notifications. Try using Chrome, Firefox, or Edge for the best experience.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Notification Status */}
+            {pushNotifications.isSupported && (
+              <>
+                <div className="p-4 bg-[var(--secondary)] rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {pushNotifications.isSubscribed ? (
+                        <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                          <Bell className="w-5 h-5 text-green-400" />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-[var(--muted)] flex items-center justify-center">
+                          <BellOff className="w-5 h-5 text-[var(--muted-foreground)]" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium text-[var(--foreground)]">
+                          {pushNotifications.isSubscribed ? "Notifications Enabled" : "Notifications Disabled"}
+                        </p>
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                          {pushNotifications.isSubscribed
+                            ? "You'll receive alerts for new jobs in your area"
+                            : "Enable to get notified about new appraisal jobs"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (pushNotifications.isSubscribed) {
+                          pushNotifications.unsubscribe();
+                        } else {
+                          pushNotifications.subscribe();
+                        }
+                      }}
+                      disabled={pushNotifications.isLoading}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                        pushNotifications.isSubscribed
+                          ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                          : "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90"
+                      } disabled:opacity-50`}
+                    >
+                      {pushNotifications.isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : pushNotifications.isSubscribed ? (
+                        <>
+                          <BellOff className="w-4 h-4" />
+                          Disable
+                        </>
+                      ) : (
+                        <>
+                          <Bell className="w-4 h-4" />
+                          Enable Notifications
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Permission Status */}
+                {pushNotifications.permission === "denied" && (
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-red-300 font-medium">Notifications Blocked</p>
+                      <p className="text-sm text-red-300/80 mt-1">
+                        You&apos;ve blocked notifications in your browser. To enable them, click the lock icon in your address bar and allow notifications for this site.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error Display */}
+                {pushNotifications.error && (
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-red-300 font-medium">Error</p>
+                      <p className="text-sm text-red-300/80 mt-1">{pushNotifications.error}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Info about notifications */}
+                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3">
+                  <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-300">
+                    <p className="font-medium mb-2">What you&apos;ll be notified about:</p>
+                    <ul className="list-disc list-inside space-y-1 text-blue-300/80">
+                      <li>New appraisal jobs available in your service area</li>
+                      <li>Job assignment confirmations</li>
+                      <li>Important updates to your active jobs</li>
+                      <li>Payment confirmations</li>
+                    </ul>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>

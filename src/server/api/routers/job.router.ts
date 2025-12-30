@@ -12,7 +12,35 @@ import {
   protectedProcedure,
 } from "../trpc";
 import { TRPCError } from "@trpc/server";
-import { Prisma, JobStatus } from "@prisma/client";
+import { Prisma, JobStatus, JobType } from "@prisma/client";
+import { calculateDistanceMiles as calculateDistance } from "@/shared/lib/geo";
+import { Errors } from "@/shared/lib/errors";
+
+/**
+ * Valid job status transitions
+ * Maps current status to allowed next statuses
+ */
+const VALID_TRANSITIONS: Record<JobStatus, JobStatus[]> = {
+  PENDING_DISPATCH: ["DISPATCHED", "CANCELLED"],
+  DISPATCHED: ["ACCEPTED", "CANCELLED"],
+  ACCEPTED: ["IN_PROGRESS", "CANCELLED"],
+  IN_PROGRESS: ["SUBMITTED", "CANCELLED"],
+  SUBMITTED: ["UNDER_REVIEW", "COMPLETED", "FAILED"],
+  UNDER_REVIEW: ["COMPLETED", "FAILED"],
+  COMPLETED: [], // Terminal state
+  FAILED: [], // Terminal state
+  CANCELLED: [], // Terminal state
+};
+
+/**
+ * Validate a status transition is allowed
+ */
+function validateTransition(current: JobStatus, next: JobStatus): void {
+  const allowed = VALID_TRANSITIONS[current];
+  if (!allowed.includes(next)) {
+    throw Errors.invalidTransition(current, next);
+  }
+}
 
 export const jobRouter = createTRPCRouter({
   /**
@@ -193,6 +221,9 @@ export const jobRouter = createTRPCRouter({
     .input(
       z.object({
         limit: z.number().min(1).max(50).default(20),
+        maxDistance: z.number().optional(),
+        minPayout: z.number().optional(),
+        jobType: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -204,6 +235,14 @@ export const jobRouter = createTRPCRouter({
         where: {
           status: "DISPATCHED",
           assignedAppraiserId: null,
+          // Apply minPayout filter at DB level
+          ...(input.minPayout && {
+            payoutAmount: { gte: input.minPayout },
+          }),
+          // Apply jobType filter at DB level
+          ...(input.jobType && {
+            jobType: input.jobType as JobType,
+          }),
         },
         include: {
           property: true,
@@ -212,21 +251,45 @@ export const jobRouter = createTRPCRouter({
           },
         },
         orderBy: { createdAt: "desc" },
-        take: input.limit,
+        // Fetch more to account for distance filtering, then limit
+        take: input.limit * 3,
       });
 
-      // Filter by distance (simplified - should use PostGIS)
+      // Type for jobs with property included
+      type JobWithProperty = typeof jobs[0];
+
+      // Get skipped jobs with cooldown (24 hours)
+      const skippedJobs = (appraiserProfile.skippedJobs as Record<string, string>) || {};
+      const cooldownMs = 24 * 60 * 60 * 1000; // 24 hours
+      const now = Date.now();
+
+      // Determine the effective max distance
+      const effectiveMaxDistance = input.maxDistance ?? appraiserProfile.coverageRadiusMiles;
+
+      // Filter by distance and exclude recently skipped jobs
       const filtered = jobs.filter((job) => {
+        // Check if job was skipped recently
+        const skippedAt = skippedJobs[job.id];
+        if (skippedAt) {
+          const skippedTime = new Date(skippedAt).getTime();
+          if (now - skippedTime < cooldownMs) {
+            return false; // Still in cooldown
+          }
+        }
+
         const distance = calculateDistance(
           appraiserProfile.homeBaseLat,
           appraiserProfile.homeBaseLng,
           job.property.latitude,
           job.property.longitude
         );
-        return distance <= appraiserProfile.coverageRadiusMiles;
+
+        // Apply distance filter
+        return distance <= effectiveMaxDistance;
       });
 
-      return filtered.map((job) => ({
+      // Map with distance and apply final limit
+      return filtered.slice(0, input.limit).map((job) => ({
         ...job,
         distance: calculateDistance(
           appraiserProfile.homeBaseLat,
@@ -235,6 +298,53 @@ export const jobRouter = createTRPCRouter({
           job.property.longitude
         ),
       }));
+    }),
+
+  /**
+   * Skip a job (won't see it for 24 hours)
+   */
+  skip: appraiserProcedure
+    .input(z.object({ jobId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { appraiserProfile } = ctx;
+
+      // Verify job exists and is available
+      const job = await ctx.prisma.job.findUnique({
+        where: { id: input.jobId },
+      });
+
+      if (!job) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Job not found",
+        });
+      }
+
+      if (job.status !== "DISPATCHED" || job.assignedAppraiserId !== null) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Job is not available to skip",
+        });
+      }
+
+      // Add to skipped jobs
+      const skippedJobs = (appraiserProfile.skippedJobs as Record<string, string>) || {};
+      skippedJobs[input.jobId] = new Date().toISOString();
+
+      // Clean up old entries (older than 7 days)
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      for (const [jobId, timestamp] of Object.entries(skippedJobs)) {
+        if (new Date(timestamp).getTime() < weekAgo) {
+          delete skippedJobs[jobId];
+        }
+      }
+
+      await ctx.prisma.appraiserProfile.update({
+        where: { userId: ctx.user.id },
+        data: { skippedJobs },
+      });
+
+      return { success: true };
     }),
 
   /**
@@ -284,32 +394,19 @@ export const jobRouter = createTRPCRouter({
       });
 
       if (!job) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Job not found",
-        });
+        throw Errors.notFound("Job");
       }
 
-      if (job.status !== "DISPATCHED") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Job is not available for acceptance",
-        });
-      }
+      // Validate transition
+      validateTransition(job.status, "ACCEPTED");
 
       if (job.assignedAppraiserId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Job is already assigned",
-        });
+        throw Errors.badRequest("Job is already assigned");
       }
 
       // Verify appraiser is verified
       if (ctx.appraiserProfile.verificationStatus !== "VERIFIED") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Appraiser verification required",
-        });
+        throw Errors.forbidden("Appraiser verification required");
       }
 
       return ctx.prisma.job.update({
@@ -350,27 +447,17 @@ export const jobRouter = createTRPCRouter({
       });
 
       if (!job) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Job not found",
-        });
+        throw Errors.notFound("Job");
       }
 
       if (job.assignedAppraiserId !== ctx.user.id) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Job not assigned to you",
-        });
+        throw Errors.forbidden("Job not assigned to you");
       }
 
-      if (job.status !== "ACCEPTED") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Job must be accepted before starting",
-        });
-      }
+      // Validate transition
+      validateTransition(job.status, "IN_PROGRESS");
 
-      // Verify geofence
+      // Verify geofence - ENFORCE location requirement
       const distance = calculateDistance(
         input.latitude,
         input.longitude,
@@ -379,6 +466,16 @@ export const jobRouter = createTRPCRouter({
       );
       const distanceMeters = distance * 1609.34; // miles to meters
       const geofenceVerified = distanceMeters <= job.geofenceRadius;
+
+      // Block start if outside geofence
+      if (!geofenceVerified) {
+        const distanceFeet = Math.round(distanceMeters * 3.28084);
+        const requiredFeet = Math.round(job.geofenceRadius * 3.28084);
+        throw Errors.preconditionFailed(
+          `You must be within ${requiredFeet} feet of the property to start this job. ` +
+          `Current distance: ${distanceFeet} feet.`
+        );
+      }
 
       return ctx.prisma.job.update({
         where: { id: input.jobId },
@@ -415,32 +512,19 @@ export const jobRouter = createTRPCRouter({
       });
 
       if (!job) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Job not found",
-        });
+        throw Errors.notFound("Job");
       }
 
       if (job.assignedAppraiserId !== ctx.user.id) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Job not assigned to you",
-        });
+        throw Errors.forbidden("Job not assigned to you");
       }
 
-      if (job.status !== "IN_PROGRESS") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Job must be in progress to submit",
-        });
-      }
+      // Validate transition
+      validateTransition(job.status, "SUBMITTED");
 
       // Validate minimum evidence
       if (job.evidence.length < 5) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Minimum 5 photos required",
-        });
+        throw Errors.badRequest("Minimum 5 photos required");
       }
 
       return ctx.prisma.job.update({
@@ -613,28 +697,3 @@ export const jobRouter = createTRPCRouter({
     }),
 });
 
-/**
- * Calculate distance between two points in miles
- */
-function calculateDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number {
-  const R = 3959; // Earth's radius in miles
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-function toRad(deg: number): number {
-  return deg * (Math.PI / 180);
-}

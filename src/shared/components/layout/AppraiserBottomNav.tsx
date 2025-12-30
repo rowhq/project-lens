@@ -18,7 +18,7 @@ const navigation = [
   },
   {
     name: "My Jobs",
-    href: "/appraiser/jobs/active",
+    href: "/appraiser/jobs?tab=active",
     icon: ClipboardList,
   },
   {

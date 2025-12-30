@@ -66,12 +66,12 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-64 flex-shrink-0 flex-col bg-gray-900">
+    <aside className="flex w-64 flex-shrink-0 flex-col bg-[var(--color-navy-900)]">
       {/* Logo */}
       <div className="flex h-16 items-center px-6">
         <Link href="/admin/dashboard" className="flex items-center gap-2">
           <span className="text-2xl font-bold text-white">LENS</span>
-          <span className="rounded bg-amber-500 px-1.5 py-0.5 text-xs font-semibold text-gray-900">
+          <span className="rounded bg-amber-500 px-1.5 py-0.5 text-xs font-semibold text-[var(--color-navy-900)]">
             Admin
           </span>
         </Link>
@@ -88,8 +88,8 @@ export function AdminSidebar() {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-gray-800 text-white"
-                  : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                  ? "bg-[var(--color-navy-800)] text-white"
+                  : "text-[var(--color-navy-400)] hover:bg-[var(--color-navy-800)] hover:text-white"
               )}
             >
               <item.icon className="h-5 w-5" />
@@ -100,8 +100,8 @@ export function AdminSidebar() {
       </nav>
 
       {/* System Status */}
-      <div className="border-t border-gray-800 p-4">
-        <div className="flex items-center gap-2 text-sm text-gray-400">
+      <div className="border-t border-[var(--color-navy-800)] p-4">
+        <div className="flex items-center gap-2 text-sm text-[var(--color-navy-400)]">
           <span className="h-2 w-2 rounded-full bg-green-500" />
           All systems operational
         </div>

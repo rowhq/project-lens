@@ -82,7 +82,7 @@ export default function DisputesPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
           <p className="text-sm text-[var(--muted-foreground)]">Total Disputes</p>
           <p className="text-2xl font-bold text-[var(--foreground)]">{disputes?.length || 0}</p>
@@ -135,8 +135,8 @@ export default function DisputesPage() {
       </div>
 
       {/* Disputes Table */}
-      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden">
-        <table className="w-full">
+      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden overflow-x-auto">
+        <table className="w-full min-w-[700px]">
           <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Dispute</th>

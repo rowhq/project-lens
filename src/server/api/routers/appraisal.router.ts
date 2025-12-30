@@ -17,6 +17,9 @@ import {
   processQueuedAppraisals,
 } from "@/server/services/appraisal-processor";
 import { calculateAppraisalPrice } from "@/server/services/pricing-engine";
+import * as stripe from "@/shared/lib/stripe";
+import { sendPaymentConfirmation, sendAppraisalOrderConfirmation } from "@/shared/lib/resend";
+import { dispatchEngine } from "@/server/services/dispatch-engine";
 
 export const appraisalRouter = createTRPCRouter({
   /**
@@ -209,6 +212,236 @@ export const appraisalRouter = createTRPCRouter({
         items: appraisals,
         nextCursor,
       };
+    }),
+
+  /**
+   * Create appraisal with Stripe checkout
+   * Returns a checkout URL to redirect the user to
+   */
+  createWithCheckout: clientProcedure
+    .input(
+      z.object({
+        propertyAddress: z.string(),
+        propertyCity: z.string().optional(),
+        propertyState: z.string().default("TX"),
+        propertyZipCode: z.string().optional(),
+        propertyType: z.enum([
+          "SINGLE_FAMILY",
+          "MULTI_FAMILY",
+          "CONDO",
+          "TOWNHOUSE",
+          "COMMERCIAL",
+          "LAND",
+          "MIXED_USE",
+        ]).default("SINGLE_FAMILY"),
+        purpose: z.string(),
+        requestedType: z.enum([
+          "AI_REPORT",
+          "AI_REPORT_WITH_ONSITE",
+          "CERTIFIED_APPRAISAL",
+        ]),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Create property
+      const property = await ctx.prisma.property.create({
+        data: {
+          addressLine1: input.propertyAddress,
+          city: input.propertyCity || "",
+          county: "",
+          state: input.propertyState,
+          zipCode: input.propertyZipCode || "",
+          addressFull: `${input.propertyAddress}, ${input.propertyCity || ""}, ${input.propertyState} ${input.propertyZipCode || ""}`,
+          latitude: 0,
+          longitude: 0,
+          propertyType: input.propertyType,
+        },
+      });
+
+      // Calculate price
+      const pricingResult = await calculateAppraisalPrice({
+        propertyType: property.propertyType,
+        county: property.county,
+        state: property.state,
+        requestedType: input.requestedType,
+      });
+      const price = pricingResult.finalPrice;
+
+      // Create appraisal in DRAFT status (not yet paid)
+      const appraisal = await ctx.prisma.appraisalRequest.create({
+        data: {
+          organizationId: ctx.organization!.id,
+          requestedById: ctx.user.id,
+          propertyId: property.id,
+          purpose: input.purpose,
+          requestedType: input.requestedType,
+          notes: input.notes,
+          status: "DRAFT",
+          price,
+        },
+      });
+
+      // Get product name based on type
+      const productNames: Record<string, string> = {
+        AI_REPORT: "AI Property Valuation Report",
+        AI_REPORT_WITH_ONSITE: "AI Report with On-Site Verification",
+        CERTIFIED_APPRAISAL: "Certified Property Appraisal",
+      };
+
+      // Create Stripe checkout session
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const checkoutSession = await stripe.createCheckoutSession({
+        organizationId: ctx.organization!.id,
+        appraisalRequestId: appraisal.id,
+        priceInCents: Math.round(price * 100),
+        productName: productNames[input.requestedType] || "Property Appraisal",
+        customerEmail: ctx.user.email || "",
+        successUrl: `${baseUrl}/appraisals/${appraisal.id}?payment=success`,
+        cancelUrl: `${baseUrl}/appraisals/new?payment=cancelled`,
+      });
+
+      // Store the checkout session ID on the appraisal for verification later
+      await ctx.prisma.appraisalRequest.update({
+        where: { id: appraisal.id },
+        data: {
+          notes: input.notes ? `${input.notes}\n\nCheckout Session: ${checkoutSession.id}` : `Checkout Session: ${checkoutSession.id}`,
+        },
+      });
+
+      return {
+        appraisalId: appraisal.id,
+        checkoutUrl: checkoutSession.url,
+        price,
+      };
+    }),
+
+  /**
+   * Confirm payment and start processing
+   * Called after successful Stripe redirect
+   */
+  confirmPayment: clientProcedure
+    .input(z.object({ appraisalId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const appraisal = await ctx.prisma.appraisalRequest.findUnique({
+        where: { id: input.appraisalId },
+        include: { property: true },
+      });
+
+      if (!appraisal) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      if (appraisal.organizationId !== ctx.organization!.id) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      // Only process if still in DRAFT status (not yet processed)
+      if (appraisal.status !== "DRAFT") {
+        return appraisal;
+      }
+
+      // Update to QUEUED status
+      const updatedAppraisal = await ctx.prisma.appraisalRequest.update({
+        where: { id: input.appraisalId },
+        data: { status: "QUEUED" },
+        include: { property: true, report: true },
+      });
+
+      // Create payment record
+      await ctx.prisma.payment.create({
+        data: {
+          organizationId: ctx.organization!.id,
+          userId: ctx.user.id,
+          type: "CHARGE",
+          amount: appraisal.price,
+          description: `Appraisal for ${appraisal.property?.addressFull || "property"}`,
+          status: "COMPLETED",
+          processedAt: new Date(),
+        },
+      });
+
+      // Send payment confirmation and order confirmation emails
+      if (ctx.user.email) {
+        // Payment confirmation
+        sendPaymentConfirmation({
+          email: ctx.user.email,
+          userName: ctx.user.firstName || "Customer",
+          amount: Number(appraisal.price),
+          description: `Appraisal for ${appraisal.property?.addressFull || "property"}`,
+        }).catch((error) => {
+          console.error("Failed to send payment confirmation email:", error);
+        });
+
+        // Order confirmation with details
+        const estimatedDays = appraisal.requestedType === "AI_REPORT" ? 1 : 3;
+        const estimatedDelivery = new Date(Date.now() + estimatedDays * 24 * 60 * 60 * 1000)
+          .toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+
+        sendAppraisalOrderConfirmation({
+          email: ctx.user.email,
+          userName: ctx.user.firstName || "Customer",
+          propertyAddress: appraisal.property?.addressFull || "property",
+          appraisalId: appraisal.id,
+          reportType: appraisal.requestedType === "AI_REPORT" ? "AI Valuation Report" : "Certified Appraisal",
+          estimatedDelivery,
+          amount: Number(appraisal.price),
+        }).catch((error) => {
+          console.error("Failed to send order confirmation email:", error);
+        });
+      }
+
+      // Process AI appraisals immediately
+      if (appraisal.requestedType === "AI_REPORT") {
+        processAppraisal(input.appraisalId).catch((error) => {
+          console.error(`Failed to process appraisal ${input.appraisalId}:`, error);
+        });
+      }
+
+      // For on-site appraisals, auto-create and dispatch a Job
+      if (appraisal.requestedType === "AI_REPORT_WITH_ONSITE" ||
+          appraisal.requestedType === "CERTIFIED_APPRAISAL") {
+
+        // Configuration based on appraisal type
+        const jobConfig = appraisal.requestedType === "AI_REPORT_WITH_ONSITE"
+          ? { slaHours: 48, payout: 99, scope: "EXTERIOR_ONLY", jobType: "ONSITE_PHOTOS" as const }
+          : { slaHours: 72, payout: 199, scope: "INTERIOR_EXTERIOR", jobType: "ONSITE_PHOTOS" as const };
+
+        const slaDueAt = new Date(Date.now() + jobConfig.slaHours * 60 * 60 * 1000);
+
+        // Create the job linked to this appraisal
+        const job = await ctx.prisma.job.create({
+          data: {
+            organizationId: ctx.organization!.id,
+            propertyId: appraisal.propertyId,
+            appraisalRequestId: appraisal.id,
+            jobType: jobConfig.jobType,
+            scope: jobConfig.scope,
+            payoutAmount: jobConfig.payout,
+            slaDueAt,
+            schedulingWindow: { flexible: true },
+            status: "DISPATCHED",
+            dispatchedAt: new Date(),
+            statusHistory: [
+              {
+                status: "DISPATCHED",
+                timestamp: new Date().toISOString(),
+                userId: ctx.user.id,
+                note: "Auto-created from appraisal order",
+              },
+            ],
+          },
+        });
+
+        // Dispatch to available appraisers
+        dispatchEngine.dispatch(job.id).catch((error) => {
+          console.error(`Failed to dispatch job ${job.id}:`, error);
+        });
+
+        console.log(`Auto-created job ${job.id} for appraisal ${appraisal.id}`);
+      }
+
+      return updatedAppraisal;
     }),
 
   /**

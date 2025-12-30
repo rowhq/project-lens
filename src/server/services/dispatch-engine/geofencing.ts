@@ -4,6 +4,7 @@
  */
 
 import type { AppraiserProfile } from "@prisma/client";
+import { calculateDistanceMiles, toRadians } from "@/shared/lib/geo";
 
 export interface Coordinates {
   lat: number;
@@ -49,23 +50,7 @@ class GeofencingService {
     point1: Coordinates,
     point2: Coordinates
   ): Promise<number> {
-    const R = 3959; // Earth's radius in miles
-
-    const lat1Rad = this.toRadians(point1.lat);
-    const lat2Rad = this.toRadians(point2.lat);
-    const deltaLat = this.toRadians(point2.lat - point1.lat);
-    const deltaLng = this.toRadians(point2.lng - point1.lng);
-
-    const a =
-      Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-      Math.cos(lat1Rad) *
-        Math.cos(lat2Rad) *
-        Math.sin(deltaLng / 2) *
-        Math.sin(deltaLng / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
+    return calculateDistanceMiles(point1.lat, point1.lng, point2.lat, point2.lng);
   }
 
   /**
@@ -117,7 +102,7 @@ class GeofencingService {
   getBoundingBox(center: Coordinates, radiusMiles: number): BoundingBox {
     // Approximate degrees per mile at this latitude
     const latDegPerMile = 1 / 69;
-    const lngDegPerMile = 1 / (69 * Math.cos(this.toRadians(center.lat)));
+    const lngDegPerMile = 1 / (69 * Math.cos(toRadians(center.lat)));
 
     const latDelta = radiusMiles * latDegPerMile;
     const lngDelta = radiusMiles * lngDegPerMile;
@@ -248,13 +233,6 @@ class GeofencingService {
     }
 
     return null;
-  }
-
-  /**
-   * Convert degrees to radians
-   */
-  private toRadians(degrees: number): number {
-    return degrees * (Math.PI / 180);
   }
 }
 

@@ -13,6 +13,11 @@ import {
   AlertCircle,
   Loader2,
   Image as ImageIcon,
+  Mic,
+  Square,
+  Play,
+  Pause,
+  Trash2,
 } from "lucide-react";
 
 interface PageProps {
@@ -22,6 +27,15 @@ interface PageProps {
 interface UploadedPhoto {
   url: string;
   evidenceId: string;
+}
+
+interface VoiceNote {
+  id: string;
+  url: string;
+  evidenceId: string;
+  duration: number;
+  label: string;
+  createdAt: Date;
 }
 
 const requiredPhotos = [
@@ -51,6 +65,17 @@ export default function EvidenceCapturePage({ params }: PageProps) {
   const [geolocation, setGeolocation] = useState<{ lat: number; lng: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Voice note state
+  const [voiceNotes, setVoiceNotes] = useState<VoiceNote[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [playingNoteId, setPlayingNoteId] = useState<string | null>(null);
+  const [isUploadingVoice, setIsUploadingVoice] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   const { data: job, refetch: refetchJob } = trpc.job.getById.useQuery({ id });
   const getUploadUrl = trpc.evidence.getUploadUrl.useMutation();
   const confirmEvidence = trpc.evidence.confirm.useMutation();
@@ -72,6 +97,183 @@ export default function EvidenceCapturePage({ params }: PageProps) {
       );
     }
   }, []);
+
+  // Cleanup recording timer on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
+
+  // Voice recording functions
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4",
+      });
+
+      audioChunksRef.current = [];
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach((track) => track.stop());
+
+        // Create blob from chunks
+        const mimeType = mediaRecorder.mimeType;
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+
+        // Upload the voice note
+        await uploadVoiceNote(audioBlob, mimeType);
+      };
+
+      mediaRecorder.start(100); // Collect data every 100ms
+      setIsRecording(true);
+      setRecordingDuration(0);
+
+      // Start duration timer
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error("Failed to start recording:", err);
+      setError("Microphone access denied. Please allow microphone access to record voice notes.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+    }
+  };
+
+  const uploadVoiceNote = async (audioBlob: Blob, mimeType: string) => {
+    setIsUploadingVoice(true);
+    setError(null);
+
+    try {
+      const extension = mimeType.includes("webm") ? "webm" : "m4a";
+      const fileName = `voice_note_${Date.now()}.${extension}`;
+
+      // 1. Get presigned upload URL
+      const uploadData = await getUploadUrl.mutateAsync({
+        jobId: id,
+        fileName,
+        fileType: mimeType,
+        fileSize: audioBlob.size,
+        category: "voice_note",
+      });
+
+      // 2. Upload file to presigned URL
+      const uploadResponse = await fetch(uploadData.uploadUrl, {
+        method: "PUT",
+        body: audioBlob,
+        headers: {
+          "Content-Type": mimeType,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload voice note");
+      }
+
+      // 3. Confirm upload in database
+      const evidence = await confirmEvidence.mutateAsync({
+        jobId: id,
+        fileKey: uploadData.fileKey,
+        fileName,
+        fileSize: audioBlob.size,
+        mimeType,
+        mediaType: "AUDIO",
+        category: "voice_note",
+        latitude: geolocation?.lat,
+        longitude: geolocation?.lng,
+        capturedAt: new Date().toISOString(),
+      });
+
+      // 4. Add to voice notes list
+      const newVoiceNote: VoiceNote = {
+        id: evidence.id,
+        url: uploadData.publicUrl,
+        evidenceId: evidence.id,
+        duration: recordingDuration,
+        label: `Voice Note ${voiceNotes.length + 1}`,
+        createdAt: new Date(),
+      };
+
+      setVoiceNotes((prev) => [...prev, newVoiceNote]);
+      setRecordingDuration(0);
+      refetchJob();
+    } catch (err) {
+      console.error("Voice note upload failed:", err);
+      setError(err instanceof Error ? err.message : "Failed to upload voice note");
+    } finally {
+      setIsUploadingVoice(false);
+    }
+  };
+
+  const playVoiceNote = (note: VoiceNote) => {
+    if (playingNoteId === note.id) {
+      // Pause if currently playing
+      audioRef.current?.pause();
+      setPlayingNoteId(null);
+      return;
+    }
+
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+
+    // Create new audio element and play
+    const audio = new Audio(note.url);
+    audio.onended = () => setPlayingNoteId(null);
+    audio.onerror = () => {
+      setError("Failed to play voice note");
+      setPlayingNoteId(null);
+    };
+    audioRef.current = audio;
+    audio.play();
+    setPlayingNoteId(note.id);
+  };
+
+  const deleteVoiceNote = async (note: VoiceNote) => {
+    try {
+      await deleteEvidence.mutateAsync({ evidenceId: note.evidenceId });
+      setVoiceNotes((prev) => prev.filter((n) => n.id !== note.id));
+      if (playingNoteId === note.id) {
+        audioRef.current?.pause();
+        setPlayingNoteId(null);
+      }
+      refetchJob();
+    } catch (err) {
+      console.error("Delete voice note failed:", err);
+      setError("Failed to delete voice note");
+    }
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -366,6 +568,101 @@ export default function EvidenceCapturePage({ params }: PageProps) {
               </button>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Voice Notes */}
+      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
+        <div className="px-4 py-3 border-b border-[var(--border)]">
+          <h2 className="font-semibold text-[var(--foreground)]">Voice Notes</h2>
+          <p className="text-sm text-[var(--muted-foreground)]">Record observations about the property</p>
+        </div>
+        <div className="p-4 space-y-4">
+          {/* Recording Controls */}
+          <div className="flex items-center justify-center gap-4">
+            {isRecording ? (
+              <>
+                <div className="flex items-center gap-3 px-4 py-2 bg-red-500/20 rounded-full">
+                  <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-red-400 font-medium">{formatDuration(recordingDuration)}</span>
+                </div>
+                <button
+                  onClick={stopRecording}
+                  className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-full font-medium hover:bg-red-700"
+                >
+                  <Square className="w-5 h-5" />
+                  Stop Recording
+                </button>
+              </>
+            ) : isUploadingVoice ? (
+              <div className="flex items-center gap-3 px-6 py-3 bg-[var(--muted)] rounded-full">
+                <Loader2 className="w-5 h-5 animate-spin text-[var(--primary)]" />
+                <span className="text-[var(--foreground)] font-medium">Uploading voice note...</span>
+              </div>
+            ) : (
+              <button
+                onClick={startRecording}
+                className="flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white rounded-full font-medium hover:bg-[var(--primary)]/90"
+              >
+                <Mic className="w-5 h-5" />
+                Record Voice Note
+              </button>
+            )}
+          </div>
+
+          {/* Voice Notes List */}
+          {voiceNotes.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm text-[var(--muted-foreground)] font-medium">Recorded Notes</p>
+              {voiceNotes.map((note) => (
+                <div
+                  key={note.id}
+                  className="flex items-center justify-between p-3 bg-[var(--muted)] rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => playVoiceNote(note)}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        playingNoteId === note.id
+                          ? "bg-[var(--primary)] text-white"
+                          : "bg-[var(--secondary)] text-[var(--foreground)]"
+                      }`}
+                    >
+                      {playingNoteId === note.id ? (
+                        <Pause className="w-5 h-5" />
+                      ) : (
+                        <Play className="w-5 h-5 ml-0.5" />
+                      )}
+                    </button>
+                    <div>
+                      <p className="font-medium text-[var(--foreground)]">{note.label}</p>
+                      <p className="text-sm text-[var(--muted-foreground)]">
+                        {formatDuration(note.duration)} • {note.createdAt.toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => deleteVoiceNote(note)}
+                    disabled={deleteEvidence.isPending}
+                    className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg"
+                  >
+                    {deleteEvidence.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {voiceNotes.length === 0 && !isRecording && !isUploadingVoice && (
+            <p className="text-center text-sm text-[var(--muted-foreground)] py-2">
+              No voice notes recorded yet. Record observations about the property condition, notable features, or issues.
+            </p>
+          )}
         </div>
       </div>
 

@@ -71,12 +71,12 @@ export function EmptyState({
         className
       )}
     >
-      <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
-        <Icon className="w-8 h-8 text-neutral-400" />
+      <div className="w-16 h-16 rounded-full bg-[var(--muted)] flex items-center justify-center mb-4">
+        <Icon className="w-8 h-8 text-[var(--muted-foreground)]" />
       </div>
-      <h3 className="text-lg font-semibold text-neutral-900 mb-1">{title}</h3>
+      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-1">{title}</h3>
       {description && (
-        <p className="text-sm text-neutral-500 max-w-sm mb-6">{description}</p>
+        <p className="text-sm text-[var(--muted-foreground)] max-w-sm mb-6">{description}</p>
       )}
       {(action || secondaryAction) && (
         <div className="flex items-center gap-3">

@@ -138,6 +138,142 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Appraiser Section */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-[var(--accent)]/5" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Value Prop */}
+            <div>
+              <span className="inline-block px-3 py-1 text-sm font-medium bg-[var(--primary)]/10 text-[var(--primary)] rounded-full mb-4">
+                For Appraisers
+              </span>
+              <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl">
+                Earn More. Work Smarter.
+              </h2>
+              <p className="mt-4 text-lg text-[var(--muted-foreground)]">
+                Join Texas's fastest-growing network of property appraisers. Accept jobs near you,
+                work on your schedule, and get paid weekly.
+              </p>
+
+              <div className="mt-8 grid sm:grid-cols-2 gap-4">
+                <AppraiserBenefit
+                  icon="💰"
+                  title="$75-300+ per job"
+                  description="Competitive payouts for inspections"
+                />
+                <AppraiserBenefit
+                  icon="📍"
+                  title="Jobs near you"
+                  description="Set your service area and radius"
+                />
+                <AppraiserBenefit
+                  icon="📅"
+                  title="Your schedule"
+                  description="Accept jobs when it works for you"
+                />
+                <AppraiserBenefit
+                  icon="💳"
+                  title="Weekly payouts"
+                  description="Fast, reliable direct deposits"
+                />
+              </div>
+
+              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                <Link
+                  href="/register?role=appraiser"
+                  className="inline-flex items-center justify-center px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-lg hover:bg-[var(--accent)] transition-colors"
+                >
+                  Apply Now — It's Free
+                </Link>
+                <Link
+                  href="#appraiser-how-it-works"
+                  className="inline-flex items-center justify-center px-6 py-3 border border-[var(--border)] text-[var(--foreground)] font-semibold rounded-lg hover:bg-[var(--secondary)] transition-colors"
+                >
+                  Learn More
+                </Link>
+              </div>
+            </div>
+
+            {/* Right - Earnings Showcase */}
+            <div className="relative">
+              <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 shadow-2xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-[var(--primary)]/10 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">📊</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[var(--foreground)]">Top Earner This Month</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">Austin, TX area</p>
+                  </div>
+                </div>
+
+                <div className="text-center py-6 border-y border-[var(--border)]">
+                  <p className="text-5xl font-bold text-[var(--primary)]">$4,250</p>
+                  <p className="text-[var(--muted-foreground)] mt-1">32 jobs completed</p>
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  <EarningsRow label="Average per job" value="$133" />
+                  <EarningsRow label="Weekly average" value="$1,062" />
+                  <EarningsRow label="Hours worked" value="~25/week" />
+                </div>
+
+                <p className="mt-6 text-xs text-[var(--muted-foreground)] text-center">
+                  * Earnings vary by location, job type, and availability
+                </p>
+              </div>
+
+              {/* Floating badge */}
+              <div className="absolute -top-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                ✓ 150+ Active Appraisers
+              </div>
+            </div>
+          </div>
+
+          {/* How It Works for Appraisers */}
+          <div id="appraiser-how-it-works" className="mt-20">
+            <h3 className="text-2xl font-bold text-[var(--foreground)] text-center mb-12">
+              How It Works for Appraisers
+            </h3>
+            <div className="grid md:grid-cols-4 gap-6">
+              <AppraiserStep
+                number={1}
+                title="Apply Online"
+                description="Submit your license info and set up your profile in minutes"
+              />
+              <AppraiserStep
+                number={2}
+                title="Set Your Area"
+                description="Choose your coverage radius and available hours"
+              />
+              <AppraiserStep
+                number={3}
+                title="Accept Jobs"
+                description="Get notified of nearby jobs and accept what works for you"
+              />
+              <AppraiserStep
+                number={4}
+                title="Complete & Earn"
+                description="Take photos, submit evidence, get paid weekly"
+              />
+            </div>
+          </div>
+
+          {/* Requirements */}
+          <div className="mt-16 bg-[var(--card)] rounded-xl border border-[var(--border)] p-8">
+            <h3 className="text-xl font-semibold text-[var(--foreground)] mb-6 text-center">
+              Requirements
+            </h3>
+            <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
+              <RequirementItem icon="🪪" text="Valid Texas appraiser license" />
+              <RequirementItem icon="📱" text="Smartphone with camera" />
+              <RequirementItem icon="🚗" text="Reliable transportation" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials - Animated Carousel */}
       <TestimonialCarousel />
 
@@ -291,5 +427,63 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         {answer}
       </div>
     </details>
+  );
+}
+
+function AppraiserBenefit({
+  icon,
+  title,
+  description,
+}: {
+  icon: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 p-4 bg-[var(--card)] rounded-lg border border-[var(--border)]">
+      <span className="text-2xl">{icon}</span>
+      <div>
+        <p className="font-semibold text-[var(--foreground)]">{title}</p>
+        <p className="text-sm text-[var(--muted-foreground)]">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function EarningsRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-[var(--muted-foreground)]">{label}</span>
+      <span className="font-semibold text-[var(--foreground)]">{value}</span>
+    </div>
+  );
+}
+
+function AppraiserStep({
+  number,
+  title,
+  description,
+}: {
+  number: number;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="text-center p-6 bg-[var(--card)] rounded-xl border border-[var(--border)]">
+      <div className="w-10 h-10 mx-auto bg-[var(--primary)] text-white rounded-full flex items-center justify-center font-bold mb-4">
+        {number}
+      </div>
+      <h4 className="font-semibold text-[var(--foreground)] mb-2">{title}</h4>
+      <p className="text-sm text-[var(--muted-foreground)]">{description}</p>
+    </div>
+  );
+}
+
+function RequirementItem({ icon, text }: { icon: string; text: string }) {
+  return (
+    <div className="flex items-center gap-3 justify-center">
+      <span className="text-2xl">{icon}</span>
+      <span className="text-[var(--muted-foreground)]">{text}</span>
+    </div>
   );
 }

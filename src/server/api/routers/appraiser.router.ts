@@ -11,6 +11,7 @@ import {
   adminProcedure,
 } from "../trpc";
 import { TRPCError } from "@trpc/server";
+import * as storage from "@/shared/lib/storage";
 
 export const appraiserRouter = createTRPCRouter({
   /**
@@ -59,6 +60,7 @@ export const appraiserRouter = createTRPCRouter({
           ]),
           licenseNumber: z.string().min(1),
           licenseExpiry: z.string(),
+          licenseFileUrl: z.string().url().optional(),
           homeBaseLat: z.number(),
           homeBaseLng: z.number(),
           coverageRadiusMiles: z.number().min(5).max(100).default(50),
@@ -84,6 +86,7 @@ export const appraiserRouter = createTRPCRouter({
             licenseType: input.licenseType,
             licenseNumber: input.licenseNumber,
             licenseExpiry: new Date(input.licenseExpiry),
+            licenseFileUrl: input.licenseFileUrl,
             homeBaseLat: input.homeBaseLat,
             homeBaseLng: input.homeBaseLng,
             coverageRadiusMiles: input.coverageRadiusMiles,
@@ -125,6 +128,54 @@ export const appraiserRouter = createTRPCRouter({
             verificationNotes: input.notes,
           },
         });
+      }),
+
+    /**
+     * Get presigned URL for license document upload
+     */
+    getUploadUrl: protectedProcedure
+      .input(
+        z.object({
+          fileName: z.string(),
+          fileType: z.string(),
+          fileSize: z.number().max(10 * 1024 * 1024), // Max 10MB
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Validate file type
+        const validTypes = ["application/pdf", "image/jpeg", "image/png"];
+        if (!validTypes.includes(input.fileType)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid file type. Only PDF, JPG, and PNG are allowed.",
+          });
+        }
+
+        // Generate unique key
+        const timestamp = Date.now();
+        const ext = input.fileName.split(".").pop() || "pdf";
+        const fileKey = `licenses/${ctx.user.id}/${timestamp}.${ext}`;
+
+        try {
+          const result = await storage.getUploadUrl({
+            key: fileKey,
+            contentType: input.fileType,
+            expiresIn: 3600, // 1 hour
+          });
+
+          return {
+            uploadUrl: result.uploadUrl,
+            publicUrl: result.publicUrl,
+            fileKey: result.key,
+            expiresAt: result.expiresAt,
+          };
+        } catch (error) {
+          console.error("Error generating upload URL:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to generate upload URL",
+          });
+        }
       }),
   }),
 

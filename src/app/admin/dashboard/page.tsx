@@ -19,10 +19,25 @@ import {
 import Link from "next/link";
 import { AreaChart, BarChart, DonutChart } from "@/shared/components/charts";
 
+function formatTimeAgo(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins} min ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+  return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+}
+
 export default function AdminDashboardPage() {
   const { toast } = useToast();
   const { data: stats } = trpc.admin.dashboard.stats.useQuery();
   const { data: activity } = trpc.admin.dashboard.recentActivity.useQuery();
+  const { data: weeklyTrend } = trpc.admin.dashboard.weeklyTrend.useQuery();
+  const { data: jobTypeData } = trpc.admin.dashboard.jobTypeDistribution.useQuery();
 
   const metrics = [
     {
@@ -63,21 +78,21 @@ export default function AdminDashboardPage() {
     { label: "Breached", count: stats?.jobs?.slaBreach || 0, color: "bg-red-500" },
   ];
 
-  // Mock chart data - would come from API in production
-  const jobTrendData = [
-    { name: "Mon", jobs: 12, revenue: 1800 },
-    { name: "Tue", jobs: 19, revenue: 2850 },
-    { name: "Wed", jobs: 15, revenue: 2250 },
-    { name: "Thu", jobs: 22, revenue: 3300 },
-    { name: "Fri", jobs: 28, revenue: 4200 },
-    { name: "Sat", jobs: 8, revenue: 1200 },
-    { name: "Sun", jobs: 5, revenue: 750 },
+  // Use real data from API, fallback to empty array
+  const jobTrendData = weeklyTrend || [
+    { name: "Mon", jobs: 0, revenue: 0 },
+    { name: "Tue", jobs: 0, revenue: 0 },
+    { name: "Wed", jobs: 0, revenue: 0 },
+    { name: "Thu", jobs: 0, revenue: 0 },
+    { name: "Fri", jobs: 0, revenue: 0 },
+    { name: "Sat", jobs: 0, revenue: 0 },
+    { name: "Sun", jobs: 0, revenue: 0 },
   ];
 
-  const jobTypeData = [
-    { name: "AI Only", value: 45 },
-    { name: "On-Site", value: 35 },
-    { name: "Certified", value: 20 },
+  const chartJobTypeData = jobTypeData || [
+    { name: "AI Only", value: 0 },
+    { name: "On-Site", value: 0 },
+    { name: "Certified", value: 0 },
   ];
 
   return (
@@ -107,7 +122,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {metrics.map((metric) => {
           const Icon = metric.icon;
           return (
@@ -139,9 +154,9 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Job Trends Chart */}
-        <div className="col-span-2 bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+        <div className="lg:col-span-2 bg-[var(--card)] rounded-lg border border-[var(--border)] p-4 md:p-6">
           <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-[var(--muted-foreground)]" />
             Weekly Job Trends
@@ -161,16 +176,16 @@ export default function AdminDashboardPage() {
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
           <h2 className="font-semibold text-[var(--foreground)] mb-4">Job Type Distribution</h2>
           <DonutChart
-            data={jobTypeData}
+            data={chartJobTypeData}
             height={250}
             showLegend
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* SLA Status */}
-        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4 md:p-6">
           <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <Clock className="w-5 h-5 text-[var(--muted-foreground)]" />
             SLA Status
@@ -268,27 +283,27 @@ export default function AdminDashboardPage() {
           </Link>
         </div>
         <div className="divide-y divide-[var(--border)]">
-          {[
-            { icon: CheckCircle, color: "text-green-500", text: "Report #APR-2024-0892 completed", time: "5 min ago" },
-            { icon: Users, color: "text-[var(--primary)]", text: "New appraiser registration: John Smith", time: "15 min ago" },
-            { icon: AlertTriangle, color: "text-yellow-500", text: "SLA warning for job #JOB-7821", time: "32 min ago" },
-            { icon: DollarSign, color: "text-green-500", text: "Payment received: $149 from Acme Lending", time: "1 hour ago" },
-            { icon: FileText, color: "text-[var(--primary)]", text: "New appraisal request from Texas Home Loans", time: "2 hours ago" },
-          ].map((activity, i) => {
-            const Icon = activity.icon;
-            return (
-              <div key={i} className="px-6 py-4 flex items-center gap-4">
-                <Icon className={`w-5 h-5 ${activity.color}`} />
-                <p className="flex-1 text-[var(--foreground)]">{activity.text}</p>
-                <span className="text-sm text-[var(--muted-foreground)]">{activity.time}</span>
-              </div>
-            );
-          })}
+          {activity?.recentAppraisals?.slice(0, 5).map((appraisal) => (
+            <div key={appraisal.id} className="px-6 py-4 flex items-center gap-4">
+              <FileText className="w-5 h-5 text-[var(--primary)]" />
+              <p className="flex-1 text-[var(--foreground)]">
+                New appraisal request from {appraisal.organization?.name || "Unknown"}
+              </p>
+              <span className="text-sm text-[var(--muted-foreground)]">
+                {formatTimeAgo(new Date(appraisal.createdAt))}
+              </span>
+            </div>
+          ))}
+          {!activity?.recentAppraisals?.length && (
+            <div className="px-6 py-4 text-center text-[var(--muted-foreground)]">
+              No recent activity
+            </div>
+          )}
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: "Manage Appraisers", href: "/admin/appraisers", icon: UserCheck },
           { label: "View All Jobs", href: "/admin/jobs", icon: Briefcase },

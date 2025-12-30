@@ -1,10 +1,14 @@
 "use client";
 
+/**
+ * MapView Component - Using MapLibre GL (free, no API key required)
+ * Uses free tile sources: OpenStreetMap (streets), ESRI (satellite)
+ */
+
 import { useEffect, useRef, useState, useCallback } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
-import { MapLayerControls, type LayerConfig } from "./MapLayerControls";
-import { MapBaseLayers, type BaseLayerStyle, baseLayerOptions } from "./MapBaseLayers";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { Layers, Map as MapIcon, Satellite, RotateCcw } from "lucide-react";
 
 export interface MapMarker {
   id: string;
@@ -16,18 +20,7 @@ export interface MapMarker {
   onClick?: () => void;
 }
 
-// Predefined layer configurations
-export interface MapLayerDefinition {
-  id: string;
-  label: string;
-  color: string;
-  description?: string;
-  sourceType: "geojson" | "vector";
-  sourceUrl?: string;
-  sourceLayer?: string;
-  paintType: "fill" | "line" | "circle";
-  paint: mapboxgl.FillPaint | mapboxgl.LinePaint | mapboxgl.CirclePaint;
-}
+export type BaseLayerStyle = "streets" | "satellite" | "hybrid";
 
 export interface MapViewProps {
   center?: [number, number]; // [longitude, latitude]
@@ -41,7 +34,6 @@ export interface MapViewProps {
   showLayerControls?: boolean;
   showBaseLayerSwitcher?: boolean;
   defaultBaseLayer?: BaseLayerStyle;
-  enabledLayers?: string[]; // IDs of layers to enable by default
   onMapClick?: (lngLat: { lng: number; lat: number }) => void;
   onMarkerClick?: (marker: MapMarker) => void;
   fitBounds?: [[number, number], [number, number]]; // [[sw], [ne]]
@@ -52,53 +44,90 @@ export interface MapViewProps {
 const DEFAULT_CENTER: [number, number] = [-99.9018, 31.9686];
 const DEFAULT_ZOOM = 6;
 
-// Available overlay layers
-const AVAILABLE_LAYERS: MapLayerDefinition[] = [
-  {
-    id: "parcels",
-    label: "Property Parcels",
-    color: "#3B6CF3",
-    description: "Property boundary lines",
-    sourceType: "vector",
-    sourceUrl: "mapbox://mapbox.mapbox-streets-v8",
-    sourceLayer: "building",
-    paintType: "line",
-    paint: {
-      "line-color": "#3B6CF3",
-      "line-width": 1,
-      "line-opacity": 0.6,
-    } as mapboxgl.LinePaint,
+// Free tile sources - no API key required
+const BASE_STYLES: Record<BaseLayerStyle, maplibregl.StyleSpecification> = {
+  streets: {
+    version: 8,
+    sources: {
+      "osm-tiles": {
+        type: "raster",
+        tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+        tileSize: 256,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      },
+    },
+    layers: [
+      {
+        id: "osm-tiles",
+        type: "raster",
+        source: "osm-tiles",
+        minzoom: 0,
+        maxzoom: 19,
+      },
+    ],
   },
-  {
-    id: "flood-zones",
-    label: "Flood Zones",
-    color: "#06B6D4",
-    description: "FEMA flood hazard areas",
-    sourceType: "vector",
-    sourceUrl: "mapbox://mapbox.mapbox-streets-v8",
-    sourceLayer: "water",
-    paintType: "fill",
-    paint: {
-      "fill-color": "#06B6D4",
-      "fill-opacity": 0.3,
-    } as mapboxgl.FillPaint,
+  satellite: {
+    version: 8,
+    sources: {
+      "satellite-tiles": {
+        type: "raster",
+        tiles: [
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        ],
+        tileSize: 256,
+        attribution:
+          "&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
+      },
+    },
+    layers: [
+      {
+        id: "satellite-tiles",
+        type: "raster",
+        source: "satellite-tiles",
+        minzoom: 0,
+        maxzoom: 19,
+      },
+    ],
   },
-  {
-    id: "zoning",
-    label: "Zoning",
-    color: "#8B5CF6",
-    description: "Land use zoning",
-    sourceType: "vector",
-    sourceUrl: "mapbox://mapbox.mapbox-streets-v8",
-    sourceLayer: "landuse",
-    paintType: "fill",
-    paint: {
-      "fill-color": "#8B5CF6",
-      "fill-opacity": 0.2,
-      "fill-outline-color": "#8B5CF6",
-    } as mapboxgl.FillPaint,
+  hybrid: {
+    version: 8,
+    sources: {
+      "satellite-tiles": {
+        type: "raster",
+        tiles: [
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        ],
+        tileSize: 256,
+      },
+      "labels-tiles": {
+        type: "raster",
+        tiles: [
+          "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+        ],
+        tileSize: 256,
+        attribution:
+          "&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
+      },
+    },
+    layers: [
+      {
+        id: "satellite-tiles",
+        type: "raster",
+        source: "satellite-tiles",
+        minzoom: 0,
+        maxzoom: 19,
+      },
+      {
+        id: "labels-tiles",
+        type: "raster",
+        source: "labels-tiles",
+        minzoom: 0,
+        maxzoom: 19,
+      },
+    ],
   },
-];
+};
 
 export function MapView({
   center = DEFAULT_CENTER,
@@ -111,160 +140,96 @@ export function MapView({
   showScale = true,
   showLayerControls = false,
   showBaseLayerSwitcher = false,
-  defaultBaseLayer = "dark",
-  enabledLayers = [],
+  defaultBaseLayer = "streets",
   onMapClick,
   onMarkerClick,
   fitBounds,
   padding = 50,
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  const map = useRef<maplibregl.Map | null>(null);
+  const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
   const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [baseLayer, setBaseLayer] = useState<BaseLayerStyle>(defaultBaseLayer);
-  const [layers, setLayers] = useState<LayerConfig[]>(
-    AVAILABLE_LAYERS.map((layer) => ({
-      id: layer.id,
-      label: layer.label,
-      visible: enabledLayers.includes(layer.id),
-      opacity: 1,
-      color: layer.color,
-      description: layer.description,
-    }))
-  );
-
-  // Get initial style URL
-  const getStyleUrl = useCallback((style: BaseLayerStyle) => {
-    return baseLayerOptions.find((o) => o.id === style)?.styleUrl ||
-      "mapbox://styles/mapbox/dark-v11";
-  }, []);
-
-  // Handle base layer change
-  const handleBaseLayerChange = useCallback((style: BaseLayerStyle, styleUrl: string) => {
-    if (!map.current) return;
-    setBaseLayer(style);
-    map.current.setStyle(styleUrl);
-
-    // Re-add overlay layers after style change
-    map.current.once("style.load", () => {
-      addOverlayLayers();
-    });
-  }, []);
-
-  // Handle layer config change
-  const handleLayerChange = useCallback((layerId: string, updates: Partial<LayerConfig>) => {
-    setLayers((prev) =>
-      prev.map((layer) =>
-        layer.id === layerId ? { ...layer, ...updates } : layer
-      )
-    );
-  }, []);
-
-  // Add overlay layers to map
-  const addOverlayLayers = useCallback(() => {
-    if (!map.current) return;
-
-    AVAILABLE_LAYERS.forEach((layerDef) => {
-      const layerConfig = layers.find((l) => l.id === layerDef.id);
-      if (!layerConfig) return;
-
-      // Check if source already exists
-      if (!map.current!.getSource(`${layerDef.id}-source`)) {
-        if (layerDef.sourceType === "vector" && layerDef.sourceUrl) {
-          map.current!.addSource(`${layerDef.id}-source`, {
-            type: "vector",
-            url: layerDef.sourceUrl,
-          });
-        }
-      }
-
-      // Check if layer already exists
-      if (!map.current!.getLayer(layerDef.id)) {
-        const layerConfig = {
-          id: layerDef.id,
-          type: layerDef.paintType,
-          source: `${layerDef.id}-source`,
-          "source-layer": layerDef.sourceLayer,
-          paint: layerDef.paint,
-          layout: {
-            visibility: "none" as const,
-          },
-        };
-
-        map.current!.addLayer(layerConfig as mapboxgl.AnyLayer);
-      }
-    });
-  }, [layers]);
 
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    if (!token) {
-      setError("Mapbox token not configured");
-      return;
+    map.current = new maplibregl.Map({
+      container: mapContainer.current,
+      style: BASE_STYLES[defaultBaseLayer],
+      center,
+      zoom,
+      interactive,
+      attributionControl: false,
+    });
+
+    // Add controls
+    if (showNavigation && interactive) {
+      map.current.addControl(
+        new maplibregl.NavigationControl(),
+        "top-right"
+      );
     }
 
-    mapboxgl.accessToken = token;
-
-    try {
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: getStyleUrl(defaultBaseLayer),
-        center,
-        zoom,
-        interactive,
-        attributionControl: false,
-      });
-
-      // Add controls
-      if (showNavigation && interactive) {
-        map.current.addControl(
-          new mapboxgl.NavigationControl(),
-          "top-right"
-        );
-      }
-
-      if (showScale) {
-        map.current.addControl(
-          new mapboxgl.ScaleControl({ maxWidth: 100 }),
-          "bottom-left"
-        );
-      }
-
-      // Attribution
+    if (showScale) {
       map.current.addControl(
-        new mapboxgl.AttributionControl({ compact: true }),
-        "bottom-right"
+        new maplibregl.ScaleControl({ maxWidth: 100 }),
+        "bottom-left"
       );
+    }
 
-      // Handle load
-      map.current.on("load", () => {
-        setIsLoaded(true);
-        addOverlayLayers();
+    // Attribution
+    map.current.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      "bottom-right"
+    );
+
+    // Handle load
+    map.current.on("load", () => {
+      // Force resize to ensure map fills container correctly
+      map.current?.resize();
+      setIsLoaded(true);
+    });
+
+    // Multiple resize calls to handle CSS layout settling at different stages
+    const resizeDelays = [50, 100, 200, 500];
+    const timeouts = resizeDelays.map(delay =>
+      setTimeout(() => {
+        map.current?.resize();
+      }, delay)
+    );
+
+    // Also resize on idle callback for smoother handling
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(() => {
+        map.current?.resize();
       });
+    }
 
-      // Handle click
-      if (onMapClick) {
-        map.current.on("click", (e) => {
-          onMapClick({ lng: e.lngLat.lng, lat: e.lngLat.lat });
-        });
-      }
-
-      // Handle errors
-      map.current.on("error", (e) => {
-        console.error("Mapbox error:", e);
-        setError("Error loading map");
+    // Handle click
+    if (onMapClick) {
+      map.current.on("click", (e) => {
+        onMapClick({ lng: e.lngLat.lng, lat: e.lngLat.lat });
       });
-    } catch (err) {
-      console.error("Map initialization error:", err);
-      setError("Failed to initialize map");
+    }
+
+    // ResizeObserver to handle container size changes
+    const resizeObserver = new ResizeObserver(() => {
+      map.current?.resize();
+    });
+    if (mapContainer.current) {
+      resizeObserver.observe(mapContainer.current);
     }
 
     return () => {
+      // Clean up timeouts
+      timeouts.forEach(t => clearTimeout(t));
+
+      // Clean up resize observer
+      resizeObserver.disconnect();
+
       // Clean up markers
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current.clear();
@@ -275,6 +240,23 @@ export function MapView({
         map.current = null;
       }
     };
+  }, []);
+
+  // Handle base layer change
+  const handleBaseLayerChange = useCallback((newStyle: BaseLayerStyle) => {
+    if (!map.current) return;
+    setBaseLayer(newStyle);
+    map.current.setStyle(BASE_STYLES[newStyle]);
+  }, []);
+
+  // Reset view
+  const handleResetView = useCallback(() => {
+    if (!map.current) return;
+    map.current.flyTo({
+      center: DEFAULT_CENTER,
+      zoom: DEFAULT_ZOOM,
+      duration: 1000,
+    });
   }, []);
 
   // Update center and zoom
@@ -318,7 +300,7 @@ export function MapView({
         // Create new marker
         const el = createMarkerElement(markerData);
 
-        marker = new mapboxgl.Marker({
+        marker = new maplibregl.Marker({
           element: el,
           anchor: "bottom",
         })
@@ -327,7 +309,7 @@ export function MapView({
 
         // Add popup if provided
         if (markerData.popup) {
-          const popup = new mapboxgl.Popup({
+          const popup = new maplibregl.Popup({
             offset: 25,
             closeButton: true,
             closeOnClick: false,
@@ -351,43 +333,11 @@ export function MapView({
     });
   }, [markers, isLoaded, onMarkerClick]);
 
-  // Sync layer visibility and opacity
-  useEffect(() => {
-    if (!map.current || !isLoaded) return;
-
-    layers.forEach((layerConfig) => {
-      if (map.current!.getLayer(layerConfig.id)) {
-        // Update visibility
-        map.current!.setLayoutProperty(
-          layerConfig.id,
-          "visibility",
-          layerConfig.visible ? "visible" : "none"
-        );
-
-        // Update opacity based on layer type
-        const layerDef = AVAILABLE_LAYERS.find((l) => l.id === layerConfig.id);
-        if (layerDef) {
-          const opacityProp =
-            layerDef.paintType === "fill"
-              ? "fill-opacity"
-              : layerDef.paintType === "line"
-              ? "line-opacity"
-              : "circle-opacity";
-          map.current!.setPaintProperty(
-            layerConfig.id,
-            opacityProp,
-            layerConfig.opacity
-          );
-        }
-      }
-    });
-  }, [layers, isLoaded]);
-
   // Fit bounds to markers
   const fitToMarkers = useCallback(() => {
     if (!map.current || markers.length === 0) return;
 
-    const bounds = new mapboxgl.LngLatBounds();
+    const bounds = new maplibregl.LngLatBounds();
     markers.forEach((marker) => {
       bounds.extend([marker.longitude, marker.latitude]);
     });
@@ -398,35 +348,22 @@ export function MapView({
     });
   }, [markers, padding]);
 
-  if (error) {
-    return (
-      <div
-        className={`flex items-center justify-center bg-[var(--muted)] text-[var(--muted-foreground)] rounded-lg ${className}`}
-        style={{ minHeight: 300, ...style }}
-      >
-        <div className="text-center">
-          <svg
-            className="mx-auto h-12 w-12 text-[var(--muted-foreground)]"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-            />
-          </svg>
-          <p className="mt-2">{error}</p>
-        </div>
-      </div>
-    );
-  }
+  // Compute final height - prefer explicit height from style prop
+  const containerHeight = style?.height ?? 300;
 
   return (
-    <div className={`relative ${className}`} style={{ minHeight: 300, ...style }}>
-      <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
+    <div
+      className={`relative ${className}`}
+      style={{ ...style, height: containerHeight }}
+    >
+      <div
+        ref={mapContainer}
+        style={{
+          width: '100%',
+          height: typeof containerHeight === 'number' ? containerHeight : '100%'
+        }}
+        className="rounded-lg"
+      />
 
       {/* Loading state */}
       {!isLoaded && (
@@ -470,19 +407,64 @@ export function MapView({
 
       {/* Base layer switcher */}
       {isLoaded && showBaseLayerSwitcher && (
-        <MapBaseLayers
-          currentStyle={baseLayer}
-          onStyleChange={handleBaseLayerChange}
-          className="absolute bottom-6 left-2 z-10"
-        />
+        <div className="absolute bottom-6 left-2 z-10 flex gap-1 bg-[var(--card)] border border-[var(--border)] p-1 rounded-lg shadow-lg">
+          <button
+            onClick={() => handleBaseLayerChange("streets")}
+            className={`p-2 rounded-md transition-colors ${
+              baseLayer === "streets"
+                ? "bg-blue-500 text-white"
+                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
+            }`}
+            title="Streets"
+          >
+            <MapIcon className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => handleBaseLayerChange("satellite")}
+            className={`p-2 rounded-md transition-colors ${
+              baseLayer === "satellite"
+                ? "bg-blue-500 text-white"
+                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
+            }`}
+            title="Satellite"
+          >
+            <Satellite className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => handleBaseLayerChange("hybrid")}
+            className={`p-2 rounded-md transition-colors ${
+              baseLayer === "hybrid"
+                ? "bg-blue-500 text-white"
+                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
+            }`}
+            title="Hybrid"
+          >
+            <Layers className="h-4 w-4" />
+          </button>
+          <div className="w-px bg-[var(--border)]" />
+          <button
+            onClick={handleResetView}
+            className="p-2 rounded-md text-[var(--muted-foreground)] hover:bg-[var(--secondary)] transition-colors"
+            title="Reset View"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </button>
+        </div>
       )}
 
-      {/* Layer controls */}
+      {/* Layer controls panel */}
       {isLoaded && showLayerControls && (
-        <MapLayerControls
-          layers={layers}
-          onLayerChange={handleLayerChange}
-        />
+        <div className="absolute top-2 right-14 z-10 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg p-3 min-w-[180px]">
+          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--border)]">
+            <Layers className="h-4 w-4 text-[var(--primary)]" />
+            <span className="font-medium text-sm text-[var(--foreground)]">
+              Layers
+            </span>
+          </div>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            Layer controls coming soon
+          </p>
+        </div>
       )}
     </div>
   );
@@ -490,7 +472,7 @@ export function MapView({
 
 function createMarkerElement(marker: MapMarker): HTMLElement {
   const el = document.createElement("div");
-  el.className = "mapbox-marker";
+  el.className = "maplibre-marker";
 
   const color = marker.color || "#EF4444"; // Default red
 
@@ -529,7 +511,7 @@ function createMarkerElement(marker: MapMarker): HTMLElement {
   return el;
 }
 
-// Static map component for non-interactive displays
+// Static map component using OpenStreetMap static API
 export function StaticMapView({
   longitude,
   latitude,
@@ -547,24 +529,11 @@ export function StaticMapView({
   marker?: boolean;
   className?: string;
 }) {
-  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
-  if (!token) {
-    return (
-      <div
-        className={`flex items-center justify-center bg-gray-100 text-gray-500 ${className}`}
-        style={{ width, height }}
-      >
-        Map not available
-      </div>
-    );
-  }
-
-  const markerOverlay = marker
-    ? `pin-l+ef4444(${longitude},${latitude})/`
+  // Use OpenStreetMap static map service (free)
+  const markerParam = marker
+    ? `&markers=${longitude},${latitude},red-pushpin`
     : "";
-
-  const url = `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${markerOverlay}${longitude},${latitude},${zoom}/${width}x${height}@2x?access_token=${token}`;
+  const url = `https://staticmap.openstreetmap.de/staticmap.php?center=${latitude},${longitude}&zoom=${zoom}&size=${width}x${height}&maptype=osmarenderer${markerParam}`;
 
   return (
     <img

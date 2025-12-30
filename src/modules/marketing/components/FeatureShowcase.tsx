@@ -23,9 +23,9 @@ const features = [
   },
   {
     icon: Shield,
-    title: "Bank-Grade Security",
+    title: "Enterprise Security",
     description:
-      "SOC 2 compliant with end-to-end encryption. Your data is protected with enterprise-level security.",
+      "End-to-end encryption with enterprise-level security. Your data is protected at every step.",
     color: "text-green-500",
     bgColor: "bg-green-500/10",
   },
@@ -39,9 +39,9 @@ const features = [
   },
   {
     icon: MapPin,
-    title: "Nationwide Coverage",
+    title: "Texas Coverage",
     description:
-      "Access property data across all 50 states with hyper-local market intelligence.",
+      "Comprehensive property data across Texas with hyper-local market intelligence. More states coming 2025.",
     color: "text-purple-500",
     bgColor: "bg-purple-500/10",
   },

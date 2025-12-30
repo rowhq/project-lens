@@ -18,6 +18,8 @@ import { disputeRouter } from "./routers/dispute.router";
 import { adminRouter } from "./routers/admin.router";
 import { marketplaceRouter } from "./routers/marketplace.router";
 import { userRouter } from "./routers/user.router";
+import { notificationsRouter } from "./routers/notifications.router";
+import { mapRouter } from "./routers/map.router";
 
 /**
  * Main application router
@@ -36,6 +38,8 @@ export const appRouter = createTRPCRouter({
   admin: adminRouter,
   marketplace: marketplaceRouter,
   user: userRouter,
+  notifications: notificationsRouter,
+  map: mapRouter,
 });
 
 // Export type definition of API

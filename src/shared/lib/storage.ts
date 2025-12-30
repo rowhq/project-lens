@@ -187,10 +187,18 @@ export function getContentType(filename: string): string {
  */
 export function isValidEvidenceType(contentType: string): boolean {
   const validTypes = [
+    // Images
     "image/jpeg",
     "image/png",
     "image/webp",
     "image/heic",
+    // Audio (voice notes)
+    "audio/webm",
+    "audio/mp4",
+    "audio/mpeg",
+    "audio/ogg",
+    "audio/wav",
+    "audio/x-m4a",
   ];
   return validTypes.includes(contentType);
 }

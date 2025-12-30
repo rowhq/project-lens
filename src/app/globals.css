@@ -111,6 +111,15 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  /* Semantic Status Colors */
+  --color-success: var(--color-success);
+  --color-success-foreground: #ffffff;
+  --color-warning: var(--color-warning);
+  --color-warning-foreground: #000000;
+  --color-error: var(--color-error);
+  --color-error-foreground: #ffffff;
+  --color-info: var(--color-info);
+  --color-info-foreground: #ffffff;
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --radius-sm: calc(var(--radius) - 4px);
@@ -229,6 +238,21 @@ body {
 
 .animate-scale-in {
   animation: scaleIn 0.2s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.2s ease-out;
 }
 
 /* Loading Skeleton */

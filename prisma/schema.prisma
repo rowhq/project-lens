@@ -82,6 +82,7 @@ enum EvidenceMediaType {
   VIDEO
   DOCUMENT
   FLOOR_PLAN
+  AUDIO
 }
 
 enum AppraiserLicenseType {
@@ -452,10 +453,11 @@ model AppraiserProfile {
   user   User   @relation(fields: [userId], references: [id])
 
   // License information
-  licenseType   AppraiserLicenseType
-  licenseState  String                @default("TX")
-  licenseNumber String                @unique
-  licenseExpiry DateTime
+  licenseType    AppraiserLicenseType
+  licenseState   String                @default("TX")
+  licenseNumber  String                @unique
+  licenseExpiry  DateTime
+  licenseFileUrl String?               // URL to uploaded license document
 
   // Verification
   verificationStatus AppraiserVerificationStatus @default(PENDING)
@@ -477,6 +479,10 @@ model AppraiserProfile {
   completedJobs         Int   @default(0)
   cancelledJobs         Int   @default(0)
   averageCompletionTime Int? // minutes
+
+  // Skipped jobs (job IDs with timestamps for cooldown)
+  // Format: { "jobId": "2024-01-15T10:30:00Z", ... }
+  skippedJobs Json @default("{}")
 
   // Payout info
   stripeConnectId String?  @unique
@@ -715,6 +721,20 @@ model FeatureFlag {
   @@index([isEnabled])
 }
 
+model SystemConfig {
+  id String @id @default(cuid())
+
+  key   String @unique // config key, e.g., "payout_schedule", "payout_min_amount"
+  value Json            // JSON value for flexibility
+
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+
 // ============================================
 // SHARE LINKS
 // ============================================
@@ -855,8 +875,9 @@ model NotificationPreferences {
   emailMarketing     Boolean @default(false)
 
   // Push notifications
-  pushUrgent   Boolean @default(true)
-  pushReports  Boolean @default(true)
+  pushUrgent         Boolean @default(true)
+  pushReports        Boolean @default(true)
+  pushSubscription   Json?   // Web Push subscription data (endpoint, keys)
 
   // Timestamps
   createdAt DateTime @default(now())

@@ -367,6 +367,78 @@ export async function sendReportEmail(params: {
 }
 
 /**
+ * Send appraisal order confirmation
+ */
+export async function sendAppraisalOrderConfirmation(params: {
+  email: string;
+  userName: string;
+  propertyAddress: string;
+  appraisalId: string;
+  reportType: string;
+  estimatedDelivery: string;
+  amount: number;
+}): Promise<{ id: string }> {
+  const viewUrl = `${APP_URL}/appraisals/${params.appraisalId}`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #2563eb; margin: 0;">LENS</h1>
+        <p style="color: #666; margin: 5px 0;">Fast Appraisals for Lenders</p>
+      </div>
+
+      <h2 style="color: #1f2937;">Order Confirmed!</h2>
+
+      <p>Hi ${params.userName},</p>
+
+      <p>Thank you for your order! Your appraisal request has been received and is being processed.</p>
+
+      <div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <p style="margin: 0;"><strong>Property:</strong> ${params.propertyAddress}</p>
+        <p style="margin: 10px 0;"><strong>Report Type:</strong> ${params.reportType}</p>
+        <p style="margin: 10px 0;"><strong>Estimated Delivery:</strong> ${params.estimatedDelivery}</p>
+        <p style="margin: 10px 0 0;"><strong>Amount:</strong> $${params.amount.toFixed(2)}</p>
+      </div>
+
+      <div style="background-color: #eff6ff; border-radius: 8px; padding: 15px; margin: 20px 0;">
+        <p style="margin: 0; font-size: 14px; color: #1e40af;">
+          <strong>What happens next?</strong><br>
+          An appraiser will be assigned to your property and will conduct an on-site inspection.
+          You'll receive notifications as your appraisal progresses.
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${viewUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
+          Track Your Order
+        </a>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+      <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+        If you have questions, reply to this email or contact support@projectlens.com
+        <br><br>
+        © ${new Date().getFullYear()} LENS. All rights reserved.
+      </p>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: params.email,
+    subject: `Order Confirmed: Appraisal for ${params.propertyAddress}`,
+    html,
+  });
+}
+
+/**
  * Send payment confirmation
  */
 export async function sendPaymentConfirmation(params: {

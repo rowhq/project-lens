@@ -19,7 +19,9 @@ import {
   AlertCircle,
   RefreshCw,
   ChevronRight,
+  Briefcase,
 } from "lucide-react";
+import { EmptyState } from "@/shared/components/common/EmptyState";
 
 type JobStatus =
   | "PENDING_DISPATCH"
@@ -300,11 +302,12 @@ export default function AdminJobsPage() {
               </tr>
             ) : filteredJobs?.length === 0 ? (
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-6 py-12 text-center text-[var(--muted-foreground)]"
-                >
-                  No jobs found
+                <td colSpan={6}>
+                  <EmptyState
+                    icon={Briefcase}
+                    title="No jobs found"
+                    description="Try adjusting your search or status filters to find jobs"
+                  />
                 </td>
               </tr>
             ) : (
