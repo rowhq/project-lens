@@ -1,0 +1,864 @@
+// Project LENS - Database Schema
+// Texas V1 - AI Appraisal Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  CLIENT
+  APPRAISER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+enum OrganizationPlan {
+  FREE_TRIAL
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum PropertyType {
+  SINGLE_FAMILY
+  MULTI_FAMILY
+  CONDO
+  TOWNHOUSE
+  COMMERCIAL
+  LAND
+  MIXED_USE
+}
+
+enum AppraisalStatus {
+  DRAFT
+  QUEUED
+  RUNNING
+  READY
+  FAILED
+  EXPIRED
+}
+
+enum ReportType {
+  AI_REPORT
+  AI_REPORT_WITH_ONSITE
+  CERTIFIED_APPRAISAL
+}
+
+enum JobType {
+  ONSITE_PHOTOS
+  CERTIFIED_APPRAISAL
+}
+
+enum JobStatus {
+  PENDING_DISPATCH
+  DISPATCHED
+  ACCEPTED
+  IN_PROGRESS
+  SUBMITTED
+  UNDER_REVIEW
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum EvidenceMediaType {
+  PHOTO
+  VIDEO
+  DOCUMENT
+  FLOOR_PLAN
+}
+
+enum AppraiserLicenseType {
+  TRAINEE
+  LICENSED
+  CERTIFIED_RESIDENTIAL
+  CERTIFIED_GENERAL
+}
+
+enum AppraiserVerificationStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  REVOKED
+}
+
+enum PaymentType {
+  CHARGE
+  REFUND
+  PAYOUT
+  ADJUSTMENT
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum DisputeCategory {
+  VALUATION_ACCURACY
+  SERVICE_QUALITY
+  TIMELINESS
+  PHOTO_QUALITY
+  BILLING
+  OTHER
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  ESCALATED
+  CLOSED
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model User {
+  id             String     @id @default(cuid())
+  email          String     @unique
+  password       String?    // Hashed password (bcrypt)
+  phone          String?
+  firstName      String
+  lastName       String
+  avatarUrl      String?
+  jobTitle       String?
+  location       String?
+  role           UserRole   @default(CLIENT)
+  status         UserStatus @default(PENDING)
+
+  // Organization relationship (for clients)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  // Appraiser profile (if role is APPRAISER)
+  appraiserProfile AppraiserProfile?
+
+  // Notification preferences
+  notificationPreferences NotificationPreferences?
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  // Relations
+  appraisalRequests AppraisalRequest[]
+  assignedJobs      Job[]              @relation("AssignedAppraiser")
+  payments          Payment[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+  disputeComments   DisputeComment[]
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([role])
+}
+
+model Organization {
+  id               String           @id @default(cuid())
+  name             String
+  slug             String           @unique
+  logoUrl          String?
+
+  // Billing
+  stripeCustomerId String?          @unique
+  plan             OrganizationPlan @default(FREE_TRIAL)
+  seats            Int              @default(5)
+
+  // Contact
+  billingEmail String?
+  phone        String?
+  address      String?
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  trialEndsAt DateTime?
+
+  // Relations
+  users             User[]
+  appraisalRequests AppraisalRequest[]
+  jobs              Job[]
+  payments          Payment[]
+  disputes          Dispute[]
+  apiKeys           ApiKey[]
+
+  // Marketplace
+  marketplaceListings  MarketplaceListing[] @relation("ListingSeller")
+  marketplacePurchases MarketplacePurchase[] @relation("ListingBuyer")
+
+  @@index([slug])
+  @@index([stripeCustomerId])
+}
+
+model Property {
+  id String @id @default(cuid())
+
+  // Address components
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  county       String
+  state        String  @default("TX")
+  zipCode      String
+  addressFull  String // Formatted full address
+
+  // Geolocation
+  latitude  Float
+  longitude Float
+
+  // Property details
+  propertyType PropertyType
+  parcelId     String? // County parcel ID
+
+  // External data IDs
+  attomId String?
+  mlsId   String?
+
+  // Cached property data
+  yearBuilt   Int?
+  sqft        Int?
+  lotSizeSqft Int?
+  bedrooms    Int?
+  bathrooms   Float?
+  stories     Int?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  appraisalRequests AppraisalRequest[]
+  jobs              Job[]
+
+  @@unique([parcelId, county])
+  @@index([zipCode])
+  @@index([county])
+  @@index([addressFull])
+  @@index([latitude, longitude])
+}
+
+model AppraisalRequest {
+  id            String @id @default(cuid())
+  referenceCode String @unique @default(cuid()) // Human-readable code
+
+  // Relationships
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  requestedById  String
+  requestedBy    User         @relation(fields: [requestedById], references: [id])
+  propertyId     String
+  property       Property     @relation(fields: [propertyId], references: [id])
+
+  // Request details
+  purpose       String // Refinance, Purchase, Investment, etc.
+  requestedType ReportType      @default(AI_REPORT)
+  notes         String?
+
+  // Status tracking
+  status        AppraisalStatus @default(DRAFT)
+  statusMessage String?
+
+  // Report (when completed)
+  reportId String? @unique
+  report   Report? @relation(fields: [reportId], references: [id])
+
+  // SLA tracking
+  startedAt   DateTime?
+  completedAt DateTime?
+  expiresAt   DateTime?
+
+  // Pricing
+  price    Decimal @db.Decimal(10, 2)
+  currency String  @default("USD")
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  jobs Job[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([referenceCode])
+  @@index([createdAt])
+}
+
+model Report {
+  id      String     @id @default(cuid())
+  version Int        @default(1)
+  type    ReportType
+
+  // Valuation
+  valueEstimate    Decimal @db.Decimal(12, 2)
+  valueRangeMin    Decimal @db.Decimal(12, 2)
+  valueRangeMax    Decimal @db.Decimal(12, 2)
+  fastSaleEstimate Decimal? @db.Decimal(12, 2) // Quick sale value
+  confidenceScore  Float // 0-100
+
+  // Comparables (JSON array of comp data)
+  comps      Json // Array of comparable properties
+  compsCount Int
+
+  // Risk assessment
+  riskFlags Json // Array of risk flags
+  riskScore Int // 0-100 (higher = more risk)
+
+  // AI analysis
+  aiAnalysis   Json? // Full AI analysis data
+  marketTrends Json? // Market trend data
+
+  // Report files
+  htmlContent String? @db.Text
+  htmlUrl     String?
+  pdfUrl      String?
+
+  // For certified reports
+  signedAt            DateTime?
+  signedById          String?
+  certificationNumber String?
+
+  // Timestamps
+  generatedAt DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lockedAt    DateTime? // Immutable after this
+
+  // Relations
+  appraisalRequest    AppraisalRequest?
+  relatedDisputes     Dispute[]
+  marketplaceListings MarketplaceListing[]
+
+  @@index([type])
+  @@index([generatedAt])
+}
+
+model Job {
+  id        String  @id @default(cuid())
+  jobNumber String  @unique @default(cuid())
+  jobType   JobType
+
+  // Relationships
+  propertyId         String
+  property           Property          @relation(fields: [propertyId], references: [id])
+  organizationId     String
+  organization       Organization      @relation(fields: [organizationId], references: [id])
+  appraisalRequestId String?
+  appraisalRequest   AppraisalRequest? @relation(fields: [appraisalRequestId], references: [id])
+
+  // Assignment
+  assignedAppraiserId String?
+  assignedAppraiser   User?   @relation("AssignedAppraiser", fields: [assignedAppraiserId], references: [id])
+
+  // Job details
+  scope               String  @db.Text // Inspection requirements
+  accessContact       Json? // Contact info for property access
+  schedulingWindow    Json // Available times
+  specialInstructions String?
+
+  // Payout
+  payoutAmount   Decimal @db.Decimal(10, 2)
+  payoutCurrency String  @default("USD")
+
+  // Status & SLA
+  status        JobStatus @default(PENDING_DISPATCH)
+  statusHistory Json      @default("[]")
+  slaDueAt      DateTime
+  dispatchedAt  DateTime?
+  acceptedAt    DateTime?
+  startedAt     DateTime?
+  submittedAt   DateTime?
+  completedAt   DateTime?
+
+  // Geofencing
+  geofenceRadius   Int     @default(500) // meters
+  geofenceVerified Boolean @default(false)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  evidence Evidence[]
+  disputes Dispute[]
+
+  @@index([status])
+  @@index([assignedAppraiserId])
+  @@index([slaDueAt])
+  @@index([organizationId])
+  @@index([jobType])
+}
+
+model Evidence {
+  id    String @id @default(cuid())
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id])
+
+  // Media details
+  mediaType    EvidenceMediaType
+  fileName     String
+  fileSize     Int // bytes
+  mimeType     String
+  fileUrl      String
+  thumbnailUrl String?
+
+  // Geolocation & time verification
+  latitude   Float?
+  longitude  Float?
+  capturedAt DateTime
+
+  // EXIF and metadata
+  exifData   Json?
+  deviceInfo String?
+
+  // Integrity
+  integrityHash String // SHA-256 hash
+  verified      Boolean @default(false)
+
+  // Classification
+  category String? // front, back, kitchen, etc.
+  notes    String?
+
+  // Timestamps
+  uploadedAt DateTime @default(now())
+
+  @@index([jobId])
+  @@index([category])
+}
+
+model AppraiserProfile {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id])
+
+  // License information
+  licenseType   AppraiserLicenseType
+  licenseState  String                @default("TX")
+  licenseNumber String                @unique
+  licenseExpiry DateTime
+
+  // Verification
+  verificationStatus AppraiserVerificationStatus @default(PENDING)
+  verifiedAt         DateTime?
+  verificationNotes  String?
+
+  // Coverage area
+  homeBaseLat         Float
+  homeBaseLng         Float
+  coverageRadiusMiles Int   @default(50)
+
+  // Service preferences
+  availableJobTypes Json  @default("[\"ONSITE_PHOTOS\"]")
+  preferredSchedule Json?
+
+  // Stats & ratings
+  rating                Float @default(0)
+  ratingCount           Int   @default(0)
+  completedJobs         Int   @default(0)
+  cancelledJobs         Int   @default(0)
+  averageCompletionTime Int? // minutes
+
+  // Payout info
+  stripeConnectId String?  @unique
+  payoutEnabled   Boolean  @default(false)
+
+  // Documents
+  resumeUrl         String?
+  insuranceProofUrl String?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([licenseState])
+  @@index([verificationStatus])
+  @@index([coverageRadiusMiles])
+  @@index([homeBaseLat, homeBaseLng])
+}
+
+model Payment {
+  id String @id @default(cuid())
+
+  // Relationships
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id])
+
+  // Payment details
+  type        PaymentType
+  amount      Decimal       @db.Decimal(10, 2)
+  currency    String        @default("USD")
+  description String?
+
+  // Reference
+  relatedJobId       String?
+  relatedAppraisalId String?
+
+  // Stripe
+  stripePaymentIntentId String? @unique
+  stripeTransferId      String? @unique
+
+  // Status
+  status        PaymentStatus @default(PENDING)
+  statusMessage String?
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+}
+
+model Dispute {
+  id String @id @default(cuid())
+
+  // Relationships
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  relatedJobId    String?
+  relatedJob      Job?         @relation(fields: [relatedJobId], references: [id])
+  relatedReportId String?
+  relatedReport   Report?      @relation(fields: [relatedReportId], references: [id])
+
+  // Dispute details
+  category    DisputeCategory
+  subject     String
+  description String          @db.Text
+
+  // Status
+  status   DisputeStatus @default(OPEN)
+  priority Int           @default(2) // 1=urgent, 2=normal, 3=low
+
+  // Resolution
+  assignedToId String?
+  resolution   String?  @db.Text
+  refundAmount Decimal? @db.Decimal(10, 2)
+
+  // Timestamps
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  resolvedAt DateTime?
+
+  // Relations
+  comments DisputeComment[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([category])
+}
+
+model DisputeComment {
+  id         String   @id @default(cuid())
+  disputeId  String
+  dispute    Dispute  @relation(fields: [disputeId], references: [id])
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id])
+  content    String   @db.Text
+  isInternal Boolean  @default(false) // For admin-only notes
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([disputeId])
+  @@index([authorId])
+}
+
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Content
+  type  String // job_assigned, report_ready, etc.
+  title String
+  body  String
+  data  Json? // Additional data
+
+  // Delivery
+  channel String // in_app, email, sms, push
+  sentAt  DateTime?
+  readAt  DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([readAt])
+}
+
+model ApiKey {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  name      String
+  keyHash   String @unique // Hashed API key
+  keyPrefix String // First 8 chars for identification
+
+  permissions Json // Array of allowed scopes
+
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  revokedAt  DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([keyHash])
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+
+  // Actor
+  userId    String?
+  user      User?   @relation(fields: [userId], references: [id])
+  userEmail String?
+  ipAddress String?
+  userAgent String?
+
+  // Action
+  action     String // create, update, delete, view, etc.
+  resource   String // appraisal, report, job, etc.
+  resourceId String?
+
+  // Details
+  oldData  Json?
+  newData  Json?
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([resource, resourceId])
+  @@index([createdAt])
+}
+
+// ============================================
+// PRICING & CONFIGURATION
+// ============================================
+
+model PricingRule {
+  id String @id @default(cuid())
+
+  // Rule type
+  ruleType String // base_price, county_multiplier, urgency_multiplier
+
+  // Conditions
+  propertyType PropertyType?
+  jobType      JobType?
+  county       String?
+  state        String?       @default("TX")
+
+  // Pricing
+  basePrice  Decimal? @db.Decimal(10, 2)
+  multiplier Float?
+  minPrice   Decimal? @db.Decimal(10, 2)
+  maxPrice   Decimal? @db.Decimal(10, 2)
+
+  // Payout split
+  platformFeePercent   Float? // Platform take rate
+  appraiserPayoutPercent Float? // Appraiser payout percentage
+
+  // Validity
+  isActive  Boolean   @default(true)
+  validFrom DateTime  @default(now())
+  validTo   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ruleType])
+  @@index([county])
+  @@index([isActive])
+}
+
+model FeatureFlag {
+  id String @id @default(cuid())
+
+  name        String  @unique
+  description String?
+  isEnabled   Boolean @default(false)
+
+  // Targeting
+  targetType  String? // all, organization, user, percentage
+  targetValue Json? // Array of IDs or percentage value
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([isEnabled])
+}
+
+// ============================================
+// SHARE LINKS
+// ============================================
+
+model ShareLink {
+  id String @id @default(cuid())
+
+  // Token for public access
+  token String @unique
+
+  // What is being shared
+  resourceType String // report, appraisal
+  resourceId   String
+
+  // Access control
+  createdById    String
+  organizationId String
+
+  // Settings
+  allowDownload Boolean @default(true)
+  password      String? // Optional password protection
+  maxViews      Int?    // Optional view limit
+  viewCount     Int     @default(0)
+
+  // Validity
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([resourceType, resourceId])
+  @@index([expiresAt])
+}
+
+// ============================================
+// DD MARKETPLACE
+// ============================================
+
+enum ListingStatus {
+  ACTIVE
+  SOLD_OUT
+  ARCHIVED
+}
+
+model MarketplaceListing {
+  id String @id @default(cuid())
+
+  // What is being sold
+  reportId String
+  report   Report @relation(fields: [reportId], references: [id])
+
+  // Seller (organization that owns the report)
+  sellerId String
+  seller   Organization @relation("ListingSeller", fields: [sellerId], references: [id])
+
+  // Listing details
+  title       String
+  description String?  @db.Text
+  category    String   // residential, commercial, land, etc.
+  price       Decimal  @db.Decimal(10, 2)
+  currency    String   @default("USD")
+
+  // Preview
+  previewUrl  String?  // Redacted preview PDF URL
+  thumbnailUrl String? // Property thumbnail
+
+  // Status & stats
+  status    ListingStatus @default(ACTIVE)
+  soldCount Int           @default(0)
+  viewCount Int           @default(0)
+
+  // Featured/promotion
+  isFeatured Boolean @default(false)
+  featuredAt DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  purchases MarketplacePurchase[]
+
+  @@index([sellerId])
+  @@index([status])
+  @@index([category])
+  @@index([price])
+  @@index([createdAt])
+  @@index([isFeatured])
+}
+
+model MarketplacePurchase {
+  id String @id @default(cuid())
+
+  // What was purchased
+  listingId String
+  listing   MarketplaceListing @relation(fields: [listingId], references: [id])
+
+  // Buyer (organization making the purchase)
+  buyerId String
+  buyer   Organization @relation("ListingBuyer", fields: [buyerId], references: [id])
+
+  // Purchase details
+  price    Decimal @db.Decimal(10, 2)
+  currency String  @default("USD")
+
+  // Payment
+  stripePaymentIntentId String? @unique
+  paymentStatus         PaymentStatus @default(PENDING)
+
+  // Download tracking
+  downloadCount Int       @default(0)
+  lastDownloadAt DateTime?
+
+  // Timestamps
+  purchasedAt DateTime @default(now())
+
+  @@unique([listingId, buyerId]) // One purchase per org per listing
+  @@index([buyerId])
+  @@index([purchasedAt])
+}
+
+// ============================================
+// NOTIFICATION PREFERENCES
+// ============================================
+
+model NotificationPreferences {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Email notifications
+  emailReportReady   Boolean @default(true)
+  emailStatusUpdate  Boolean @default(true)
+  emailTeamActivity  Boolean @default(true)
+  emailBilling       Boolean @default(true)
+  emailMarketing     Boolean @default(false)
+
+  // Push notifications
+  pushUrgent   Boolean @default(true)
+  pushReports  Boolean @default(true)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
