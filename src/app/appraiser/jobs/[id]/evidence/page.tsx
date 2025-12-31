@@ -6,7 +6,6 @@ import { trpc } from "@/shared/lib/trpc";
 import {
   ArrowLeft,
   Camera,
-  Upload,
   X,
   Check,
   MapPin,
@@ -18,7 +17,10 @@ import {
   Play,
   Pause,
   Trash2,
+  Info,
+  HelpCircle,
 } from "lucide-react";
+import { PhotoExamplesModal } from "@/shared/components/common/PhotoExamplesModal";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -64,6 +66,10 @@ export default function EvidenceCapturePage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
   const [geolocation, setGeolocation] = useState<{ lat: number; lng: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Photo examples modal state
+  const [showPhotoGuide, setShowPhotoGuide] = useState(false);
+  const [selectedGuideCategory, setSelectedGuideCategory] = useState("front_exterior");
 
   // Voice note state
   const [voiceNotes, setVoiceNotes] = useState<VoiceNote[]>([]);
@@ -358,6 +364,11 @@ export default function EvidenceCapturePage({ params }: PageProps) {
     fileInputRef.current?.click();
   };
 
+  const openPhotoGuide = (category: string) => {
+    setSelectedGuideCategory(category);
+    setShowPhotoGuide(true);
+  };
+
   const handleDelete = async (category: string) => {
     const photo = uploadedPhotos[category];
     if (!photo) return;
@@ -459,25 +470,33 @@ export default function EvidenceCapturePage({ params }: PageProps) {
         <div className="text-sm">
           <p className="font-medium text-[var(--primary)]">Location Tracking Active</p>
           <p className="text-[var(--primary)]/80">
-            Photos will be geotagged to verify you're at the property location.
+            Photos will be geotagged to verify you&apos;re at the property location.
           </p>
         </div>
       </div>
 
       {/* Required Photos */}
       <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
-        <div className="px-4 py-3 border-b border-[var(--border)]">
+        <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
           <h2 className="font-semibold text-[var(--foreground)]">Required Photos</h2>
+          <button
+            onClick={() => openPhotoGuide("front_exterior")}
+            className="flex items-center gap-1.5 text-sm text-[var(--primary)] hover:underline"
+          >
+            <HelpCircle className="w-4 h-4" />
+            Photo Guide
+          </button>
         </div>
         <div className="divide-y divide-[var(--border)]">
           {requiredPhotos.map((photo) => (
             <div key={photo.id} className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div
-                  className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                <button
+                  onClick={() => openPhotoGuide(photo.id)}
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center transition-colors ${
                     uploadedPhotos[photo.id]
-                      ? "bg-green-500/20"
-                      : "bg-[var(--muted)]"
+                      ? "bg-green-500/20 hover:bg-green-500/30"
+                      : "bg-[var(--muted)] hover:bg-[var(--secondary)]"
                   }`}
                 >
                   {uploadedPhotos[photo.id] ? (
@@ -485,9 +504,18 @@ export default function EvidenceCapturePage({ params }: PageProps) {
                   ) : (
                     <ImageIcon className="w-6 h-6 text-[var(--muted-foreground)]" />
                   )}
-                </div>
-                <div>
-                  <p className="font-medium text-[var(--foreground)]">{photo.label}</p>
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-[var(--foreground)]">{photo.label}</p>
+                    <button
+                      onClick={() => openPhotoGuide(photo.id)}
+                      className="p-1 hover:bg-[var(--muted)] rounded-full"
+                      title="View photo guide"
+                    >
+                      <Info className="w-4 h-4 text-[var(--muted-foreground)]" />
+                    </button>
+                  </div>
                   <p className="text-sm text-[var(--muted-foreground)]">{photo.description}</p>
                 </div>
               </div>
@@ -529,11 +557,12 @@ export default function EvidenceCapturePage({ params }: PageProps) {
           {optionalPhotos.map((photo) => (
             <div key={photo.id} className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div
-                  className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                <button
+                  onClick={() => openPhotoGuide(photo.id)}
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center transition-colors ${
                     uploadedPhotos[photo.id]
-                      ? "bg-green-500/20"
-                      : "bg-[var(--muted)]"
+                      ? "bg-green-500/20 hover:bg-green-500/30"
+                      : "bg-[var(--muted)] hover:bg-[var(--secondary)]"
                   }`}
                 >
                   {uploadedPhotos[photo.id] ? (
@@ -541,9 +570,18 @@ export default function EvidenceCapturePage({ params }: PageProps) {
                   ) : (
                     <ImageIcon className="w-6 h-6 text-[var(--muted-foreground)]" />
                   )}
-                </div>
-                <div>
-                  <p className="font-medium text-[var(--foreground)]">{photo.label}</p>
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-[var(--foreground)]">{photo.label}</p>
+                    <button
+                      onClick={() => openPhotoGuide(photo.id)}
+                      className="p-1 hover:bg-[var(--muted)] rounded-full"
+                      title="View photo guide"
+                    >
+                      <Info className="w-4 h-4 text-[var(--muted-foreground)]" />
+                    </button>
+                  </div>
                   <p className="text-sm text-[var(--muted-foreground)]">{photo.description}</p>
                 </div>
               </div>
@@ -727,6 +765,13 @@ export default function EvidenceCapturePage({ params }: PageProps) {
           )}
         </button>
       </div>
+
+      {/* Photo Examples Modal */}
+      <PhotoExamplesModal
+        isOpen={showPhotoGuide}
+        onClose={() => setShowPhotoGuide(false)}
+        categoryId={selectedGuideCategory}
+      />
     </div>
   );
 }
