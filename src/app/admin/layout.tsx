@@ -1,13 +1,13 @@
 /**
  * Admin Console Layout
  * For platform administrators and operations
+ * Now with mobile responsiveness
  */
 
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth/auth";
 import { prisma } from "@/server/db/prisma";
-import { AdminSidebar } from "@/shared/components/layout/AdminSidebar";
-import { AdminHeader } from "@/shared/components/layout/AdminHeader";
+import { AdminLayoutWrapper } from "@/shared/components/layout/AdminLayoutWrapper";
 
 export default async function AdminLayout({
   children,
@@ -38,19 +38,5 @@ export default async function AdminLayout({
     redirect("/dashboard?error=unauthorized");
   }
 
-  return (
-    <div className="flex h-screen bg-[var(--background)]">
-      {/* Sidebar */}
-      <AdminSidebar />
-
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Header */}
-        <AdminHeader />
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-[var(--background)] p-6">{children}</main>
-      </div>
-    </div>
-  );
+  return <AdminLayoutWrapper>{children}</AdminLayoutWrapper>;
 }

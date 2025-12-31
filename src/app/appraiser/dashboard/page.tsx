@@ -106,7 +106,7 @@ export default function AppraiserDashboardPage() {
   }, [activeJobs, now]);
 
   return (
-    <div className="space-y-6 pb-20 md:pb-6">
+    <div className="space-y-6 ">
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/80 text-white rounded-xl p-6">
         <div className="flex items-start justify-between">

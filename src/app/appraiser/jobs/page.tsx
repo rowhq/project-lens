@@ -455,7 +455,7 @@ export default function AppraiserJobsPage() {
   const isLoadingJobs = filter === "available" && availableLoading;
 
   return (
-    <div className="space-y-4 pb-20 md:pb-6">
+    <div className="space-y-4 ">
       {/* Pull to Refresh Indicator */}
       {pullDistance > 0 && (
         <div
