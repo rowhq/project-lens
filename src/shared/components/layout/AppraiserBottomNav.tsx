@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Briefcase, ClipboardList, DollarSign, User } from "lucide-react";
@@ -42,21 +42,29 @@ export function AppraiserBottomNav() {
     staleTime: 30000,
   });
 
+  // Client-side timestamp for hydration safety
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    setNow(Date.now());
+    const interval = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Calculate badge counts
   const availableCount = availableJobs?.length || 0;
   const activeCount = activeJobs?.length || 0;
   const hasPendingPayout = (earnings?.pendingPayout || 0) > 0;
 
-  // Calculate urgent jobs (due within 24 hours)
+  // Calculate urgent jobs (due within 24 hours) - only on client
   const urgentJobs = useMemo(() => {
-    if (!activeJobs) return [];
-    const now = Date.now();
+    if (!activeJobs || now === null) return [];
     return activeJobs.filter((job) => {
       if (!job.slaDueAt) return false;
       const hoursRemaining = (new Date(job.slaDueAt).getTime() - now) / (1000 * 60 * 60);
       return hoursRemaining < 24 && hoursRemaining > 0;
     });
-  }, [activeJobs]);
+  }, [activeJobs, now]);
 
   const navigation: NavItem[] = [
     {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
 import {
@@ -70,10 +70,19 @@ export default function AppraiserDashboardPage() {
     },
   ];
 
-  // Pre-compute urgency data for active jobs (outside render)
+  // Client-side timestamp for hydration safety
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    setNow(Date.now());
+    // Update every minute
+    const interval = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Pre-compute urgency data for active jobs (only on client)
   const activeJobsWithUrgency = useMemo(() => {
-    if (!activeJobs) return [];
-    const now = Date.now();
+    if (!activeJobs || now === null) return [];
     return activeJobs.map((job) => {
       const hoursRemaining = job.slaDueAt
         ? (new Date(job.slaDueAt).getTime() - now) / (1000 * 60 * 60)
@@ -84,17 +93,17 @@ export default function AppraiserDashboardPage() {
         urgency: getUrgencyConfig(hoursRemaining, hoursRemaining < 0),
       };
     });
-  }, [activeJobs]);
+  }, [activeJobs, now]);
 
-  // Calculate jobs due today
+  // Calculate jobs due today (only on client)
   const jobsDueToday = useMemo(() => {
-    if (!activeJobs) return [];
-    const today = new Date().toDateString();
+    if (!activeJobs || now === null) return [];
+    const today = new Date(now).toDateString();
     return activeJobs.filter((job) => {
       if (!job.slaDueAt) return false;
       return new Date(job.slaDueAt).toDateString() === today;
     });
-  }, [activeJobs]);
+  }, [activeJobs, now]);
 
   return (
     <div className="space-y-6 pb-20 md:pb-6">

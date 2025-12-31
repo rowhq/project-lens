@@ -56,13 +56,15 @@ const SwipeableJobCard = ({
   onAccept,
   isSkipping,
   isAccepting,
+  now,
 }: {
-  job: any;
+  job: Record<string, unknown> & { id: string; slaDueAt?: string | null; payoutAmount?: number; distance?: number; property?: { addressLine1?: string; city?: string; state?: string } };
   filter: JobFilter;
   onSkip: (jobId: string) => void;
   onAccept: (jobId: string) => void;
   isSkipping: boolean;
   isAccepting: boolean;
+  now: number | null;
 }) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
@@ -100,9 +102,9 @@ const SwipeableJobCard = ({
     delta: 10,
   });
 
-  // Calculate urgency
-  const hoursRemaining = job.slaDueAt
-    ? (new Date(job.slaDueAt).getTime() - Date.now()) / (1000 * 60 * 60)
+  // Calculate urgency using passed timestamp (only when now is available)
+  const hoursRemaining = job.slaDueAt && now !== null
+    ? (new Date(job.slaDueAt).getTime() - now) / (1000 * 60 * 60)
     : Infinity;
   const urgency = getUrgencyConfig(hoursRemaining, hoursRemaining < 0);
 
@@ -299,6 +301,15 @@ export default function AppraiserJobsPage() {
     jobType: null,
   });
   const [acceptingJobId, setAcceptingJobId] = useState<string | null>(null);
+
+  // Client-side timestamp for hydration safety
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    setNow(Date.now());
+    const interval = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Sync filter with URL
   useEffect(() => {
@@ -855,6 +866,7 @@ export default function AppraiserJobsPage() {
                   onAccept={handleAccept}
                   isSkipping={skipJob.isPending}
                   isAccepting={acceptingJobId === job.id && acceptJob.isPending}
+                  now={now}
                 />
               ))}
             </div>
@@ -876,11 +888,11 @@ export default function AppraiserJobsPage() {
               <div className="flex items-center gap-1">
                 <AlertCircle className="w-4 h-4 text-orange-400" />
                 <span className="text-[var(--foreground)]">
-                  <strong>{jobs.filter(j => {
+                  <strong>{now !== null ? jobs.filter(j => {
                     if (!j.slaDueAt) return false;
-                    const hrs = (new Date(j.slaDueAt).getTime() - Date.now()) / (1000 * 60 * 60);
+                    const hrs = (new Date(j.slaDueAt).getTime() - now) / (1000 * 60 * 60);
                     return hrs < 24 && hrs > 0;
-                  }).length}</strong> due soon
+                  }).length : 0}</strong> due soon
                 </span>
               </div>
             </div>
