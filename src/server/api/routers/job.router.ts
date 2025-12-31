@@ -15,6 +15,7 @@ import { TRPCError } from "@trpc/server";
 import { Prisma, JobStatus, JobType } from "@prisma/client";
 import { calculateDistanceMiles as calculateDistance } from "@/shared/lib/geo";
 import { Errors } from "@/shared/lib/errors";
+import { dispatchEngine } from "@/server/services/dispatch-engine";
 
 /**
  * Valid job status transitions
@@ -52,7 +53,7 @@ export const jobRouter = createTRPCRouter({
         limit: z.number().min(1).max(100).default(50),
         status: z.string().optional(),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const jobs = await ctx.prisma.job.findMany({
@@ -140,7 +141,7 @@ export const jobRouter = createTRPCRouter({
         contactName: z.string().optional(),
         contactPhone: z.string().optional(),
         accessNotes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Get or create property
@@ -169,18 +170,19 @@ export const jobRouter = createTRPCRouter({
       }
 
       // Calculate SLA and pricing based on scope
-      const scopeConfig: Record<string, { slaHours: number; payout: number }> = {
-        EXTERIOR_ONLY: { slaHours: 48, payout: 99 },
-        INTERIOR_EXTERIOR: { slaHours: 72, payout: 199 },
-        COMPREHENSIVE: { slaHours: 120, payout: 349 },
-        FULL_CERTIFIED: { slaHours: 168, payout: 549 },
-        RUSH_INSPECTION: { slaHours: 24, payout: 299 },
-      };
+      const scopeConfig: Record<string, { slaHours: number; payout: number }> =
+        {
+          EXTERIOR_ONLY: { slaHours: 48, payout: 99 },
+          INTERIOR_EXTERIOR: { slaHours: 72, payout: 199 },
+          COMPREHENSIVE: { slaHours: 120, payout: 349 },
+          FULL_CERTIFIED: { slaHours: 168, payout: 549 },
+          RUSH_INSPECTION: { slaHours: 24, payout: 299 },
+        };
 
       const config = scopeConfig[input.scopePreset];
       const slaDueAt = new Date(Date.now() + config.slaHours * 60 * 60 * 1000);
 
-      // Create the job
+      // Create the job in PENDING_DISPATCH status
       const job = await ctx.prisma.job.create({
         data: {
           organizationId: ctx.organization!.id,
@@ -190,17 +192,20 @@ export const jobRouter = createTRPCRouter({
           payoutAmount: config.payout,
           slaDueAt,
           schedulingWindow: input.scheduledDate
-            ? { date: input.scheduledDate.toISOString(), time: input.scheduledTime }
+            ? {
+                date: input.scheduledDate.toISOString(),
+                time: input.scheduledTime,
+              }
             : { flexible: true },
-          accessContact: input.contactName || input.contactPhone
-            ? { name: input.contactName, phone: input.contactPhone }
-            : Prisma.DbNull,
+          accessContact:
+            input.contactName || input.contactPhone
+              ? { name: input.contactName, phone: input.contactPhone }
+              : Prisma.DbNull,
           specialInstructions: input.accessNotes,
-          status: "DISPATCHED",
-          dispatchedAt: new Date(),
+          status: "PENDING_DISPATCH",
           statusHistory: [
             {
-              status: "DISPATCHED",
+              status: "PENDING_DISPATCH",
               timestamp: new Date().toISOString(),
               userId: ctx.user.id,
             },
@@ -211,7 +216,25 @@ export const jobRouter = createTRPCRouter({
         },
       });
 
-      return job;
+      // Dispatch job to available appraisers
+      const dispatchResult = await dispatchEngine.dispatch(job.id, {
+        urgency: input.scopePreset === "RUSH_INSPECTION" ? "URGENT" : "NORMAL",
+      });
+
+      // Fetch updated job with dispatch status
+      const updatedJob = await ctx.prisma.job.findUnique({
+        where: { id: job.id },
+        include: { property: true },
+      });
+
+      return {
+        ...updatedJob!,
+        dispatchResult: {
+          success: dispatchResult.success,
+          matchedAppraisers: dispatchResult.matchedAppraisers.length,
+          message: dispatchResult.message,
+        },
+      };
     }),
 
   /**
@@ -224,7 +247,7 @@ export const jobRouter = createTRPCRouter({
         maxDistance: z.number().optional(),
         minPayout: z.number().optional(),
         jobType: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { appraiserProfile } = ctx;
@@ -256,15 +279,17 @@ export const jobRouter = createTRPCRouter({
       });
 
       // Type for jobs with property included
-      type JobWithProperty = typeof jobs[0];
+      type JobWithProperty = (typeof jobs)[0];
 
       // Get skipped jobs with cooldown (24 hours)
-      const skippedJobs = (appraiserProfile.skippedJobs as Record<string, string>) || {};
+      const skippedJobs =
+        (appraiserProfile.skippedJobs as Record<string, string>) || {};
       const cooldownMs = 24 * 60 * 60 * 1000; // 24 hours
       const now = Date.now();
 
       // Determine the effective max distance
-      const effectiveMaxDistance = input.maxDistance ?? appraiserProfile.coverageRadiusMiles;
+      const effectiveMaxDistance =
+        input.maxDistance ?? appraiserProfile.coverageRadiusMiles;
 
       // Filter by distance and exclude recently skipped jobs
       const filtered = jobs.filter((job) => {
@@ -281,7 +306,7 @@ export const jobRouter = createTRPCRouter({
           appraiserProfile.homeBaseLat,
           appraiserProfile.homeBaseLng,
           job.property.latitude,
-          job.property.longitude
+          job.property.longitude,
         );
 
         // Apply distance filter
@@ -295,7 +320,7 @@ export const jobRouter = createTRPCRouter({
           appraiserProfile.homeBaseLat,
           appraiserProfile.homeBaseLng,
           job.property.latitude,
-          job.property.longitude
+          job.property.longitude,
         ),
       }));
     }),
@@ -328,7 +353,8 @@ export const jobRouter = createTRPCRouter({
       }
 
       // Add to skipped jobs
-      const skippedJobs = (appraiserProfile.skippedJobs as Record<string, string>) || {};
+      const skippedJobs =
+        (appraiserProfile.skippedJobs as Record<string, string>) || {};
       skippedJobs[input.jobId] = new Date().toISOString();
 
       // Clean up old entries (older than 7 days)
@@ -370,10 +396,7 @@ export const jobRouter = createTRPCRouter({
       }
 
       // Appraiser can only view jobs assigned to them or available
-      if (
-        job.assignedAppraiserId &&
-        job.assignedAppraiserId !== ctx.user.id
-      ) {
+      if (job.assignedAppraiserId && job.assignedAppraiserId !== ctx.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Access denied",
@@ -438,7 +461,7 @@ export const jobRouter = createTRPCRouter({
         jobId: z.string(),
         latitude: z.number(),
         longitude: z.number(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const job = await ctx.prisma.job.findUnique({
@@ -462,7 +485,7 @@ export const jobRouter = createTRPCRouter({
         input.latitude,
         input.longitude,
         job.property.latitude,
-        job.property.longitude
+        job.property.longitude,
       );
       const distanceMeters = distance * 1609.34; // miles to meters
       const geofenceVerified = distanceMeters <= job.geofenceRadius;
@@ -473,7 +496,7 @@ export const jobRouter = createTRPCRouter({
         const requiredFeet = Math.round(job.geofenceRadius * 3.28084);
         throw Errors.preconditionFailed(
           `You must be within ${requiredFeet} feet of the property to start this job. ` +
-          `Current distance: ${distanceFeet} feet.`
+            `Current distance: ${distanceFeet} feet.`,
         );
       }
 
@@ -503,7 +526,7 @@ export const jobRouter = createTRPCRouter({
       z.object({
         jobId: z.string(),
         notes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const job = await ctx.prisma.job.findUnique({
@@ -574,7 +597,7 @@ export const jobRouter = createTRPCRouter({
       z.object({
         limit: z.number().min(1).max(100).default(20),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const jobs = await ctx.prisma.job.findMany({
@@ -610,7 +633,7 @@ export const jobRouter = createTRPCRouter({
       z.object({
         jobId: z.string(),
         reason: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const job = await ctx.prisma.job.findUnique({
@@ -657,6 +680,56 @@ export const jobRouter = createTRPCRouter({
     }),
 
   /**
+   * Appraiser: Cancel accepted job
+   * Only allowed before starting inspection
+   */
+  cancelByAppraiser: appraiserProcedure
+    .input(
+      z.object({
+        jobId: z.string(),
+        reason: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const job = await ctx.prisma.job.findUnique({
+        where: { id: input.jobId },
+      });
+
+      if (!job) {
+        throw Errors.notFound("Job");
+      }
+
+      if (job.assignedAppraiserId !== ctx.user.id) {
+        throw Errors.forbidden("Job not assigned to you");
+      }
+
+      // Only allow cancellation of ACCEPTED jobs (not yet started)
+      if (job.status !== "ACCEPTED") {
+        throw Errors.badRequest(
+          "Only accepted jobs can be cancelled. Jobs in progress must be completed or contact admin.",
+        );
+      }
+
+      // Update job back to dispatched
+      return ctx.prisma.job.update({
+        where: { id: input.jobId },
+        data: {
+          assignedAppraiserId: null,
+          status: "DISPATCHED",
+          acceptedAt: null,
+          statusHistory: {
+            push: {
+              status: "CANCELLED_BY_APPRAISER",
+              timestamp: new Date().toISOString(),
+              userId: ctx.user.id,
+              reason: input.reason,
+            },
+          },
+        },
+      });
+    }),
+
+  /**
    * Admin: Reassign job
    */
   reassign: adminProcedure
@@ -665,7 +738,7 @@ export const jobRouter = createTRPCRouter({
         jobId: z.string(),
         appraiserId: z.string().optional(), // null to unassign
         reason: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const job = await ctx.prisma.job.findUnique({
@@ -696,4 +769,3 @@ export const jobRouter = createTRPCRouter({
       });
     }),
 });
-

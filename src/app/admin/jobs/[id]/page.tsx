@@ -9,7 +9,6 @@ import {
   MapPin,
   Building2,
   User,
-  Calendar,
   Clock,
   CheckCircle,
   XCircle,
@@ -21,6 +20,11 @@ import {
   RefreshCw,
   AlertCircle,
   Image as ImageIcon,
+  RotateCcw,
+  UserX,
+  Play,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -33,6 +37,17 @@ export default function AdminJobDetailPage({ params }: PageProps) {
   const { toast } = useToast();
   const [cancelReason, setCancelReason] = useState("");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showReassignDialog, setShowReassignDialog] = useState(false);
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [showRevisionDialog, setShowRevisionDialog] = useState(false);
+  const [selectedAppraiserId, setSelectedAppraiserId] = useState<string | null>(
+    null,
+  );
+  const [reassignReason, setReassignReason] = useState("");
+  const [approveNotes, setApproveNotes] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
+  const [revisionReason, setRevisionReason] = useState("");
 
   const {
     data: job,
@@ -58,6 +73,107 @@ export default function AdminJobDetailPage({ params }: PageProps) {
       });
     },
   });
+
+  const startReview = trpc.admin.jobs.startReview.useMutation({
+    onSuccess: () => {
+      refetch();
+      toast({
+        title: "Review started",
+        description: "The job is now under review.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to start review",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const approveJob = trpc.admin.jobs.approve.useMutation({
+    onSuccess: () => {
+      refetch();
+      setShowApproveDialog(false);
+      setApproveNotes("");
+      toast({
+        title: "Job approved",
+        description: "The job has been completed and payout queued.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to approve job",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rejectJob = trpc.admin.jobs.reject.useMutation({
+    onSuccess: () => {
+      refetch();
+      setShowRejectDialog(false);
+      setRejectReason("");
+      toast({
+        title: "Job rejected",
+        description: "The job has been marked as failed.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reject job",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const requestRevision = trpc.admin.jobs.requestRevision.useMutation({
+    onSuccess: () => {
+      refetch();
+      setShowRevisionDialog(false);
+      setRevisionReason("");
+      toast({
+        title: "Revision requested",
+        description:
+          "The appraiser has been notified to provide additional evidence.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to request revision",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const reassignJob = trpc.admin.jobs.reassign.useMutation({
+    onSuccess: () => {
+      refetch();
+      setShowReassignDialog(false);
+      setReassignReason("");
+      setSelectedAppraiserId(null);
+      toast({
+        title: "Job reassigned",
+        description: "The job has been reassigned successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reassign job",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const { data: availableAppraisers } =
+    trpc.admin.jobs.getAvailableAppraisers.useQuery(
+      { jobId: id },
+      { enabled: showReassignDialog },
+    );
 
   const statusConfig: Record<
     string,
@@ -134,6 +250,11 @@ export default function AdminJobDetailPage({ params }: PageProps) {
   const status = statusConfig[job.status] || statusConfig.PENDING_DISPATCH;
   const StatusIcon = status.icon;
   const isActive = !["COMPLETED", "CANCELLED", "FAILED"].includes(job.status);
+  const canReassign = ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"].includes(
+    job.status,
+  );
+  const canReview = job.status === "SUBMITTED";
+  const canApproveReject = ["SUBMITTED", "UNDER_REVIEW"].includes(job.status);
   const isBreach =
     job.slaDueAt &&
     new Date(job.slaDueAt) < new Date() &&
@@ -159,23 +280,89 @@ export default function AdminJobDetailPage({ params }: PageProps) {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <span
             className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${status.color}`}
           >
             <StatusIcon className="w-4 h-4" />
             {status.label}
           </span>
-          {isActive && (
-            <button
-              onClick={() => setShowCancelDialog(true)}
-              className="px-4 py-2 border border-red-500 text-red-400 rounded-lg hover:bg-red-500/10"
-            >
-              Cancel Job
-            </button>
-          )}
         </div>
       </div>
+
+      {/* Action Buttons */}
+      {isActive && (
+        <div className="flex flex-wrap items-center gap-2 p-4 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+          <span className="text-sm text-[var(--muted-foreground)] mr-2">
+            Actions:
+          </span>
+
+          {/* Start Review */}
+          {canReview && (
+            <button
+              onClick={() => startReview.mutate({ jobId: job.id })}
+              disabled={startReview.isPending}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm"
+            >
+              <Play className="w-4 h-4" />
+              Start Review
+            </button>
+          )}
+
+          {/* Approve */}
+          {canApproveReject && (
+            <button
+              onClick={() => setShowApproveDialog(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+            >
+              <ThumbsUp className="w-4 h-4" />
+              Approve
+            </button>
+          )}
+
+          {/* Request Revision */}
+          {canApproveReject && (
+            <button
+              onClick={() => setShowRevisionDialog(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Request Revision
+            </button>
+          )}
+
+          {/* Reject */}
+          {canApproveReject && (
+            <button
+              onClick={() => setShowRejectDialog(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+            >
+              <ThumbsDown className="w-4 h-4" />
+              Reject
+            </button>
+          )}
+
+          {/* Reassign */}
+          {canReassign && (
+            <button
+              onClick={() => setShowReassignDialog(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[var(--border)] text-[var(--foreground)] rounded-lg hover:bg-[var(--secondary)] text-sm"
+            >
+              <UserX className="w-4 h-4" />
+              Reassign
+            </button>
+          )}
+
+          {/* Cancel */}
+          <button
+            onClick={() => setShowCancelDialog(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-red-500 text-red-400 rounded-lg hover:bg-red-500/10 text-sm"
+          >
+            <XCircle className="w-4 h-4" />
+            Cancel
+          </button>
+        </div>
+      )}
 
       {/* SLA Breach Warning */}
       {isBreach && (
@@ -201,7 +388,9 @@ export default function AdminJobDetailPage({ params }: PageProps) {
             </h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-[var(--muted-foreground)]">Address</p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Address
+                </p>
                 <p className="font-medium text-[var(--foreground)]">
                   {job.property?.addressFull || "N/A"}
                 </p>
@@ -244,9 +433,13 @@ export default function AdminJobDetailPage({ params }: PageProps) {
               </div>
               {job.slaDueAt && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[var(--muted-foreground)]">SLA Due</span>
+                  <span className="text-[var(--muted-foreground)]">
+                    SLA Due
+                  </span>
                   <span
-                    className={isBreach ? "text-red-400" : "text-[var(--foreground)]"}
+                    className={
+                      isBreach ? "text-red-400" : "text-[var(--foreground)]"
+                    }
                   >
                     {new Date(job.slaDueAt).toLocaleString()}
                   </span>
@@ -254,7 +447,9 @@ export default function AdminJobDetailPage({ params }: PageProps) {
               )}
               {job.completedAt && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[var(--muted-foreground)]">Completed</span>
+                  <span className="text-[var(--muted-foreground)]">
+                    Completed
+                  </span>
                   <span className="text-green-400">
                     {new Date(job.completedAt).toLocaleString()}
                   </span>
@@ -306,7 +501,8 @@ export default function AdminJobDetailPage({ params }: PageProps) {
             {job.assignedAppraiser ? (
               <div className="space-y-3">
                 <p className="font-medium text-[var(--foreground)]">
-                  {job.assignedAppraiser.firstName} {job.assignedAppraiser.lastName}
+                  {job.assignedAppraiser.firstName}{" "}
+                  {job.assignedAppraiser.lastName}
                 </p>
                 {job.assignedAppraiser.email && (
                   <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
@@ -340,7 +536,9 @@ export default function AdminJobDetailPage({ params }: PageProps) {
             </h2>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-[var(--muted-foreground)]">Payout Amount</span>
+                <span className="text-[var(--muted-foreground)]">
+                  Payout Amount
+                </span>
                 <span className="font-medium text-[var(--foreground)]">
                   ${Number(job.payoutAmount || 0).toFixed(2)}
                 </span>
@@ -407,6 +605,229 @@ export default function AdminJobDetailPage({ params }: PageProps) {
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
                 {cancelJob.isPending ? "Cancelling..." : "Confirm Cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Dialog */}
+      {showApproveDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card)] rounded-lg p-6 w-full max-w-md border border-[var(--border)]">
+            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+              Approve Job
+            </h3>
+            <p className="text-sm text-[var(--muted-foreground)] mb-4">
+              Approving this job will mark it as completed and queue the payout
+              to the appraiser.
+            </p>
+            <textarea
+              value={approveNotes}
+              onChange={(e) => setApproveNotes(e.target.value)}
+              placeholder="Optional notes..."
+              rows={3}
+              className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            />
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => {
+                  setShowApproveDialog(false);
+                  setApproveNotes("");
+                }}
+                className="px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() =>
+                  approveJob.mutate({ jobId: job.id, notes: approveNotes })
+                }
+                disabled={approveJob.isPending}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                {approveJob.isPending ? "Approving..." : "Approve & Complete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Dialog */}
+      {showRejectDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card)] rounded-lg p-6 w-full max-w-md border border-[var(--border)]">
+            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+              Reject Job
+            </h3>
+            <p className="text-sm text-[var(--muted-foreground)] mb-4">
+              Rejecting this job will mark it as failed. The appraiser will not
+              receive payout.
+            </p>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Enter rejection reason (required)..."
+              rows={3}
+              className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            />
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => {
+                  setShowRejectDialog(false);
+                  setRejectReason("");
+                }}
+                className="px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!rejectReason.trim()) {
+                    toast({
+                      title: "Reason required",
+                      description: "Please provide a rejection reason",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  rejectJob.mutate({ jobId: job.id, reason: rejectReason });
+                }}
+                disabled={rejectJob.isPending}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {rejectJob.isPending ? "Rejecting..." : "Reject Job"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Revision Dialog */}
+      {showRevisionDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card)] rounded-lg p-6 w-full max-w-md border border-[var(--border)]">
+            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+              Request Revision
+            </h3>
+            <p className="text-sm text-[var(--muted-foreground)] mb-4">
+              The job will be sent back to the appraiser for additional photos
+              or corrections.
+            </p>
+            <textarea
+              value={revisionReason}
+              onChange={(e) => setRevisionReason(e.target.value)}
+              placeholder="Describe what needs to be revised (required)..."
+              rows={3}
+              className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            />
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => {
+                  setShowRevisionDialog(false);
+                  setRevisionReason("");
+                }}
+                className="px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!revisionReason.trim()) {
+                    toast({
+                      title: "Reason required",
+                      description: "Please describe what needs revision",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  requestRevision.mutate({
+                    jobId: job.id,
+                    reason: revisionReason,
+                  });
+                }}
+                disabled={requestRevision.isPending}
+                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50"
+              >
+                {requestRevision.isPending ? "Sending..." : "Request Revision"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reassign Dialog */}
+      {showReassignDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card)] rounded-lg p-6 w-full max-w-md border border-[var(--border)]">
+            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+              Reassign Job
+            </h3>
+            <p className="text-sm text-[var(--muted-foreground)] mb-4">
+              Select a new appraiser or unassign to make available for pickup.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                  Select Appraiser
+                </label>
+                <select
+                  value={selectedAppraiserId || ""}
+                  onChange={(e) =>
+                    setSelectedAppraiserId(e.target.value || null)
+                  }
+                  className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                >
+                  <option value="">Unassign (make available)</option>
+                  {availableAppraisers?.map((appraiser) => (
+                    <option key={appraiser.id} value={appraiser.id}>
+                      {appraiser.name} ({appraiser.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <textarea
+                value={reassignReason}
+                onChange={(e) => setReassignReason(e.target.value)}
+                placeholder="Reason for reassignment (required)..."
+                rows={2}
+                className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => {
+                  setShowReassignDialog(false);
+                  setReassignReason("");
+                  setSelectedAppraiserId(null);
+                }}
+                className="px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!reassignReason.trim()) {
+                    toast({
+                      title: "Reason required",
+                      description: "Please provide a reason for reassignment",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  reassignJob.mutate({
+                    jobId: job.id,
+                    appraiserId: selectedAppraiserId,
+                    reason: reassignReason,
+                  });
+                }}
+                disabled={reassignJob.isPending}
+                className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50"
+              >
+                {reassignJob.isPending ? "Reassigning..." : "Reassign Job"}
               </button>
             </div>
           </div>
