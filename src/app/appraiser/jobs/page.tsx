@@ -35,7 +35,12 @@ import dynamic from "next/dynamic";
 // Dynamically import MapView to avoid SSR issues
 const MapView = dynamic(
   () => import("@/shared/components/common/MapView").then((mod) => mod.MapView),
-  { ssr: false, loading: () => <div className="h-[500px] bg-[var(--muted)] rounded-lg animate-pulse" /> }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[500px] bg-[var(--muted)] rounded-lg animate-pulse" />
+    ),
+  },
 );
 
 type JobFilter = "available" | "active" | "completed";
@@ -58,7 +63,20 @@ const SwipeableJobCard = ({
   isAccepting,
   now,
 }: {
-  job: Record<string, unknown> & { id: string; slaDueAt?: string | null; payoutAmount?: number; distance?: number; property?: { addressLine1?: string; city?: string; state?: string } };
+  job: Record<string, unknown> & {
+    id: string;
+    slaDueAt?: string | Date | null;
+    payoutAmount?: number | { toNumber(): number };
+    distance?: number;
+    status?: string;
+    jobType?: string;
+    property?: {
+      addressLine1?: string;
+      city?: string;
+      state?: string;
+      zipCode?: string;
+    };
+  };
   filter: JobFilter;
   onSkip: (jobId: string) => void;
   onAccept: (jobId: string) => void;
@@ -67,7 +85,9 @@ const SwipeableJobCard = ({
   now: number | null;
 }) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
-  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
+  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(
+    null,
+  );
 
   const handlers = useSwipeable({
     onSwiping: (eventData) => {
@@ -103,30 +123,42 @@ const SwipeableJobCard = ({
   });
 
   // Calculate urgency using passed timestamp (only when now is available)
-  const hoursRemaining = job.slaDueAt && now !== null
-    ? (new Date(job.slaDueAt).getTime() - now) / (1000 * 60 * 60)
-    : Infinity;
+  const hoursRemaining =
+    job.slaDueAt && now !== null
+      ? (new Date(job.slaDueAt).getTime() - now) / (1000 * 60 * 60)
+      : Infinity;
   const urgency = getUrgencyConfig(hoursRemaining, hoursRemaining < 0);
 
   const swipeProgress = Math.min(Math.abs(swipeOffset) / 100, 1);
 
   return (
-    <div {...(filter === "available" ? handlers : {})} className="relative overflow-hidden rounded-lg">
+    <div
+      {...(filter === "available" ? handlers : {})}
+      className="relative overflow-hidden rounded-lg"
+    >
       {/* Swipe indicators underneath */}
       {filter === "available" && (
         <div
           className="absolute inset-0 flex items-center justify-between px-6 z-0"
           style={{ opacity: swipeProgress }}
         >
-          <div className={`flex items-center gap-2 font-bold transition-all ${
-            swipeDirection === "right" ? "text-green-500 scale-110" : "text-green-500/50"
-          }`}>
+          <div
+            className={`flex items-center gap-2 font-bold transition-all ${
+              swipeDirection === "right"
+                ? "text-green-500 scale-110"
+                : "text-green-500/50"
+            }`}
+          >
             <Check className="w-8 h-8" />
             <span className="text-lg">ACCEPT</span>
           </div>
-          <div className={`flex items-center gap-2 font-bold transition-all ${
-            swipeDirection === "left" ? "text-red-500 scale-110" : "text-red-500/50"
-          }`}>
+          <div
+            className={`flex items-center gap-2 font-bold transition-all ${
+              swipeDirection === "left"
+                ? "text-red-500 scale-110"
+                : "text-red-500/50"
+            }`}
+          >
             <span className="text-lg">SKIP</span>
             <X className="w-8 h-8" />
           </div>
@@ -137,7 +169,9 @@ const SwipeableJobCard = ({
       <Link
         href={`/appraiser/jobs/${job.id}`}
         className={`block bg-[var(--card)] rounded-lg border p-4 relative z-10 transition-shadow ${
-          urgency.level !== "normal" ? `border-2 ${urgency.bgClass}` : "border-[var(--border)]"
+          urgency.level !== "normal"
+            ? `border-2 ${urgency.bgClass}`
+            : "border-[var(--border)]"
         } hover:shadow-lg`}
         style={{
           transform: `translateX(${swipeOffset}px)`,
@@ -146,7 +180,9 @@ const SwipeableJobCard = ({
       >
         {/* Urgency Badge */}
         {urgency.level !== "normal" && urgency.label && (
-          <div className={`absolute -top-2 -right-2 ${urgency.badgeClass} px-3 py-1 rounded-full flex items-center gap-1 text-xs font-bold z-20`}>
+          <div
+            className={`absolute -top-2 -right-2 ${urgency.badgeClass} px-3 py-1 rounded-full flex items-center gap-1 text-xs font-bold z-20`}
+          >
             <span>{urgency.icon}</span>
             <span>{urgency.label}</span>
           </div>
@@ -159,8 +195,8 @@ const SwipeableJobCard = ({
                 filter === "available"
                   ? "bg-green-500/20"
                   : filter === "active"
-                  ? "bg-yellow-500/20"
-                  : "bg-[var(--muted)]"
+                    ? "bg-yellow-500/20"
+                    : "bg-[var(--muted)]"
               }`}
             >
               <MapPin
@@ -168,8 +204,8 @@ const SwipeableJobCard = ({
                   filter === "available"
                     ? "text-green-400"
                     : filter === "active"
-                    ? "text-yellow-400"
-                    : "text-[var(--muted-foreground)]"
+                      ? "text-yellow-400"
+                      : "text-[var(--muted-foreground)]"
                 }`}
               />
             </div>
@@ -178,7 +214,8 @@ const SwipeableJobCard = ({
                 {job.property?.addressLine1}
               </h3>
               <p className="text-sm text-[var(--muted-foreground)]">
-                {job.property?.city}, {job.property?.state} {job.property?.zipCode}
+                {job.property?.city}, {job.property?.state}{" "}
+                {job.property?.zipCode}
               </p>
             </div>
           </div>
@@ -228,15 +265,21 @@ const SwipeableJobCard = ({
         <div className="flex items-center gap-4 text-sm flex-wrap">
           <div className="flex items-center gap-1">
             <DollarSign className="w-4 h-4 text-green-400" />
-            <span className="font-bold text-green-400">${Number(job.payoutAmount)}</span>
+            <span className="font-bold text-green-400">
+              ${Number(job.payoutAmount)}
+            </span>
           </div>
 
-          {filter === "available" && "distance" in job && (job as { distance?: number }).distance && (
-            <div className="flex items-center gap-1 text-[var(--muted-foreground)]">
-              <Navigation className="w-4 h-4" />
-              <span>{((job as { distance?: number }).distance ?? 0).toFixed(1)} mi</span>
-            </div>
-          )}
+          {filter === "available" &&
+            "distance" in job &&
+            (job as { distance?: number }).distance && (
+              <div className="flex items-center gap-1 text-[var(--muted-foreground)]">
+                <Navigation className="w-4 h-4" />
+                <span>
+                  {((job as { distance?: number }).distance ?? 0).toFixed(1)} mi
+                </span>
+              </div>
+            )}
 
           <div className="flex items-center gap-1 text-[var(--muted-foreground)]">
             <Briefcase className="w-4 h-4" />
@@ -250,8 +293,8 @@ const SwipeableJobCard = ({
                 {hoursRemaining < 0
                   ? "Overdue"
                   : hoursRemaining < 24
-                  ? `${Math.round(hoursRemaining)}h left`
-                  : `Due ${new Date(job.slaDueAt).toLocaleDateString()}`}
+                    ? `${Math.round(hoursRemaining)}h left`
+                    : `Due ${new Date(job.slaDueAt).toLocaleDateString()}`}
               </span>
             </div>
           )}
@@ -272,7 +315,7 @@ const SwipeableJobCard = ({
               ) : (
                 <Clock className="w-3 h-3" />
               )}
-              {job.status.replace("_", " ")}
+              {(job.status ?? "").replace("_", " ")}
             </span>
           </div>
         )}
@@ -290,7 +333,7 @@ export default function AppraiserJobsPage() {
   const [filter, setFilter] = useState<JobFilter>(
     tabFromUrl && ["available", "active", "completed"].includes(tabFromUrl)
       ? tabFromUrl
-      : "available"
+      : "available",
   );
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -306,19 +349,28 @@ export default function AppraiserJobsPage() {
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
+    // Initial sync on mount - required for hydration safety
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNow(Date.now());
     const interval = setInterval(() => setNow(Date.now()), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // Sync filter with URL
+  // Sync filter with URL changes
   useEffect(() => {
-    if (tabFromUrl && ["available", "active", "completed"].includes(tabFromUrl)) {
+    if (
+      tabFromUrl &&
+      ["available", "active", "completed"].includes(tabFromUrl) &&
+      tabFromUrl !== filter
+    ) {
+      // Only update if URL tab differs from current filter
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilter(tabFromUrl);
     }
-  }, [tabFromUrl]);
+  }, [tabFromUrl, filter]);
 
-  const hasActiveFilters = advancedFilters.maxDistance !== null ||
+  const hasActiveFilters =
+    advancedFilters.maxDistance !== null ||
     advancedFilters.minPayout !== null ||
     advancedFilters.jobType !== null;
 
@@ -330,29 +382,27 @@ export default function AppraiserJobsPage() {
   const utils = trpc.useUtils();
 
   // Queries
-  const { data: availableJobs, isLoading: availableLoading } = trpc.job.available.useQuery(
-    {
-      limit: 20,
-      maxDistance: advancedFilters.maxDistance ?? undefined,
-      minPayout: advancedFilters.minPayout ?? undefined,
-      jobType: advancedFilters.jobType ?? undefined,
-    },
-    {
-      enabled: filter === "available",
-      staleTime: 2 * 60 * 1000, // 2 min
-      refetchOnWindowFocus: true,
-      retry: isOnline ? 3 : 0,
-    }
-  );
+  const { data: availableJobs, isLoading: availableLoading } =
+    trpc.job.available.useQuery(
+      {
+        limit: 20,
+        maxDistance: advancedFilters.maxDistance ?? undefined,
+        minPayout: advancedFilters.minPayout ?? undefined,
+        jobType: advancedFilters.jobType ?? undefined,
+      },
+      {
+        enabled: filter === "available",
+        staleTime: 2 * 60 * 1000, // 2 min
+        refetchOnWindowFocus: true,
+        retry: isOnline ? 3 : 0,
+      },
+    );
 
-  const { data: activeJobs } = trpc.job.myActive.useQuery(
-    undefined,
-    {
-      enabled: filter === "active",
-      staleTime: 60 * 1000,
-      retry: isOnline ? 3 : 0,
-    }
-  );
+  const { data: activeJobs } = trpc.job.myActive.useQuery(undefined, {
+    enabled: filter === "active",
+    staleTime: 60 * 1000,
+    retry: isOnline ? 3 : 0,
+  });
 
   const { data: completedJobs } = trpc.job.history.useQuery(
     { limit: 20 },
@@ -360,7 +410,7 @@ export default function AppraiserJobsPage() {
       enabled: filter === "completed",
       staleTime: 5 * 60 * 1000,
       retry: isOnline ? 3 : 0,
-    }
+    },
   );
 
   // Mutations
@@ -428,17 +478,21 @@ export default function AppraiserJobsPage() {
 
   // Get sorted jobs
   const jobs = useMemo(() => {
-    const baseJobs = filter === "available"
-      ? availableJobs
-      : filter === "active"
-        ? activeJobs
-        : completedJobs?.items;
+    const baseJobs =
+      filter === "available"
+        ? availableJobs
+        : filter === "active"
+          ? activeJobs
+          : completedJobs?.items;
 
     if (!baseJobs) return [];
 
     return [...baseJobs].sort((a, b) => {
       if (sortBy === "distance" && "distance" in a && "distance" in b) {
-        return ((a as any).distance || 0) - ((b as any).distance || 0);
+        return (
+          (Number((a as { distance?: number }).distance) || 0) -
+          (Number((b as { distance?: number }).distance) || 0)
+        );
       }
       if (sortBy === "payout") {
         return Number(b.payoutAmount) - Number(a.payoutAmount);
@@ -465,7 +519,9 @@ export default function AppraiserJobsPage() {
             opacity: progress,
           }}
         >
-          <RefreshCw className={`w-5 h-5 mr-2 ${progress >= 1 ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`w-5 h-5 mr-2 ${progress >= 1 ? "animate-spin" : ""}`}
+          />
           <span className="text-sm font-medium">
             {progress >= 1 ? "Release to refresh" : "Pull to refresh"}
           </span>
@@ -557,7 +613,9 @@ export default function AppraiserJobsPage() {
       {showFilters && filter === "available" && (
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-[var(--foreground)]">Advanced Filters</h3>
+            <h3 className="font-semibold text-[var(--foreground)]">
+              Advanced Filters
+            </h3>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
@@ -640,9 +698,24 @@ export default function AppraiserJobsPage() {
       {/* Filter Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2">
         {[
-          { id: "available", label: "Available", count: availableJobs?.length || 0, icon: Briefcase },
-          { id: "active", label: "Active", count: activeJobs?.length || 0, icon: Zap },
-          { id: "completed", label: "Completed", count: completedJobs?.items?.length || 0, icon: CheckCircle },
+          {
+            id: "available",
+            label: "Available",
+            count: availableJobs?.length || 0,
+            icon: Briefcase,
+          },
+          {
+            id: "active",
+            label: "Active",
+            count: activeJobs?.length || 0,
+            icon: Zap,
+          },
+          {
+            id: "completed",
+            label: "Completed",
+            count: completedJobs?.items?.length || 0,
+            icon: CheckCircle,
+          },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -704,7 +777,9 @@ export default function AppraiserJobsPage() {
           {jobs.length === 0 ? (
             <div className="p-12 text-center">
               <Map className="w-16 h-16 mx-auto mb-4 text-[var(--muted-foreground)]" />
-              <h3 className="text-lg font-medium text-[var(--foreground)] mb-1">No Jobs on Map</h3>
+              <h3 className="text-lg font-medium text-[var(--foreground)] mb-1">
+                No Jobs on Map
+              </h3>
               <p className="text-[var(--muted-foreground)]">
                 {filter === "available"
                   ? "No available jobs in your area. Try expanding your filters."
@@ -716,7 +791,9 @@ export default function AppraiserJobsPage() {
               <MapView
                 style={{ height: 450 }}
                 markers={jobs
-                  .filter((job) => job.property?.latitude && job.property?.longitude)
+                  .filter(
+                    (job) => job.property?.latitude && job.property?.longitude,
+                  )
                   .map((job) => ({
                     id: job.id,
                     latitude: job.property?.latitude ?? 0,
@@ -726,8 +803,8 @@ export default function AppraiserJobsPage() {
                       filter === "available"
                         ? "#22c55e"
                         : filter === "active"
-                        ? "#eab308"
-                        : "#6b7280",
+                          ? "#eab308"
+                          : "#6b7280",
                   }))}
                 showBaseLayerSwitcher
               />
@@ -745,8 +822,8 @@ export default function AppraiserJobsPage() {
                           filter === "available"
                             ? "bg-green-500"
                             : filter === "active"
-                            ? "bg-yellow-500"
-                            : "bg-gray-500"
+                              ? "bg-yellow-500"
+                              : "bg-gray-500"
                         }`}
                       />
                       <div>
@@ -777,12 +854,24 @@ export default function AppraiserJobsPage() {
         <>
           {jobs.length === 0 ? (
             <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-12 text-center">
-              <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${
-                filter === "available" ? "bg-green-500/20" : filter === "active" ? "bg-yellow-500/20" : "bg-[var(--muted)]"
-              }`}>
-                {filter === "available" && <Briefcase className="w-10 h-10 text-green-400" />}
-                {filter === "active" && <Zap className="w-10 h-10 text-yellow-400" />}
-                {filter === "completed" && <CheckCircle className="w-10 h-10 text-[var(--muted-foreground)]" />}
+              <div
+                className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${
+                  filter === "available"
+                    ? "bg-green-500/20"
+                    : filter === "active"
+                      ? "bg-yellow-500/20"
+                      : "bg-[var(--muted)]"
+                }`}
+              >
+                {filter === "available" && (
+                  <Briefcase className="w-10 h-10 text-green-400" />
+                )}
+                {filter === "active" && (
+                  <Zap className="w-10 h-10 text-yellow-400" />
+                )}
+                {filter === "completed" && (
+                  <CheckCircle className="w-10 h-10 text-[var(--muted-foreground)]" />
+                )}
               </div>
 
               <h3 className="text-xl font-bold text-[var(--foreground)] mb-2">
@@ -793,14 +882,11 @@ export default function AppraiserJobsPage() {
 
               <p className="text-[var(--muted-foreground)] mb-6 max-w-md mx-auto">
                 {filter === "available" &&
-                  "There are currently no jobs in your area. Try expanding your search radius or check back in a few hours."
-                }
+                  "There are currently no jobs in your area. Try expanding your search radius or check back in a few hours."}
                 {filter === "active" &&
-                  "You don't have any jobs in progress. Browse available jobs to get started!"
-                }
+                  "You don't have any jobs in progress. Browse available jobs to get started!"}
                 {filter === "completed" &&
-                  "Complete your first job to see your work history here. Your earnings and stats will appear once you finish a job."
-                }
+                  "Complete your first job to see your work history here. Your earnings and stats will appear once you finish a job."}
               </p>
 
               {/* Contextual CTAs */}
@@ -808,7 +894,10 @@ export default function AppraiserJobsPage() {
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <button
                     onClick={() => {
-                      setAdvancedFilters({ ...advancedFilters, maxDistance: 50 });
+                      setAdvancedFilters({
+                        ...advancedFilters,
+                        maxDistance: 50,
+                      });
                       toast({
                         title: "Search expanded",
                         description: "Now showing jobs within 50 miles.",
@@ -882,17 +971,27 @@ export default function AppraiserJobsPage() {
               <div className="flex items-center gap-1">
                 <DollarSign className="w-4 h-4 text-green-400" />
                 <span className="text-[var(--foreground)]">
-                  <strong>${jobs.reduce((sum, j) => sum + Number(j.payoutAmount), 0)}</strong> available
+                  <strong>
+                    ${jobs.reduce((sum, j) => sum + Number(j.payoutAmount), 0)}
+                  </strong>{" "}
+                  available
                 </span>
               </div>
               <div className="flex items-center gap-1">
                 <AlertCircle className="w-4 h-4 text-orange-400" />
                 <span className="text-[var(--foreground)]">
-                  <strong>{now !== null ? jobs.filter(j => {
-                    if (!j.slaDueAt) return false;
-                    const hrs = (new Date(j.slaDueAt).getTime() - now) / (1000 * 60 * 60);
-                    return hrs < 24 && hrs > 0;
-                  }).length : 0}</strong> due soon
+                  <strong>
+                    {now !== null
+                      ? jobs.filter((j) => {
+                          if (!j.slaDueAt) return false;
+                          const hrs =
+                            (new Date(j.slaDueAt).getTime() - now) /
+                            (1000 * 60 * 60);
+                          return hrs < 24 && hrs > 0;
+                        }).length
+                      : 0}
+                  </strong>{" "}
+                  due soon
                 </span>
               </div>
             </div>

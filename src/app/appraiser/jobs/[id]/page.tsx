@@ -1,11 +1,53 @@
 "use client";
 
+// Web Speech API type declarations
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  length: number;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognition;
+    webkitSpeechRecognition?: new () => SpeechRecognition;
+  }
+}
+
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
-import { useLiveCountdown, getUrgencyConfig } from "@/shared/hooks/useLiveCountdown";
+import {
+  useLiveCountdown,
+  getUrgencyConfig,
+} from "@/shared/hooks/useLiveCountdown";
 import {
   ArrowLeft,
   MapPin,
@@ -50,7 +92,10 @@ export default function JobDetailPage({ params }: PageProps) {
 
   // Live countdown
   const countdown = useLiveCountdown(job?.slaDueAt || null);
-  const urgency = getUrgencyConfig(countdown.hoursRemaining, countdown.isOverdue);
+  const urgency = getUrgencyConfig(
+    countdown.hoursRemaining,
+    countdown.isOverdue,
+  );
 
   const acceptJob = trpc.job.accept.useMutation({
     onSuccess: () => {
@@ -126,7 +171,10 @@ export default function JobDetailPage({ params }: PageProps) {
 
   // Voice to text for notes
   const toggleVoiceInput = () => {
-    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+    if (
+      !("webkitSpeechRecognition" in window) &&
+      !("SpeechRecognition" in window)
+    ) {
       toast({
         title: "Not supported",
         description: "Voice input is not supported in this browser.",
@@ -140,8 +188,8 @@ export default function JobDetailPage({ params }: PageProps) {
       return;
     }
 
-    const SpeechRecognitionAPI = (window as unknown as { SpeechRecognition?: new () => SpeechRecognition; webkitSpeechRecognition?: new () => SpeechRecognition }).SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: new () => SpeechRecognition }).webkitSpeechRecognition;
+    const SpeechRecognitionAPI =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) return;
     const recognition = new SpeechRecognitionAPI();
     recognition.continuous = true;
@@ -240,9 +288,16 @@ export default function JobDetailPage({ params }: PageProps) {
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--muted)] flex items-center justify-center">
           <AlertTriangle className="w-8 h-8 text-[var(--muted-foreground)]" />
         </div>
-        <p className="text-[var(--foreground)] font-medium mb-2">Job not found</p>
-        <p className="text-[var(--muted-foreground)] text-sm mb-4">This job may have been cancelled or doesn&apos;t exist.</p>
-        <Link href="/appraiser/jobs" className="text-[var(--primary)] hover:underline inline-flex items-center gap-1">
+        <p className="text-[var(--foreground)] font-medium mb-2">
+          Job not found
+        </p>
+        <p className="text-[var(--muted-foreground)] text-sm mb-4">
+          This job may have been cancelled or doesn&apos;t exist.
+        </p>
+        <Link
+          href="/appraiser/jobs"
+          className="text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+        >
           <ArrowLeft className="w-4 h-4" />
           Back to jobs
         </Link>
@@ -257,32 +312,72 @@ export default function JobDetailPage({ params }: PageProps) {
   const canSubmit = job.status === "IN_PROGRESS" && isMyJob;
   const canCancel = job.status === "ACCEPTED" && isMyJob;
 
-  const statusConfig: Record<string, { color: string; label: string; icon: typeof Clock }> = {
-    PENDING_DISPATCH: { color: "bg-[var(--muted)] text-[var(--muted-foreground)]", label: "Pending", icon: Clock },
-    DISPATCHED: { color: "bg-blue-500/20 text-blue-400", label: "Available", icon: Star },
-    ACCEPTED: { color: "bg-yellow-500/20 text-yellow-400", label: "Accepted", icon: Check },
-    IN_PROGRESS: { color: "bg-purple-500/20 text-purple-400", label: "In Progress", icon: Play },
-    SUBMITTED: { color: "bg-orange-500/20 text-orange-400", label: "Submitted", icon: Send },
-    UNDER_REVIEW: { color: "bg-orange-500/20 text-orange-400", label: "Under Review", icon: FileText },
-    COMPLETED: { color: "bg-green-500/20 text-green-400", label: "Completed", icon: CheckCircle },
-    CANCELLED: { color: "bg-red-500/20 text-red-400", label: "Cancelled", icon: XCircle },
+  const statusConfig: Record<
+    string,
+    { color: string; label: string; icon: typeof Clock }
+  > = {
+    PENDING_DISPATCH: {
+      color: "bg-[var(--muted)] text-[var(--muted-foreground)]",
+      label: "Pending",
+      icon: Clock,
+    },
+    DISPATCHED: {
+      color: "bg-blue-500/20 text-blue-400",
+      label: "Available",
+      icon: Star,
+    },
+    ACCEPTED: {
+      color: "bg-yellow-500/20 text-yellow-400",
+      label: "Accepted",
+      icon: Check,
+    },
+    IN_PROGRESS: {
+      color: "bg-purple-500/20 text-purple-400",
+      label: "In Progress",
+      icon: Play,
+    },
+    SUBMITTED: {
+      color: "bg-orange-500/20 text-orange-400",
+      label: "Submitted",
+      icon: Send,
+    },
+    UNDER_REVIEW: {
+      color: "bg-orange-500/20 text-orange-400",
+      label: "Under Review",
+      icon: FileText,
+    },
+    COMPLETED: {
+      color: "bg-green-500/20 text-green-400",
+      label: "Completed",
+      icon: CheckCircle,
+    },
+    CANCELLED: {
+      color: "bg-red-500/20 text-red-400",
+      label: "Cancelled",
+      icon: XCircle,
+    },
   };
 
-  const mapMarkers = property?.latitude && property?.longitude
-    ? [{
-        id: job.id,
-        latitude: property.latitude,
-        longitude: property.longitude,
-        label: property.addressLine1,
-        popup: `<strong>${property.addressLine1}</strong><br/>${property.city}, ${property.state} ${property.zipCode}`,
-      }]
-    : [];
+  const mapMarkers =
+    property?.latitude && property?.longitude
+      ? [
+          {
+            id: job.id,
+            latitude: property.latitude,
+            longitude: property.longitude,
+            label: property.addressLine1,
+            popup: `<strong>${property.addressLine1}</strong><br/>${property.city}, ${property.state} ${property.zipCode}`,
+          },
+        ]
+      : [];
 
   return (
     <div className="space-y-4 pb-28 md:pb-6">
       {/* Urgency Banner */}
       {(urgency.level === "critical" || urgency.level === "overdue") && (
-        <div className={`${urgency.bgClass} border-2 rounded-lg p-3 flex items-center gap-3 animate-pulse`}>
+        <div
+          className={`${urgency.bgClass} border-2 rounded-lg p-3 flex items-center gap-3 animate-pulse`}
+        >
           <span className="text-2xl">{urgency.icon}</span>
           <div className="flex-1">
             <p className={`font-bold ${urgency.textClass}`}>{urgency.label}</p>
@@ -306,12 +401,18 @@ export default function JobDetailPage({ params }: PageProps) {
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-[var(--foreground)]">Job Details</h1>
-              <span className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusConfig[job.status]?.color}`}>
+              <h1 className="text-xl font-bold text-[var(--foreground)]">
+                Job Details
+              </h1>
+              <span
+                className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusConfig[job.status]?.color}`}
+              >
                 {statusConfig[job.status]?.label}
               </span>
             </div>
-            <p className="text-sm text-[var(--muted-foreground)]">Ref: {job.id.slice(0, 8).toUpperCase()}</p>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              Ref: {job.id.slice(0, 8).toUpperCase()}
+            </p>
           </div>
         </div>
         <button
@@ -344,16 +445,19 @@ export default function JobDetailPage({ params }: PageProps) {
         )}
 
         <div className="p-4">
-          <h2 className="font-semibold text-[var(--foreground)] text-lg">{property?.addressLine1}</h2>
+          <h2 className="font-semibold text-[var(--foreground)] text-lg">
+            {property?.addressLine1}
+          </h2>
           <p className="text-[var(--muted-foreground)]">
             {property?.city}, {property?.state} {property?.zipCode}
           </p>
 
           <div className="flex gap-2 mt-3">
             <a
-              href={property?.latitude && property?.longitude
-                ? `https://www.google.com/maps/dir/?api=1&destination=${property.latitude},${property.longitude}`
-                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property?.addressLine1} ${property?.city} ${property?.state} ${property?.zipCode}`)}`
+              href={
+                property?.latitude && property?.longitude
+                  ? `https://www.google.com/maps/dir/?api=1&destination=${property.latitude},${property.longitude}`
+                  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property?.addressLine1} ${property?.city} ${property?.state} ${property?.zipCode}`)}`
               }
               target="_blank"
               rel="noopener noreferrer"
@@ -364,14 +468,17 @@ export default function JobDetailPage({ params }: PageProps) {
             </a>
             <button
               onClick={() => {
-                const accessContact = job.accessContact as { phone?: string } | null;
+                const accessContact = job.accessContact as {
+                  phone?: string;
+                } | null;
                 const phone = accessContact?.phone || null;
                 if (phone) {
                   window.location.href = `tel:${phone}`;
                 } else {
                   toast({
                     title: "Contact unavailable",
-                    description: "No contact phone number is available for this property.",
+                    description:
+                      "No contact phone number is available for this property.",
                   });
                 }
               }}
@@ -385,7 +492,9 @@ export default function JobDetailPage({ params }: PageProps) {
 
       {/* Job Info with Live Countdown */}
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-        <h3 className="font-semibold text-[var(--foreground)] mb-4">Job Information</h3>
+        <h3 className="font-semibold text-[var(--foreground)] mb-4">
+          Job Information
+        </h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-green-500/20 rounded-lg">
@@ -393,7 +502,9 @@ export default function JobDetailPage({ params }: PageProps) {
             </div>
             <div>
               <p className="text-sm text-[var(--muted-foreground)]">Payout</p>
-              <p className="font-bold text-green-400 text-xl">${Number(job.payoutAmount)}</p>
+              <p className="font-bold text-green-400 text-xl">
+                ${Number(job.payoutAmount)}
+              </p>
             </div>
           </div>
 
@@ -403,7 +514,9 @@ export default function JobDetailPage({ params }: PageProps) {
             </div>
             <div>
               <p className="text-sm text-[var(--muted-foreground)]">Type</p>
-              <p className="font-medium text-[var(--foreground)]">{job.jobType?.replace("_", " ")}</p>
+              <p className="font-medium text-[var(--foreground)]">
+                {job.jobType?.replace("_", " ")}
+              </p>
             </div>
           </div>
 
@@ -414,19 +527,29 @@ export default function JobDetailPage({ params }: PageProps) {
             <div>
               <p className="text-sm text-[var(--muted-foreground)]">Due Date</p>
               <p className="font-medium text-[var(--foreground)]">
-                {job.slaDueAt ? new Date(job.slaDueAt).toLocaleDateString() : "N/A"}
+                {job.slaDueAt
+                  ? new Date(job.slaDueAt).toLocaleDateString()
+                  : "N/A"}
               </p>
             </div>
           </div>
 
           {/* Live Countdown */}
           <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-lg ${urgency.bgClass || "bg-purple-500/20"}`}>
-              <Clock className={`w-5 h-5 ${urgency.textClass || "text-purple-400"}`} />
+            <div
+              className={`p-2.5 rounded-lg ${urgency.bgClass || "bg-purple-500/20"}`}
+            >
+              <Clock
+                className={`w-5 h-5 ${urgency.textClass || "text-purple-400"}`}
+              />
             </div>
             <div>
-              <p className="text-sm text-[var(--muted-foreground)]">Time Left</p>
-              <p className={`font-bold text-xl ${urgency.textClass || "text-[var(--foreground)]"}`}>
+              <p className="text-sm text-[var(--muted-foreground)]">
+                Time Left
+              </p>
+              <p
+                className={`font-bold text-xl ${urgency.textClass || "text-[var(--foreground)]"}`}
+              >
                 {countdown.timeRemaining}
               </p>
             </div>
@@ -443,28 +566,40 @@ export default function JobDetailPage({ params }: PageProps) {
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
             <p className="text-[var(--muted-foreground)]">Type</p>
-            <p className="font-medium text-[var(--foreground)]">{property?.propertyType?.replace("_", " ") || "-"}</p>
+            <p className="font-medium text-[var(--foreground)]">
+              {property?.propertyType?.replace("_", " ") || "-"}
+            </p>
           </div>
           <div>
             <p className="text-[var(--muted-foreground)]">Sq Ft</p>
-            <p className="font-medium text-[var(--foreground)]">{property?.sqft?.toLocaleString() || "-"}</p>
+            <p className="font-medium text-[var(--foreground)]">
+              {property?.sqft?.toLocaleString() || "-"}
+            </p>
           </div>
           <div>
             <p className="text-[var(--muted-foreground)]">Year Built</p>
-            <p className="font-medium text-[var(--foreground)]">{property?.yearBuilt || "-"}</p>
+            <p className="font-medium text-[var(--foreground)]">
+              {property?.yearBuilt || "-"}
+            </p>
           </div>
           <div>
             <p className="text-[var(--muted-foreground)]">Bedrooms</p>
-            <p className="font-medium text-[var(--foreground)]">{property?.bedrooms || "-"}</p>
+            <p className="font-medium text-[var(--foreground)]">
+              {property?.bedrooms || "-"}
+            </p>
           </div>
           <div>
             <p className="text-[var(--muted-foreground)]">Bathrooms</p>
-            <p className="font-medium text-[var(--foreground)]">{property?.bathrooms || "-"}</p>
+            <p className="font-medium text-[var(--foreground)]">
+              {property?.bathrooms || "-"}
+            </p>
           </div>
           <div>
             <p className="text-[var(--muted-foreground)]">Lot Size</p>
             <p className="font-medium text-[var(--foreground)]">
-              {property?.lotSizeSqft ? `${(property.lotSizeSqft / 43560).toFixed(2)} ac` : "-"}
+              {property?.lotSizeSqft
+                ? `${(property.lotSizeSqft / 43560).toFixed(2)} ac`
+                : "-"}
             </p>
           </div>
         </div>
@@ -477,7 +612,9 @@ export default function JobDetailPage({ params }: PageProps) {
             <AlertTriangle className="w-5 h-5" />
             Special Instructions
           </h3>
-          <p className="text-[var(--foreground)] text-sm">{job.specialInstructions}</p>
+          <p className="text-[var(--foreground)] text-sm">
+            {job.specialInstructions}
+          </p>
         </div>
       )}
 
@@ -488,12 +625,16 @@ export default function JobDetailPage({ params }: PageProps) {
             <AlertTriangle className="w-5 h-5" />
             Revision Requested
           </h3>
-          <p className="text-[var(--foreground)] text-sm">{job.revisionNotes}</p>
+          <p className="text-[var(--foreground)] text-sm">
+            {job.revisionNotes}
+          </p>
         </div>
       )}
 
       {/* Evidence Section */}
-      {(job.status === "IN_PROGRESS" || job.status === "SUBMITTED" || job.status === "ACCEPTED") && (
+      {(job.status === "IN_PROGRESS" ||
+        job.status === "SUBMITTED" ||
+        job.status === "ACCEPTED") && (
         <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
           <h3 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <Camera className="w-5 h-5 text-[var(--muted-foreground)]" />
@@ -509,8 +650,12 @@ export default function JobDetailPage({ params }: PageProps) {
                 <Camera className="w-6 h-6 text-[var(--primary)]" />
               </div>
               <div>
-                <p className="font-medium text-[var(--foreground)]">Capture Evidence</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Take required photos</p>
+                <p className="font-medium text-[var(--foreground)]">
+                  Capture Evidence
+                </p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Take required photos
+                </p>
               </div>
             </div>
             <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
@@ -530,7 +675,11 @@ export default function JobDetailPage({ params }: PageProps) {
                 }`}
                 title={isListening ? "Stop listening" : "Voice input"}
               >
-                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                {isListening ? (
+                  <MicOff className="w-5 h-5" />
+                ) : (
+                  <Mic className="w-5 h-5" />
+                )}
               </button>
             </div>
             <textarea
@@ -594,7 +743,7 @@ export default function JobDetailPage({ params }: PageProps) {
                 },
                 () => {
                   startJob.mutate({ jobId: id, latitude: 0, longitude: 0 });
-                }
+                },
               );
             }}
             disabled={startJob.isPending}
@@ -646,9 +795,12 @@ export default function JobDetailPage({ params }: PageProps) {
       {showCancelConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--card)] rounded-xl p-6 w-full max-w-md border border-[var(--border)]">
-            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">Cancel This Job?</h3>
+            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
+              Cancel This Job?
+            </h3>
             <p className="text-sm text-[var(--muted-foreground)] mb-4">
-              The job will be returned to available jobs. Please provide a reason.
+              The job will be returned to available jobs. Please provide a
+              reason.
             </p>
             <textarea
               value={cancelReason}
