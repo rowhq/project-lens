@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
+import { useCartStore } from "@/shared/lib/cart-store";
 import {
   ArrowLeft,
   FileText,
@@ -21,6 +22,7 @@ import {
   CheckCircle,
   Loader2,
   Eye,
+  Check,
 } from "lucide-react";
 import { useToast } from "@/shared/components/ui/Toast";
 
@@ -29,26 +31,35 @@ export default function ListingDetailPage() {
   const router = useRouter();
   const toast = useToast();
   const listingId = params.id as string;
+  const { addItem, hasItem, removeItem } = useCartStore();
 
   const { data: listing, isLoading } = trpc.marketplace.getById.useQuery({ id: listingId });
-  const purchaseMutation = trpc.marketplace.purchase.useMutation({
-    onSuccess: () => {
-      router.push("/marketplace/my-listings?tab=purchases");
-    },
-  });
 
-  const [isPurchasing, setIsPurchasing] = useState(false);
+  const isInCart = hasItem(listingId);
 
-  const handlePurchase = async () => {
-    setIsPurchasing(true);
-    try {
-      await purchaseMutation.mutateAsync({ listingId });
-      toast.success("Purchase successful! Redirecting to your purchases...");
-    } catch (error) {
-      toast.error("Purchase failed. Please try again or contact support.");
-    } finally {
-      setIsPurchasing(false);
-    }
+  const handleAddToCart = () => {
+    if (!listing) return;
+
+    const property = listing.report.appraisalRequest?.property;
+
+    addItem({
+      listingId: listing.id,
+      title: listing.title,
+      price: Number(listing.price),
+      property: property ? { city: property.city, state: property.state } : undefined,
+      reportType: listing.report.type,
+    });
+
+    toast.success("Added to cart!");
+  };
+
+  const handleRemoveFromCart = () => {
+    removeItem(listingId);
+    toast.success("Removed from cart");
+  };
+
+  const handleGoToCart = () => {
+    router.push("/marketplace/cart");
   };
 
   if (isLoading) {
@@ -224,23 +235,31 @@ export default function ListingDetailPage() {
               <p className="text-sm text-[var(--muted-foreground)]">One-time purchase</p>
             </div>
 
-            <button
-              onClick={handlePurchase}
-              disabled={isPurchasing || purchaseMutation.isPending}
-              className="w-full py-3 bg-[var(--primary)] text-white rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {isPurchasing || purchaseMutation.isPending ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
+            {isInCart ? (
+              <div className="space-y-2">
+                <button
+                  onClick={handleGoToCart}
+                  className="w-full py-3 bg-[var(--primary)] text-white rounded-lg font-semibold hover:opacity-90 flex items-center justify-center gap-2"
+                >
                   <ShoppingCart className="w-5 h-5" />
-                  Purchase Report
-                </>
-              )}
-            </button>
+                  Go to Cart
+                </button>
+                <button
+                  onClick={handleRemoveFromCart}
+                  className="w-full py-2 text-[var(--muted-foreground)] hover:text-red-500 text-sm flex items-center justify-center gap-1"
+                >
+                  Remove from cart
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                className="w-full py-3 bg-[var(--primary)] text-white rounded-lg font-semibold hover:opacity-90 flex items-center justify-center gap-2"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                Add to Cart
+              </button>
+            )}
 
             <div className="mt-6 space-y-3">
               <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">

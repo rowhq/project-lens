@@ -90,6 +90,75 @@ export const adminRouter = createTRPCRouter({
       };
     }),
 
+    weeklyTrend: adminProcedure.query(async ({ ctx }) => {
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      // Get jobs and payments from last 30 days
+      const [jobs, payments] = await Promise.all([
+        ctx.prisma.job.findMany({
+          where: { createdAt: { gte: thirtyDaysAgo } },
+          select: { createdAt: true, status: true },
+        }),
+        ctx.prisma.payment.findMany({
+          where: {
+            type: "CHARGE",
+            status: "COMPLETED",
+            createdAt: { gte: thirtyDaysAgo },
+          },
+          select: { createdAt: true, amount: true },
+        }),
+      ]);
+
+      // Group by day of week
+      const dayData: Record<string, { jobs: number; revenue: number }> = {
+        Mon: { jobs: 0, revenue: 0 },
+        Tue: { jobs: 0, revenue: 0 },
+        Wed: { jobs: 0, revenue: 0 },
+        Thu: { jobs: 0, revenue: 0 },
+        Fri: { jobs: 0, revenue: 0 },
+        Sat: { jobs: 0, revenue: 0 },
+        Sun: { jobs: 0, revenue: 0 },
+      };
+
+      jobs.forEach((job) => {
+        const dayName = days[new Date(job.createdAt).getDay()];
+        dayData[dayName].jobs += 1;
+      });
+
+      payments.forEach((payment) => {
+        const dayName = days[new Date(payment.createdAt).getDay()];
+        dayData[dayName].revenue += Number(payment.amount);
+      });
+
+      return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => ({
+        name: day,
+        jobs: dayData[day].jobs,
+        revenue: Math.round(dayData[day].revenue),
+      }));
+    }),
+
+    jobTypeDistribution: adminProcedure.query(async ({ ctx }) => {
+      const [aiOnly, onSite, certified] = await Promise.all([
+        ctx.prisma.appraisalRequest.count({
+          where: { requestedType: "AI_REPORT" },
+        }),
+        ctx.prisma.appraisalRequest.count({
+          where: { requestedType: "AI_REPORT_WITH_ONSITE" },
+        }),
+        ctx.prisma.appraisalRequest.count({
+          where: { requestedType: "CERTIFIED_APPRAISAL" },
+        }),
+      ]);
+
+      return [
+        { name: "AI Only", value: aiOnly },
+        { name: "On-Site", value: onSite },
+        { name: "Certified", value: certified },
+      ];
+    }),
+
     recentActivity: adminProcedure.query(async ({ ctx }) => {
       const [recentAppraisals, recentJobs, recentDisputes] = await Promise.all([
         ctx.prisma.appraisalRequest.findMany({
@@ -664,6 +733,85 @@ export const adminRouter = createTRPCRouter({
           data: {
             ruleType: `product_${input.productId}`,
             basePrice: input.basePrice,
+          },
+        });
+      }),
+
+    // Get payout configuration
+    getPayoutConfig: adminProcedure.query(async ({ ctx }) => {
+      const config = await ctx.prisma.systemConfig.findUnique({
+        where: { key: "payout_config" },
+      });
+
+      const defaultConfig = {
+        schedule: "weekly" as const,
+        minAmount: 50,
+        paymentMethod: "stripe_connect" as const,
+      };
+
+      if (!config) {
+        return defaultConfig;
+      }
+
+      const value = config.value as {
+        schedule?: string;
+        minAmount?: number;
+        paymentMethod?: string;
+      };
+
+      return {
+        schedule: (value.schedule as "weekly" | "biweekly" | "monthly") || defaultConfig.schedule,
+        minAmount: value.minAmount ?? defaultConfig.minAmount,
+        paymentMethod: (value.paymentMethod as "stripe_connect" | "ach") || defaultConfig.paymentMethod,
+      };
+    }),
+
+    // Save payout configuration
+    savePayoutConfig: adminProcedure
+      .input(
+        z.object({
+          schedule: z.enum(["weekly", "biweekly", "monthly"]),
+          minAmount: z.number().min(0),
+          paymentMethod: z.enum(["stripe_connect", "ach"]),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        return ctx.prisma.systemConfig.upsert({
+          where: { key: "payout_config" },
+          update: {
+            value: {
+              schedule: input.schedule,
+              minAmount: input.minAmount,
+              paymentMethod: input.paymentMethod,
+            },
+          },
+          create: {
+            key: "payout_config",
+            value: {
+              schedule: input.schedule,
+              minAmount: input.minAmount,
+              paymentMethod: input.paymentMethod,
+            },
+            description: "Payout schedule and settings configuration",
+          },
+        });
+      }),
+
+    // Update payout rate for a job type
+    updatePayoutRate: adminProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          basePayout: z.number().min(0).optional(),
+          percentage: z.number().min(0).max(100).optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        return ctx.prisma.pricingRule.update({
+          where: { id: input.id },
+          data: {
+            ...(input.basePayout !== undefined && { basePrice: input.basePayout }),
+            ...(input.percentage !== undefined && { appraiserPayoutPercent: input.percentage }),
           },
         });
       }),

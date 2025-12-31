@@ -19,6 +19,7 @@ import {
   X,
   AlertTriangle,
 } from "lucide-react";
+import { EmptyState } from "@/shared/components/common/EmptyState";
 
 export default function OrganizationsPage() {
   const router = useRouter();
@@ -175,7 +176,7 @@ export default function OrganizationsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
           <p className="text-sm text-[var(--muted-foreground)]">Total Organizations</p>
           <p className="text-2xl font-bold text-[var(--foreground)]">{totalOrgs}</p>
@@ -213,8 +214,8 @@ export default function OrganizationsPage() {
       </div>
 
       {/* Organizations Table */}
-      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden">
-        <table className="w-full">
+      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden overflow-x-auto">
+        <table className="w-full min-w-[700px]">
           <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Organization</th>
@@ -234,8 +235,12 @@ export default function OrganizationsPage() {
               </tr>
             ) : filteredOrgs?.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-[var(--muted-foreground)]">
-                  No organizations found
+                <td colSpan={6}>
+                  <EmptyState
+                    icon={Building}
+                    title="No organizations found"
+                    description={searchQuery ? "Try adjusting your search query" : "Organizations will appear here when they sign up"}
+                  />
                 </td>
               </tr>
             ) : (

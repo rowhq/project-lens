@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useId } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
@@ -13,7 +13,8 @@ export interface CheckboxProps
 
 const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, label, description, error, id, ...props }, ref) => {
-    const checkboxId = id || `checkbox-${Math.random().toString(36).slice(2)}`;
+    const generatedId = useId();
+    const checkboxId = id || generatedId;
 
     return (
       <div className={cn("relative flex items-start", className)}>
@@ -30,7 +31,7 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             <div
               className={cn(
                 "w-5 h-5 border-2 rounded transition-colors cursor-pointer",
-                "border-neutral-300 bg-white",
+                "border-border bg-card",
                 "peer-checked:bg-brand-500 peer-checked:border-brand-500",
                 "peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500 peer-focus-visible:ring-offset-2",
                 "peer-disabled:opacity-50 peer-disabled:cursor-not-allowed",
@@ -51,13 +52,13 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             {label && (
               <label
                 htmlFor={checkboxId}
-                className="text-sm font-medium text-neutral-700 cursor-pointer"
+                className="text-sm font-medium text-foreground cursor-pointer"
               >
                 {label}
               </label>
             )}
             {description && (
-              <p className="text-sm text-neutral-500">{description}</p>
+              <p className="text-sm text-muted-foreground">{description}</p>
             )}
             {error && (
               <p className="text-sm text-red-600 mt-1">{error}</p>

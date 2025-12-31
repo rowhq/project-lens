@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -16,10 +16,21 @@ import {
   Map,
   X,
   Loader2,
+  ChevronRight,
+  Share2,
+  Printer,
+  Copy,
+  MoreVertical,
+  AlertTriangle,
+  ChevronLeft,
+  Home,
+  Calendar,
+  DollarSign,
 } from "lucide-react";
 import { trpc } from "@/shared/lib/trpc";
 import { MapView } from "@/shared/components/common/MapView";
 import { useToast } from "@/shared/components/ui/Toast";
+import { Skeleton } from "@/shared/components/ui/Skeleton";
 
 type JobStatus = "PENDING_DISPATCH" | "DISPATCHED" | "ACCEPTED" | "IN_PROGRESS" | "SUBMITTED" | "COMPLETED" | "CANCELLED";
 
@@ -66,6 +77,29 @@ const statusConfig: Record<JobStatus, { label: string; color: string; bgColor: s
   CANCELLED: { label: "Cancelled", color: "text-[var(--muted-foreground)]", bgColor: "bg-[var(--muted)]" },
 };
 
+// Helper functions for SLA
+function getTimeRemaining(dueDate: Date): { days: number; hours: number; isOverdue: boolean; isUrgent: boolean } {
+  const now = new Date();
+  const due = new Date(dueDate);
+  const diff = due.getTime() - now.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  return {
+    days: Math.abs(days),
+    hours: Math.abs(hours),
+    isOverdue: diff < 0,
+    isUrgent: diff > 0 && diff < 48 * 60 * 60 * 1000, // Less than 48 hours
+  };
+}
+
+function formatTimeRemaining(dueDate: Date): string {
+  const { days, hours, isOverdue } = getTimeRemaining(dueDate);
+  if (isOverdue) {
+    return days > 0 ? `${days}d ${hours}h overdue` : `${hours}h overdue`;
+  }
+  return days > 0 ? `${days}d ${hours}h remaining` : `${hours}h remaining`;
+}
+
 export default function OrderDetailPage() {
   const params = useParams();
   const toast = useToast();
@@ -75,6 +109,7 @@ export default function OrderDetailPage() {
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
 
   const { data: orderData, isLoading, refetch } = trpc.job.getForClient.useQuery({ id: orderId });
 
@@ -97,10 +132,84 @@ export default function OrderDetailPage() {
   // Cast to typed order with relations
   const order = orderData as unknown as OrderWithRelations | undefined;
 
+  // Keyboard navigation for gallery
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (!showGalleryModal || !order?.evidence) return;
+
+    if (e.key === "ArrowLeft") {
+      setSelectedPhotoIndex((prev) => (prev > 0 ? prev - 1 : order.evidence.length - 1));
+    } else if (e.key === "ArrowRight") {
+      setSelectedPhotoIndex((prev) => (prev < order.evidence.length - 1 ? prev + 1 : 0));
+    } else if (e.key === "Escape") {
+      setShowGalleryModal(false);
+    }
+  }, [showGalleryModal, order?.evidence]);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
+  // Close actions menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setShowActionsMenu(false);
+    if (showActionsMenu) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [showActionsMenu]);
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-[var(--muted-foreground)]">Loading order details...</div>
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Breadcrumbs skeleton */}
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-4" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-9 w-36 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-lg" />
+          </div>
+        </div>
+        {/* Hero card skeleton */}
+        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+          <div className="grid md:grid-cols-2">
+            <Skeleton className="h-[300px] w-full" />
+            <div className="p-6 space-y-4">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="space-y-1">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-5 w-24" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Timeline skeleton */}
+        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+          <Skeleton className="h-6 w-36 mb-4" />
+          <div className="flex items-center justify-between">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex-1 flex flex-col items-center">
+                <Skeleton className="w-10 h-10 rounded-full" />
+                <Skeleton className="h-3 w-16 mt-2" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -118,6 +227,7 @@ export default function OrderDetailPage() {
 
   const status = statusConfig[order.status as JobStatus] || statusConfig.PENDING_DISPATCH;
   const accessContact = order.accessContact as { name?: string; phone?: string } | null;
+  const slaInfo = order.slaDueAt ? getTimeRemaining(order.slaDueAt) : null;
 
   // Handler to download a single evidence file
   const handleDownloadSingle = async (evidenceId: string, fileName: string) => {
@@ -130,7 +240,7 @@ export default function OrderDetailPage() {
       link.click();
       document.body.removeChild(link);
       toast.success("Download started");
-    } catch (error) {
+    } catch {
       toast.error("Failed to download file");
     }
   };
@@ -158,7 +268,6 @@ export default function OrderDetailPage() {
         link.click();
         document.body.removeChild(link);
         successCount++;
-        // Small delay to avoid overwhelming the browser
         await new Promise((resolve) => setTimeout(resolve, 500));
       } catch {
         errorCount++;
@@ -187,6 +296,31 @@ export default function OrderDetailPage() {
     });
   };
 
+  // Share order
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Order - ${order.property?.addressLine1}`,
+          url,
+        });
+      } catch {
+        // User cancelled or share failed
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard");
+    }
+    setShowActionsMenu(false);
+  };
+
+  // Print order
+  const handlePrint = () => {
+    window.print();
+    setShowActionsMenu(false);
+  };
+
   // Prepare map marker if coordinates exist
   const mapMarkers = order.property?.latitude && order.property?.longitude
     ? [{
@@ -198,57 +332,188 @@ export default function OrderDetailPage() {
       }]
     : [];
 
+  const canCancel = ["PENDING_DISPATCH", "DISPATCHED", "ACCEPTED"].includes(order.status);
+
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link
-          href="/orders"
-          className="p-2 hover:bg-[var(--secondary)] rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-[var(--foreground)]" />
+    <div className="max-w-5xl mx-auto space-y-6 print:space-y-4">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] print:hidden">
+        <Link href="/orders" className="hover:text-[var(--foreground)] transition-colors">
+          Orders
         </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Order Details</h1>
-          <p className="text-[var(--muted-foreground)]">{order.property?.addressLine1}</p>
-        </div>
-        <span className={`px-4 py-2 rounded-full text-sm font-medium ${status.bgColor} ${status.color}`}>
-          {status.label}
+        <ChevronRight className="w-4 h-4" />
+        <span className="text-[var(--foreground)] truncate max-w-[200px]">
+          {order.property?.addressLine1}
         </span>
+      </nav>
+
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <Link
+            href="/orders"
+            className="p-2 hover:bg-[var(--secondary)] rounded-lg transition-colors print:hidden"
+            aria-label="Back to orders"
+          >
+            <ArrowLeft className="w-5 h-5 text-[var(--foreground)]" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-[var(--foreground)]">
+              {order.property?.addressLine1}
+            </h1>
+            <p className="text-[var(--muted-foreground)]">
+              {order.property?.city}, {order.property?.state} {order.property?.zipCode}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Status Badge */}
+          <span className={`px-4 py-2 rounded-full text-sm font-medium ${status.bgColor} ${status.color}`}>
+            {status.label}
+          </span>
+
+          {/* SLA Indicator */}
+          {slaInfo && (slaInfo.isUrgent || slaInfo.isOverdue) && (
+            <span className={`px-3 py-2 rounded-full text-sm font-medium flex items-center gap-1 ${
+              slaInfo.isOverdue
+                ? "bg-red-500/20 text-red-400"
+                : "bg-orange-500/20 text-orange-400"
+            }`}>
+              <AlertTriangle className="w-4 h-4" />
+              <span className="hidden sm:inline">{formatTimeRemaining(order.slaDueAt!)}</span>
+            </span>
+          )}
+
+          {/* Actions Menu */}
+          <div className="relative print:hidden">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowActionsMenu(!showActionsMenu);
+              }}
+              className="p-2 hover:bg-[var(--secondary)] rounded-lg transition-colors"
+              aria-label="More actions"
+            >
+              <MoreVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
+            </button>
+
+            {showActionsMenu && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg z-20 overflow-hidden">
+                <button
+                  onClick={handleShare}
+                  className="w-full px-4 py-3 text-left text-sm text-[var(--foreground)] hover:bg-[var(--secondary)] flex items-center gap-3 transition-colors"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Share Order
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="w-full px-4 py-3 text-left text-sm text-[var(--foreground)] hover:bg-[var(--secondary)] flex items-center gap-3 transition-colors"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print
+                </button>
+                <Link
+                  href="/orders/new"
+                  className="w-full px-4 py-3 text-left text-sm text-[var(--foreground)] hover:bg-[var(--secondary)] flex items-center gap-3 transition-colors"
+                >
+                  <Copy className="w-4 h-4" />
+                  New Similar Order
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Map Section */}
-      {order.property?.latitude && order.property?.longitude && (
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)]">
-            <Map className="w-4 h-4 text-[var(--primary)]" />
-            <h2 className="text-sm font-medium text-[var(--foreground)]">Property Location</h2>
+      {/* Hero Card: Map + Property Info */}
+      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+        <div className="grid md:grid-cols-2">
+          {/* Map */}
+          {order.property?.latitude && order.property?.longitude ? (
+            <div className="print:hidden" style={{ height: 300 }}>
+              <MapView
+                center={[order.property.longitude, order.property.latitude]}
+                zoom={15}
+                markers={mapMarkers}
+                showBaseLayerSwitcher
+                defaultBaseLayer="satellite"
+                style={{ height: 300 }}
+              />
+            </div>
+          ) : (
+            <div className="bg-[var(--muted)] flex items-center justify-center print:hidden" style={{ height: 300 }}>
+              <div className="text-center text-[var(--muted-foreground)]">
+                <Map className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>Location not available</p>
+              </div>
+            </div>
+          )}
+
+          {/* Property Info */}
+          <div className="p-6">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="p-2 bg-[var(--primary)]/10 rounded-lg">
+                <Home className="w-5 h-5 text-[var(--primary)]" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-[var(--foreground)]">Property Details</h2>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  {order.property?.propertyType?.replace(/_/g, " ") || "Property"}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">Scope</p>
+                <p className="font-medium text-[var(--foreground)]">
+                  {order.scope?.replace(/_/g, " ")}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">Order Total</p>
+                <p className="font-semibold text-[var(--foreground)] flex items-center gap-1">
+                  <DollarSign className="w-4 h-4" />
+                  {Number(order.payoutAmount).toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">Order Date</p>
+                <p className="text-[var(--foreground)] flex items-center gap-1">
+                  <Calendar className="w-4 h-4 text-[var(--muted-foreground)]" />
+                  {new Date(order.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              {order.slaDueAt && (
+                <div>
+                  <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">Due Date</p>
+                  <p className={`flex items-center gap-1 ${
+                    slaInfo?.isOverdue ? "text-red-400" : slaInfo?.isUrgent ? "text-orange-400" : "text-[var(--foreground)]"
+                  }`}>
+                    <Clock className="w-4 h-4" />
+                    {new Date(order.slaDueAt).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-          <MapView
-            center={[order.property.longitude, order.property.latitude]}
-            zoom={15}
-            markers={mapMarkers}
-            showLayerControls
-            showBaseLayerSwitcher
-            defaultBaseLayer="dark"
-            style={{ height: 350 }}
-          />
         </div>
-      )}
+      </div>
 
       {/* Status Timeline */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 sm:p-6">
         <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">Order Progress</h2>
-        <div className="flex items-center justify-between">
-          {["Order Created", "Appraiser Assigned", "Inspection", "Complete"].map((step, index) => {
+        <div className="flex items-center">
+          {["Created", "Assigned", "Inspection", "Complete"].map((step, index) => {
             const isCompleted = getProgressStep(order.status) > index;
             const isCurrent = getProgressStep(order.status) === index;
 
             return (
-              <div key={step} className="flex-1 relative">
-                <div className="flex flex-col items-center">
+              <div key={step} className="flex-1 flex items-center">
+                <div className="flex flex-col items-center flex-shrink-0">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors ${
                       isCompleted
                         ? "bg-green-500 text-white"
                         : isCurrent
@@ -257,21 +522,22 @@ export default function OrderDetailPage() {
                     }`}
                   >
                     {isCompleted ? (
-                      <CheckCircle className="w-5 h-5" />
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                     ) : (
-                      <span>{index + 1}</span>
+                      <span className="text-sm">{index + 1}</span>
                     )}
                   </div>
-                  <span className={`text-sm mt-2 ${isCurrent ? "font-medium text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}>
-                    {step}
+                  <span className={`text-xs sm:text-sm mt-2 text-center ${
+                    isCurrent ? "font-medium text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
+                  }`}>
+                    <span className="hidden sm:inline">{step}</span>
+                    <span className="sm:hidden">{index + 1}</span>
                   </span>
                 </div>
                 {index < 3 && (
-                  <div
-                    className={`absolute top-5 left-1/2 w-full h-0.5 ${
-                      isCompleted ? "bg-green-500" : "bg-[var(--muted)]"
-                    }`}
-                  />
+                  <div className={`flex-1 h-1 mx-1 sm:mx-2 rounded-full transition-colors ${
+                    isCompleted ? "bg-green-500" : "bg-[var(--muted)]"
+                  }`} />
                 )}
               </div>
             );
@@ -279,63 +545,14 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Property Details */}
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-          <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">Property</h2>
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <MapPin className="w-5 h-5 text-[var(--primary)] mt-0.5" />
-              <div>
-                <p className="font-medium text-[var(--foreground)]">{order.property?.addressLine1}</p>
-                <p className="text-sm text-[var(--muted-foreground)]">
-                  {order.property?.city}, {order.property?.state} {order.property?.zipCode}
-                </p>
-              </div>
-            </div>
-            {order.property?.propertyType && (
-              <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-[var(--muted-foreground)]" />
-                <span className="text-[var(--foreground)]">
-                  {order.property.propertyType.replace(/_/g, " ")}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Order Details */}
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-          <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">Order Info</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--muted-foreground)]">Scope</span>
-              <span className="font-medium text-[var(--foreground)]">{order.scope?.replace(/_/g, " ")}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--muted-foreground)]">Order Date</span>
-              <span className="text-[var(--foreground)]">{new Date(order.createdAt).toLocaleDateString()}</span>
-            </div>
-            {order.slaDueAt && (
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--muted-foreground)]">Due Date</span>
-                <span className="flex items-center gap-1 text-[var(--foreground)]">
-                  <Clock className="w-4 h-4 text-[var(--muted-foreground)]" />
-                  {new Date(order.slaDueAt).toLocaleDateString()}
-                </span>
-              </div>
-            )}
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--muted-foreground)]">Price</span>
-              <span className="font-semibold text-[var(--foreground)]">${Number(order.payoutAmount).toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
+      {/* Info Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Appraiser Info */}
         {order.assignedAppraiser && (
           <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-            <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">Appraiser</h2>
+            <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide mb-3">
+              Appraiser
+            </h3>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-[var(--primary)]/20 rounded-full flex items-center justify-center">
                 <User className="w-6 h-6 text-[var(--primary)]" />
@@ -345,20 +562,22 @@ export default function OrderDetailPage() {
                   {order.assignedAppraiser.firstName} {order.assignedAppraiser.lastName}
                 </p>
                 <p className="text-sm text-[var(--muted-foreground)]">Licensed Appraiser</p>
+                {order.acceptedAt && (
+                  <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                    Accepted {new Date(order.acceptedAt).toLocaleDateString()}
+                  </p>
+                )}
               </div>
             </div>
-            {order.acceptedAt && (
-              <p className="text-sm text-[var(--muted-foreground)] mt-4">
-                Accepted on {new Date(order.acceptedAt).toLocaleDateString()}
-              </p>
-            )}
           </div>
         )}
 
         {/* Contact Info */}
-        {(accessContact || order.specialInstructions) && (
+        {(accessContact?.name || accessContact?.phone || order.specialInstructions) && (
           <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-            <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">Contact & Notes</h2>
+            <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide mb-3">
+              Property Contact
+            </h3>
             <div className="space-y-3">
               {accessContact?.name && (
                 <div className="flex items-center gap-3">
@@ -367,13 +586,17 @@ export default function OrderDetailPage() {
                 </div>
               )}
               {accessContact?.phone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-[var(--muted-foreground)]" />
-                  <span className="text-[var(--foreground)]">{accessContact.phone}</span>
-                </div>
+                <a
+                  href={`tel:${accessContact.phone}`}
+                  className="flex items-center gap-3 text-[var(--primary)] hover:underline"
+                >
+                  <Phone className="w-4 h-4" />
+                  {accessContact.phone}
+                </a>
               )}
               {order.specialInstructions && (
-                <div className="mt-3 p-3 bg-[var(--secondary)] rounded-lg">
+                <div className="p-3 bg-[var(--secondary)] rounded-lg mt-2">
+                  <p className="text-xs text-[var(--muted-foreground)] mb-1">Access Notes</p>
                   <p className="text-sm text-[var(--foreground)]">{order.specialInstructions}</p>
                 </div>
               )}
@@ -384,13 +607,15 @@ export default function OrderDetailPage() {
 
       {/* Evidence Gallery */}
       {order.evidence && order.evidence.length > 0 && (
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 print:break-inside-avoid">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">Photos ({order.evidence.length})</h2>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">
+              Photos ({order.evidence.length})
+            </h2>
             <button
               onClick={handleDownloadAll}
               disabled={isDownloadingAll}
-              className="flex items-center gap-2 text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors disabled:opacity-50 print:hidden"
             >
               {isDownloadingAll ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -400,54 +625,45 @@ export default function OrderDetailPage() {
               {isDownloadingAll ? "Downloading..." : "Download All"}
             </button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {order.evidence.slice(0, 8).map((item, index) => (
-              <div
+              <button
                 key={item.id}
-                className="aspect-square bg-[var(--muted)] rounded-lg overflow-hidden relative group"
+                onClick={() => handleOpenPhoto(index)}
+                className="aspect-square bg-[var(--muted)] rounded-lg overflow-hidden relative group focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
               >
                 <img
                   src={item.fileUrl}
                   alt={item.category || `Photo ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => handleOpenPhoto(index)}
-                    className="p-2 bg-[var(--card)] rounded-lg hover:bg-[var(--secondary)] transition-colors"
-                    title="View full size"
-                  >
-                    <ExternalLink className="w-4 h-4 text-[var(--foreground)]" />
-                  </button>
-                  <button
-                    onClick={() => handleDownloadSingle(item.id, item.category || `photo-${index + 1}`)}
-                    className="p-2 bg-[var(--card)] rounded-lg hover:bg-[var(--secondary)] transition-colors"
-                    title="Download"
-                  >
-                    <Download className="w-4 h-4 text-[var(--foreground)]" />
-                  </button>
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <ExternalLink className="w-6 h-6 text-white" />
                 </div>
                 {item.category && (
                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70">
                     <p className="text-xs text-white truncate">{item.category}</p>
                   </div>
                 )}
-              </div>
+              </button>
             ))}
+            {order.evidence.length > 8 && (
+              <button
+                onClick={() => handleOpenPhoto(8)}
+                className="aspect-square bg-[var(--muted)] rounded-lg overflow-hidden relative flex items-center justify-center"
+              >
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-[var(--foreground)]">+{order.evidence.length - 8}</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">more photos</p>
+                </div>
+              </button>
+            )}
           </div>
-          {order.evidence.length > 8 && (
-            <button
-              onClick={() => setShowGalleryModal(true)}
-              className="mt-4 text-[var(--primary)] hover:underline"
-            >
-              View all {order.evidence.length} photos
-            </button>
-          )}
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-3 print:hidden">
         {order.status === "COMPLETED" && order.appraisalRequestId && (
           <Link
             href={`/appraisals/${order.appraisalRequestId}`}
@@ -457,7 +673,7 @@ export default function OrderDetailPage() {
             View Report
           </Link>
         )}
-        {order.status === "DISPATCHED" && (
+        {canCancel && (
           <button
             onClick={() => setShowCancelModal(true)}
             className="px-4 py-2 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors"
@@ -469,8 +685,8 @@ export default function OrderDetailPage() {
 
       {/* Cancel Order Modal */}
       {showCancelModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--card)] rounded-xl w-full max-w-md p-6 mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--card)] rounded-xl w-full max-w-md p-6 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-[var(--foreground)]">Cancel Order</h2>
               <button
@@ -491,7 +707,7 @@ export default function OrderDetailPage() {
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="Please provide a reason for cancellation..."
-                className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] resize-none"
+                className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 rows={3}
               />
             </div>
@@ -524,19 +740,41 @@ export default function OrderDetailPage() {
 
       {/* Photo Gallery Modal */}
       {showGalleryModal && order.evidence && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/95 flex items-center justify-center z-50"
+          role="dialog"
+          aria-label="Photo gallery"
+        >
           <button
             onClick={() => setShowGalleryModal(false)}
-            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors z-10"
+            aria-label="Close gallery"
           >
             <X className="w-6 h-6 text-white" />
           </button>
-          <div className="max-w-4xl w-full mx-4">
+
+          {/* Navigation arrows */}
+          <button
+            onClick={() => setSelectedPhotoIndex((prev) => (prev > 0 ? prev - 1 : order.evidence!.length - 1))}
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+            aria-label="Previous photo"
+          >
+            <ChevronLeft className="w-6 h-6 text-white" />
+          </button>
+          <button
+            onClick={() => setSelectedPhotoIndex((prev) => (prev < order.evidence!.length - 1 ? prev + 1 : 0))}
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+            aria-label="Next photo"
+          >
+            <ChevronRight className="w-6 h-6 text-white" />
+          </button>
+
+          <div className="max-w-5xl w-full mx-4">
             <div className="relative">
               <img
                 src={order.evidence[selectedPhotoIndex]?.fileUrl}
                 alt={order.evidence[selectedPhotoIndex]?.category || `Photo ${selectedPhotoIndex + 1}`}
-                className="w-full max-h-[70vh] object-contain rounded-lg"
+                className="w-full max-h-[75vh] object-contain rounded-lg"
               />
               {order.evidence[selectedPhotoIndex]?.category && (
                 <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/70 rounded-lg">
@@ -544,24 +782,36 @@ export default function OrderDetailPage() {
                 </div>
               )}
             </div>
+
+            {/* Thumbnails */}
+            <div className="flex items-center justify-center gap-2 mt-4 overflow-x-auto py-2">
+              {order.evidence.map((item, index) => (
+                <button
+                  key={item.id}
+                  onClick={() => setSelectedPhotoIndex(index)}
+                  className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
+                    index === selectedPhotoIndex
+                      ? "ring-2 ring-white ring-offset-2 ring-offset-black"
+                      : "opacity-50 hover:opacity-100"
+                  }`}
+                >
+                  <img
+                    src={item.fileUrl}
+                    alt={item.category || `Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+
+            {/* Counter and download */}
             <div className="flex items-center justify-between mt-4">
-              <button
-                onClick={() => setSelectedPhotoIndex((prev) => (prev > 0 ? prev - 1 : order.evidence!.length - 1))}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
-              >
-                Previous
-              </button>
-              <span className="text-white">
+              <span className="text-white/60 text-sm">
+                Use ← → keys to navigate, ESC to close
+              </span>
+              <span className="text-white" aria-live="polite">
                 {selectedPhotoIndex + 1} / {order.evidence.length}
               </span>
-              <button
-                onClick={() => setSelectedPhotoIndex((prev) => (prev < order.evidence!.length - 1 ? prev + 1 : 0))}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
-              >
-                Next
-              </button>
-            </div>
-            <div className="flex justify-center mt-4">
               <button
                 onClick={() => handleDownloadSingle(
                   order.evidence![selectedPhotoIndex].id,
@@ -570,7 +820,7 @@ export default function OrderDetailPage() {
                 className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-colors"
               >
                 <Download className="w-4 h-4" />
-                Download Photo
+                Download
               </button>
             </div>
           </div>

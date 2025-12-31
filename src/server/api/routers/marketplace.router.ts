@@ -10,6 +10,10 @@ import {
   clientProcedure,
 } from "../trpc";
 import { TRPCError } from "@trpc/server";
+import * as stripe from "@/shared/lib/stripe";
+
+// Platform fee is 20%
+const PLATFORM_FEE_PERCENTAGE = 0.20;
 
 export const marketplaceRouter = createTRPCRouter({
   /**
@@ -371,6 +375,151 @@ export const marketplaceRouter = createTRPCRouter({
       });
 
       return purchase;
+    }),
+
+  /**
+   * Create Stripe checkout session for cart items
+   */
+  createCheckout: clientProcedure
+    .input(z.object({ listingIds: z.array(z.string()).min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      // Fetch all listings
+      const listings = await ctx.prisma.marketplaceListing.findMany({
+        where: {
+          id: { in: input.listingIds },
+          status: "ACTIVE",
+        },
+        include: {
+          report: {
+            select: {
+              type: true,
+              appraisalRequest: {
+                select: {
+                  property: {
+                    select: {
+                      city: true,
+                      state: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (listings.length !== input.listingIds.length) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "One or more listings are no longer available",
+        });
+      }
+
+      // Check if buyer already owns any of these
+      const existingPurchases = await ctx.prisma.marketplacePurchase.findMany({
+        where: {
+          listingId: { in: input.listingIds },
+          buyerId: ctx.organization!.id,
+        },
+      });
+
+      if (existingPurchases.length > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "You have already purchased one or more of these reports",
+        });
+      }
+
+      // Can't buy your own listings
+      const ownListings = listings.filter((l) => l.sellerId === ctx.organization!.id);
+      if (ownListings.length > 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You cannot purchase your own listings",
+        });
+      }
+
+      // Calculate total
+      const total = listings.reduce((sum, l) => sum + Number(l.price), 0);
+
+      // Build line items for Stripe
+      const lineItems = listings.map((listing) => {
+        const property = listing.report.appraisalRequest?.property;
+        return {
+          name: listing.title,
+          description: property
+            ? `${listing.report.type.replace(/_/g, " ")} - ${property.city}, ${property.state}`
+            : listing.report.type.replace(/_/g, " "),
+          amount: Math.round(Number(listing.price) * 100), // Convert to cents
+          quantity: 1,
+        };
+      });
+
+      // Create Stripe checkout session
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const checkoutSession = await stripe.createMarketplaceCheckout({
+        organizationId: ctx.organization!.id,
+        listingIds: input.listingIds,
+        lineItems,
+        customerEmail: ctx.user.email || "",
+        successUrl: `${baseUrl}/marketplace/cart?payment=success`,
+        cancelUrl: `${baseUrl}/marketplace/cart?payment=cancelled`,
+      });
+
+      return {
+        checkoutUrl: checkoutSession.url,
+        sessionId: checkoutSession.id,
+        total,
+      };
+    }),
+
+  /**
+   * Confirm marketplace purchase after Stripe payment
+   */
+  confirmPurchase: clientProcedure
+    .input(z.object({ listingIds: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      const purchases: Awaited<ReturnType<typeof ctx.prisma.marketplacePurchase.create>>[] = [];
+
+      for (const listingId of input.listingIds) {
+        const listing = await ctx.prisma.marketplaceListing.findUnique({
+          where: { id: listingId },
+        });
+
+        if (!listing) continue;
+
+        // Check if already purchased
+        const existing = await ctx.prisma.marketplacePurchase.findUnique({
+          where: {
+            listingId_buyerId: {
+              listingId,
+              buyerId: ctx.organization!.id,
+            },
+          },
+        });
+
+        if (existing) continue;
+
+        // Create purchase record
+        const purchase = await ctx.prisma.marketplacePurchase.create({
+          data: {
+            listingId,
+            buyerId: ctx.organization!.id,
+            price: listing.price,
+            paymentStatus: "COMPLETED",
+          },
+        });
+
+        // Update listing sold count
+        await ctx.prisma.marketplaceListing.update({
+          where: { id: listingId },
+          data: { soldCount: { increment: 1 } },
+        });
+
+        purchases.push(purchase);
+      }
+
+      return purchases;
     }),
 
   /**

@@ -5,8 +5,7 @@
 
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth/auth";
-import { ClientSidebar } from "@/shared/components/layout/ClientSidebar";
-import { ClientHeader } from "@/shared/components/layout/ClientHeader";
+import { ClientLayoutWrapper } from "@/shared/components/layout/ClientLayoutWrapper";
 
 export default async function ClientLayout({
   children,
@@ -19,19 +18,5 @@ export default async function ClientLayout({
     redirect("/login");
   }
 
-  return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <ClientSidebar />
-
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Header */}
-        <ClientHeader />
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-      </div>
-    </div>
-  );
+  return <ClientLayoutWrapper>{children}</ClientLayoutWrapper>;
 }

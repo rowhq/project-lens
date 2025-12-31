@@ -39,6 +39,8 @@ export interface LineChartProps {
   formatTooltip?: (value: number) => string;
   referenceLines?: { value: number; label?: string; color?: string }[];
   className?: string;
+  /** Accessible label describing the chart content */
+  ariaLabel?: string;
 }
 
 const DEFAULT_COLORS = [
@@ -63,9 +65,15 @@ export function LineChart({
   formatTooltip,
   referenceLines = [],
   className = "",
+  ariaLabel,
 }: LineChartProps) {
   return (
-    <div className={className} style={{ height }}>
+    <div
+      className={className}
+      style={{ height }}
+      role="img"
+      aria-label={ariaLabel || `Line chart showing ${series.map(s => s.name).join(", ")}`}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <RechartsLineChart
           data={data}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
 import {
@@ -72,17 +72,7 @@ const purposes = [
 export default function NewAppraisalPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<Step>("property");
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<Array<{
-    id: string;
-    address: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    county?: string;
-    latitude?: number;
-    longitude?: number;
-  }>>([]);
+  const [searchEnabled, setSearchEnabled] = useState(false);
 
   const [formData, setFormData] = useState({
     // Property
@@ -100,9 +90,15 @@ export default function NewAppraisalPage() {
     reportType: "AI_REPORT",
   });
 
-  const createAppraisal = trpc.appraisal.create.useMutation({
+  const createWithCheckout = trpc.appraisal.createWithCheckout.useMutation({
     onSuccess: (data) => {
-      router.push(`/appraisals/${data.id}`);
+      // Redirect to Stripe checkout
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        // Fallback if no checkout URL (shouldn't happen)
+        router.push(`/appraisals/${data.appraisalId}`);
+      }
     },
   });
 
@@ -110,37 +106,31 @@ export default function NewAppraisalPage() {
   const searchAddresses = trpc.property.search.useQuery(
     { query: formData.addressQuery, limit: 5 },
     {
-      enabled: formData.addressQuery.length >= 5 && isSearching,
+      enabled: formData.addressQuery.length >= 5 && searchEnabled,
       staleTime: 30000, // Cache results for 30 seconds
     }
   );
 
-  // Effect to handle search completion
-  useEffect(() => {
-    if (isSearching && searchAddresses.data && !searchAddresses.isLoading) {
-      setSearchResults(
-        searchAddresses.data.map((r) => ({
-          id: r.id,
-          address: r.address,
-          city: r.city,
-          state: r.state,
-          zipCode: r.zipCode,
-          county: r.county,
-          latitude: r.latitude,
-          longitude: r.longitude,
-        }))
-      );
-      setIsSearching(false);
-    }
-    if (isSearching && searchAddresses.error) {
-      setIsSearching(false);
-    }
-  }, [isSearching, searchAddresses.data, searchAddresses.isLoading, searchAddresses.error]);
+  // Derive search results directly from query data
+  const searchResults = useMemo(() => {
+    if (!searchAddresses.data) return [];
+    return searchAddresses.data.map((r) => ({
+      id: r.id,
+      address: r.address,
+      city: r.city,
+      state: r.state,
+      zipCode: r.zipCode,
+      county: r.county,
+      latitude: r.latitude,
+      longitude: r.longitude,
+    }));
+  }, [searchAddresses.data]);
+
+  const isSearching = searchEnabled && searchAddresses.isLoading;
 
   const handleSearch = () => {
     if (formData.addressQuery.length < 5) return;
-    setSearchResults([]); // Clear previous results
-    setIsSearching(true);
+    setSearchEnabled(true);
   };
 
   const handleSubmit = () => {
@@ -153,7 +143,7 @@ export default function NewAppraisalPage() {
       "CERTIFIED": "CERTIFIED_APPRAISAL",
     };
 
-    createAppraisal.mutate({
+    createWithCheckout.mutate({
       propertyAddress: formData.selectedProperty.address,
       propertyCity: formData.selectedProperty.city,
       propertyState: formData.selectedProperty.state,
@@ -482,18 +472,18 @@ export default function NewAppraisalPage() {
           ) : (
             <button
               onClick={handleSubmit}
-              disabled={createAppraisal.isPending}
+              disabled={createWithCheckout.isPending}
               className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400"
             >
-              {createAppraisal.isPending ? (
+              {createWithCheckout.isPending ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Processing...
+                  Redirecting to checkout...
                 </>
               ) : (
                 <>
                   <CreditCard className="w-5 h-5" />
-                  Submit & Pay ${selectedReportType?.price}
+                  Proceed to Payment ${selectedReportType?.price}
                 </>
               )}
             </button>

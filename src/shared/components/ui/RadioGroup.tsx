@@ -100,7 +100,7 @@ export function RadioGroupItem({
             "w-5 h-5 rounded-full border-2 transition-colors",
             isChecked
               ? "border-brand-500 bg-brand-500"
-              : "border-neutral-300 bg-white",
+              : "border-border bg-card",
             !isDisabled && "hover:border-brand-400"
           )}
         >
@@ -112,9 +112,9 @@ export function RadioGroupItem({
         </div>
       </div>
       <div className="flex-1">
-        <span className="text-sm font-medium text-neutral-700">{label}</span>
+        <span className="text-sm font-medium text-foreground">{label}</span>
         {description && (
-          <p className="text-sm text-neutral-500 mt-0.5">{description}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
         )}
       </div>
     </label>
@@ -148,8 +148,8 @@ export function RadioCard({
       className={cn(
         "relative flex items-start gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all",
         isChecked
-          ? "border-brand-500 bg-brand-50"
-          : "border-neutral-200 hover:border-neutral-300",
+          ? "border-brand-500 bg-brand-500/10"
+          : "border-border hover:border-muted-foreground",
         isDisabled && "cursor-not-allowed opacity-50",
         className
       )}
@@ -167,22 +167,22 @@ export function RadioCard({
         <div
           className={cn(
             "flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center",
-            isChecked ? "bg-brand-100 text-brand-600" : "bg-neutral-100 text-neutral-600"
+            isChecked ? "bg-brand-500/20 text-brand-400" : "bg-muted text-muted-foreground"
           )}
         >
           {icon}
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <span className="text-sm font-medium text-neutral-900">{label}</span>
+        <span className="text-sm font-medium text-foreground">{label}</span>
         {description && (
-          <p className="text-sm text-neutral-500 mt-0.5">{description}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
         )}
       </div>
       <div
         className={cn(
           "flex-shrink-0 w-5 h-5 rounded-full border-2 transition-colors",
-          isChecked ? "border-brand-500 bg-brand-500" : "border-neutral-300"
+          isChecked ? "border-brand-500 bg-brand-500" : "border-border"
         )}
       >
         {isChecked && (

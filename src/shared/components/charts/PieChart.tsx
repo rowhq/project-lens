@@ -26,6 +26,8 @@ export interface PieChartProps {
   outerRadius?: number;
   formatValue?: (value: number) => string;
   className?: string;
+  /** Accessible label describing the chart content */
+  ariaLabel?: string;
 }
 
 const DEFAULT_COLORS = [
@@ -49,6 +51,7 @@ export function PieChart({
   outerRadius = 80,
   formatValue,
   className = "",
+  ariaLabel,
 }: PieChartProps) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
@@ -84,7 +87,12 @@ export function PieChart({
   };
 
   return (
-    <div className={className} style={{ height }}>
+    <div
+      className={className}
+      style={{ height }}
+      role="img"
+      aria-label={ariaLabel || `Pie chart showing ${data.map(d => d.name).join(", ")}`}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <RechartsPieChart>
           <Pie
@@ -146,7 +154,7 @@ export function PieChart({
 
 // Donut chart variant
 export function DonutChart(props: Omit<PieChartProps, "innerRadius">) {
-  return <PieChart {...props} innerRadius={60} />;
+  return <PieChart {...props} innerRadius={60} ariaLabel={props.ariaLabel || `Donut chart showing ${props.data.map(d => d.name).join(", ")}`} />;
 }
 
 export default PieChart;

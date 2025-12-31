@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
+import { useCartStore } from "@/shared/lib/cart-store";
 import {
   Search,
   Filter,
@@ -39,6 +40,7 @@ export default function MarketplacePage() {
   const [category, setCategory] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "price_asc" | "price_desc" | "popular">("newest");
   const [showFilters, setShowFilters] = useState(false);
+  const cartItemCount = useCartStore((state) => state.getItemCount());
 
   const { data: listings, isLoading } = trpc.marketplace.list.useQuery({
     limit: 20,
@@ -60,6 +62,18 @@ export default function MarketplacePage() {
           </p>
         </div>
         <div className="flex gap-3">
+          <Link
+            href="/marketplace/cart"
+            className="relative px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors flex items-center gap-2"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            Cart
+            {cartItemCount > 0 && (
+              <span className="absolute -top-2 -right-2 w-5 h-5 bg-[var(--primary)] text-white text-xs rounded-full flex items-center justify-center">
+                {cartItemCount}
+              </span>
+            )}
+          </Link>
           <Link
             href="/marketplace/my-listings"
             className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"

@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Loader2,
 } from "lucide-react";
+import { EmptyState } from "@/shared/components/common/EmptyState";
 
 type MemberRole = "CLIENT" | "APPRAISER" | "ADMIN";
 
@@ -56,7 +57,6 @@ export default function TeamPage() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [orgName, setOrgName] = useState("");
   const [orgPhone, setOrgPhone] = useState("");
-  const [orgAddress, setOrgAddress] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const { data: organization, refetch: refetchOrg } = trpc.organization.get.useQuery();
@@ -148,7 +148,6 @@ export default function TeamPage() {
     if (organization) {
       setOrgName(organization.name);
       setOrgPhone(organization.phone || "");
-      setOrgAddress(organization.address || "");
       setShowEditOrgModal(true);
     }
   };
@@ -157,7 +156,6 @@ export default function TeamPage() {
     updateOrganization.mutate({
       name: orgName,
       phone: orgPhone || undefined,
-      address: orgAddress || undefined,
     });
   };
 
@@ -241,10 +239,15 @@ export default function TeamPage() {
         </div>
         <div className="divide-y divide-[var(--border)]">
           {activeMembers.length === 0 ? (
-            <div className="px-6 py-12 text-center text-[var(--muted-foreground)]">
-              <Users className="w-8 h-8 mx-auto mb-2" />
-              <p>No active members</p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="No team members yet"
+              description="Invite colleagues to collaborate on appraisals and share reports"
+              action={{
+                label: "Invite Member",
+                onClick: () => setShowInviteModal(true),
+              }}
+            />
           ) : (
             activeMembers.map((member) => (
               <div key={member.id} className="px-6 py-4 flex items-center justify-between">
@@ -524,17 +527,9 @@ export default function TeamPage() {
                   placeholder="+1 (555) 123-4567"
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Address</label>
-                <input
-                  type="text"
-                  value={orgAddress}
-                  onChange={(e) => setOrgAddress(e.target.value)}
-                  placeholder="123 Main St, City, State"
-                  className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                />
+                <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                  Billing address can be updated in the Billing page
+                </p>
               </div>
             </div>
 

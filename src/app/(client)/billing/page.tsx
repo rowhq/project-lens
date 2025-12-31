@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/shared/lib/trpc";
 import {
   CreditCard,
@@ -15,6 +15,7 @@ import {
   Trash2,
   ExternalLink,
 } from "lucide-react";
+import { EmptyState } from "@/shared/components/common/EmptyState";
 
 const plans = [
   {
@@ -62,46 +63,43 @@ export default function BillingPage() {
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  // Billing info form state
-  const [companyName, setCompanyName] = useState("");
-  const [billingEmail, setBillingEmail] = useState("");
-  const [billingAddress, setBillingAddress] = useState("");
-  const [hasChanges, setHasChanges] = useState(false);
+  // Billing info form state - initialize with undefined to track if user has edited
+  const [companyName, setCompanyName] = useState<string | undefined>(undefined);
+  const [billingEmail, setBillingEmail] = useState<string | undefined>(undefined);
+  const [billingAddress, setBillingAddress] = useState<string | undefined>(undefined);
 
   // Queries
   const { data: subscription } = trpc.billing.subscription.get.useQuery();
-  const { data: invoicesData, refetch: refetchInvoices } = trpc.billing.invoices.list.useQuery({ limit: 10 });
+  const { data: invoicesData } = trpc.billing.invoices.list.useQuery({ limit: 10 });
   const invoices = invoicesData?.items || [];
   const stripeInvoices = invoicesData?.stripeInvoices || [];
   const { data: paymentMethods, refetch: refetchPaymentMethods } = trpc.billing.paymentMethods.list.useQuery();
   const { data: usage } = trpc.billing.usage.useQuery();
   const { data: organization } = trpc.organization.get.useQuery();
 
-  // Initialize form values from organization data
-  useEffect(() => {
-    if (organization) {
-      setCompanyName(organization.name || "");
-      setBillingEmail(organization.billingEmail || "");
-      setBillingAddress(organization.address || "");
-    }
-  }, [organization]);
+  // Derive display values - use form state if set, otherwise use org data
+  const displayCompanyName = companyName ?? organization?.name ?? "";
+  const displayBillingEmail = billingEmail ?? organization?.billingEmail ?? "";
+  const displayBillingAddress = billingAddress ?? organization?.address ?? "";
 
-  // Track form changes
-  useEffect(() => {
-    if (organization) {
-      const changed =
-        companyName !== (organization.name || "") ||
-        billingEmail !== (organization.billingEmail || "") ||
-        billingAddress !== (organization.address || "");
-      setHasChanges(changed);
-    }
+  // Track form changes using useMemo
+  const hasChanges = useMemo(() => {
+    if (!organization) return false;
+    return (
+      (companyName !== undefined && companyName !== (organization.name || "")) ||
+      (billingEmail !== undefined && billingEmail !== (organization.billingEmail || "")) ||
+      (billingAddress !== undefined && billingAddress !== (organization.address || ""))
+    );
   }, [companyName, billingEmail, billingAddress, organization]);
 
   // Mutations
   const updateBillingInfo = trpc.billing.updateBillingInfo.useMutation({
     onSuccess: () => {
       showFeedback("success", "Billing information updated successfully");
-      setHasChanges(false);
+      // Reset form state to undefined so it uses fresh org data
+      setCompanyName(undefined);
+      setBillingEmail(undefined);
+      setBillingAddress(undefined);
     },
     onError: (error) => {
       showFeedback("error", error.message);
@@ -154,9 +152,9 @@ export default function BillingPage() {
 
   const handleSaveBillingInfo = () => {
     updateBillingInfo.mutate({
-      companyName: companyName || undefined,
-      billingEmail: billingEmail || undefined,
-      address: billingAddress || undefined,
+      companyName: displayCompanyName || undefined,
+      billingEmail: displayBillingEmail || undefined,
+      address: displayBillingAddress || undefined,
     });
   };
 
@@ -335,11 +333,12 @@ export default function BillingPage() {
 
       {/* Invoices */}
       {activeTab === "invoices" && (
-        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
+        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden">
           <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
             <h3 className="font-semibold text-[var(--foreground)]">Invoice History</h3>
           </div>
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead className="bg-[var(--secondary)]">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
@@ -360,9 +359,12 @@ export default function BillingPage() {
             <tbody className="divide-y divide-[var(--border)]">
               {allInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-[var(--muted-foreground)]">
-                    <FileText className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
-                    <p>No invoices yet</p>
+                  <td colSpan={5}>
+                    <EmptyState
+                      icon={FileText}
+                      title="No invoices yet"
+                      description="Your invoices will appear here after your first payment"
+                    />
                   </td>
                 </tr>
               ) : (
@@ -428,6 +430,7 @@ export default function BillingPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -447,16 +450,15 @@ export default function BillingPage() {
             </div>
             <div className="divide-y divide-[var(--border)]">
               {!paymentMethods || paymentMethods.length === 0 ? (
-                <div className="px-6 py-12 text-center text-[var(--muted-foreground)]">
-                  <CreditCard className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
-                  <p>No payment methods added</p>
-                  <button
-                    onClick={() => setShowAddPaymentModal(true)}
-                    className="mt-4 text-[var(--primary)] hover:underline"
-                  >
-                    Add your first card
-                  </button>
-                </div>
+                <EmptyState
+                  icon={CreditCard}
+                  title="No payment methods"
+                  description="Add a payment method to upgrade your plan or pay for services"
+                  action={{
+                    label: "Add Payment Method",
+                    onClick: () => setShowAddPaymentModal(true),
+                  }}
+                />
               ) : (
                 paymentMethods.map((method) => (
                   <div key={method.id} className="px-6 py-4 flex items-center justify-between">
@@ -502,7 +504,7 @@ export default function BillingPage() {
                 </label>
                 <input
                   type="text"
-                  value={companyName}
+                  value={displayCompanyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder="Your company name"
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
@@ -514,7 +516,7 @@ export default function BillingPage() {
                 </label>
                 <input
                   type="email"
-                  value={billingEmail}
+                  value={displayBillingEmail}
                   onChange={(e) => setBillingEmail(e.target.value)}
                   placeholder="billing@company.com"
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
@@ -526,7 +528,7 @@ export default function BillingPage() {
                 </label>
                 <input
                   type="text"
-                  value={billingAddress}
+                  value={displayBillingAddress}
                   onChange={(e) => setBillingAddress(e.target.value)}
                   placeholder="123 Main Street, Austin, TX 78701"
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"

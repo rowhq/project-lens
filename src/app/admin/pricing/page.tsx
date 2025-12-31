@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
 import {
@@ -39,6 +39,11 @@ export default function PricingPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [showPayoutConfirm, setShowPayoutConfirm] = useState(false);
   const [editingRule, setEditingRule] = useState<EditingRule | null>(null);
+  const [editingPayoutRate, setEditingPayoutRate] = useState<{
+    id: string;
+    basePayout: number;
+    percentage: number;
+  } | null>(null);
 
   // New rule form state
   const [newRule, setNewRule] = useState({
@@ -50,8 +55,24 @@ export default function PricingPage() {
     county: "",
   });
 
+  // Payout configuration state
+  const [payoutSchedule, setPayoutSchedule] = useState<"weekly" | "biweekly" | "monthly">("weekly");
+  const [minPayoutAmount, setMinPayoutAmount] = useState(50);
+  const [paymentMethod, setPaymentMethod] = useState<"stripe_connect" | "ach">("stripe_connect");
+  const [configDirty, setConfigDirty] = useState(false);
+
   const { data: pricingRulesData, refetch } = trpc.admin.pricing.list.useQuery();
   const { data: payoutSummary, refetch: refetchPayouts } = trpc.admin.pricing.payoutSummary.useQuery();
+  const { data: payoutConfig } = trpc.admin.pricing.getPayoutConfig.useQuery();
+
+  // Sync payout config when loaded
+  useEffect(() => {
+    if (payoutConfig) {
+      setPayoutSchedule(payoutConfig.schedule as "weekly" | "biweekly" | "monthly");
+      setMinPayoutAmount(payoutConfig.minAmount);
+      setPaymentMethod(payoutConfig.paymentMethod as "stripe_connect" | "ach");
+    }
+  }, [payoutConfig]);
 
   const createRule = trpc.admin.pricing.create.useMutation({
     onSuccess: () => {
@@ -135,6 +156,38 @@ export default function PricingPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to process payouts",
+        variant: "destructive",
+      });
+    },
+  });
+  const savePayoutConfig = trpc.admin.pricing.savePayoutConfig.useMutation({
+    onSuccess: () => {
+      setConfigDirty(false);
+      toast({
+        title: "Configuration saved",
+        description: "Payout configuration has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save payout configuration",
+        variant: "destructive",
+      });
+    },
+  });
+  const updatePayoutRate = trpc.admin.pricing.updatePayoutRate.useMutation({
+    onSuccess: () => {
+      refetch();
+      toast({
+        title: "Rate updated",
+        description: "Payout rate has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update payout rate",
         variant: "destructive",
       });
     },
@@ -453,10 +506,17 @@ export default function PricingPage() {
                   <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                     Payout Schedule
                   </label>
-                  <select className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]">
-                    <option>Weekly (Every Monday)</option>
-                    <option>Bi-weekly</option>
-                    <option>Monthly</option>
+                  <select
+                    value={payoutSchedule}
+                    onChange={(e) => {
+                      setPayoutSchedule(e.target.value as "weekly" | "biweekly" | "monthly");
+                      setConfigDirty(true);
+                    }}
+                    className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
+                  >
+                    <option value="weekly">Weekly (Every Monday)</option>
+                    <option value="biweekly">Bi-weekly</option>
+                    <option value="monthly">Monthly</option>
                   </select>
                 </div>
                 <div>
@@ -467,7 +527,11 @@ export default function PricingPage() {
                     <span className="text-[var(--muted-foreground)]">$</span>
                     <input
                       type="number"
-                      defaultValue={50}
+                      value={minPayoutAmount}
+                      onChange={(e) => {
+                        setMinPayoutAmount(parseFloat(e.target.value) || 0);
+                        setConfigDirty(true);
+                      }}
                       className="w-24 px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
                     />
                   </div>
@@ -476,11 +540,37 @@ export default function PricingPage() {
                   <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                     Payment Method
                   </label>
-                  <select className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]">
-                    <option>Stripe Connect</option>
-                    <option>Bank Transfer (ACH)</option>
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) => {
+                      setPaymentMethod(e.target.value as "stripe_connect" | "ach");
+                      setConfigDirty(true);
+                    }}
+                    className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
+                  >
+                    <option value="stripe_connect">Stripe Connect</option>
+                    <option value="ach">Bank Transfer (ACH)</option>
                   </select>
                 </div>
+                {configDirty && (
+                  <button
+                    onClick={() => savePayoutConfig.mutate({ schedule: payoutSchedule, minAmount: minPayoutAmount, paymentMethod })}
+                    disabled={savePayoutConfig.isPending}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50"
+                  >
+                    {savePayoutConfig.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Save Configuration
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -542,21 +632,89 @@ export default function PricingPage() {
                 {displayPayoutRates.map((rate) => (
                   <tr key={rate.id}>
                     <td className="px-6 py-4 font-medium text-[var(--foreground)]">{rate.jobType}</td>
-                    <td className="px-6 py-4 text-[var(--foreground)]">${rate.basePayout}</td>
-                    <td className="px-6 py-4 text-[var(--foreground)]">{rate.percentage}%</td>
-                    <td className="px-6 py-4 text-[var(--muted-foreground)]">{100 - rate.percentage}%</td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => {
-                          toast({
-                            title: "Feature in development",
-                            description: "Payout rate editing is coming soon. Contact engineering to adjust payout rates.",
-                          });
-                        }}
-                        className="p-2 hover:bg-[var(--muted)] rounded-lg"
-                      >
-                        <Edit className="w-4 h-4 text-[var(--muted-foreground)]" />
-                      </button>
+                      {editingPayoutRate?.id === rate.id ? (
+                        <div className="flex items-center gap-1">
+                          <span className="text-[var(--muted-foreground)]">$</span>
+                          <input
+                            type="number"
+                            value={editingPayoutRate.basePayout}
+                            onChange={(e) => setEditingPayoutRate({
+                              ...editingPayoutRate,
+                              basePayout: parseFloat(e.target.value) || 0,
+                            })}
+                            className="w-20 px-2 py-1 border border-[var(--border)] rounded bg-[var(--background)] text-[var(--foreground)]"
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-[var(--foreground)]">${rate.basePayout}</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {editingPayoutRate?.id === rate.id ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={editingPayoutRate.percentage}
+                            onChange={(e) => setEditingPayoutRate({
+                              ...editingPayoutRate,
+                              percentage: parseFloat(e.target.value) || 0,
+                            })}
+                            className="w-16 px-2 py-1 border border-[var(--border)] rounded bg-[var(--background)] text-[var(--foreground)]"
+                          />
+                          <span className="text-[var(--muted-foreground)]">%</span>
+                        </div>
+                      ) : (
+                        <span className="text-[var(--foreground)]">{rate.percentage}%</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-[var(--muted-foreground)]">
+                      {editingPayoutRate?.id === rate.id
+                        ? `${100 - editingPayoutRate.percentage}%`
+                        : `${100 - rate.percentage}%`}
+                    </td>
+                    <td className="px-6 py-4">
+                      {editingPayoutRate?.id === rate.id ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              updatePayoutRate.mutate({
+                                id: rate.id,
+                                basePayout: editingPayoutRate.basePayout,
+                                percentage: editingPayoutRate.percentage,
+                              });
+                              setEditingPayoutRate(null);
+                            }}
+                            disabled={updatePayoutRate.isPending}
+                            className="p-1 text-green-400 hover:bg-green-500/10 rounded disabled:opacity-50"
+                          >
+                            {updatePayoutRate.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Check className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setEditingPayoutRate(null)}
+                            className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setEditingPayoutRate({
+                            id: rate.id,
+                            basePayout: rate.basePayout,
+                            percentage: rate.percentage,
+                          })}
+                          className="p-2 hover:bg-[var(--muted)] rounded-lg"
+                        >
+                          <Edit className="w-4 h-4 text-[var(--muted-foreground)]" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

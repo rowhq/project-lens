@@ -5,6 +5,7 @@
 
 import { prisma } from "@/server/db/prisma";
 import { valuationEngine } from "../valuation-engine";
+import { sendAppraisalReady } from "@/shared/lib/resend";
 import type { Property, AppraisalRequest } from "@prisma/client";
 
 export interface ProcessingResult {
@@ -77,6 +78,30 @@ export async function processAppraisal(
     );
 
     console.log(`[AppraisalProcessor] Report created: ${report.id}`);
+
+    // Send appraisal ready notification email
+    const requestedBy = await prisma.user.findUnique({
+      where: { id: appraisal.requestedById },
+      select: { email: true, firstName: true },
+    });
+
+    if (requestedBy?.email) {
+      const reportTypeLabels: Record<string, string> = {
+        AI_REPORT: "AI Valuation Report",
+        AI_REPORT_WITH_ONSITE: "On-Site Verification Report",
+        CERTIFIED_APPRAISAL: "Certified Appraisal",
+      };
+
+      sendAppraisalReady({
+        email: requestedBy.email,
+        userName: requestedBy.firstName || "Customer",
+        propertyAddress: appraisal.property.addressFull,
+        appraisalId: appraisal.id,
+        reportType: reportTypeLabels[appraisal.requestedType] || "Appraisal Report",
+      }).catch((error) => {
+        console.error("[AppraisalProcessor] Failed to send ready notification:", error);
+      });
+    }
 
     return {
       success: true,

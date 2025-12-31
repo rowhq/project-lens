@@ -10,40 +10,52 @@ const testimonials = [
     name: "Sarah Mitchell",
     role: "VP of Lending",
     company: "Texas Home Loans",
+    companyInitials: "THL",
     avatar: "/avatars/sarah.jpg",
     rating: 5,
     quote:
       "LENS has transformed our underwriting process. What used to take 2-3 weeks now happens in 24 hours. The AI accuracy is remarkable.",
+    metric: "85% faster turnaround",
+    metricLabel: "Time Saved",
   },
   {
     id: 2,
     name: "Michael Chen",
     role: "Portfolio Manager",
     company: "Lone Star Investments",
+    companyInitials: "LSI",
     avatar: "/avatars/michael.jpg",
     rating: 5,
     quote:
       "The depth of market analysis in each report is incredible. We've been able to make faster, more confident investment decisions.",
+    metric: "3x more deals",
+    metricLabel: "Deal Volume",
   },
   {
     id: 3,
     name: "Jennifer Rodriguez",
     role: "Chief Risk Officer",
     company: "Hill Country Bank",
+    companyInitials: "HCB",
     avatar: "/avatars/jennifer.jpg",
     rating: 5,
     quote:
       "Risk assessment used to be our bottleneck. LENS identifies potential issues we might have missed, saving us from costly mistakes.",
+    metric: "$250K saved",
+    metricLabel: "Risk Prevented",
   },
   {
     id: 4,
     name: "David Thompson",
     role: "Real Estate Director",
     company: "Austin Capital Partners",
+    companyInitials: "ACP",
     avatar: "/avatars/david.jpg",
     rating: 5,
     quote:
       "The DD Marketplace feature is genius. We've recouped costs by reselling reports and discovered properties from purchased reports.",
+    metric: "67% cost reduction",
+    metricLabel: "Net Savings",
   },
 ];
 
@@ -63,7 +75,9 @@ export function TestimonialCarousel() {
 
   const goToPrevious = () => {
     setIsAutoPlaying(false);
-    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+    setCurrentIndex(
+      (prev) => (prev - 1 + testimonials.length) % testimonials.length,
+    );
   };
 
   const goToNext = () => {
@@ -103,11 +117,26 @@ export function TestimonialCarousel() {
                 transition={{ duration: 0.3 }}
                 className="relative z-10"
               >
-                {/* Stars */}
-                <div className="flex items-center gap-1 mb-6">
-                  {[...Array(testimonials[currentIndex].rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-yellow-500 text-yellow-500" />
-                  ))}
+                {/* Stars + Metric Badge */}
+                <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+                  <div className="flex items-center gap-1">
+                    {[...Array(testimonials[currentIndex].rating)].map(
+                      (_, i) => (
+                        <Star
+                          key={i}
+                          className="w-5 h-5 fill-yellow-500 text-yellow-500"
+                        />
+                      ),
+                    )}
+                  </div>
+                  <div className="px-4 py-2 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+                    <span className="text-lg font-bold text-[var(--primary)]">
+                      {testimonials[currentIndex].metric}
+                    </span>
+                    <span className="text-sm text-[var(--muted-foreground)] ml-2">
+                      {testimonials[currentIndex].metricLabel}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Quote */}
@@ -115,18 +144,31 @@ export function TestimonialCarousel() {
                   &ldquo;{testimonials[currentIndex].quote}&rdquo;
                 </p>
 
-                {/* Author */}
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] font-bold text-xl">
-                    {testimonials[currentIndex].name.charAt(0)}
+                {/* Author + Company */}
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] font-bold text-xl">
+                      {testimonials[currentIndex].name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[var(--foreground)]">
+                        {testimonials[currentIndex].name}
+                      </p>
+                      <p className="text-sm text-[var(--muted-foreground)]">
+                        {testimonials[currentIndex].role}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-[var(--foreground)]">
-                      {testimonials[currentIndex].name}
-                    </p>
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                      {testimonials[currentIndex].role} at {testimonials[currentIndex].company}
-                    </p>
+                  {/* Company Badge */}
+                  <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-[var(--secondary)] border border-[var(--border)]">
+                    <div className="w-8 h-8 rounded-md bg-[var(--card)] border border-[var(--border)] flex items-center justify-center">
+                      <span className="text-xs font-bold text-[var(--primary)]">
+                        {testimonials[currentIndex].companyInitials}
+                      </span>
+                    </div>
+                    <span className="text-sm font-medium text-[var(--foreground)]">
+                      {testimonials[currentIndex].company}
+                    </span>
                   </div>
                 </div>
               </motion.div>

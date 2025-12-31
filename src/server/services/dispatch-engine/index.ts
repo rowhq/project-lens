@@ -8,6 +8,7 @@ import { matcher } from "./matcher";
 import { geofencing } from "./geofencing";
 import { slaMonitor } from "./sla-monitor";
 import { sendJobAssignment } from "@/shared/lib/resend";
+import { sendPushNotification } from "@/server/api/routers/notifications.router";
 import type { Job, AppraiserProfile, User, Property } from "@prisma/client";
 
 export interface DispatchResult {
@@ -331,9 +332,10 @@ class DispatchEngine {
       data: notifications,
     });
 
-    // Send email notifications to appraisers
+    // Send email and push notifications to appraisers
     for (const appraiser of appraisers) {
       try {
+        // Send email notification
         await sendJobAssignment({
           email: appraiser.profile.user.email || "",
           appraiserName: appraiser.profile.user.firstName,
@@ -341,6 +343,17 @@ class DispatchEngine {
           jobId: job.id,
           deadline: job.slaDueAt || new Date(Date.now() + 48 * 60 * 60 * 1000),
           payout: Number(job.payoutAmount),
+        });
+
+        // Send push notification
+        await sendPushNotification(prisma, appraiser.userId, {
+          title: "New Job Available",
+          body: `$${Number(job.payoutAmount)} - ${job.property.addressLine1}, ${job.property.city}`,
+          icon: "/icons/icon-192x192.png",
+          data: {
+            url: `/appraiser/jobs/${job.id}`,
+            jobId: job.id,
+          },
         });
       } catch (error) {
         console.error(`Failed to send job notification to ${appraiser.userId}:`, error);

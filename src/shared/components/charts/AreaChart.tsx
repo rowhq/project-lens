@@ -34,6 +34,8 @@ export interface AreaChartProps {
   formatYAxis?: (value: number) => string;
   formatTooltip?: (value: number) => string;
   className?: string;
+  /** Accessible label describing the chart content */
+  ariaLabel?: string;
 }
 
 const DEFAULT_COLORS = [
@@ -55,9 +57,15 @@ export function AreaChart({
   formatYAxis,
   formatTooltip,
   className = "",
+  ariaLabel,
 }: AreaChartProps) {
   return (
-    <div className={className} style={{ height }}>
+    <div
+      className={className}
+      style={{ height }}
+      role="img"
+      aria-label={ariaLabel || `Area chart showing ${series.map(s => s.name).join(", ")}`}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <RechartsAreaChart
           data={data}

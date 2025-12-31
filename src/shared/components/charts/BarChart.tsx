@@ -38,6 +38,8 @@ export interface BarChartProps {
   barRadius?: number;
   className?: string;
   colorByValue?: (value: number) => string;
+  /** Accessible label describing the chart content */
+  ariaLabel?: string;
 }
 
 const DEFAULT_COLORS = [
@@ -62,11 +64,17 @@ export function BarChart({
   barRadius = 4,
   className = "",
   colorByValue,
+  ariaLabel,
 }: BarChartProps) {
   const isVertical = layout === "vertical";
 
   return (
-    <div className={className} style={{ height }}>
+    <div
+      className={className}
+      style={{ height }}
+      role="img"
+      aria-label={ariaLabel || `Bar chart showing ${series.map(s => s.name).join(", ")}`}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <RechartsBarChart
           data={data}
