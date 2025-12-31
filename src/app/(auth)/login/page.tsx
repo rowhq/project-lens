@@ -46,7 +46,7 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col items-center">
       <h2 className="mb-6 text-2xl font-bold text-[var(--foreground)]">
-        Sign in to LENS
+        Sign in to TruPlat
       </h2>
       <p className="mb-8 text-center text-sm text-[var(--muted-foreground)]">
         Fast appraisals. On-site verification. Certified upgrades.

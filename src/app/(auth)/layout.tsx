@@ -16,7 +16,7 @@ export default function AuthLayout({
       {/* Logo */}
       <div className="relative mb-8">
         <h1 className="text-4xl font-bold text-[var(--foreground)]">
-          <span className="text-[var(--primary)]">LENS</span>
+          <span className="text-[var(--primary)]">TruPlat</span>
         </h1>
         <p className="mt-1 text-center text-sm text-[var(--muted-foreground)]">
           Fast appraisals. On-site verification.
@@ -30,7 +30,7 @@ export default function AuthLayout({
 
       {/* Footer */}
       <p className="relative mt-8 text-xs text-[var(--muted-foreground)]">
-        &copy; {new Date().getFullYear()} Project LENS. All rights reserved.
+        &copy; {new Date().getFullYear()} TruPlat. All rights reserved.
       </p>
     </div>
   );

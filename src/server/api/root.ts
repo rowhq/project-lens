@@ -1,6 +1,6 @@
 /**
  * Root tRPC Router
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  *
  * This is the main router that aggregates all sub-routers
  */

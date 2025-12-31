@@ -1384,7 +1384,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               type?
             </p>
             <a
-              href="mailto:support@projectlens.com?subject=Support Request - Appraisal"
+              href="mailto:support@truplat.com?subject=Support Request - Appraisal"
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               <Phone className="w-4 h-4" />

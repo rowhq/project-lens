@@ -1,6 +1,6 @@
 /**
  * ATTOM Data API Client
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  *
  * ATTOM provides property data, comparable sales, and AVM (Automated Valuation Model)
  */

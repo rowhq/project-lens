@@ -1,6 +1,6 @@
 /**
  * Resend Email Client
- * Project LENS - Texas V1
+ * Project TruPlat - Texas V1
  */
 
 import { Resend } from "resend";
@@ -18,8 +18,8 @@ function getResend(): Resend {
   return resendInstance;
 }
 
-const FROM_EMAIL = process.env.FROM_EMAIL || "LENS <noreply@projectlens.com>";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://projectlens.com";
+const FROM_EMAIL = process.env.FROM_EMAIL || "TruPlat <noreply@truplat.com>";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://truplat.com";
 
 export interface SendEmailParams {
   to: string | string[];
@@ -72,13 +72,13 @@ export async function sendTeamInvitation(params: {
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #2563eb; margin: 0;">LENS</h1>
+        <h1 style="color: #2563eb; margin: 0;">TruPlat</h1>
         <p style="color: #666; margin: 5px 0;">Fast Appraisals for Lenders</p>
       </div>
 
       <h2 style="color: #1f2937;">You're Invited!</h2>
 
-      <p>${params.inviterName} has invited you to join <strong>${params.organizationName}</strong> on LENS as a <strong>${params.role}</strong>.</p>
+      <p>${params.inviterName} has invited you to join <strong>${params.organizationName}</strong> on TruPlat as a <strong>${params.role}</strong>.</p>
 
       <div style="text-align: center; margin: 30px 0;">
         <a href="${inviteUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
@@ -93,7 +93,7 @@ export async function sendTeamInvitation(params: {
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
 
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        © ${new Date().getFullYear()} LENS. All rights reserved.
+        © ${new Date().getFullYear()} TruPlat. All rights reserved.
       </p>
     </body>
     </html>
@@ -101,7 +101,7 @@ export async function sendTeamInvitation(params: {
 
   return sendEmail({
     to: params.email,
-    subject: `${params.inviterName} invited you to join ${params.organizationName} on LENS`,
+    subject: `${params.inviterName} invited you to join ${params.organizationName} on TruPlat`,
     html,
   });
 }
@@ -127,7 +127,7 @@ export async function sendAppraisalReady(params: {
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #2563eb; margin: 0;">LENS</h1>
+        <h1 style="color: #2563eb; margin: 0;">TruPlat</h1>
       </div>
 
       <h2 style="color: #1f2937;">Your Appraisal is Ready!</h2>
@@ -150,7 +150,7 @@ export async function sendAppraisalReady(params: {
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
 
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        © ${new Date().getFullYear()} LENS. All rights reserved.
+        © ${new Date().getFullYear()} TruPlat. All rights reserved.
       </p>
     </body>
     </html>
@@ -192,7 +192,7 @@ export async function sendJobAssignment(params: {
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #2563eb; margin: 0;">LENS</h1>
+        <h1 style="color: #2563eb; margin: 0;">TruPlat</h1>
       </div>
 
       <h2 style="color: #1f2937;">New Job Available!</h2>
@@ -220,7 +220,7 @@ export async function sendJobAssignment(params: {
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
 
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        © ${new Date().getFullYear()} LENS. All rights reserved.
+        © ${new Date().getFullYear()} TruPlat. All rights reserved.
       </p>
     </body>
     </html>
@@ -254,7 +254,7 @@ export async function sendDisputeNotification(params: {
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #2563eb; margin: 0;">LENS Admin</h1>
+        <h1 style="color: #2563eb; margin: 0;">TruPlat Admin</h1>
       </div>
 
       <h2 style="color: #dc2626;">New Dispute Filed</h2>
@@ -276,7 +276,7 @@ export async function sendDisputeNotification(params: {
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
 
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        This is an automated admin notification from LENS.
+        This is an automated admin notification from TruPlat.
       </p>
     </body>
     </html>
@@ -312,7 +312,7 @@ export async function sendReportEmail(params: {
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #2563eb; margin: 0;">LENS</h1>
+        <h1 style="color: #2563eb; margin: 0;">TruPlat</h1>
         <p style="color: #666; margin: 5px 0;">Fast Appraisals for Lenders</p>
       </div>
 
@@ -347,13 +347,13 @@ export async function sendReportEmail(params: {
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
 
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        This report was generated by LENS and shared by ${params.organizationName}.
+        This report was generated by TruPlat and shared by ${params.organizationName}.
         <br>
         The link will expire in 7 days.
       </p>
 
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        &copy; ${new Date().getFullYear()} LENS. All rights reserved.
+        &copy; ${new Date().getFullYear()} TruPlat. All rights reserved.
       </p>
     </body>
     </html>
@@ -389,7 +389,7 @@ export async function sendAppraisalOrderConfirmation(params: {
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #2563eb; margin: 0;">LENS</h1>
+        <h1 style="color: #2563eb; margin: 0;">TruPlat</h1>
         <p style="color: #666; margin: 5px 0;">Fast Appraisals for Lenders</p>
       </div>
 
@@ -423,9 +423,9 @@ export async function sendAppraisalOrderConfirmation(params: {
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
 
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        If you have questions, reply to this email or contact support@projectlens.com
+        If you have questions, reply to this email or contact support@truplat.com
         <br><br>
-        © ${new Date().getFullYear()} LENS. All rights reserved.
+        © ${new Date().getFullYear()} TruPlat. All rights reserved.
       </p>
     </body>
     </html>
@@ -457,7 +457,7 @@ export async function sendPaymentConfirmation(params: {
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #2563eb; margin: 0;">LENS</h1>
+        <h1 style="color: #2563eb; margin: 0;">TruPlat</h1>
       </div>
 
       <h2 style="color: #16a34a;">Payment Confirmed</h2>
@@ -486,7 +486,7 @@ export async function sendPaymentConfirmation(params: {
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
 
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        © ${new Date().getFullYear()} LENS. All rights reserved.
+        © ${new Date().getFullYear()} TruPlat. All rights reserved.
       </p>
     </body>
     </html>

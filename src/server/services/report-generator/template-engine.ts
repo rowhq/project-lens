@@ -534,7 +534,7 @@ class TemplateEngine {
     return `
       <footer class="footer">
         <div>
-          <strong>Project LENS</strong> - AI-Powered Property Valuation<br/>
+          <strong>Project TruPlat</strong> - AI-Powered Property Valuation<br/>
           Report ID: ${data.appraisalRequest.referenceCode}
         </div>
         <div style="text-align: right;">

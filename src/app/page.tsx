@@ -1,6 +1,6 @@
 /**
  * Landing Page
- * Project LENS - Redesigned for Maximum Conversion
+ * Project TruPlat - Redesigned for Maximum Conversion
  */
 
 import Link from "next/link";
@@ -30,7 +30,7 @@ export default function LandingPage() {
       <header className="fixed top-0 left-0 right-0 z-50 glass">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-gradient">LENS</span>
+            <span className="text-2xl font-bold text-gradient">TruPlat</span>
           </div>
           <div className="flex items-center gap-4">
             <Link
@@ -69,7 +69,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center mb-8">
             <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl">
-              See LENS in Action
+              See TruPlat in Action
             </h2>
             <p className="mt-4 text-lg text-[var(--muted-foreground)]">
               Watch how easy it is to get property valuations in minutes
@@ -338,7 +338,7 @@ export default function LandingPage() {
               Frequently Asked Questions
             </h2>
             <p className="mt-4 text-[var(--muted-foreground)]">
-              Everything you need to know about LENS
+              Everything you need to know about TruPlat
             </p>
           </div>
 
@@ -569,13 +569,13 @@ export default function LandingPage() {
           {/* Bottom bar */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-[var(--border)]">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-gradient">LENS</span>
+              <span className="text-xl font-bold text-gradient">TruPlat</span>
               <span className="text-sm text-[var(--muted-foreground)]">
                 Texas V1
               </span>
             </div>
             <p className="text-sm text-[var(--muted-foreground)]">
-              &copy; {new Date().getFullYear()} Project LENS. All rights
+              &copy; {new Date().getFullYear()} Project TruPlat. All rights
               reserved.
             </p>
             {/* Social links placeholder */}

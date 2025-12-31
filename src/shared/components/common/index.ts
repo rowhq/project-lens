@@ -1,4 +1,4 @@
-// LENS-specific Components
+// TruPlat-specific Components
 
 // Property & Appraisal Display
 export { PropertyCard, PropertyCardCompact } from "./PropertyCard";

@@ -78,14 +78,14 @@ export default function SupportPage() {
       <div>
         <h1 className="text-2xl font-bold text-[var(--foreground)]">Help & Support</h1>
         <p className="text-[var(--muted-foreground)] mt-1">
-          Get help with LENS or contact our support team
+          Get help with TruPlat or contact our support team
         </p>
       </div>
 
       {/* Quick Links */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <a
-          href="mailto:support@lens.app"
+          href="mailto:support@truplat.com"
           className="flex items-center gap-4 p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl hover:bg-[var(--secondary)] transition-colors"
         >
           <div className="p-3 bg-blue-500/20 rounded-lg">
@@ -93,7 +93,7 @@ export default function SupportPage() {
           </div>
           <div>
             <p className="font-medium text-[var(--foreground)]">Email Support</p>
-            <p className="text-sm text-[var(--muted-foreground)]">support@lens.app</p>
+            <p className="text-sm text-[var(--muted-foreground)]">support@truplat.com</p>
           </div>
         </a>
 

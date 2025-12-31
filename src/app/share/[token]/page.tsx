@@ -120,7 +120,7 @@ export default function SharedReportPage({ params }: PageProps) {
             href="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
           >
-            Go to LENS
+            Go to TruPlat
           </a>
         </div>
       </div>
@@ -201,7 +201,7 @@ export default function SharedReportPage({ params }: PageProps) {
               <FileText className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-bold text-card-foreground">LENS</h1>
+              <h1 className="font-bold text-card-foreground">TruPlat</h1>
               <p className="text-xs text-muted-foreground">Property Valuation Report</p>
             </div>
           </div>
@@ -503,11 +503,11 @@ export default function SharedReportPage({ params }: PageProps) {
       <footer className="bg-card border-t border-border mt-12">
         <div className="max-w-5xl mx-auto px-4 py-6 text-center">
           <p className="text-sm text-muted-foreground">
-            Powered by <span className="font-semibold text-primary">LENS</span> - Fast Appraisals for
+            Powered by <span className="font-semibold text-primary">TruPlat</span> - Fast Appraisals for
             Lenders
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            &copy; {new Date().getFullYear()} LENS. All rights reserved.
+            &copy; {new Date().getFullYear()} TruPlat. All rights reserved.
           </p>
         </div>
       </footer>

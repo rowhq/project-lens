@@ -5,7 +5,7 @@ import { Check, X } from "lucide-react";
 interface ComparisonRow {
   aspect: string;
   traditional: string | boolean;
-  lens: string | boolean;
+  truplat: string | boolean;
   highlight?: boolean;
 }
 
@@ -13,55 +13,55 @@ const comparisonData: ComparisonRow[] = [
   {
     aspect: "Turnaround Time",
     traditional: "2-3 weeks",
-    lens: "24-48 hours",
+    truplat: "24-48 hours",
     highlight: true,
   },
   {
     aspect: "Cost",
     traditional: "$400-800",
-    lens: "Starting at $75",
+    truplat: "Starting at $75",
     highlight: true,
   },
   {
     aspect: "Data Points Analyzed",
     traditional: "3-5 comps",
-    lens: "50+ data sources",
+    truplat: "50+ data sources",
     highlight: true,
   },
   {
     aspect: "Consistency",
     traditional: "Variable by appraiser",
-    lens: "Standardized AI",
+    truplat: "Standardized AI",
   },
   {
     aspect: "Updates",
     traditional: "Manual re-order",
-    lens: "Real-time refresh",
+    truplat: "Real-time refresh",
   },
   {
     aspect: "Photo Verification",
     traditional: true,
-    lens: true,
+    truplat: true,
   },
   {
     aspect: "GPS-Verified Evidence",
     traditional: false,
-    lens: true,
+    truplat: true,
   },
   {
     aspect: "Instant Report Generation",
     traditional: false,
-    lens: true,
+    truplat: true,
   },
   {
     aspect: "Market Trend Analysis",
     traditional: "Limited",
-    lens: "AI-powered insights",
+    truplat: "AI-powered insights",
   },
   {
     aspect: "USPAP Compliant",
     traditional: true,
-    lens: true,
+    truplat: true,
   },
 ];
 
@@ -83,10 +83,10 @@ export function ComparisonTable() {
         {/* Section header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4">
-            Traditional vs. <span className="text-gradient">LENS AI</span>
+            Traditional vs. <span className="text-gradient">TruPlat AI</span>
           </h2>
           <p className="text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto">
-            See how LENS transforms the appraisal process with AI-powered
+            See how TruPlat transforms the appraisal process with AI-powered
             efficiency and accuracy.
           </p>
         </div>
@@ -108,7 +108,7 @@ export function ComparisonTable() {
             </div>
             <div className="p-6 text-center border-l border-[var(--border)] bg-[var(--primary)]/5">
               <span className="font-semibold text-[var(--primary)]">
-                LENS AI
+                TruPlat AI
               </span>
               <span className="block text-sm text-[var(--muted-foreground)] mt-1">
                 AI-Powered
@@ -146,7 +146,7 @@ export function ComparisonTable() {
                       : "text-[var(--foreground)]"
                   }`}
                 >
-                  {renderValue(row.lens)}
+                  {renderValue(row.truplat)}
                 </span>
               </div>
             </div>
@@ -183,13 +183,13 @@ export function ComparisonTable() {
                   </div>
                 </div>
 
-                {/* LENS AI */}
+                {/* TruPlat AI */}
                 <div className="p-4 text-center bg-[var(--primary)]/5">
-                  <span className="block text-xs text-[var(--primary)] mb-2 font-medium">LENS AI</span>
+                  <span className="block text-xs text-[var(--primary)] mb-2 font-medium">TruPlat AI</span>
                   <div className={`flex items-center justify-center text-sm ${
                     row.highlight ? "font-semibold text-[var(--primary)]" : "text-[var(--foreground)]"
                   }`}>
-                    {renderValue(row.lens)}
+                    {renderValue(row.truplat)}
                   </div>
                 </div>
               </div>
@@ -199,7 +199,7 @@ export function ComparisonTable() {
 
         {/* Bottom note */}
         <p className="text-center text-sm text-[var(--muted-foreground)] mt-6">
-          All LENS appraisals include GPS-verified photos and are reviewed by
+          All TruPlat appraisals include GPS-verified photos and are reviewed by
           licensed professionals.
         </p>
       </div>

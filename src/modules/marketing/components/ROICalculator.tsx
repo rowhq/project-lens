@@ -9,7 +9,7 @@ export function ROICalculator() {
   const [currentCost, setCurrentCost] = useState(450);
   const [currentDays, setCurrentDays] = useState(14);
 
-  // LENS pricing (average of AI Report + On-Site)
+  // TruPlat pricing (average of AI Report + On-Site)
   const lensAvgCost = 89; // Blended average
   const lensDays = 2; // Average turnaround
 
@@ -48,7 +48,7 @@ export function ROICalculator() {
             How Much Will You Save?
           </h2>
           <p className="mt-4 text-lg text-[var(--muted-foreground)]">
-            See your potential savings with LENS vs traditional appraisals
+            See your potential savings with TruPlat vs traditional appraisals
           </p>
         </motion.div>
 
@@ -148,7 +148,7 @@ export function ROICalculator() {
             className="bg-gradient-to-br from-[var(--primary)]/10 to-[var(--accent)]/10 rounded-2xl border border-[var(--primary)]/20 p-8"
           >
             <h3 className="text-lg font-semibold text-[var(--foreground)] mb-6">
-              Your Savings with LENS
+              Your Savings with TruPlat
             </h3>
 
             <div className="space-y-6">

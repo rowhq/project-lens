@@ -17,7 +17,7 @@ const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
 
 if (vapidPublicKey && vapidPrivateKey) {
   webpush.setVapidDetails(
-    "mailto:support@projectlens.com",
+    "mailto:support@truplat.com",
     vapidPublicKey,
     vapidPrivateKey
   );

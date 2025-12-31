@@ -612,7 +612,7 @@ export const reportRouter = createTRPCRouter({
         const result = await sendReportEmail({
           recipientEmail: input.recipientEmail,
           senderName: `${ctx.user.firstName} ${ctx.user.lastName}`,
-          organizationName: report.appraisalRequest?.organization?.name || "LENS",
+          organizationName: report.appraisalRequest?.organization?.name || "TruPlat",
           propertyAddress: property.addressFull,
           reportType: report.type.replace("_", " "),
           valueEstimate: Number(report.valueEstimate),

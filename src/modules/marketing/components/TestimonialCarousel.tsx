@@ -14,7 +14,7 @@ const testimonials = [
     avatar: "/avatars/sarah.jpg",
     rating: 5,
     quote:
-      "LENS has transformed our underwriting process. What used to take 2-3 weeks now happens in 24 hours. The AI accuracy is remarkable.",
+      "TruPlat has transformed our underwriting process. What used to take 2-3 weeks now happens in 24 hours. The AI accuracy is remarkable.",
     metric: "85% faster turnaround",
     metricLabel: "Time Saved",
   },
@@ -40,7 +40,7 @@ const testimonials = [
     avatar: "/avatars/jennifer.jpg",
     rating: 5,
     quote:
-      "Risk assessment used to be our bottleneck. LENS identifies potential issues we might have missed, saving us from costly mistakes.",
+      "Risk assessment used to be our bottleneck. TruPlat identifies potential issues we might have missed, saving us from costly mistakes.",
     metric: "$250K saved",
     metricLabel: "Risk Prevented",
   },

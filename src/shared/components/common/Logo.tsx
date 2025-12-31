@@ -38,7 +38,7 @@ export function Logo({
           variant === "primary" ? "text-[var(--primary)]" : "text-white"
         )}
       >
-        LENS
+        TruPlat
       </span>
       {badge && (
         <span

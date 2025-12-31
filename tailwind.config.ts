@@ -11,7 +11,7 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      // LENS Design System Colors
+      // TruPlat Design System Colors
       colors: {
         // Brand Colors
         brand: {

@@ -1,6 +1,6 @@
 /**
  * OpenAI Client
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  */
 
 import OpenAI from "openai";

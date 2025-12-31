@@ -1,6 +1,6 @@
 /**
  * tRPC API Route Handler
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  */
 
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";

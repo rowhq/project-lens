@@ -1,6 +1,6 @@
 /**
  * Root Layout
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  */
 
 import type { Metadata } from "next";
@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LENS | Fast Appraisals for Lenders",
+  title: "TruPlat | Fast Appraisals for Lenders",
   description:
     "AI-powered appraisals in minutes. On-site verification in days. Built for lenders.",
   keywords: [

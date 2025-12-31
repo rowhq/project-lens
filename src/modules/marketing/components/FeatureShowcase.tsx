@@ -117,7 +117,7 @@ export function FeatureShowcase() {
             <span className="text-gradient"> Property Intelligence</span>
           </h2>
           <p className="mt-4 text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto">
-            LENS combines cutting-edge AI with professional appraisal expertise to
+            TruPlat combines cutting-edge AI with professional appraisal expertise to
             deliver the most comprehensive property valuation platform.
           </p>
         </motion.div>
