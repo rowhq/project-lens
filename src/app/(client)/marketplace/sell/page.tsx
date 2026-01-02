@@ -33,10 +33,11 @@ export default function SellReportPage() {
   const [price, setPrice] = useState("");
 
   // Get completed appraisals that can be listed
-  const { data: appraisals, isLoading: loadingAppraisals } = trpc.appraisal.list.useQuery({
-    status: "READY",
-    limit: 50,
-  });
+  const { data: appraisals, isLoading: loadingAppraisals } =
+    trpc.appraisal.list.useQuery({
+      status: "READY",
+      limit: 50,
+    });
 
   const createListingMutation = trpc.marketplace.create.useMutation({
     onSuccess: (listing) => {
@@ -45,7 +46,7 @@ export default function SellReportPage() {
   });
 
   const selectedAppraisal = appraisals?.items?.find(
-    (a) => a.report?.id === selectedReportId
+    (a) => a.report?.id === selectedReportId,
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,7 +76,9 @@ export default function SellReportPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">Sell a Report</h1>
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">
+          Sell a Report
+        </h1>
         <p className="text-[var(--muted-foreground)]">
           List your completed appraisal report on the marketplace
         </p>
@@ -83,7 +86,7 @@ export default function SellReportPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Select Report */}
-        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+        <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
           <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <FileText className="w-5 h-5" />
             Select Report
@@ -97,63 +100,70 @@ export default function SellReportPage() {
             <div className="text-center py-8 text-[var(--muted-foreground)]">
               <FileText className="w-12 h-12 mx-auto mb-2 text-[var(--muted)]" />
               <p>No completed reports available</p>
-              <p className="text-sm mt-1">Complete an appraisal to list it on the marketplace</p>
+              <p className="text-sm mt-1">
+                Complete an appraisal to list it on the marketplace
+              </p>
             </div>
           ) : (
             <div className="space-y-3 max-h-80 overflow-y-auto">
-              {appraisals?.items?.filter((a) => a.report).map((appraisal) => (
-                <label
-                  key={appraisal.id}
-                  className={`block p-4 rounded-lg border cursor-pointer transition-colors ${
-                    selectedReportId === appraisal.report?.id
-                      ? "border-[var(--primary)] bg-[var(--primary)]/5"
-                      : "border-[var(--border)] hover:border-[var(--primary)]/50"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="report"
-                    value={appraisal.report?.id}
-                    checked={selectedReportId === appraisal.report?.id}
-                    onChange={(e) => setSelectedReportId(e.target.value)}
-                    className="sr-only"
-                  />
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium text-[var(--foreground)]">
-                        {appraisal.property.addressLine1}
-                      </p>
-                      <p className="text-sm text-[var(--muted-foreground)] flex items-center gap-1 mt-1">
-                        <MapPin className="w-3 h-3" />
-                        {appraisal.property.city}, {appraisal.property.state}
-                      </p>
+              {appraisals?.items
+                ?.filter((a) => a.report)
+                .map((appraisal) => (
+                  <label
+                    key={appraisal.id}
+                    className={`block p-4 clip-notch-sm border cursor-pointer transition-colors ${
+                      selectedReportId === appraisal.report?.id
+                        ? "border-lime-400 bg-lime-400/5"
+                        : "border-gray-800 hover:border-lime-400/50"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="report"
+                      value={appraisal.report?.id}
+                      checked={selectedReportId === appraisal.report?.id}
+                      onChange={(e) => setSelectedReportId(e.target.value)}
+                      className="sr-only"
+                    />
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-medium text-[var(--foreground)]">
+                          {appraisal.property.addressLine1}
+                        </p>
+                        <p className="text-sm text-[var(--muted-foreground)] flex items-center gap-1 mt-1">
+                          <MapPin className="w-3 h-3" />
+                          {appraisal.property.city}, {appraisal.property.state}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        {selectedReportId === appraisal.report?.id && (
+                          <CheckCircle className="w-5 h-5 text-[var(--primary)]" />
+                        )}
+                        <p className="text-sm text-[var(--muted-foreground)] flex items-center gap-1 mt-1">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(appraisal.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      {selectedReportId === appraisal.report?.id && (
-                        <CheckCircle className="w-5 h-5 text-[var(--primary)]" />
-                      )}
-                      <p className="text-sm text-[var(--muted-foreground)] flex items-center gap-1 mt-1">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(appraisal.createdAt).toLocaleDateString()}
-                      </p>
+                    <div className="mt-2 flex items-center gap-4 text-sm">
+                      <span className="text-green-500 font-medium">
+                        $
+                        {Number(
+                          appraisal.report?.valueEstimate || 0,
+                        ).toLocaleString()}
+                      </span>
+                      <span className="text-[var(--muted-foreground)]">
+                        {appraisal.requestedType.replace(/_/g, " ")}
+                      </span>
                     </div>
-                  </div>
-                  <div className="mt-2 flex items-center gap-4 text-sm">
-                    <span className="text-green-500 font-medium">
-                      ${Number(appraisal.report?.valueEstimate || 0).toLocaleString()}
-                    </span>
-                    <span className="text-[var(--muted-foreground)]">
-                      {appraisal.requestedType.replace(/_/g, " ")}
-                    </span>
-                  </div>
-                </label>
-              ))}
+                  </label>
+                ))}
             </div>
           )}
         </div>
 
         {/* Listing Details */}
-        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+        <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
           <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <Tag className="w-5 h-5" />
             Listing Details
@@ -170,7 +180,7 @@ export default function SellReportPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Detailed Residential Appraisal - Austin Downtown"
                 maxLength={200}
-                className="w-full px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
                 required
               />
               <p className="mt-1 text-xs text-[var(--muted-foreground)]">
@@ -185,7 +195,7 @@ export default function SellReportPage() {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat.value} value={cat.value}>
@@ -205,7 +215,7 @@ export default function SellReportPage() {
                 placeholder="Describe what's included in this report..."
                 rows={4}
                 maxLength={2000}
-                className="w-full px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none"
+                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50 resize-none"
               />
               <p className="mt-1 text-xs text-[var(--muted-foreground)]">
                 {description.length}/2000 characters
@@ -215,7 +225,7 @@ export default function SellReportPage() {
         </div>
 
         {/* Pricing */}
-        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+        <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
           <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <DollarSign className="w-5 h-5" />
             Pricing
@@ -235,12 +245,13 @@ export default function SellReportPage() {
                 min="1"
                 max="10000"
                 step="1"
-                className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                className="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
                 required
               />
             </div>
             <p className="mt-2 text-sm text-[var(--muted-foreground)]">
-              Suggested range: $50 - $200 based on report type and property value
+              Suggested range: $50 - $200 based on report type and property
+              value
             </p>
           </div>
         </div>
@@ -249,14 +260,19 @@ export default function SellReportPage() {
         <div className="flex items-center justify-end gap-4">
           <Link
             href="/marketplace"
-            className="px-6 py-2 border border-[var(--border)] rounded-lg text-[var(--foreground)] hover:bg-[var(--secondary)]"
+            className="px-6 py-2.5 border border-gray-700 clip-notch text-white font-mono text-sm uppercase tracking-wider hover:bg-gray-800"
           >
             Cancel
           </Link>
           <button
             type="submit"
-            disabled={!selectedReportId || !title || !price || createListingMutation.isPending}
-            className="px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+            disabled={
+              !selectedReportId ||
+              !title ||
+              !price ||
+              createListingMutation.isPending
+            }
+            className="px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {createListingMutation.isPending ? (
               <>
@@ -270,7 +286,7 @@ export default function SellReportPage() {
         </div>
 
         {createListingMutation.error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500">
+          <div className="p-4 bg-red-500/10 border border-red-500/20 clip-notch text-red-500">
             {createListingMutation.error.message}
           </div>
         )}

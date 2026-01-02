@@ -25,7 +25,11 @@ import {
   Building2,
 } from "lucide-react";
 import { trpc } from "@/shared/lib/trpc";
-import { parcelAPI, type ParcelProperties, type Bounds } from "@/shared/lib/parcel-api";
+import {
+  parcelAPI,
+  type ParcelProperties,
+  type Bounds,
+} from "@/shared/lib/parcel-api";
 
 type ViewTab = "parcels" | "jobs" | "appraisers";
 type BaseLayer = "streets" | "satellite" | "hybrid";
@@ -50,7 +54,8 @@ const BASE_STYLES: Record<BaseLayer, maplibregl.StyleSpecification> = {
         type: "raster",
         tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
         tileSize: 256,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       },
     },
     layers: [
@@ -140,7 +145,9 @@ export default function MapPage() {
   const [bounds, setBounds] = useState<Bounds | null>(null);
 
   // Selected items
-  const [selectedParcel, setSelectedParcel] = useState<ParcelProperties | null>(null);
+  const [selectedParcel, setSelectedParcel] = useState<ParcelProperties | null>(
+    null,
+  );
   const [selectedJob, setSelectedJob] = useState<{
     id: string;
     status: string;
@@ -152,12 +159,13 @@ export default function MapPage() {
 
   // Loading states
   const [loadingParcels, setLoadingParcels] = useState(false);
-  const [parcelsData, setParcelsData] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [parcelsData, setParcelsData] =
+    useState<GeoJSON.FeatureCollection | null>(null);
 
   // TRPC queries
   const { data: jobsData } = trpc.map.getJobsInBounds.useQuery(
     { bounds: bounds! },
-    { enabled: !!bounds && activeTab === "jobs" }
+    { enabled: !!bounds && activeTab === "jobs" },
   );
 
   const { data: appraisersData } = trpc.map.getAppraisers.useQuery(undefined, {
@@ -166,7 +174,7 @@ export default function MapPage() {
 
   const { data: mapStats } = trpc.map.getMapStats.useQuery(
     { bounds: bounds || undefined },
-    { enabled: !!bounds }
+    { enabled: !!bounds },
   );
 
   // Initialize map
@@ -183,8 +191,14 @@ export default function MapPage() {
 
     // Add controls
     map.current.addControl(new maplibregl.NavigationControl(), "top-right");
-    map.current.addControl(new maplibregl.ScaleControl({ maxWidth: 100 }), "bottom-left");
-    map.current.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
+    map.current.addControl(
+      new maplibregl.ScaleControl({ maxWidth: 100 }),
+      "bottom-left",
+    );
+    map.current.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      "bottom-right",
+    );
 
     // Handle load
     map.current.on("load", () => {
@@ -363,7 +377,7 @@ export default function MapPage() {
       // Create marker
       const el = document.createElement("div");
       el.innerHTML = `
-        <div class="w-10 h-10 bg-green-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+        <div class="w-10 h-10 bg-green-500 clip-notch-sm border-2 border-lime-400 shadow-lg flex items-center justify-center">
           <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
           </svg>
@@ -382,7 +396,7 @@ export default function MapPage() {
         const circleGeoJSON = createCircleGeoJSON(
           appraiser.longitude,
           appraiser.latitude,
-          radiusInMeters
+          radiusInMeters,
         );
 
         map.current!.addSource(circleId, {
@@ -465,7 +479,11 @@ export default function MapPage() {
           {/* Sidebar Header */}
           <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
             <h2 className="font-semibold text-[var(--foreground)]">
-              {selectedParcel ? "Property Details" : selectedJob ? "Job Details" : "Map Details"}
+              {selectedParcel
+                ? "Property Details"
+                : selectedJob
+                  ? "Job Details"
+                  : "Map Details"}
             </h2>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -480,59 +498,84 @@ export default function MapPage() {
             {selectedParcel && (
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-[var(--muted-foreground)]">Address</p>
-                  <p className="font-medium text-[var(--foreground)]">{selectedParcel.situs}</p>
                   <p className="text-sm text-[var(--muted-foreground)]">
-                    {selectedParcel.city}, {selectedParcel.state} {selectedParcel.zip}
+                    Address
+                  </p>
+                  <p className="font-medium text-[var(--foreground)]">
+                    {selectedParcel.situs}
+                  </p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    {selectedParcel.city}, {selectedParcel.state}{" "}
+                    {selectedParcel.zip}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-[var(--secondary)] rounded-lg">
-                    <p className="text-xs text-[var(--muted-foreground)]">Total Value</p>
-                    <p className="font-bold text-[var(--foreground)]">
+                  <div className="p-3 bg-gray-800 clip-notch-sm">
+                    <p className="text-xs text-gray-400 font-mono uppercase tracking-wider">
+                      Total Value
+                    </p>
+                    <p className="font-bold text-white">
                       ${selectedParcel.totalValue?.toLocaleString()}
                     </p>
                   </div>
-                  <div className="p-3 bg-[var(--secondary)] rounded-lg">
-                    <p className="text-xs text-[var(--muted-foreground)]">Year Built</p>
-                    <p className="font-bold text-[var(--foreground)]">{selectedParcel.yearBuilt}</p>
+                  <div className="p-3 bg-gray-800 clip-notch-sm">
+                    <p className="text-xs text-gray-400 font-mono uppercase tracking-wider">
+                      Year Built
+                    </p>
+                    <p className="font-bold text-white">
+                      {selectedParcel.yearBuilt}
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-[var(--muted-foreground)]">Owner</span>
-                    <span className="text-[var(--foreground)]">{selectedParcel.owner}</span>
+                    <span className="text-[var(--muted-foreground)]">
+                      Owner
+                    </span>
+                    <span className="text-[var(--foreground)]">
+                      {selectedParcel.owner}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-[var(--muted-foreground)]">Lot Size</span>
+                    <span className="text-[var(--muted-foreground)]">
+                      Lot Size
+                    </span>
                     <span className="text-[var(--foreground)]">
                       {selectedParcel.acres?.toFixed(2)} acres
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-[var(--muted-foreground)]">Zoning</span>
-                    <span className="text-[var(--foreground)]">{selectedParcel.zoning}</span>
+                    <span className="text-[var(--muted-foreground)]">
+                      Zoning
+                    </span>
+                    <span className="text-[var(--foreground)]">
+                      {selectedParcel.zoning}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-[var(--muted-foreground)]">Flood Zone</span>
-                    <span className="text-[var(--foreground)]">{selectedParcel.floodZone}</span>
+                    <span className="text-[var(--muted-foreground)]">
+                      Flood Zone
+                    </span>
+                    <span className="text-[var(--foreground)]">
+                      {selectedParcel.floodZone}
+                    </span>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-[var(--border)]">
-                  <button className="w-full py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-medium hover:bg-[var(--primary)]/90 flex items-center justify-center gap-2">
+                <div className="pt-4 border-t border-gray-800">
+                  <button className="w-full py-3 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 flex items-center justify-center gap-2">
                     <DollarSign className="w-5 h-5" />
                     Generate AI Valuation
                   </button>
-                  <p className="text-xs text-[var(--muted-foreground)] text-center mt-2">
+                  <p className="text-xs text-gray-500 text-center mt-2">
                     Get an instant AI-powered property valuation
                   </p>
                 </div>
 
                 <div>
-                  <button className="w-full py-3 border border-[var(--border)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--secondary)] flex items-center justify-center gap-2">
+                  <button className="w-full py-3 border border-gray-700 text-white font-mono text-sm uppercase tracking-wider clip-notch hover:bg-gray-800 flex items-center justify-center gap-2">
                     <Building2 className="w-5 h-5" />
                     Request Certified Appraisal
                   </button>
@@ -543,9 +586,15 @@ export default function MapPage() {
             {selectedJob && (
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-[var(--muted-foreground)]">Address</p>
-                  <p className="font-medium text-[var(--foreground)]">{selectedJob.address}</p>
-                  <p className="text-sm text-[var(--muted-foreground)]">{selectedJob.city}, TX</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Address
+                  </p>
+                  <p className="font-medium text-[var(--foreground)]">
+                    {selectedJob.address}
+                  </p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    {selectedJob.city}, TX
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -563,16 +612,20 @@ export default function MapPage() {
                   </span>
                 </div>
 
-                <div className="p-3 bg-green-500/10 rounded-lg">
-                  <p className="text-xs text-green-400">Payout</p>
+                <div className="p-3 bg-green-500/10 clip-notch-sm border border-green-500/30">
+                  <p className="text-xs text-green-400 font-mono uppercase tracking-wider">
+                    Payout
+                  </p>
                   <p className="font-bold text-green-400 text-lg">
                     ${selectedJob.payoutAmount}
                   </p>
                 </div>
 
                 <button
-                  onClick={() => (window.location.href = `/orders/${selectedJob.id}`)}
-                  className="w-full py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-medium hover:bg-[var(--primary)]/90 flex items-center justify-center gap-2"
+                  onClick={() =>
+                    (window.location.href = `/orders/${selectedJob.id}`)
+                  }
+                  className="w-full py-3 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 flex items-center justify-center gap-2"
                 >
                   View Full Details
                   <ChevronRight className="w-5 h-5" />
@@ -587,8 +640,8 @@ export default function MapPage() {
                   {activeTab === "parcels"
                     ? "Click on a parcel to see details"
                     : activeTab === "jobs"
-                    ? "Click on a job marker to see details"
-                    : "Select an appraiser to see their coverage area"}
+                      ? "Click on a job marker to see details"
+                      : "Select an appraiser to see their coverage area"}
                 </p>
               </div>
             )}
@@ -601,13 +654,17 @@ export default function MapPage() {
                 <p className="text-lg font-bold text-[var(--foreground)]">
                   {mapStats.pendingJobs}
                 </p>
-                <p className="text-xs text-[var(--muted-foreground)]">Pending Jobs</p>
+                <p className="text-xs text-[var(--muted-foreground)]">
+                  Pending Jobs
+                </p>
               </div>
               <div className="text-center">
                 <p className="text-lg font-bold text-[var(--foreground)]">
                   {mapStats.activeJobs}
                 </p>
-                <p className="text-xs text-[var(--muted-foreground)]">Active Jobs</p>
+                <p className="text-xs text-[var(--muted-foreground)]">
+                  Active Jobs
+                </p>
               </div>
             </div>
           )}
@@ -624,7 +681,9 @@ export default function MapPage() {
           <div className="absolute inset-0 flex items-center justify-center bg-[var(--background)]/80 z-10">
             <div className="flex items-center gap-3 text-[var(--foreground)]">
               <Loader2 className="w-6 h-6 animate-spin" />
-              <span>{loadingParcels ? "Loading parcels..." : "Loading map..."}</span>
+              <span>
+                {loadingParcels ? "Loading parcels..." : "Loading map..."}
+              </span>
             </div>
           </div>
         )}
@@ -634,26 +693,26 @@ export default function MapPage() {
           {/* Toggle Sidebar */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg hover:bg-[var(--secondary)]"
+            className="p-3 bg-gray-900 border border-gray-800 clip-notch shadow-lg hover:bg-gray-800"
           >
-            <Layers className="w-5 h-5 text-[var(--foreground)]" />
+            <Layers className="w-5 h-5 text-white" />
           </button>
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
               type="text"
               placeholder="Search address..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-64 pl-10 pr-4 py-3 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              className="w-64 pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 clip-notch-sm shadow-lg text-sm font-mono text-white placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
             />
           </div>
         </div>
 
         {/* View Tabs */}
-        <div className="absolute top-4 right-16 z-10 flex bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg overflow-hidden">
+        <div className="absolute top-4 right-16 z-10 flex bg-gray-900 border border-gray-800 clip-notch shadow-lg overflow-hidden">
           {[
             { id: "parcels" as ViewTab, label: "Parcels", icon: Home },
             { id: "jobs" as ViewTab, label: "Jobs", icon: Briefcase },
@@ -664,10 +723,10 @@ export default function MapPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-mono uppercase tracking-wider transition-colors ${
                   activeTab === tab.id
-                    ? "bg-[var(--primary)] text-black font-medium"
-                    : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
+                    ? "bg-lime-400 text-black"
+                    : "text-gray-400 hover:bg-gray-800"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -678,13 +737,13 @@ export default function MapPage() {
         </div>
 
         {/* Base Layer Switcher */}
-        <div className="absolute bottom-8 left-4 z-10 flex gap-1 bg-[var(--card)] border border-[var(--border)] p-1 rounded-lg shadow-lg">
+        <div className="absolute bottom-8 left-4 z-10 flex gap-1 bg-gray-900 border border-gray-800 p-1 clip-notch shadow-lg">
           <button
             onClick={() => handleBaseLayerChange("streets")}
-            className={`p-2 rounded-md transition-colors ${
+            className={`p-2 clip-notch-sm transition-colors ${
               baseLayer === "streets"
-                ? "bg-[var(--primary)] text-black font-medium"
-                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
+                ? "bg-lime-400 text-black"
+                : "text-gray-400 hover:bg-gray-800"
             }`}
             title="Streets"
           >
@@ -692,10 +751,10 @@ export default function MapPage() {
           </button>
           <button
             onClick={() => handleBaseLayerChange("satellite")}
-            className={`p-2 rounded-md transition-colors ${
+            className={`p-2 clip-notch-sm transition-colors ${
               baseLayer === "satellite"
-                ? "bg-[var(--primary)] text-black font-medium"
-                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
+                ? "bg-lime-400 text-black"
+                : "text-gray-400 hover:bg-gray-800"
             }`}
             title="Satellite"
           >
@@ -703,10 +762,10 @@ export default function MapPage() {
           </button>
           <button
             onClick={() => handleBaseLayerChange("hybrid")}
-            className={`p-2 rounded-md transition-colors ${
+            className={`p-2 clip-notch-sm transition-colors ${
               baseLayer === "hybrid"
-                ? "bg-[var(--primary)] text-black font-medium"
-                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
+                ? "bg-lime-400 text-black"
+                : "text-gray-400 hover:bg-gray-800"
             }`}
             title="Hybrid"
           >
@@ -715,13 +774,15 @@ export default function MapPage() {
         </div>
 
         {/* Zoom hint for parcels */}
-        {activeTab === "parcels" && isLoaded && (map.current?.getZoom() || 0) < 13 && (
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 px-4 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg">
-            <p className="text-sm text-[var(--muted-foreground)]">
-              Zoom in to see parcel boundaries
-            </p>
-          </div>
-        )}
+        {activeTab === "parcels" &&
+          isLoaded &&
+          (map.current?.getZoom() || 0) < 13 && (
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 px-4 py-2 bg-gray-900 border border-gray-800 clip-notch shadow-lg">
+              <p className="text-sm text-gray-400 font-mono">
+                Zoom in to see parcel boundaries
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );
@@ -731,7 +792,7 @@ export default function MapPage() {
 function createCircleGeoJSON(
   lng: number,
   lat: number,
-  radiusInMeters: number
+  radiusInMeters: number,
 ): GeoJSON.FeatureCollection {
   const points = 64;
   const coords: number[][] = [];
