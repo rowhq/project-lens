@@ -38,7 +38,7 @@ export default function AuthLayout({
           <div className="hidden lg:block" />
           <Link
             href="/"
-            className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+            className="h-10 px-4 flex items-center font-mono text-sm uppercase tracking-wider text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 clip-notch-sm transition-colors duration-300"
             style={{
               transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
             }}
