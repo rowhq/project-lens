@@ -106,12 +106,12 @@ export default function RegisterPage() {
 
   return (
     <div className="flex flex-col items-center">
-      <h2 className="mb-2 text-2xl font-bold text-white">Create Account</h2>
-      <p className="mb-8 text-center font-mono text-xs uppercase tracking-wider text-gray-500">
+      <h2 className="mb-1 text-xl font-bold text-white">Create Account</h2>
+      <p className="mb-5 text-center font-mono text-[10px] uppercase tracking-wider text-gray-500">
         Get started with TruPlat
       </p>
 
-      <form onSubmit={handleSubmit} className="w-full space-y-5">
+      <form onSubmit={handleSubmit} className="w-full space-y-3">
         {error && (
           <Alert variant="error" dismissible onDismiss={() => setError("")}>
             <div className="flex items-center gap-2">
@@ -121,35 +121,26 @@ export default function RegisterPage() {
           </Alert>
         )}
 
-        {/* Role Selection - Ledger Style */}
+        {/* Role Selection - Compact */}
         <div>
-          <label className="block font-mono text-xs uppercase tracking-wider text-gray-400 mb-3">
+          <label className="block font-mono text-[10px] uppercase tracking-wider text-gray-400 mb-2">
             I am a...
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() =>
                 setFormData((prev) => ({ ...prev, role: "CLIENT" }))
               }
               className={cn(
-                "relative p-4 border text-center transition-all clip-notch",
+                "relative py-2.5 px-3 border text-center transition-all clip-notch-sm flex items-center justify-center gap-2",
                 formData.role === "CLIENT"
                   ? "border-lime-500 bg-lime-500/10 text-lime-400"
                   : "border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-600",
               )}
-              style={{
-                transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-              }}
             >
-              {formData.role === "CLIENT" && (
-                <>
-                  <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400" />
-                  <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400" />
-                </>
-              )}
-              <Building2 className="w-5 h-5 mx-auto mb-2" />
-              <span className="text-sm font-medium">Lender / Investor</span>
+              <Building2 className="w-4 h-4" />
+              <span className="text-xs font-medium">Lender</span>
             </button>
             <button
               type="button"
@@ -157,28 +148,19 @@ export default function RegisterPage() {
                 setFormData((prev) => ({ ...prev, role: "APPRAISER" }))
               }
               className={cn(
-                "relative p-4 border text-center transition-all clip-notch",
+                "relative py-2.5 px-3 border text-center transition-all clip-notch-sm flex items-center justify-center gap-2",
                 formData.role === "APPRAISER"
                   ? "border-lime-500 bg-lime-500/10 text-lime-400"
                   : "border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-600",
               )}
-              style={{
-                transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-              }}
             >
-              {formData.role === "APPRAISER" && (
-                <>
-                  <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400" />
-                  <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400" />
-                </>
-              )}
-              <User className="w-5 h-5 mx-auto mb-2" />
-              <span className="text-sm font-medium">Appraiser</span>
+              <User className="w-4 h-4" />
+              <span className="text-xs font-medium">Appraiser</span>
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <Input
             id="firstName"
             name="firstName"
@@ -230,51 +212,50 @@ export default function RegisterPage() {
           />
         )}
 
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          label="Password"
-          value={formData.password}
-          onChange={handleChange}
-          placeholder="At least 8 characters"
-          required
-          disabled={isLoading}
-          leftIcon={<Lock className="w-5 h-5" />}
-          hint="Must be at least 8 characters"
-        />
-
-        <Input
-          id="confirmPassword"
-          name="confirmPassword"
-          type="password"
-          label="Confirm Password"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          placeholder="Confirm your password"
-          required
-          disabled={isLoading}
-          leftIcon={<Lock className="w-5 h-5" />}
-        />
+        <div className="grid grid-cols-2 gap-2">
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            label="Password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Min 8 chars"
+            required
+            disabled={isLoading}
+            leftIcon={<Lock className="w-4 h-4" />}
+          />
+          <Input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            label="Confirm"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            placeholder="Repeat"
+            required
+            disabled={isLoading}
+            leftIcon={<Lock className="w-4 h-4" />}
+          />
+        </div>
 
         <Button
           type="submit"
           variant="lime"
-          size="lg"
+          size="md"
           disabled={isLoading}
           isLoading={isLoading}
           className="w-full"
         >
-          {isLoading ? "Creating account..." : "Create account"}
+          {isLoading ? "Creating..." : "Create Account"}
         </Button>
       </form>
 
-      <p className="mt-8 text-sm text-gray-400">
+      <p className="mt-4 text-xs text-gray-400">
         Already have an account?{" "}
         <Link
           href="/login"
           className="text-lime-400 hover:text-lime-300 font-medium transition-colors"
-          style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
         >
           Sign in
         </Link>

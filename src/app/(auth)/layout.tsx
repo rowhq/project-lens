@@ -45,9 +45,9 @@ export default function AuthLayout({
         </header>
 
         {/* Main Content */}
-        <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="flex-1 flex items-center justify-center px-4 py-6">
           {/* Auth Card */}
-          <div className="relative w-full max-w-md bg-gray-900 border border-gray-800 clip-notch p-8">
+          <div className="relative w-full max-w-md bg-gray-900 border border-gray-800 clip-notch p-6">
             {/* L-bracket corners */}
             <span className="absolute top-0 left-0 w-5 h-5 border-t-2 border-l-2 border-lime-400 pointer-events-none" />
             <span className="absolute top-0 right-0 w-5 h-5 border-t-2 border-r-2 border-lime-400 pointer-events-none" />
