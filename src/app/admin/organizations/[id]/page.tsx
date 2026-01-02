@@ -214,7 +214,7 @@ export default function OrganizationDetailPage() {
             })}
           </p>
           <p className="text-xs text-[var(--muted-foreground)]">
-            {Math.floor((Date.now() - new Date(org.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days
+            {Math.floor((new Date().getTime() - new Date(org.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days
           </p>
         </div>
       </div>
@@ -226,7 +226,7 @@ export default function OrganizationDetailPage() {
             setSelectedPlan(org.plan);
             setShowPlanModal(true);
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90"
         >
           <CreditCard className="w-4 h-4" />
           Change Plan
@@ -649,7 +649,7 @@ export default function OrganizationDetailPage() {
               <button
                 onClick={() => updatePlan.mutate({ id: orgId, plan: selectedPlan as "FREE_TRIAL" | "STARTER" | "PROFESSIONAL" | "ENTERPRISE" })}
                 disabled={selectedPlan === org.plan || updatePlan.isPending}
-                className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 disabled:opacity-50"
               >
                 {updatePlan.isPending ? "Updating..." : "Update Plan"}
               </button>

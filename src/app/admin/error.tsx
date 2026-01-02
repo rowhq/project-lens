@@ -46,7 +46,7 @@ export default function AdminError({
         <div className="mt-6 flex gap-4 justify-center">
           <button
             onClick={reset}
-            className="px-6 py-3 bg-[var(--primary)] text-white rounded-lg hover:opacity-90"
+            className="px-6 py-3 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90"
           >
             Try Again
           </button>

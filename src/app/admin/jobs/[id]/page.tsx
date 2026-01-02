@@ -825,7 +825,7 @@ export default function AdminJobDetailPage({ params }: PageProps) {
                   });
                 }}
                 disabled={reassignJob.isPending}
-                className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50"
+                className="px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 disabled:opacity-50"
               >
                 {reassignJob.isPending ? "Reassigning..." : "Reassign Job"}
               </button>

@@ -371,7 +371,7 @@ export default function PricingPage() {
           <div className="flex justify-end">
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90"
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90"
             >
               <Plus className="w-4 h-4" />
               Add Rule
@@ -556,7 +556,7 @@ export default function PricingPage() {
                   <button
                     onClick={() => savePayoutConfig.mutate({ schedule: payoutSchedule, minAmount: minPayoutAmount, paymentMethod })}
                     disabled={savePayoutConfig.isPending}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 disabled:opacity-50"
                   >
                     {savePayoutConfig.isPending ? (
                       <>
@@ -819,7 +819,7 @@ export default function PricingPage() {
               <button
                 onClick={handleCreateRule}
                 disabled={!newRule.name || !newRule.value || createRule.isPending}
-                className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 disabled:opacity-50"
               >
                 {createRule.isPending ? "Adding..." : "Add Rule"}
               </button>

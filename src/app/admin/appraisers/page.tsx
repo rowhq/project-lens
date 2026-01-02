@@ -159,7 +159,7 @@ export default function AppraisersPage() {
                 description: "Adding appraisers manually is coming soon. Appraisers are currently created through the signup flow.",
               });
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90"
           >
             <Plus className="w-4 h-4" />
             Add Appraiser
