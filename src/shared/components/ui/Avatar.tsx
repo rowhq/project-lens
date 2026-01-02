@@ -13,18 +13,7 @@ export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
-  (
-    {
-      className,
-      src,
-      alt,
-      name,
-      size = "md",
-      status,
-      ...props
-    },
-    ref
-  ) => {
+  ({ className, src, alt, name, size = "md", status, ...props }, ref) => {
     const sizes = {
       xs: "w-6 h-6 text-xs",
       sm: "w-8 h-8 text-sm",
@@ -42,8 +31,8 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
     };
 
     const statusColors = {
-      online: "bg-green-500",
-      offline: "bg-gray-400",
+      online: "bg-lime-500",
+      offline: "bg-gray-500",
       busy: "bg-red-500",
       away: "bg-yellow-500",
     };
@@ -58,8 +47,8 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
       >
         <div
           className={cn(
-            "flex items-center justify-center rounded-full bg-neutral-100 text-neutral-600 font-medium overflow-hidden",
-            sizes[size]
+            "flex items-center justify-center clip-notch-sm bg-gray-800 text-gray-300 font-mono font-medium overflow-hidden border border-gray-700",
+            sizes[size],
           )}
         >
           {src ? (
@@ -69,7 +58,7 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
               className="w-full h-full object-cover"
             />
           ) : initials ? (
-            <span>{initials}</span>
+            <span className="uppercase">{initials}</span>
           ) : (
             <User className="w-1/2 h-1/2" />
           )}
@@ -77,15 +66,16 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
         {status && (
           <span
             className={cn(
-              "absolute bottom-0 right-0 block rounded-full ring-2 ring-white",
+              "absolute bottom-0 right-0 block ring-2 ring-gray-900",
               statusSizes[size],
-              statusColors[status]
+              statusColors[status],
             )}
+            style={{ clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)" }}
           />
         )}
       </div>
     );
-  }
+  },
 );
 
 Avatar.displayName = "Avatar";

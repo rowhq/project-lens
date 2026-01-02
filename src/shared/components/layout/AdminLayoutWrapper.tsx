@@ -1,6 +1,7 @@
 /**
  * Admin Layout Wrapper
  * Client component to handle mobile menu state
+ * Ledger-style design
  */
 
 "use client";
@@ -8,6 +9,7 @@
 import { useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { PageHeader } from "./PageHeader";
+import { LedgerFooterSimple } from "./LedgerFooter";
 import { AlertTriangle } from "lucide-react";
 import { trpc } from "@/shared/lib/trpc";
 
@@ -29,12 +31,15 @@ export function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps) {
   const slaBreaches = stats?.jobs?.slaBreach || 0;
 
   // Custom right content for admin header
-  const adminRightContent = slaBreaches > 0 ? (
-    <div className="flex items-center gap-2 rounded-lg bg-red-500/20 px-3 py-1.5 text-sm font-medium text-red-400">
-      <AlertTriangle className="h-4 w-4" />
-      <span>{slaBreaches} SLA breach{slaBreaches !== 1 ? "es" : ""}</span>
-    </div>
-  ) : null;
+  const adminRightContent =
+    slaBreaches > 0 ? (
+      <div className="flex items-center gap-2 rounded-lg bg-red-500/20 px-3 py-1.5 text-sm font-medium text-red-400">
+        <AlertTriangle className="h-4 w-4" />
+        <span>
+          {slaBreaches} SLA breach{slaBreaches !== 1 ? "es" : ""}
+        </span>
+      </div>
+    ) : null;
 
   return (
     <div className="flex h-screen bg-[var(--background)]">
@@ -54,7 +59,10 @@ export function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps) {
         />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-[var(--background)] p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-[var(--background)]">
+          <div className="p-6">{children}</div>
+          <LedgerFooterSimple />
+        </main>
       </div>
     </div>
   );

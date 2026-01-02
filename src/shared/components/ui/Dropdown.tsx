@@ -34,7 +34,10 @@ export function Dropdown({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -56,32 +59,52 @@ export function Dropdown({
       {isOpen && (
         <div
           className={cn(
-            "absolute z-dropdown mt-1 min-w-[180px] py-1 bg-white border border-neutral-200 rounded-lg shadow-lg animate-fade-in",
-            align === "left" ? "left-0" : "right-0"
+            "absolute z-dropdown mt-2 min-w-[200px]",
+            "bg-gray-900 border border-gray-800",
+            "clip-notch",
+            "animate-fade-in",
+            align === "left" ? "left-0" : "right-0",
           )}
         >
-          {items.map((item) => (
-            <button
-              key={item.value}
-              onClick={() => handleSelect(item)}
-              disabled={item.disabled}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors",
-                "hover:bg-neutral-50 focus:bg-neutral-50 focus:outline-none",
-                item.disabled && "opacity-50 cursor-not-allowed",
-                item.destructive && "text-red-600 hover:bg-red-50",
-                selectedValue === item.value && "bg-brand-50 text-brand-600"
-              )}
-            >
-              {item.icon && (
-                <span className="flex-shrink-0 w-4 h-4">{item.icon}</span>
-              )}
-              <span className="flex-1">{item.label}</span>
-              {selectedValue === item.value && (
-                <Check className="w-4 h-4 text-brand-500" />
-              )}
-            </button>
-          ))}
+          {/* Bracket decoration */}
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+
+          <div className="py-1">
+            {items.map((item) => (
+              <button
+                key={item.value}
+                onClick={() => handleSelect(item)}
+                disabled={item.disabled}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-2.5",
+                  "text-sm text-left",
+                  "transition-colors duration-fast",
+                  // Default state
+                  "text-gray-300 hover:bg-gray-800 hover:text-white",
+                  // Disabled
+                  item.disabled &&
+                    "opacity-40 cursor-not-allowed hover:bg-transparent",
+                  // Destructive
+                  item.destructive &&
+                    "text-red-400 hover:text-red-300 hover:bg-red-500/10",
+                  // Selected
+                  selectedValue === item.value &&
+                    "text-lime-400 bg-lime-400/10",
+                )}
+              >
+                {item.icon && (
+                  <span className="flex-shrink-0 w-4 h-4">{item.icon}</span>
+                )}
+                <span className="flex-1 font-mono text-label uppercase tracking-wider">
+                  {item.label}
+                </span>
+                {selectedValue === item.value && (
+                  <Check className="w-4 h-4 text-lime-400" />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -109,24 +132,28 @@ export function DropdownButton({
   className,
 }: DropdownButtonProps) {
   const variants = {
-    primary: "bg-brand-500 text-white hover:bg-brand-600",
-    secondary: "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
-    outline: "border border-neutral-200 text-neutral-700 hover:bg-neutral-50",
+    primary: "bg-white text-black border-white hover:bg-gray-100",
+    secondary: "bg-gray-800 text-white border-gray-700 hover:bg-gray-700",
+    outline:
+      "bg-transparent text-white border-gray-700 hover:border-lime-400 hover:text-lime-400",
   };
 
   const sizes = {
-    sm: "px-3 py-1.5 text-sm",
+    sm: "px-3 py-1.5 text-xs",
     md: "px-4 py-2 text-sm",
-    lg: "px-5 py-2.5 text-base",
+    lg: "px-5 py-2.5 text-sm",
   };
 
   const trigger = (
     <button
       className={cn(
-        "inline-flex items-center gap-2 font-medium rounded-lg transition-colors",
+        "inline-flex items-center gap-2",
+        "font-mono uppercase tracking-wider",
+        "border clip-notch-sm",
+        "transition-all duration-fast",
         variants[variant],
         sizes[size],
-        className
+        className,
       )}
     >
       {label}

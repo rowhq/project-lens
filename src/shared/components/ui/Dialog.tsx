@@ -38,7 +38,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
     <div className="fixed inset-0 z-modal">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -49,11 +49,16 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
           role="dialog"
           aria-modal="true"
           className={cn(
-            "relative bg-card text-card-foreground rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-auto animate-scale-in",
-            className
+            "relative bg-gray-900 text-white border border-gray-800 max-w-lg w-full max-h-[90vh] overflow-auto animate-scale-in clip-notch",
+            className,
           )}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* L-bracket corners */}
+          <span className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400 pointer-events-none z-10" />
+          <span className="absolute top-0 right-0 w-4 h-4 border-t border-r border-lime-400 pointer-events-none z-10" />
+          <span className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-lime-400 pointer-events-none z-10" />
+          <span className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400 pointer-events-none z-10" />
           {children}
         </div>
       </div>
@@ -68,14 +73,24 @@ interface DialogHeaderProps {
   className?: string;
 }
 
-export function DialogHeader({ children, onClose, className }: DialogHeaderProps) {
+export function DialogHeader({
+  children,
+  onClose,
+  className,
+}: DialogHeaderProps) {
   return (
-    <div className={cn("flex items-center justify-between p-6 border-b border-border", className)}>
-      <div className="font-semibold text-lg text-foreground">{children}</div>
+    <div
+      className={cn(
+        "flex items-center justify-between p-6 border-b border-gray-800",
+        className,
+      )}
+    >
+      <div className="font-semibold text-lg text-white">{children}</div>
       {onClose && (
         <button
           onClick={onClose}
-          className="p-2 -m-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+          className="p-2 -m-2 text-gray-400 hover:text-white transition-colors clip-notch-sm hover:bg-gray-800"
+          style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
           aria-label="Close dialog"
         >
           <X className="w-5 h-5" />
@@ -92,11 +107,7 @@ interface DialogBodyProps {
 }
 
 export function DialogBody({ children, className }: DialogBodyProps) {
-  return (
-    <div className={cn("p-6", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn("p-6", className)}>{children}</div>;
 }
 
 // Dialog Footer
@@ -107,7 +118,12 @@ interface DialogFooterProps {
 
 export function DialogFooter({ children, className }: DialogFooterProps) {
   return (
-    <div className={cn("flex items-center justify-end gap-3 p-6 border-t border-border bg-muted rounded-b-xl", className)}>
+    <div
+      className={cn(
+        "flex items-center justify-end gap-3 p-6 border-t border-gray-800 bg-gray-950",
+        className,
+      )}
+    >
       {children}
     </div>
   );

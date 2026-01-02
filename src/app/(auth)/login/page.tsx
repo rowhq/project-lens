@@ -4,7 +4,11 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Mail, Lock, AlertCircle } from "lucide-react";
+import { Mail, Lock, AlertCircle } from "lucide-react";
+import { Input } from "@/shared/components/ui/Input";
+import { Button } from "@/shared/components/ui/Button";
+import { Checkbox } from "@/shared/components/ui/Checkbox";
+import { Alert } from "@/shared/components/ui/Alert";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,102 +49,76 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center">
-      <h2 className="mb-6 text-2xl font-bold text-[var(--foreground)]">
-        Sign in to TruPlat
-      </h2>
-      <p className="mb-8 text-center text-sm text-[var(--muted-foreground)]">
-        Fast appraisals. On-site verification. Certified upgrades.
+      <h2 className="mb-2 text-2xl font-bold text-white">Sign in to TruPlat</h2>
+      <p className="mb-8 text-center font-mono text-xs uppercase tracking-wider text-gray-500">
+        Fast appraisals. On-site verification.
       </p>
 
-      <form onSubmit={handleSubmit} className="w-full space-y-4">
+      <form onSubmit={handleSubmit} className="w-full space-y-5">
         {error && (
-          <div className="flex items-center gap-2 p-3 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            {error}
-          </div>
+          <Alert variant="error" dismissible onDismiss={() => setError("")}>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {error}
+            </div>
+          </Alert>
         )}
 
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-[var(--muted-foreground)] mb-1.5"
-          >
-            Email
-          </label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              disabled={isLoading}
-              className="w-full pl-10 pr-4 py-2.5 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent disabled:opacity-50"
-            />
-          </div>
-        </div>
+        <Input
+          id="email"
+          type="email"
+          label="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          required
+          disabled={isLoading}
+          leftIcon={<Mail className="w-5 h-5" />}
+        />
 
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-[var(--muted-foreground)] mb-1.5"
-          >
-            Password
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-              disabled={isLoading}
-              className="w-full pl-10 pr-4 py-2.5 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent disabled:opacity-50"
-            />
-          </div>
-        </div>
+        <Input
+          id="password"
+          type="password"
+          label="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter your password"
+          required
+          disabled={isLoading}
+          leftIcon={<Lock className="w-5 h-5" />}
+        />
 
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-[var(--muted-foreground)]">
-            <input
-              type="checkbox"
-              className="w-4 h-4 rounded border-[var(--border)] bg-[var(--secondary)] text-[var(--primary)] focus:ring-[var(--primary)]"
-            />
-            Remember me
-          </label>
+        <div className="flex items-center justify-between">
+          <Checkbox label="Remember me" />
           <Link
             href="/forgot-password"
-            className="text-[var(--primary)] hover:text-[var(--primary)]/80"
+            className="text-sm text-lime-400 hover:text-lime-300 font-mono uppercase tracking-wider transition-colors"
+            style={{
+              transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+            }}
           >
             Forgot password?
           </Link>
         </div>
 
-        <button
+        <Button
           type="submit"
+          variant="lime"
+          size="lg"
           disabled={isLoading}
-          className="w-full py-2.5 bg-[var(--primary)] text-white font-medium rounded-lg hover:bg-[var(--primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          isLoading={isLoading}
+          className="w-full"
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Signing in...
-            </>
-          ) : (
-            "Sign in"
-          )}
-        </button>
+          {isLoading ? "Signing in..." : "Sign in"}
+        </Button>
       </form>
 
-      <p className="mt-6 text-sm text-[var(--muted-foreground)]">
+      <p className="mt-8 text-sm text-gray-400">
         Don&apos;t have an account?{" "}
         <Link
           href="/register"
-          className="text-[var(--primary)] hover:text-[var(--primary)]/80 font-medium"
+          className="text-lime-400 hover:text-lime-300 font-medium transition-colors"
+          style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
         >
           Create one
         </Link>

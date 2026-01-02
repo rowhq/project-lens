@@ -6,7 +6,7 @@ interface ProgressProps {
   value: number;
   max?: number;
   size?: "sm" | "md" | "lg";
-  variant?: "default" | "success" | "warning" | "error";
+  variant?: "default" | "success" | "warning" | "error" | "lime";
   showLabel?: boolean;
   label?: string;
   className?: string;
@@ -30,7 +30,8 @@ export function Progress({
   };
 
   const variants = {
-    default: "bg-brand-500",
+    default: "bg-lime-400",
+    lime: "bg-lime-400",
     success: "bg-green-500",
     warning: "bg-yellow-500",
     error: "bg-red-500",
@@ -40,16 +41,22 @@ export function Progress({
     <div className={cn("w-full", className)}>
       {(showLabel || label) && (
         <div className="flex justify-between mb-1.5">
-          <span className="text-sm text-neutral-600">{label || "Progress"}</span>
+          <span className="font-mono text-label uppercase tracking-wider text-gray-500">
+            {label || "Progress"}
+          </span>
           {showLabel && (
-            <span className="text-sm font-medium text-neutral-700">
+            <span className="font-mono text-label text-white">
               {Math.round(percentage)}%
             </span>
           )}
         </div>
       )}
       <div
-        className={cn("w-full bg-neutral-100 rounded-full overflow-hidden", sizes[size])}
+        className={cn(
+          "w-full bg-gray-800 overflow-hidden",
+          // Rectangular, no rounded corners - Ledger style
+          sizes[size],
+        )}
         role="progressbar"
         aria-valuenow={value}
         aria-valuemin={0}
@@ -57,23 +64,26 @@ export function Progress({
       >
         <div
           className={cn(
-            "h-full rounded-full transition-all duration-300 ease-out",
-            variants[variant]
+            "h-full transition-all duration-300",
+            variants[variant],
           )}
-          style={{ width: `${percentage}%` }}
+          style={{
+            width: `${percentage}%`,
+            transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+          }}
         />
       </div>
     </div>
   );
 }
 
-// Circular Progress
+// Circular Progress - Ledger style
 interface CircularProgressProps {
   value: number;
   max?: number;
   size?: number;
   strokeWidth?: number;
-  variant?: "default" | "success" | "warning" | "error";
+  variant?: "default" | "success" | "warning" | "error" | "lime";
   showValue?: boolean;
   className?: string;
 }
@@ -93,7 +103,8 @@ export function CircularProgress({
   const offset = circumference - (percentage / 100) * circumference;
 
   const variants = {
-    default: "text-brand-500",
+    default: "text-lime-400",
+    lime: "text-lime-400",
     success: "text-green-500",
     warning: "text-yellow-500",
     error: "text-red-500",
@@ -101,12 +112,15 @@ export function CircularProgress({
 
   return (
     <div
-      className={cn("relative inline-flex items-center justify-center", className)}
+      className={cn(
+        "relative inline-flex items-center justify-center",
+        className,
+      )}
       style={{ width: size, height: size }}
     >
       <svg className="transform -rotate-90" width={size} height={size}>
         <circle
-          className="text-neutral-100"
+          className="text-gray-800"
           strokeWidth={strokeWidth}
           stroke="currentColor"
           fill="transparent"
@@ -115,20 +129,23 @@ export function CircularProgress({
           cy={size / 2}
         />
         <circle
-          className={cn("transition-all duration-300 ease-out", variants[variant])}
+          className={cn("transition-all duration-300", variants[variant])}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          strokeLinecap="round"
+          strokeLinecap="butt"
           stroke="currentColor"
           fill="transparent"
           r={radius}
           cx={size / 2}
           cy={size / 2}
+          style={{
+            transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+          }}
         />
       </svg>
       {showValue && (
-        <span className="absolute text-xs font-medium text-neutral-700">
+        <span className="absolute font-mono text-label text-white">
           {Math.round(percentage)}%
         </span>
       )}

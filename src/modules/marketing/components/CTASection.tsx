@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Zap, Shield, Clock } from "lucide-react";
+import { Button } from "@/shared/components/ui/Button";
 
 export function CTASection() {
   return (
@@ -13,71 +14,75 @@ export function CTASection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="relative overflow-hidden rounded-3xl"
+          className="relative overflow-hidden clip-notch-lg"
         >
-          {/* Gradient Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] via-blue-600 to-purple-600" />
+          {/* Dark gradient background - Ledger style */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black" />
 
-          {/* Grid Pattern Overlay */}
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            }}
-          />
+          {/* Grid Pattern Overlay - Ledger style */}
+          <div className="absolute inset-0 grid-pattern opacity-50" />
 
-          {/* Glowing Orbs */}
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
+          {/* L-bracket corners */}
+          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-lime-400 z-10" />
+          <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-lime-400 z-10" />
+          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-lime-400 z-10" />
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-lime-400 z-10" />
+
+          {/* Glow effect */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-lime-400/50 to-transparent" />
 
           {/* Content */}
-          <div className="relative px-8 py-16 md:px-16 md:py-24 text-center">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-              Ready to Transform Your
+          <div className="relative px-8 py-16 md:px-16 md:py-24 text-center border border-gray-800">
+            <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
+              Start Today
+            </p>
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+              Ready to Speed Up
               <br />
-              Appraisal Workflow?
+              <span className="text-lime-400">Your Lending?</span>
             </h2>
-            <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8">
-              Join hundreds of lenders and investors who have already made the switch
-              to AI-powered property intelligence.
+            <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-10">
+              Join 500+ lenders who&apos;ve made the switch to faster, smarter
+              valuations.
             </p>
 
-            {/* Benefits */}
-            <div className="flex flex-wrap items-center justify-center gap-6 mb-10">
-              <div className="flex items-center gap-2 text-white/90">
-                <Clock className="w-5 h-5" />
-                <span>24-48hr delivery</span>
+            {/* Benefits - Ledger style badges */}
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700 clip-notch-sm">
+                <Zap className="w-4 h-4 text-lime-400" />
+                <span className="font-mono text-xs uppercase tracking-wider text-gray-300">
+                  5-min AI Reports
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-white/90">
-                <Shield className="w-5 h-5" />
-                <span>SOC 2 Compliant</span>
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700 clip-notch-sm">
+                <Clock className="w-4 h-4 text-lime-400" />
+                <span className="font-mono text-xs uppercase tracking-wider text-gray-300">
+                  48hr On-Site
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-white/90">
-                <Zap className="w-5 h-5" />
-                <span>95% Accuracy</span>
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700 clip-notch-sm">
+                <Shield className="w-4 h-4 text-lime-400" />
+                <span className="font-mono text-xs uppercase tracking-wider text-gray-300">
+                  Bank-Ready
+                </span>
               </div>
             </div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/sign-up"
-                className="group px-8 py-4 bg-white text-[var(--primary)] rounded-lg font-semibold hover:bg-white/90 transition-all flex items-center gap-2 shadow-lg"
-              >
-                Start Free Trial
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            {/* CTA Button */}
+            <div className="flex flex-col items-center justify-center gap-3">
+              <Link href="/register">
+                <Button
+                  variant="lime"
+                  size="lg"
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
+                >
+                  Start Free Trial
+                </Button>
               </Link>
-              <Link
-                href="/demo"
-                className="px-8 py-4 bg-white/10 text-white border border-white/30 rounded-lg font-semibold hover:bg-white/20 transition-all"
-              >
-                Schedule Demo
-              </Link>
+              <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+                3 free AI reports • No credit card required
+              </p>
             </div>
-
-            <p className="mt-6 text-sm text-white/60">
-              No credit card required. Start with 3 free AI reports.
-            </p>
           </div>
         </motion.div>
       </div>

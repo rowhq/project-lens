@@ -2,7 +2,7 @@
 
 import { cn } from "@/shared/lib/utils";
 
-interface TableProps extends React.HTMLAttributes<HTMLTableElement> {}
+type TableProps = React.HTMLAttributes<HTMLTableElement>;
 
 function Table({ className, children, ...props }: TableProps) {
   return (
@@ -14,21 +14,24 @@ function Table({ className, children, ...props }: TableProps) {
   );
 }
 
-interface TableHeaderProps extends React.HTMLAttributes<HTMLTableSectionElement> {}
+type TableHeaderProps = React.HTMLAttributes<HTMLTableSectionElement>;
 
 function TableHeader({ className, children, ...props }: TableHeaderProps) {
   return (
-    <thead className={cn("bg-[var(--secondary)] border-b border-[var(--border)]", className)} {...props}>
+    <thead
+      className={cn("bg-gray-900 border-b border-gray-800", className)}
+      {...props}
+    >
       {children}
     </thead>
   );
 }
 
-interface TableBodyProps extends React.HTMLAttributes<HTMLTableSectionElement> {}
+type TableBodyProps = React.HTMLAttributes<HTMLTableSectionElement>;
 
 function TableBody({ className, children, ...props }: TableBodyProps) {
   return (
-    <tbody className={cn("divide-y divide-[var(--border)]", className)} {...props}>
+    <tbody className={cn("divide-y divide-gray-800/50", className)} {...props}>
       {children}
     </tbody>
   );
@@ -38,10 +41,21 @@ interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
   hoverable?: boolean;
 }
 
-function TableRow({ className, hoverable = true, children, ...props }: TableRowProps) {
+function TableRow({
+  className,
+  hoverable = true,
+  children,
+  ...props
+}: TableRowProps) {
   return (
     <tr
-      className={cn(hoverable && "hover:bg-[var(--secondary)] transition-colors", className)}
+      className={cn(
+        hoverable && "hover:bg-gray-800/50 transition-colors duration-300",
+        className,
+      )}
+      style={{
+        transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+      }}
       {...props}
     >
       {children}
@@ -49,14 +63,16 @@ function TableRow({ className, hoverable = true, children, ...props }: TableRowP
   );
 }
 
-interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {}
+type TableHeadProps = React.ThHTMLAttributes<HTMLTableCellElement>;
 
 function TableHead({ className, children, ...props }: TableHeadProps) {
   return (
     <th
       className={cn(
-        "px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider",
-        className
+        "px-6 py-3 text-left",
+        "text-label font-mono uppercase tracking-widest",
+        "text-gray-500",
+        className,
       )}
       {...props}
     >
@@ -65,11 +81,14 @@ function TableHead({ className, children, ...props }: TableHeadProps) {
   );
 }
 
-interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {}
+type TableCellProps = React.TdHTMLAttributes<HTMLTableCellElement>;
 
 function TableCell({ className, children, ...props }: TableCellProps) {
   return (
-    <td className={cn("px-6 py-4 whitespace-nowrap", className)} {...props}>
+    <td
+      className={cn("px-6 py-4 text-body-sm text-gray-300", className)}
+      {...props}
+    >
       {children}
     </td>
   );
@@ -83,17 +102,35 @@ interface TableEmptyProps {
   colSpan: number;
 }
 
-function TableEmpty({ icon, title, description, action, colSpan }: TableEmptyProps) {
+function TableEmpty({
+  icon,
+  title,
+  description,
+  action,
+  colSpan,
+}: TableEmptyProps) {
   return (
     <tr>
-      <td colSpan={colSpan} className="px-6 py-12 text-center">
-        {icon && <div className="mx-auto mb-4 text-[var(--muted)]">{icon}</div>}
-        <p className="font-medium text-[var(--foreground)]">{title}</p>
-        {description && <p className="mt-1 text-sm text-[var(--muted-foreground)]">{description}</p>}
+      <td colSpan={colSpan} className="px-6 py-16 text-center">
+        {icon && (
+          <div className="mx-auto mb-4 text-gray-600 w-12 h-12">{icon}</div>
+        )}
+        <p className="font-medium text-white">{title}</p>
+        {description && (
+          <p className="mt-2 text-body-sm text-gray-500">{description}</p>
+        )}
         {action && <div className="mt-4">{action}</div>}
       </td>
     </tr>
   );
 }
 
-export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty };
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableEmpty,
+};

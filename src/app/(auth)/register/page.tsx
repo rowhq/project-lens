@@ -4,7 +4,11 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Mail, Lock, User, Building2, AlertCircle } from "lucide-react";
+import { Mail, Lock, User, Building2, AlertCircle } from "lucide-react";
+import { Input } from "@/shared/components/ui/Input";
+import { Button } from "@/shared/components/ui/Button";
+import { Alert } from "@/shared/components/ui/Alert";
+import { cn } from "@/shared/lib/utils";
 
 type UserRole = "CLIENT" | "APPRAISER";
 
@@ -24,7 +28,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -61,7 +65,8 @@ export default function RegisterPage() {
           firstName: formData.firstName,
           lastName: formData.lastName,
           role: formData.role,
-          organizationName: formData.role === "CLIENT" ? formData.organizationName : undefined,
+          organizationName:
+            formData.role === "CLIENT" ? formData.organizationName : undefined,
         }),
       });
 
@@ -101,209 +106,177 @@ export default function RegisterPage() {
 
   return (
     <div className="flex flex-col items-center">
-      <h2 className="mb-6 text-2xl font-bold text-[var(--foreground)]">
+      <h2 className="mb-2 text-2xl font-bold text-white">
         Create your account
       </h2>
-      <p className="mb-8 text-center text-sm text-[var(--muted-foreground)]">
-        Get started with AI-powered property appraisals.
+      <p className="mb-8 text-center font-mono text-xs uppercase tracking-wider text-gray-500">
+        AI-powered property appraisals
       </p>
 
-      <form onSubmit={handleSubmit} className="w-full space-y-4">
+      <form onSubmit={handleSubmit} className="w-full space-y-5">
         {error && (
-          <div className="flex items-center gap-2 p-3 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            {error}
-          </div>
+          <Alert variant="error" dismissible onDismiss={() => setError("")}>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {error}
+            </div>
+          </Alert>
         )}
 
-        {/* Role Selection */}
+        {/* Role Selection - Ledger Style */}
         <div>
-          <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-2">
+          <label className="block font-mono text-xs uppercase tracking-wider text-gray-400 mb-3">
             I am a...
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setFormData((prev) => ({ ...prev, role: "CLIENT" }))}
-              className={`p-3 rounded-lg border text-center transition-colors ${
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, role: "CLIENT" }))
+              }
+              className={cn(
+                "relative p-4 border text-center transition-all clip-notch",
                 formData.role === "CLIENT"
-                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                  : "border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)]/50"
-              }`}
+                  ? "border-lime-500 bg-lime-500/10 text-lime-400"
+                  : "border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-600",
+              )}
+              style={{
+                transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+              }}
             >
-              <Building2 className="w-5 h-5 mx-auto mb-1" />
+              {formData.role === "CLIENT" && (
+                <>
+                  <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400" />
+                  <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400" />
+                </>
+              )}
+              <Building2 className="w-5 h-5 mx-auto mb-2" />
               <span className="text-sm font-medium">Lender / Investor</span>
             </button>
             <button
               type="button"
-              onClick={() => setFormData((prev) => ({ ...prev, role: "APPRAISER" }))}
-              className={`p-3 rounded-lg border text-center transition-colors ${
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, role: "APPRAISER" }))
+              }
+              className={cn(
+                "relative p-4 border text-center transition-all clip-notch",
                 formData.role === "APPRAISER"
-                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                  : "border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)]/50"
-              }`}
+                  ? "border-lime-500 bg-lime-500/10 text-lime-400"
+                  : "border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-600",
+              )}
+              style={{
+                transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+              }}
             >
-              <User className="w-5 h-5 mx-auto mb-1" />
+              {formData.role === "APPRAISER" && (
+                <>
+                  <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400" />
+                  <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400" />
+                </>
+              )}
+              <User className="w-5 h-5 mx-auto mb-2" />
               <span className="text-sm font-medium">Appraiser</span>
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label
-              htmlFor="firstName"
-              className="block text-sm font-medium text-[var(--muted-foreground)] mb-1.5"
-            >
-              First Name
-            </label>
-            <input
-              id="firstName"
-              name="firstName"
-              type="text"
-              value={formData.firstName}
-              onChange={handleChange}
-              placeholder="John"
-              required
-              disabled={isLoading}
-              className="w-full px-3 py-2.5 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent disabled:opacity-50"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="lastName"
-              className="block text-sm font-medium text-[var(--muted-foreground)] mb-1.5"
-            >
-              Last Name
-            </label>
-            <input
-              id="lastName"
-              name="lastName"
-              type="text"
-              value={formData.lastName}
-              onChange={handleChange}
-              placeholder="Doe"
-              required
-              disabled={isLoading}
-              className="w-full px-3 py-2.5 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent disabled:opacity-50"
-            />
-          </div>
+          <Input
+            id="firstName"
+            name="firstName"
+            type="text"
+            label="First Name"
+            value={formData.firstName}
+            onChange={handleChange}
+            placeholder="John"
+            required
+            disabled={isLoading}
+          />
+          <Input
+            id="lastName"
+            name="lastName"
+            type="text"
+            label="Last Name"
+            value={formData.lastName}
+            onChange={handleChange}
+            placeholder="Doe"
+            required
+            disabled={isLoading}
+          />
         </div>
 
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-[var(--muted-foreground)] mb-1.5"
-          >
-            Email
-          </label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              required
-              disabled={isLoading}
-              className="w-full pl-10 pr-4 py-2.5 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent disabled:opacity-50"
-            />
-          </div>
-        </div>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          label="Email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="you@example.com"
+          required
+          disabled={isLoading}
+          leftIcon={<Mail className="w-5 h-5" />}
+        />
 
         {formData.role === "CLIENT" && (
-          <div>
-            <label
-              htmlFor="organizationName"
-              className="block text-sm font-medium text-[var(--muted-foreground)] mb-1.5"
-            >
-              Organization Name
-            </label>
-            <div className="relative">
-              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
-              <input
-                id="organizationName"
-                name="organizationName"
-                type="text"
-                value={formData.organizationName}
-                onChange={handleChange}
-                placeholder="Your company name"
-                disabled={isLoading}
-                className="w-full pl-10 pr-4 py-2.5 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent disabled:opacity-50"
-              />
-            </div>
-          </div>
+          <Input
+            id="organizationName"
+            name="organizationName"
+            type="text"
+            label="Organization Name"
+            value={formData.organizationName}
+            onChange={handleChange}
+            placeholder="Your company name"
+            disabled={isLoading}
+            leftIcon={<Building2 className="w-5 h-5" />}
+          />
         )}
 
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-[var(--muted-foreground)] mb-1.5"
-          >
-            Password
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
-            <input
-              id="password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="At least 8 characters"
-              required
-              disabled={isLoading}
-              className="w-full pl-10 pr-4 py-2.5 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent disabled:opacity-50"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label
-            htmlFor="confirmPassword"
-            className="block text-sm font-medium text-[var(--muted-foreground)] mb-1.5"
-          >
-            Confirm Password
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-              required
-              disabled={isLoading}
-              className="w-full pl-10 pr-4 py-2.5 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent disabled:opacity-50"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          label="Password"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="At least 8 characters"
+          required
           disabled={isLoading}
-          className="w-full py-2.5 bg-[var(--primary)] text-white font-medium rounded-lg hover:bg-[var(--primary)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          leftIcon={<Lock className="w-5 h-5" />}
+          hint="Must be at least 8 characters"
+        />
+
+        <Input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          label="Confirm Password"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          placeholder="Confirm your password"
+          required
+          disabled={isLoading}
+          leftIcon={<Lock className="w-5 h-5" />}
+        />
+
+        <Button
+          type="submit"
+          variant="lime"
+          size="lg"
+          disabled={isLoading}
+          isLoading={isLoading}
+          className="w-full"
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Creating account...
-            </>
-          ) : (
-            "Create account"
-          )}
-        </button>
+          {isLoading ? "Creating account..." : "Create account"}
+        </Button>
       </form>
 
-      <p className="mt-6 text-sm text-[var(--muted-foreground)]">
+      <p className="mt-8 text-sm text-gray-400">
         Already have an account?{" "}
         <Link
           href="/login"
-          className="text-[var(--primary)] hover:text-[var(--primary)]/80 font-medium"
+          className="text-lime-400 hover:text-lime-300 font-medium transition-colors"
+          style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
         >
           Sign in
         </Link>

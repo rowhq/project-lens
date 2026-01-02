@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, createContext, useContext, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  createContext,
+  useContext,
+  useCallback,
+} from "react";
 import { X, CheckCircle, AlertCircle, Info, XCircle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
@@ -73,7 +79,7 @@ function ToastContainer() {
   const { toasts } = context;
 
   return (
-    <div className="fixed bottom-4 right-4 z-toast flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+    <div className="fixed bottom-4 right-4 z-toast flex flex-col gap-3 max-w-sm w-full pointer-events-none">
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} />
       ))}
@@ -87,19 +93,34 @@ function ToastItem({ toast }: { toast: Toast }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
-  const icons = {
-    success: <CheckCircle className="w-5 h-5 text-green-500" />,
-    error: <XCircle className="w-5 h-5 text-red-500" />,
-    warning: <AlertCircle className="w-5 h-5 text-yellow-500" />,
-    info: <Info className="w-5 h-5 text-blue-500" />,
+  const config = {
+    success: {
+      icon: <CheckCircle className="w-5 h-5" />,
+      styles: "bg-gray-900 border-lime-400/30 text-lime-400",
+      iconColor: "text-lime-400",
+      borderAccent: "border-lime-400",
+    },
+    error: {
+      icon: <XCircle className="w-5 h-5" />,
+      styles: "bg-gray-900 border-red-500/30 text-red-400",
+      iconColor: "text-red-400",
+      borderAccent: "border-red-500",
+    },
+    warning: {
+      icon: <AlertCircle className="w-5 h-5" />,
+      styles: "bg-gray-900 border-yellow-500/30 text-yellow-400",
+      iconColor: "text-yellow-400",
+      borderAccent: "border-yellow-500",
+    },
+    info: {
+      icon: <Info className="w-5 h-5" />,
+      styles: "bg-gray-900 border-blue-500/30 text-blue-400",
+      iconColor: "text-blue-400",
+      borderAccent: "border-blue-500",
+    },
   };
 
-  const backgrounds = {
-    success: "bg-green-50 border-green-200",
-    error: "bg-red-50 border-red-200",
-    warning: "bg-yellow-50 border-yellow-200",
-    info: "bg-blue-50 border-blue-200",
-  };
+  const { icon, styles, iconColor, borderAccent } = config[toast.type];
 
   useEffect(() => {
     // Trigger enter animation
@@ -127,27 +148,49 @@ function ToastItem({ toast }: { toast: Toast }) {
   return (
     <div
       className={cn(
-        "pointer-events-auto flex items-start gap-3 p-4 border rounded-lg shadow-lg transition-all duration-200",
-        backgrounds[toast.type],
+        "pointer-events-auto relative",
+        "flex items-start gap-3 p-4",
+        "border clip-notch",
+        "transition-all duration-normal ease-out-expo",
+        styles,
         isVisible && !isLeaving
           ? "translate-x-0 opacity-100"
-          : "translate-x-full opacity-0"
+          : "translate-x-8 opacity-0",
       )}
       role="alert"
     >
-      <div className="flex-shrink-0">{icons[toast.type]}</div>
+      {/* Bracket decorations */}
+      <div
+        className={cn(
+          "absolute -top-px -left-px w-2 h-2 border-l border-t",
+          borderAccent,
+        )}
+      />
+      <div
+        className={cn(
+          "absolute -bottom-px -right-px w-2 h-2 border-r border-b",
+          borderAccent,
+        )}
+      />
+
+      <div className={cn("flex-shrink-0", iconColor)}>{icon}</div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm text-neutral-900">{toast.title}</p>
+        <p className="font-medium text-sm text-white">{toast.title}</p>
         {toast.message && (
-          <p className="text-sm text-neutral-600 mt-1">{toast.message}</p>
+          <p className="text-body-sm text-gray-400 mt-1">{toast.message}</p>
         )}
       </div>
       <button
         onClick={handleDismiss}
-        className="flex-shrink-0 p-1 rounded hover:bg-black/5 transition-colors"
+        className={cn(
+          "flex-shrink-0 p-1",
+          "text-gray-500 hover:text-white",
+          "clip-notch-sm",
+          "transition-colors duration-fast",
+        )}
         aria-label="Dismiss"
       >
-        <X className="w-4 h-4 text-neutral-500" />
+        <X className="w-4 h-4" />
       </button>
     </div>
   );

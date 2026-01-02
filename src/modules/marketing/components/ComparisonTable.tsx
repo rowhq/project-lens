@@ -65,12 +65,12 @@ const comparisonData: ComparisonRow[] = [
   },
 ];
 
-function renderValue(value: string | boolean, isLens?: boolean) {
+function renderValue(value: string | boolean) {
   if (typeof value === "boolean") {
     return value ? (
-      <Check className="w-5 h-5 text-green-500" />
+      <Check className="w-5 h-5 text-lime-400" />
     ) : (
-      <X className="w-5 h-5 text-red-400" />
+      <X className="w-5 h-5 text-gray-600" />
     );
   }
   return <span>{value}</span>;
@@ -82,35 +82,40 @@ export function ComparisonTable() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4">
-            Traditional vs. <span className="text-gradient">TruPlat AI</span>
+          <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
+            Side by side
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            Traditional vs. <span className="text-lime-400">TruPlat AI</span>
           </h2>
-          <p className="text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto">
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
             See how TruPlat transforms the appraisal process with AI-powered
             efficiency and accuracy.
           </p>
         </div>
 
         {/* Desktop Comparison table */}
-        <div className="hidden md:block relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)]">
+        <div className="hidden md:block relative overflow-hidden clip-notch-lg border border-gray-800 bg-gray-900">
+          {/* L-bracket corners */}
+          <span className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400 z-10" />
+          <span className="absolute top-0 right-0 w-4 h-4 border-t border-r border-lime-400 z-10" />
+          <span className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-lime-400 z-10" />
+          <span className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400 z-10" />
+
           {/* Table header */}
-          <div className="grid grid-cols-3 border-b border-[var(--border)]">
-            <div className="p-6 font-medium text-[var(--muted-foreground)]">
+          <div className="grid grid-cols-3 border-b border-gray-800">
+            <div className="p-6 font-mono text-xs uppercase tracking-wider text-gray-500">
               Feature
             </div>
-            <div className="p-6 text-center border-l border-[var(--border)]">
-              <span className="font-semibold text-[var(--foreground)]">
-                Traditional
-              </span>
-              <span className="block text-sm text-[var(--muted-foreground)] mt-1">
+            <div className="p-6 text-center border-l border-gray-800">
+              <span className="font-semibold text-white">Traditional</span>
+              <span className="block font-mono text-xs uppercase tracking-wider text-gray-500 mt-1">
                 Standard Process
               </span>
             </div>
-            <div className="p-6 text-center border-l border-[var(--border)] bg-[var(--primary)]/5">
-              <span className="font-semibold text-[var(--primary)]">
-                TruPlat AI
-              </span>
-              <span className="block text-sm text-[var(--muted-foreground)] mt-1">
+            <div className="p-6 text-center border-l border-gray-800 bg-lime-500/5">
+              <span className="font-semibold text-lime-400">TruPlat AI</span>
+              <span className="block font-mono text-xs uppercase tracking-wider text-gray-500 mt-1">
                 AI-Powered
               </span>
             </div>
@@ -120,30 +125,26 @@ export function ComparisonTable() {
           {comparisonData.map((row) => (
             <div
               key={row.aspect}
-              className={`grid grid-cols-3 border-b border-[var(--border)] last:border-b-0 ${
-                row.highlight ? "bg-[var(--primary)]/[0.02]" : ""
+              className={`grid grid-cols-3 border-b border-gray-800 last:border-b-0 ${
+                row.highlight ? "bg-lime-500/[0.02]" : ""
               }`}
             >
               <div className="p-5 flex items-center">
                 <span
                   className={`text-sm ${
-                    row.highlight
-                      ? "font-medium text-[var(--foreground)]"
-                      : "text-[var(--muted-foreground)]"
+                    row.highlight ? "font-medium text-white" : "text-gray-400"
                   }`}
                 >
                   {row.aspect}
                 </span>
               </div>
-              <div className="p-5 flex items-center justify-center border-l border-[var(--border)] text-sm text-[var(--muted-foreground)]">
+              <div className="p-5 flex items-center justify-center border-l border-gray-800 text-sm text-gray-400">
                 {renderValue(row.traditional)}
               </div>
-              <div className="p-5 flex items-center justify-center border-l border-[var(--border)] bg-[var(--primary)]/5">
+              <div className="p-5 flex items-center justify-center border-l border-gray-800 bg-lime-500/5">
                 <span
                   className={`text-sm ${
-                    row.highlight
-                      ? "font-semibold text-[var(--primary)]"
-                      : "text-[var(--foreground)]"
+                    row.highlight ? "font-semibold text-lime-400" : "text-white"
                   }`}
                 >
                   {renderValue(row.truplat)}
@@ -158,37 +159,57 @@ export function ComparisonTable() {
           {comparisonData.map((row) => (
             <div
               key={row.aspect}
-              className={`rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden ${
-                row.highlight ? "ring-1 ring-[var(--primary)]/30" : ""
+              className={`relative clip-notch border border-gray-800 bg-gray-900 overflow-hidden ${
+                row.highlight ? "border-lime-500/30" : ""
               }`}
             >
+              {/* L-bracket corners for highlighted rows */}
+              {row.highlight && (
+                <>
+                  <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400" />
+                  <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400" />
+                </>
+              )}
+
               {/* Feature name */}
-              <div className={`px-4 py-3 border-b border-[var(--border)] ${
-                row.highlight ? "bg-[var(--primary)]/5" : ""
-              }`}>
-                <span className={`text-sm font-medium ${
-                  row.highlight ? "text-[var(--primary)]" : "text-[var(--foreground)]"
-                }`}>
+              <div
+                className={`px-4 py-3 border-b border-gray-800 ${
+                  row.highlight ? "bg-lime-500/5" : ""
+                }`}
+              >
+                <span
+                  className={`text-sm font-medium ${
+                    row.highlight ? "text-lime-400" : "text-white"
+                  }`}
+                >
                   {row.aspect}
                 </span>
               </div>
 
               {/* Values comparison */}
-              <div className="grid grid-cols-2 divide-x divide-[var(--border)]">
+              <div className="grid grid-cols-2 divide-x divide-gray-800">
                 {/* Traditional */}
                 <div className="p-4 text-center">
-                  <span className="block text-xs text-[var(--muted-foreground)] mb-2">Traditional</span>
-                  <div className="flex items-center justify-center text-sm text-[var(--muted-foreground)]">
+                  <span className="block font-mono text-xs uppercase tracking-wider text-gray-500 mb-2">
+                    Traditional
+                  </span>
+                  <div className="flex items-center justify-center text-sm text-gray-400">
                     {renderValue(row.traditional)}
                   </div>
                 </div>
 
                 {/* TruPlat AI */}
-                <div className="p-4 text-center bg-[var(--primary)]/5">
-                  <span className="block text-xs text-[var(--primary)] mb-2 font-medium">TruPlat AI</span>
-                  <div className={`flex items-center justify-center text-sm ${
-                    row.highlight ? "font-semibold text-[var(--primary)]" : "text-[var(--foreground)]"
-                  }`}>
+                <div className="p-4 text-center bg-lime-500/5">
+                  <span className="block font-mono text-xs uppercase tracking-wider text-lime-400 mb-2">
+                    TruPlat AI
+                  </span>
+                  <div
+                    className={`flex items-center justify-center text-sm ${
+                      row.highlight
+                        ? "font-semibold text-lime-400"
+                        : "text-white"
+                    }`}
+                  >
                     {renderValue(row.truplat)}
                   </div>
                 </div>
@@ -198,7 +219,7 @@ export function ComparisonTable() {
         </div>
 
         {/* Bottom note */}
-        <p className="text-center text-sm text-[var(--muted-foreground)] mt-6">
+        <p className="text-center font-mono text-xs uppercase tracking-wider text-gray-500 mt-8">
           All TruPlat appraisals include GPS-verified photos and are reviewed by
           licensed professionals.
         </p>

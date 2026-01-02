@@ -4,6 +4,7 @@
  */
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   HeroSection,
   ComparisonTable,
@@ -12,74 +13,45 @@ import {
   CTASection,
   TrustBadges,
   StickyMobileCTA,
-  VideoModal,
 } from "@/modules/marketing/components";
-import { Button } from "@/shared/components/ui/Button";
+import { LedgerHeader } from "@/shared/components/layout/LedgerHeader";
 
 export default function LandingPage() {
+  const navItems = [
+    { label: "Pricing", href: "#pricing" },
+    { label: "How It Works", href: "#how-it-works" },
+    { label: "For Appraisers", href: "/for-appraisers" },
+  ];
+
   return (
     <div className="min-h-screen bg-[var(--background)]">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-gradient">TruPlat</span>
-          </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link
-              href="#pricing"
-              className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-            >
-              How It Works
-            </Link>
-            <Link
-              href="/for-appraisers"
-              className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-            >
-              For Appraisers
-            </Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-            >
-              Sign in
-            </Link>
-            <Link href="/register">
-              <Button>Start Free</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Ledger-style Header */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <LedgerHeader
+          navItems={navItems}
+          actionButtonText="START FREE"
+          actionButtonHref="/register"
+        />
+      </div>
 
       {/* Spacer for fixed header */}
       <div className="h-16" />
 
-      {/* 1. Hero Section with Trust Badges */}
+      {/* 1. Hero Section */}
       <HeroSection />
-      <div className="relative z-10 -mt-8 pb-8">
-        <TrustBadges />
-      </div>
 
-      {/* 2. Stats Block */}
-      <StatsBlock />
-
-      {/* 3. How It Works */}
+      {/* 2. How It Works */}
       <section id="how-it-works" className="py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl">
-              Your Valuation in 3 Steps
+            <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
+              Simple Process
+            </p>
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Get Your Valuation in 3 Steps
             </h2>
-            <p className="mt-4 text-lg text-[var(--muted-foreground)]">
-              Get accurate property valuations faster than ever
+            <p className="mt-4 text-lg text-gray-400">
+              From address to professional report in minutes
             </p>
           </div>
 
@@ -87,38 +59,31 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-3 gap-8">
               <StepCard
                 number={1}
-                title="Enter Property Address"
-                description="Simply enter the property address and our system pulls in relevant property data automatically."
+                title="Enter the Address"
+                description="Paste any Texas address. We pull property data instantly."
               />
               <StepCard
                 number={2}
-                title="Choose Your Report Type"
-                description="Select from AI-only, on-site verification, or full certified appraisal based on your needs."
+                title="Pick Your Report"
+                description="AI-only ($99), Verified ($249), or Certified ($499). Pick what fits."
               />
               <StepCard
                 number={3}
-                title="Get Your Report"
-                description="Receive your comprehensive valuation report with comparables, risk flags, and confidence scores."
+                title="Get Your Valuation"
+                description="Download your PDF with comps, risk flags, and confidence score."
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. Video Demo Section */}
-      <section className="py-16 bg-[var(--card)]/30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center mb-8">
-            <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl">
-              See TruPlat in Action
-            </h2>
-            <p className="mt-4 text-lg text-[var(--muted-foreground)]">
-              Watch how easy it is to get property valuations in minutes
-            </p>
-          </div>
-          <VideoModal />
-        </div>
-      </section>
+      {/* 3. Stats Block */}
+      <StatsBlock />
+
+      {/* 4. Trust Badges */}
+      <div className="relative z-10 py-8">
+        <TrustBadges />
+      </div>
 
       {/* 5. Comparison Table */}
       <ComparisonTable />
@@ -126,16 +91,19 @@ export default function LandingPage() {
       {/* 6. Testimonials */}
       <TestimonialCarousel />
 
-      {/* 7. Pricing with Toggle */}
+      {/* 7. Pricing */}
       <section id="pricing" className="py-24 relative">
-        <div className="absolute inset-0 bg-[var(--gradient-glow)] opacity-30" />
+        <div className="absolute inset-0 grid-pattern opacity-20" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl">
-              Three Plans. One Clear Mission.
+            <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
+              Transparent Pricing
+            </p>
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Simple Pricing. No Surprises.
             </h2>
-            <p className="mt-4 text-lg text-[var(--muted-foreground)]">
-              Pay only for what you need. No hidden fees. No commitments.
+            <p className="mt-4 text-lg text-gray-400">
+              Pay per report. No subscriptions. No setup fees.
             </p>
           </div>
 
@@ -143,7 +111,7 @@ export default function LandingPage() {
             <PricingCard
               name="AI Report"
               price="$99"
-              description="Instant AI-powered valuation"
+              description="Best for: Quick decisions & screening"
               features={[
                 "5-minute delivery",
                 "Comparable analysis",
@@ -154,7 +122,7 @@ export default function LandingPage() {
             <PricingCard
               name="On-Site Verification"
               price="$249"
-              description="AI report + physical inspection"
+              description="Best for: Refinancing & HELOCs"
               features={[
                 "48-hour turnaround",
                 "Geotagged photos",
@@ -166,7 +134,7 @@ export default function LandingPage() {
             <PricingCard
               name="Certified Appraisal"
               price="$499"
-              description="Full bank-compliant appraisal"
+              description="Best for: Purchase loans & litigation"
               features={[
                 "Licensed appraiser",
                 "USPAP compliant",
@@ -177,41 +145,44 @@ export default function LandingPage() {
           </div>
 
           {/* Money-back guarantee */}
-          <p className="text-center mt-8 text-sm text-[var(--muted-foreground)]">
-            30-day money-back guarantee on all reports. No questions asked.
+          <p className="text-center mt-8 font-mono text-xs uppercase tracking-wider text-gray-500">
+            30-day money-back guarantee on all reports
           </p>
         </div>
       </section>
 
-      {/* 8. FAQ - Reduced to 5 key questions */}
+      {/* 8. FAQ */}
       <section className="py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl">
-              Quick Answers
+            <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
+              Common Questions
+            </p>
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Got Questions?
             </h2>
           </div>
 
           <div className="mx-auto max-w-3xl space-y-4">
             <FAQItem
-              question="How accurate are the AI valuations?"
-              answer="Our AI model is trained on millions of Texas property transactions and achieves 95%+ accuracy within a 5% margin of final sale prices. Each report includes a confidence score so you know how reliable the estimate is for that specific property."
+              question="How accurate is the AI?"
+              answer="95%+ accuracy within a 5% margin of final sale prices. Each report includes a confidence score for that specific property."
             />
             <FAQItem
-              question="How fast can I get an on-site inspection?"
-              answer="Standard on-site inspections are completed within 48 hours. For urgent needs, our Rush service delivers within 24 hours. Certified appraisals typically take 5-7 business days."
+              question="How quickly can someone visit the property?"
+              answer="On-site inspections within 48 hours. Rush service available for 24-hour turnaround. Certified appraisals take 5-7 business days."
             />
             <FAQItem
-              question="Are your certified appraisals bank-acceptable?"
-              answer="Yes. Our certified appraisals are prepared by state-licensed appraisers following USPAP guidelines. They are accepted by banks, credit unions, and other regulated lenders across Texas."
+              question="Will my bank accept this appraisal?"
+              answer="Yes. Certified appraisals are prepared by state-licensed appraisers following USPAP guidelines. Accepted by banks, credit unions, and lenders across Texas."
             />
             <FAQItem
-              question="What property types do you cover?"
-              answer="We currently cover single-family homes, condos, townhouses, and small multi-family properties (2-4 units) across the state of Texas. Commercial property support is coming soon."
+              question="What properties can you appraise?"
+              answer="Single-family homes, condos, townhouses, and small multi-family (2-4 units) across Texas. Commercial coming soon."
             />
             <FAQItem
-              question="Do you offer refunds?"
-              answer="Yes, we offer a 30-day money-back guarantee on all reports. If you're not satisfied with the quality of your report, we'll refund your purchase in full."
+              question="What if I'm not satisfied?"
+              answer="30-day money-back guarantee. Full refund, no questions asked."
             />
           </div>
         </div>
@@ -220,20 +191,24 @@ export default function LandingPage() {
       {/* 9. CTA Section */}
       <CTASection />
 
-      {/* 10. Footer */}
-      <footer className="border-t border-[var(--border)] py-16 bg-[var(--card)]/30">
+      {/* 10. Footer - Ledger Style */}
+      <footer className="border-t border-gray-800 py-16 bg-black">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             {/* Product */}
             <div>
-              <h4 className="font-semibold text-[var(--foreground)] mb-4">
+              <h4 className="font-mono text-xs uppercase tracking-wider text-gray-500 mb-4">
                 Product
               </h4>
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 <li>
                   <Link
                     href="#how-it-works"
-                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+                    style={{
+                      transitionTimingFunction:
+                        "cubic-bezier(0.85, 0, 0.15, 1)",
+                    }}
                   >
                     How It Works
                   </Link>
@@ -241,7 +216,11 @@ export default function LandingPage() {
                 <li>
                   <Link
                     href="#pricing"
-                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+                    style={{
+                      transitionTimingFunction:
+                        "cubic-bezier(0.85, 0, 0.15, 1)",
+                    }}
                   >
                     Pricing
                   </Link>
@@ -249,7 +228,11 @@ export default function LandingPage() {
                 <li>
                   <Link
                     href="#"
-                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+                    style={{
+                      transitionTimingFunction:
+                        "cubic-bezier(0.85, 0, 0.15, 1)",
+                    }}
                   >
                     API Docs
                   </Link>
@@ -259,14 +242,18 @@ export default function LandingPage() {
 
             {/* Company */}
             <div>
-              <h4 className="font-semibold text-[var(--foreground)] mb-4">
+              <h4 className="font-mono text-xs uppercase tracking-wider text-gray-500 mb-4">
                 Company
               </h4>
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 <li>
                   <Link
                     href="#"
-                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+                    style={{
+                      transitionTimingFunction:
+                        "cubic-bezier(0.85, 0, 0.15, 1)",
+                    }}
                   >
                     About Us
                   </Link>
@@ -274,7 +261,11 @@ export default function LandingPage() {
                 <li>
                   <Link
                     href="#"
-                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+                    style={{
+                      transitionTimingFunction:
+                        "cubic-bezier(0.85, 0, 0.15, 1)",
+                    }}
                   >
                     Careers
                   </Link>
@@ -282,7 +273,11 @@ export default function LandingPage() {
                 <li>
                   <Link
                     href="#"
-                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+                    style={{
+                      transitionTimingFunction:
+                        "cubic-bezier(0.85, 0, 0.15, 1)",
+                    }}
                   >
                     Contact
                   </Link>
@@ -292,14 +287,18 @@ export default function LandingPage() {
 
             {/* Resources */}
             <div>
-              <h4 className="font-semibold text-[var(--foreground)] mb-4">
+              <h4 className="font-mono text-xs uppercase tracking-wider text-gray-500 mb-4">
                 Resources
               </h4>
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 <li>
                   <Link
                     href="#"
-                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+                    style={{
+                      transitionTimingFunction:
+                        "cubic-bezier(0.85, 0, 0.15, 1)",
+                    }}
                   >
                     Help Center
                   </Link>
@@ -307,7 +306,11 @@ export default function LandingPage() {
                 <li>
                   <Link
                     href="/for-appraisers"
-                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+                    style={{
+                      transitionTimingFunction:
+                        "cubic-bezier(0.85, 0, 0.15, 1)",
+                    }}
                   >
                     For Appraisers
                   </Link>
@@ -317,14 +320,18 @@ export default function LandingPage() {
 
             {/* Legal */}
             <div>
-              <h4 className="font-semibold text-[var(--foreground)] mb-4">
+              <h4 className="font-mono text-xs uppercase tracking-wider text-gray-500 mb-4">
                 Legal
               </h4>
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 <li>
                   <Link
                     href="#"
-                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+                    style={{
+                      transitionTimingFunction:
+                        "cubic-bezier(0.85, 0, 0.15, 1)",
+                    }}
                   >
                     Privacy Policy
                   </Link>
@@ -332,7 +339,11 @@ export default function LandingPage() {
                 <li>
                   <Link
                     href="#"
-                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+                    style={{
+                      transitionTimingFunction:
+                        "cubic-bezier(0.85, 0, 0.15, 1)",
+                    }}
                   >
                     Terms of Service
                   </Link>
@@ -340,7 +351,11 @@ export default function LandingPage() {
                 <li>
                   <Link
                     href="#"
-                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
+                    style={{
+                      transitionTimingFunction:
+                        "cubic-bezier(0.85, 0, 0.15, 1)",
+                    }}
                   >
                     Security
                   </Link>
@@ -350,22 +365,26 @@ export default function LandingPage() {
           </div>
 
           {/* Bottom bar */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-[var(--border)]">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-gradient">TruPlat</span>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-gray-800">
+            <div className="flex items-center">
+              {/* TruPlat logo */}
+              <Image src="/truplat.svg" alt="TruPlat" width={100} height={30} />
             </div>
-            <p className="text-sm text-[var(--muted-foreground)]">
+            <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
               &copy; {new Date().getFullYear()} TruPlat. All rights reserved.
             </p>
             {/* Social links */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
               <Link
                 href="#"
-                className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                className="text-gray-500 hover:text-white transition-colors duration-300"
+                style={{
+                  transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+                }}
               >
                 <span className="sr-only">Twitter</span>
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -374,11 +393,14 @@ export default function LandingPage() {
               </Link>
               <Link
                 href="#"
-                className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                className="text-gray-500 hover:text-white transition-colors duration-300"
+                style={{
+                  transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+                }}
               >
                 <span className="sr-only">LinkedIn</span>
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -408,14 +430,16 @@ function StepCard({
   description: string;
 }) {
   return (
-    <div className="text-center">
-      <div className="w-16 h-16 mx-auto bg-[var(--primary)]/10 rounded-full flex items-center justify-center text-[var(--primary)] text-2xl font-bold mb-4 border border-[var(--primary)]/20">
+    <div className="text-center group">
+      <div className="relative w-14 h-14 mx-auto clip-notch-sm bg-lime-500/10 border border-lime-500/30 flex items-center justify-center text-lime-400 font-mono text-xl font-bold mb-4">
+        <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity" />
         {number}
       </div>
-      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
+      <h3 className="font-mono text-sm uppercase tracking-wider text-white mb-2">
         {title}
       </h3>
-      <p className="text-[var(--muted-foreground)] text-sm">{description}</p>
+      <p className="text-gray-400 text-sm">{description}</p>
     </div>
   );
 }
@@ -435,55 +459,54 @@ function PricingCard({
 }) {
   return (
     <div
-      className={`relative rounded-xl border bg-[var(--card)] p-8 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl ${
-        popular
-          ? "border-[var(--primary)] ring-2 ring-[var(--primary)]"
-          : "border-[var(--border)] hover:border-[var(--primary)]/50"
+      className={`relative bg-gray-900 clip-notch border p-8 transition-all duration-300 ${
+        popular ? "border-lime-400" : "border-gray-700 hover:border-lime-500/50"
       }`}
+      style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
     >
+      {/* L-bracket corners */}
+      <span className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400 pointer-events-none" />
+      <span className="absolute top-0 right-0 w-4 h-4 border-t border-r border-lime-400 pointer-events-none" />
+      <span className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-lime-400 pointer-events-none" />
+      <span className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400 pointer-events-none" />
+
       {popular && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[var(--primary)] text-white text-sm font-medium rounded-full">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-lime-400 text-black font-mono text-xs uppercase tracking-wider">
           Most Popular
         </span>
       )}
-      <h3 className="text-xl font-semibold text-[var(--foreground)]">{name}</h3>
-      <p className="mt-2 text-sm text-[var(--muted-foreground)]">
-        {description}
-      </p>
+      <h3 className="font-mono text-lg uppercase tracking-wider text-white">
+        {name}
+      </h3>
+      <p className="mt-2 text-sm text-lime-400">{description}</p>
       <div className="mt-6">
-        <span className="text-4xl font-bold text-[var(--foreground)]">
-          {price}
-        </span>
-        <span className="text-[var(--muted-foreground)]">/report</span>
+        <span className="text-4xl font-bold text-white">{price}</span>
+        <span className="text-gray-500 font-mono text-sm">/report</span>
       </div>
       <ul className="mt-8 space-y-3">
         {features.map((feature) => (
           <li
             key={feature}
-            className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]"
+            className="flex items-center gap-3 text-sm text-gray-400"
           >
-            <svg
-              className="h-4 w-4 text-[var(--color-success)]"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <span
+              className="w-1.5 h-1.5 bg-lime-400 flex-shrink-0"
+              style={{
+                clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+              }}
+            />
             {feature}
           </li>
         ))}
       </ul>
       <Link
         href="/register"
-        className={`mt-8 block w-full rounded-lg py-3 text-center font-semibold transition-colors ${
+        className={`mt-8 block w-full py-3 clip-notch-sm text-center font-mono text-sm uppercase tracking-wider transition-all duration-300 ${
           popular
-            ? "bg-[var(--primary)] text-white hover:bg-[var(--accent)]"
-            : "border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--secondary)]"
+            ? "bg-lime-400 text-black hover:bg-lime-300"
+            : "border border-gray-600 text-white hover:border-lime-400 hover:bg-lime-400/5"
         }`}
+        style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
       >
         Start Free
       </Link>
@@ -493,24 +516,20 @@ function PricingCard({
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   return (
-    <details className="group border border-[var(--border)] rounded-lg bg-[var(--card)]">
-      <summary className="flex items-center justify-between cursor-pointer px-6 py-4 font-medium text-[var(--foreground)] hover:bg-[var(--secondary)] rounded-lg transition-colors">
+    <details className="group clip-notch border border-gray-800 bg-gray-900">
+      <summary
+        className="flex items-center justify-between cursor-pointer px-6 py-4 font-mono text-sm uppercase tracking-wider text-white hover:bg-gray-800/50 transition-colors duration-300"
+        style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
+      >
         {question}
-        <svg
-          className="w-5 h-5 text-[var(--muted-foreground)] group-open:rotate-180 transition-transform"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
+        <span className="font-mono text-lime-400 text-xs group-open:hidden">
+          [+]
+        </span>
+        <span className="font-mono text-lime-400 text-xs hidden group-open:inline">
+          [−]
+        </span>
       </summary>
-      <div className="px-6 pb-4 text-[var(--muted-foreground)]">{answer}</div>
+      <div className="px-6 pb-4 text-gray-400 text-sm">{answer}</div>
     </details>
   );
 }

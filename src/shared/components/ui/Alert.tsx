@@ -22,51 +22,73 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(
       children,
       ...props
     },
-    ref
+    ref,
   ) => {
     const variants = {
       info: {
-        container: "bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]",
-        icon: <Info className="w-5 h-5 text-[var(--primary)]" />,
+        container: "bg-blue-500/5 border-blue-500/20 text-blue-400",
+        icon: <Info className="w-5 h-5" />,
+        iconColor: "text-blue-400",
       },
       success: {
-        container: "bg-green-500/10 border-green-500/30 text-green-400",
-        icon: <CheckCircle className="w-5 h-5 text-green-500" />,
+        container: "bg-lime-400/5 border-lime-400/20 text-lime-400",
+        icon: <CheckCircle className="w-5 h-5" />,
+        iconColor: "text-lime-400",
       },
       warning: {
-        container: "bg-yellow-500/10 border-yellow-500/30 text-yellow-400",
-        icon: <AlertCircle className="w-5 h-5 text-yellow-500" />,
+        container: "bg-yellow-500/5 border-yellow-500/20 text-yellow-400",
+        icon: <AlertCircle className="w-5 h-5" />,
+        iconColor: "text-yellow-400",
       },
       error: {
-        container: "bg-red-500/10 border-red-500/30 text-red-400",
-        icon: <XCircle className="w-5 h-5 text-red-500" />,
+        container: "bg-red-500/5 border-red-500/20 text-red-400",
+        icon: <XCircle className="w-5 h-5" />,
+        iconColor: "text-red-400",
       },
     };
 
-    const { container, icon } = variants[variant];
+    const { container, icon, iconColor } = variants[variant];
 
     return (
       <div
         ref={ref}
         role="alert"
         className={cn(
-          "relative flex gap-3 p-4 border rounded-lg",
+          "relative flex gap-3 p-4",
+          "border clip-notch",
           container,
-          className
+          className,
         )}
         {...props}
       >
-        <div className="flex-shrink-0">{icon}</div>
-        <div className="flex-1 min-w-0">
-          {title && (
-            <h5 className="font-medium mb-1">{title}</h5>
+        {/* Bracket decoration */}
+        <div
+          className={cn(
+            "absolute -top-px -left-px w-2 h-2 border-l border-t",
+            iconColor.replace("text-", "border-"),
           )}
-          <div className="text-sm">{children}</div>
+        />
+        <div
+          className={cn(
+            "absolute -bottom-px -right-px w-2 h-2 border-r border-b",
+            iconColor.replace("text-", "border-"),
+          )}
+        />
+
+        <div className={cn("flex-shrink-0", iconColor)}>{icon}</div>
+        <div className="flex-1 min-w-0">
+          {title && <h5 className="font-medium text-white mb-1">{title}</h5>}
+          <div className="text-body-sm opacity-90">{children}</div>
         </div>
         {dismissible && (
           <button
             onClick={onDismiss}
-            className="flex-shrink-0 p-1 rounded hover:bg-black/5 transition-colors"
+            className={cn(
+              "flex-shrink-0 p-1",
+              "text-current opacity-60 hover:opacity-100",
+              "clip-notch-sm",
+              "transition-opacity duration-fast",
+            )}
             aria-label="Dismiss"
           >
             <X className="w-4 h-4" />
@@ -74,7 +96,7 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 Alert.displayName = "Alert";

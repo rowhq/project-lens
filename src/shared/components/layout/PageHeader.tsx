@@ -1,6 +1,6 @@
 /**
  * Unified Page Header Component
- * Shared across Client, Appraiser, and Admin interfaces
+ * Ledger-Inspired Design with L-bracket style
  */
 
 "use client";
@@ -9,6 +9,7 @@ import { Bell, Menu, X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { UserMenu } from "@/shared/components/common/UserMenu";
 import { SearchInput } from "@/shared/components/common/SearchInput";
+import { NavSeparator, StatusSquare } from "@/shared/components/ui/Decorations";
 
 interface PageHeaderProps {
   variant?: "client" | "appraiser" | "admin";
@@ -30,55 +31,80 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   const placeholders: Record<string, string> = {
-    client: "Search address, report, or job...",
-    appraiser: "Search jobs or addresses...",
-    admin: "Search users, organizations...",
+    client: "SEARCH ADDRESS, REPORT, OR JOB...",
+    appraiser: "SEARCH JOBS OR ADDRESSES...",
+    admin: "SEARCH USERS, ORGANIZATIONS...",
   };
 
   return (
     <header
       className={cn(
-        "flex h-16 items-center justify-between border-b border-[var(--border)] bg-[var(--card)] px-6",
-        className
+        "flex h-16 items-center justify-between",
+        "border-b border-gray-800 bg-gray-950 px-6",
+        className,
       )}
     >
       {/* Mobile Menu Button */}
       <button
         onClick={onMenuToggle}
-        className="lg:hidden p-2 rounded-lg hover:bg-[var(--secondary)] transition-colors"
+        className={cn(
+          "lg:hidden p-2",
+          "text-gray-400 hover:text-white",
+          "transition-colors duration-300",
+        )}
+        style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
         aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
       >
         {isMobileMenuOpen ? (
-          <X className="h-6 w-6 text-[var(--foreground)]" />
+          <X className="h-5 w-5" />
         ) : (
-          <Menu className="h-6 w-6 text-[var(--foreground)]" />
+          <Menu className="h-5 w-5" />
         )}
       </button>
 
       {/* Search */}
       {showSearch && (
-        <SearchInput
-          placeholder={searchPlaceholder || placeholders[variant]}
-          responsive={true}
-        />
+        <div className="flex-1 max-w-md hidden md:block">
+          <SearchInput
+            placeholder={searchPlaceholder || placeholders[variant]}
+            responsive={true}
+          />
+        </div>
       )}
 
+      {/* Spacer for mobile */}
+      <div className="flex-1 md:hidden" />
+
       {/* Right Side */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {/* Custom Right Content */}
         {rightContent}
 
+        {/* Navigation Separator */}
+        <NavSeparator />
+
         {/* Notifications */}
         <button
-          className="relative rounded-lg p-2 text-[var(--muted-foreground)] hover:bg-[var(--secondary)] transition-colors"
+          className={cn(
+            "relative p-2",
+            "text-gray-400 hover:text-white",
+            "hover:bg-gray-800/50",
+            "transition-colors duration-300",
+          )}
+          style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
           aria-label="View notifications"
         >
           <Bell className="h-5 w-5" />
-          <span
-            className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500"
-            aria-label="Unread notifications"
+          {/* Notification indicator - square */}
+          <StatusSquare
+            color="lime"
+            pulse
+            className="absolute right-1.5 top-1.5"
           />
         </button>
+
+        {/* Divider */}
+        <NavSeparator />
 
         {/* User Menu */}
         <UserMenu size={variant === "appraiser" ? "sm" : undefined} />

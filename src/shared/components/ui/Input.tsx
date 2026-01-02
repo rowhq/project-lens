@@ -6,20 +6,35 @@ import { cn } from "@/shared/lib/utils";
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  hint?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, leftIcon, rightIcon, type = "text", ...props }, ref) => {
+  (
+    {
+      className,
+      label,
+      error,
+      hint,
+      leftIcon,
+      rightIcon,
+      type = "text",
+      ...props
+    },
+    ref,
+  ) => {
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-[var(--foreground)] mb-1">{label}</label>
+          <label className="block text-mono text-gray-400 mb-2 uppercase">
+            {label}
+          </label>
         )}
-        <div className="relative">
+        <div className="relative group">
           {leftIcon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-400 transition-colors">
               {leftIcon}
             </div>
           )}
@@ -27,24 +42,43 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             type={type}
             className={cn(
-              "w-full px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-colors",
+              // Base styles
+              "w-full px-4 py-3",
+              "bg-gray-900 text-white",
+              "border border-gray-700",
+              "placeholder-gray-500",
+              // Angular design
+              "clip-notch-sm",
+              // Focus state
+              "focus:outline-none focus:border-lime-400",
+              "focus:ring-1 focus:ring-lime-400/20",
+              // Transition with Ledger easing
+              "transition-all duration-300",
+              // Icon padding
               leftIcon && "pl-10",
               rightIcon && "pr-10",
-              error && "border-red-500 focus:ring-red-500",
-              className
+              // Error state
+              error &&
+                "border-red-500 focus:border-red-500 focus:ring-red-500/20",
+              className,
             )}
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-400 transition-colors">
               {rightIcon}
             </div>
           )}
         </div>
-        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+        {error && (
+          <p className="mt-2 text-caption text-red-500 font-mono">{error}</p>
+        )}
+        {hint && !error && (
+          <p className="mt-2 text-caption text-gray-500">{hint}</p>
+        )}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = "Input";

@@ -1,10 +1,9 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useId } from "react";
 import { cn } from "@/shared/lib/utils";
 
-export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
   hint?: string;
@@ -12,14 +11,15 @@ export interface TextareaProps
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, label, error, hint, id, ...props }, ref) => {
-    const textareaId = id || `textarea-${Math.random().toString(36).slice(2)}`;
+    const generatedId = useId();
+    const textareaId = id || generatedId;
 
     return (
       <div className="w-full">
         {label && (
           <label
             htmlFor={textareaId}
-            className="block text-sm font-medium text-neutral-700 mb-1.5"
+            className="block text-mono text-gray-400 mb-2 uppercase"
           >
             {label}
           </label>
@@ -28,13 +28,26 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={textareaId}
           ref={ref}
           className={cn(
-            "w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg",
-            "placeholder:text-neutral-400",
-            "focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent",
-            "disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed",
-            "resize-y min-h-[80px]",
-            error && "border-red-500 focus:ring-red-500",
-            className
+            // Base styles
+            "w-full px-4 py-3",
+            "bg-gray-900 text-white",
+            "border border-gray-700",
+            "placeholder-gray-500",
+            // Angular design
+            "clip-notch-sm",
+            // Focus state
+            "focus:outline-none focus:border-lime-400",
+            "focus:ring-1 focus:ring-lime-400/20",
+            // Transition
+            "transition-all duration-fast",
+            // Resize
+            "resize-y min-h-[120px]",
+            // Disabled
+            "disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed",
+            // Error state
+            error &&
+              "border-red-500 focus:border-red-500 focus:ring-red-500/20",
+            className,
           )}
           aria-invalid={error ? "true" : "false"}
           aria-describedby={error ? `${textareaId}-error` : undefined}
@@ -43,17 +56,17 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {error && (
           <p
             id={`${textareaId}-error`}
-            className="mt-1.5 text-sm text-red-600"
+            className="mt-2 text-caption text-red-500 font-mono"
           >
             {error}
           </p>
         )}
         {hint && !error && (
-          <p className="mt-1.5 text-sm text-neutral-500">{hint}</p>
+          <p className="mt-2 text-caption text-gray-500">{hint}</p>
         )}
       </div>
     );
-  }
+  },
 );
 
 Textarea.displayName = "Textarea";

@@ -23,6 +23,190 @@ import {
   calculateUnlockedBadges,
 } from "@/shared/components/common/GamificationWidget";
 import { getUrgencyConfig } from "@/shared/hooks/useLiveCountdown";
+import { cn } from "@/shared/lib/utils";
+
+// Stat Card - Ledger Style
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  accentColor = "lime",
+}: {
+  label: string;
+  value: string | number;
+  icon: React.ComponentType<{ className?: string }>;
+  accentColor?: "lime" | "amber" | "purple" | "red";
+}) {
+  const colorClasses = {
+    lime: "text-lime-400 bg-lime-400/10 border-lime-400/20",
+    amber: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+    purple: "text-purple-400 bg-purple-400/10 border-purple-400/20",
+    red: "text-red-400 bg-red-400/10 border-red-400/20",
+  };
+
+  return (
+    <div className="relative bg-gray-950 border border-gray-800 p-4 clip-notch-sm group hover:border-gray-700 transition-colors duration-fast">
+      {/* Bracket corners */}
+      <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-lime-400/30" />
+      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-lime-400/30" />
+
+      <div className="flex items-center justify-between mb-2">
+        <div
+          className={cn("p-2 border clip-notch-sm", colorClasses[accentColor])}
+        >
+          <Icon className="w-4 h-4" />
+        </div>
+      </div>
+      <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
+      <p className="text-label text-gray-500 font-mono uppercase tracking-wider mt-0.5">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+// Job List Item - Ledger Style
+function JobListItem({
+  href,
+  address,
+  city,
+  state,
+  distance,
+  payout,
+  jobType,
+  status,
+  urgency,
+  dueDate,
+}: {
+  href: string;
+  address: string;
+  city?: string;
+  state?: string;
+  distance?: number;
+  payout?: number;
+  jobType?: string;
+  status?: string;
+  urgency?: {
+    textClass?: string;
+    bgClass?: string;
+    level?: string;
+    icon?: string;
+  };
+  dueDate?: Date;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center justify-between p-4 hover:bg-gray-900 transition-colors border-b border-gray-800 last:border-b-0"
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={cn(
+            "w-10 h-10 flex items-center justify-center clip-notch-sm",
+            urgency?.bgClass || "bg-lime-400/10 border border-lime-400/20",
+          )}
+        >
+          <MapPin
+            className={cn("w-5 h-5", urgency?.textClass || "text-lime-400")}
+          />
+        </div>
+        <div>
+          <p className="font-medium text-white">{address}</p>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            {city && (
+              <span>
+                {city}
+                {state && `, ${state}`}
+              </span>
+            )}
+            {distance !== undefined && (
+              <>
+                <span
+                  className="w-1 h-1 bg-gray-600"
+                  style={{
+                    clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+                  }}
+                />
+                <span>{distance.toFixed(1)} mi away</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="text-right">
+        {payout !== undefined && (
+          <p className="font-mono font-bold text-lime-400">${payout}</p>
+        )}
+        {status && (
+          <span
+            className={cn(
+              "px-2 py-0.5 text-label font-mono clip-notch-sm",
+              status === "IN_PROGRESS"
+                ? "bg-purple-400/20 text-purple-400 border border-purple-400/30"
+                : "bg-amber-400/20 text-amber-400 border border-amber-400/30",
+            )}
+          >
+            {status.replace("_", " ")}
+          </span>
+        )}
+        {jobType && !status && (
+          <p className="text-sm text-gray-500 font-mono uppercase">
+            {jobType.replace("_", " ")}
+          </p>
+        )}
+        {dueDate && (
+          <p
+            className={cn(
+              "text-sm mt-1",
+              urgency?.textClass || "text-gray-500",
+            )}
+          >
+            {urgency?.level !== "normal" && urgency?.icon} Due{" "}
+            {dueDate.toLocaleDateString()}
+          </p>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+// Weekly Stat Card - Ledger Style
+function WeeklyStatCard({
+  title,
+  icon: Icon,
+  stats,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  stats: { label: string; value: string | number; color?: string }[];
+}) {
+  return (
+    <div className="relative bg-gray-950 border border-gray-800 p-4 clip-notch-sm">
+      {/* Bracket corners */}
+      <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-lime-400/30" />
+      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-lime-400/30" />
+
+      <div className="flex items-center gap-2 mb-3">
+        <Icon className="w-5 h-5 text-gray-500" />
+        <h3 className="font-mono text-sm uppercase tracking-wider text-gray-400">
+          {title}
+        </h3>
+      </div>
+      <div className="space-y-3">
+        {stats.map((stat, i) => (
+          <div key={i} className="flex items-center justify-between">
+            <span className="text-gray-400 text-sm">{stat.label}</span>
+            <span
+              className={cn("font-mono font-bold", stat.color || "text-white")}
+            >
+              {stat.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function AppraiserDashboardPage() {
   const { data: profile } = trpc.appraiser.profile.get.useQuery();
@@ -44,29 +228,25 @@ export default function AppraiserDashboardPage() {
       label: "This Month",
       value: `$${earnings?.monthlyEarnings?.toLocaleString() || "0"}`,
       icon: DollarSign,
-      color: "text-green-400",
-      bg: "bg-green-500/20",
+      accentColor: "lime" as const,
     },
     {
       label: "Active Jobs",
       value: activeJobs?.length || 0,
       icon: Briefcase,
-      color: "text-[var(--primary)]",
-      bg: "bg-[var(--primary)]/20",
+      accentColor: "amber" as const,
     },
     {
       label: "Completed",
       value: earnings?.completedJobsThisMonth || 0,
       icon: CheckCircle,
-      color: "text-yellow-400",
-      bg: "bg-yellow-500/20",
+      accentColor: "lime" as const,
     },
     {
       label: "Rating",
       value: profile?.rating?.toFixed(1) || "5.0",
       icon: Star,
-      color: "text-purple-400",
-      bg: "bg-purple-500/20",
+      accentColor: "purple" as const,
     },
   ];
 
@@ -74,9 +254,9 @@ export default function AppraiserDashboardPage() {
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
-    setNow(Date.now());
-    // Update every minute
-    const interval = setInterval(() => setNow(Date.now()), 60000);
+    const updateNow = () => setNow(Date.now());
+    updateNow();
+    const interval = setInterval(updateNow, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -106,28 +286,59 @@ export default function AppraiserDashboardPage() {
   }, [activeJobs, now]);
 
   return (
-    <div className="space-y-6 ">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/80 text-white rounded-xl p-6">
-        <div className="flex items-start justify-between">
+    <div className="space-y-6">
+      {/* Welcome Banner - Ledger Style */}
+      <div className="relative bg-gray-950 border border-lime-400/30 p-6 clip-notch overflow-hidden">
+        {/* Bracket corners */}
+        <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400" />
+        <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400" />
+
+        {/* Decorative grid */}
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `linear-gradient(to right, #4ADE80 1px, transparent 1px),
+                             linear-gradient(to bottom, #4ADE80 1px, transparent 1px)`,
+              backgroundSize: "20px 20px",
+            }}
+          />
+        </div>
+
+        <div className="relative flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-2xl font-bold text-white tracking-tight">
               Welcome back, {profile?.user?.firstName || "Appraiser"}!
             </h1>
-            <p className="text-white/70 mt-1">
-              {availableJobs?.length || 0} new jobs available in your area
+            <p className="text-gray-400 mt-1 font-mono text-sm">
+              <span className="text-lime-400 font-bold">
+                {availableJobs?.length || 0}
+              </span>{" "}
+              new jobs available in your area
             </p>
           </div>
           {profile?.completedJobs && profile.completedJobs > 0 && (
             <div className="text-right">
-              <p className="text-xs text-white/60">Total Earned</p>
-              <p className="text-xl font-bold">${earnings?.totalEarnings?.toLocaleString() || "0"}</p>
+              <p className="text-label text-gray-500 font-mono uppercase tracking-wider">
+                Total Earned
+              </p>
+              <p className="text-xl font-bold text-lime-400 font-mono">
+                ${earnings?.totalEarnings?.toLocaleString() || "0"}
+              </p>
             </div>
           )}
         </div>
         <Link
           href="/appraiser/jobs"
-          className="inline-flex items-center gap-2 mt-4 bg-white text-[var(--primary)] px-4 py-2.5 rounded-lg font-medium hover:bg-white/90 transition-colors"
+          className={cn(
+            "inline-flex items-center gap-2 mt-4",
+            "bg-lime-400 text-black",
+            "px-4 py-2.5",
+            "font-mono text-sm uppercase tracking-wider",
+            "clip-notch-sm",
+            "hover:bg-lime-300",
+            "transition-colors duration-fast",
+          )}
         >
           <Zap className="w-4 h-4" />
           View Available Jobs
@@ -143,20 +354,15 @@ export default function AppraiserDashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className={`p-2 rounded-lg ${stat.bg}`}>
-                  <Icon className={`w-5 h-5 ${stat.color}`} />
-                </div>
-              </div>
-              <p className="text-2xl font-bold text-[var(--foreground)]">{stat.value}</p>
-              <p className="text-sm text-[var(--muted-foreground)]">{stat.label}</p>
-            </div>
-          );
-        })}
+        {stats.map((stat) => (
+          <StatCard
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            accentColor={stat.accentColor}
+          />
+        ))}
       </div>
 
       {/* Daily Goal & Level Progress */}
@@ -169,13 +375,18 @@ export default function AppraiserDashboardPage() {
         <LevelProgressWidget completedJobs={profile?.completedJobs || 0} />
       </div>
 
-      {/* Urgent Jobs Alert */}
+      {/* Urgent Jobs Alert - Ledger Style */}
       {jobsDueToday.length > 0 && (
-        <div className="bg-orange-500/20 border border-orange-500/30 rounded-xl p-4">
+        <div className="relative bg-gray-950 border border-amber-400/30 p-4 clip-notch">
+          {/* Bracket corners */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400" />
+
           <div className="flex items-center gap-2 mb-3">
-            <AlertCircle className="w-5 h-5 text-orange-400" />
-            <h3 className="font-bold text-orange-400">
-              {jobsDueToday.length} Job{jobsDueToday.length !== 1 ? "s" : ""} Due Today!
+            <AlertCircle className="w-5 h-5 text-amber-400" />
+            <h3 className="font-mono text-sm uppercase tracking-wider text-amber-400">
+              {jobsDueToday.length} Job{jobsDueToday.length !== 1 ? "s" : ""}{" "}
+              Due Today!
             </h3>
           </div>
           <div className="space-y-2">
@@ -183,14 +394,20 @@ export default function AppraiserDashboardPage() {
               <Link
                 key={job.id}
                 href={`/appraiser/jobs/${job.id}`}
-                className="flex items-center justify-between p-3 bg-[var(--card)] rounded-lg hover:bg-[var(--secondary)] transition-colors"
+                className="flex items-center justify-between p-3 bg-gray-900 border border-gray-800 clip-notch-sm hover:border-amber-400/30 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <MapPin className="w-4 h-4 text-orange-400" />
-                  <span className="font-medium text-[var(--foreground)]">{job.property?.addressLine1}</span>
+                  <MapPin className="w-4 h-4 text-amber-400" />
+                  <span className="font-medium text-white">
+                    {job.property?.addressLine1}
+                  </span>
                 </div>
-                <span className="text-sm text-orange-400 font-medium">
-                  Due {new Date(job.slaDueAt!).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                <span className="text-sm text-amber-400 font-mono">
+                  Due{" "}
+                  {new Date(job.slaDueAt!).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </span>
               </Link>
             ))}
@@ -198,53 +415,41 @@ export default function AppraiserDashboardPage() {
         </div>
       )}
 
-      {/* Active Jobs */}
+      {/* Active Jobs - Ledger Style */}
       {activeJobs && activeJobs.length > 0 && (
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)]">
-          <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
+        <div className="relative bg-gray-950 border border-gray-800 clip-notch overflow-hidden">
+          {/* Bracket corners */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400/30 z-10" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400/30 z-10" />
+
+          <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-yellow-400" />
-              <h2 className="font-semibold text-[var(--foreground)]">Active Jobs</h2>
+              <Zap className="w-5 h-5 text-amber-400" />
+              <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400">
+                Active Jobs
+              </h2>
             </div>
-            <Link href="/appraiser/jobs?tab=active" className="text-[var(--primary)] text-sm hover:underline">
+            <Link
+              href="/appraiser/jobs?tab=active"
+              className="flex items-center gap-1 text-lime-400 text-sm font-mono uppercase tracking-wider hover:text-lime-300 transition-colors"
+            >
               View all
+              <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="divide-y divide-[var(--border)]">
+          <div>
             {activeJobsWithUrgency.slice(0, 3).map((job) => (
-                <Link
-                  key={job.id}
-                  href={`/appraiser/jobs/${job.id}`}
-                  className="flex items-center justify-between p-4 hover:bg-[var(--secondary)] transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${job.urgency.bgClass || "bg-yellow-500/20"}`}>
-                      <MapPin className={`w-5 h-5 ${job.urgency.textClass || "text-yellow-400"}`} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-[var(--foreground)]">{job.property?.addressLine1}</p>
-                      <p className="text-sm text-[var(--muted-foreground)]">
-                        {job.property?.city}, {job.property?.state}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                      job.status === "IN_PROGRESS"
-                        ? "bg-purple-500/20 text-purple-400"
-                        : "bg-yellow-500/20 text-yellow-400"
-                    }`}>
-                      {job.status.replace("_", " ")}
-                    </span>
-                    {job.slaDueAt && (
-                      <p className={`text-sm mt-1 ${job.urgency.textClass || "text-[var(--muted-foreground)]"}`}>
-                        {job.urgency.level !== "normal" && job.urgency.icon} Due {new Date(job.slaDueAt).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                </Link>
-              ))}
-
+              <JobListItem
+                key={job.id}
+                href={`/appraiser/jobs/${job.id}`}
+                address={job.property?.addressLine1 || ""}
+                city={job.property?.city}
+                state={job.property?.state}
+                status={job.status}
+                urgency={job.urgency}
+                dueDate={job.slaDueAt ? new Date(job.slaDueAt) : undefined}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -257,119 +462,126 @@ export default function AppraiserDashboardPage() {
         }}
       />
 
-      {/* Available Jobs */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)]">
-        <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
+      {/* Available Jobs - Ledger Style */}
+      <div className="relative bg-gray-950 border border-gray-800 clip-notch overflow-hidden">
+        {/* Bracket corners */}
+        <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30 z-10" />
+        <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30 z-10" />
+
+        <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Briefcase className="w-5 h-5 text-green-400" />
-            <h2 className="font-semibold text-[var(--foreground)]">Available Jobs</h2>
+            <Briefcase className="w-5 h-5 text-lime-400" />
+            <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400">
+              Available Jobs
+            </h2>
           </div>
-          <Link href="/appraiser/jobs" className="text-[var(--primary)] text-sm hover:underline">
+          <Link
+            href="/appraiser/jobs"
+            className="flex items-center gap-1 text-lime-400 text-sm font-mono uppercase tracking-wider hover:text-lime-300 transition-colors"
+          >
             View all
+            <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
         {!availableJobs?.length ? (
           <div className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--muted)] flex items-center justify-center">
-              <Briefcase className="w-8 h-8 text-[var(--muted-foreground)]" />
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-900 border border-gray-800 flex items-center justify-center clip-notch">
+              <Briefcase className="w-8 h-8 text-gray-600" />
             </div>
-            <p className="text-[var(--foreground)] font-medium">No available jobs right now</p>
-            <p className="text-sm text-[var(--muted-foreground)] mt-1">Check back soon or expand your service area</p>
+            <p className="text-white font-medium">
+              No available jobs right now
+            </p>
+            <p className="text-sm text-gray-500 mt-1 font-mono">
+              Check back soon or expand your service area
+            </p>
           </div>
         ) : (
-          <div className="divide-y divide-[var(--border)]">
+          <div>
             {availableJobs.map((job) => (
-              <Link
+              <JobListItem
                 key={job.id}
                 href={`/appraiser/jobs/${job.id}`}
-                className="flex items-center justify-between p-4 hover:bg-[var(--secondary)] transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-5 h-5 text-green-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-[var(--foreground)]">{job.property?.addressLine1}</p>
-                    <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                      <span>{job.property?.city}</span>
-                      <span>•</span>
-                      <span>{job.distance?.toFixed(1)} mi away</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-green-400">${Number(job.payoutAmount)}</p>
-                  <p className="text-sm text-[var(--muted-foreground)]">{job.jobType?.replace("_", " ")}</p>
-                </div>
-              </Link>
+                address={job.property?.addressLine1 || ""}
+                city={job.property?.city}
+                state={job.property?.state}
+                distance={job.distance}
+                payout={Number(job.payoutAmount)}
+                jobType={job.jobType}
+              />
             ))}
           </div>
         )}
       </div>
 
-      {/* Weekly Performance */}
+      {/* Weekly Performance - Ledger Style */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Calendar className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <h3 className="font-medium text-[var(--foreground)]">This Week</h3>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--muted-foreground)] text-sm">Completed</span>
-              <span className="font-bold text-[var(--foreground)]">
-                {earnings?.completedJobsThisWeek || 0} jobs
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--muted-foreground)] text-sm">Earnings</span>
-              <span className="font-bold text-green-400">
-                ${earnings?.weeklyEarnings?.toLocaleString() || "0"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <h3 className="font-medium text-[var(--foreground)]">Performance</h3>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--muted-foreground)] text-sm">Completion</span>
-              <span className="font-bold text-green-400">
-                {profile?.completedJobs && profile?.cancelledJobs
-                  ? Math.round((profile.completedJobs / (profile.completedJobs + profile.cancelledJobs)) * 100)
-                  : 100}%
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--muted-foreground)] text-sm">Total Jobs</span>
-              <span className="font-bold text-[var(--foreground)]">
-                {profile?.completedJobs || 0}
-              </span>
-            </div>
-          </div>
-        </div>
+        <WeeklyStatCard
+          title="This Week"
+          icon={Calendar}
+          stats={[
+            {
+              label: "Completed",
+              value: `${earnings?.completedJobsThisWeek || 0} jobs`,
+              color: "text-white",
+            },
+            {
+              label: "Earnings",
+              value: `$${earnings?.weeklyEarnings?.toLocaleString() || "0"}`,
+              color: "text-lime-400",
+            },
+          ]}
+        />
+        <WeeklyStatCard
+          title="Performance"
+          icon={TrendingUp}
+          stats={[
+            {
+              label: "Completion",
+              value: `${
+                profile?.completedJobs && profile?.cancelledJobs
+                  ? Math.round(
+                      (profile.completedJobs /
+                        (profile.completedJobs + profile.cancelledJobs)) *
+                        100,
+                    )
+                  : 100
+              }%`,
+              color: "text-lime-400",
+            },
+            {
+              label: "Total Jobs",
+              value: profile?.completedJobs || 0,
+              color: "text-white",
+            },
+          ]}
+        />
       </div>
 
-      {/* Profile Completion Alert */}
+      {/* Profile Completion Alert - Ledger Style */}
       {profile?.verificationStatus !== "VERIFIED" && (
-        <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium text-yellow-400">Complete Your Profile</p>
-            <p className="text-sm text-yellow-400/80 mt-1">
-              Verify your license and complete your profile to start receiving jobs.
-            </p>
-            <Link
-              href="/appraiser/profile"
-              className="inline-flex items-center gap-1 mt-2 text-yellow-400 font-medium hover:underline"
-            >
-              Complete Profile
-              <ChevronRight className="w-4 h-4" />
-            </Link>
+        <div className="relative bg-gray-950 border border-amber-400/30 p-4 clip-notch">
+          {/* Bracket corners */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400" />
+
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-mono text-sm uppercase tracking-wider text-amber-400">
+                Complete Your Profile
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                Verify your license and complete your profile to start receiving
+                jobs.
+              </p>
+              <Link
+                href="/appraiser/profile"
+                className="inline-flex items-center gap-1 mt-2 text-amber-400 font-mono text-sm uppercase tracking-wider hover:text-amber-300 transition-colors"
+              >
+                Complete Profile
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </div>
       )}
