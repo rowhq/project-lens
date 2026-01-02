@@ -8,7 +8,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/shared/lib/utils";
-import { LedgerCorners } from "@/shared/components/ui/Decorations";
+import { Button } from "@/shared/components/ui/Button";
 
 interface NavItem {
   label: string;
@@ -82,23 +82,11 @@ export function LedgerHeader({
           ))}
         </nav>
 
-        {/* Right: Action button with L-brackets */}
-        <Link
-          href={actionButtonHref}
-          className={cn(
-            "relative hidden lg:flex items-center justify-center",
-            "px-6 py-2.5",
-            "font-mono text-xs uppercase tracking-widest",
-            "text-white",
-            "border border-gray-600 hover:border-white",
-            "transition-colors duration-300",
-          )}
-          style={{
-            transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-          }}
-        >
-          <LedgerCorners color="gray" size="sm" />
-          {actionButtonText}
+        {/* Right: Action button */}
+        <Link href={actionButtonHref} className="hidden lg:block">
+          <Button variant="outline" size="sm" withBrackets>
+            {actionButtonText}
+          </Button>
         </Link>
       </div>
 

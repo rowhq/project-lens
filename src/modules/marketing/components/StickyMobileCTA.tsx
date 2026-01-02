@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { Button } from "@/shared/components/ui/Button";
 
 export function StickyMobileCTA() {
   const [isVisible, setIsVisible] = useState(false);
@@ -39,12 +40,14 @@ export function StickyMobileCTA() {
                   3 free AI reports included
                 </p>
               </div>
-              <Link
-                href="/register"
-                className="flex items-center gap-2 px-5 py-2.5 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--accent)] transition-colors shrink-0"
-              >
-                Start Free
-                <ArrowRight className="w-4 h-4" />
+              <Link href="/register">
+                <Button
+                  variant="lime"
+                  size="sm"
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
+                >
+                  Start Free
+                </Button>
               </Link>
             </div>
           </div>

@@ -14,6 +14,7 @@ import {
   StickyMobileCTA,
 } from "@/modules/marketing/components";
 import { LedgerHeader } from "@/shared/components/layout/LedgerHeader";
+import { Button } from "@/shared/components/ui/Button";
 
 export default function LandingPage() {
   const navItems = [
@@ -495,16 +496,14 @@ function PricingCard({
           </li>
         ))}
       </ul>
-      <Link
-        href="/register"
-        className={`mt-8 block w-full py-3 clip-notch-sm text-center font-mono text-sm uppercase tracking-wider transition-all duration-300 ${
-          popular
-            ? "bg-lime-400 text-black hover:bg-lime-300"
-            : "border border-gray-600 text-white hover:border-lime-400 hover:bg-lime-400/5"
-        }`}
-        style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
-      >
-        Start Free
+      <Link href="/register" className="mt-8 block">
+        <Button
+          variant={popular ? "lime" : "outline"}
+          size="md"
+          className="w-full"
+        >
+          Start Free
+        </Button>
       </Link>
     </div>
   );
