@@ -9,7 +9,6 @@ import {
   HeroSection,
   ComparisonTable,
   StatsBlock,
-  TestimonialCarousel,
   CTASection,
   TrustBadges,
   StickyMobileCTA,
@@ -85,13 +84,10 @@ export default function LandingPage() {
         <TrustBadges />
       </div>
 
-      {/* 5. Comparison Table */}
+      {/* 5. Real Results (Comparison + Testimonials merged) */}
       <ComparisonTable />
 
-      {/* 6. Testimonials */}
-      <TestimonialCarousel />
-
-      {/* 7. Pricing */}
+      {/* 6. Pricing */}
       <section id="pricing" className="py-24 relative">
         <div className="absolute inset-0 grid-pattern opacity-20" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
