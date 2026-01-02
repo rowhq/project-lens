@@ -47,12 +47,6 @@ export function BrandPanel() {
         }}
       />
 
-      {/* L-bracket corners */}
-      <span className="absolute top-8 left-8 w-8 h-8 border-t-2 border-l-2 border-lime-400/50" />
-      <span className="absolute top-8 right-8 w-8 h-8 border-t-2 border-r-2 border-lime-400/50" />
-      <span className="absolute bottom-8 left-8 w-8 h-8 border-b-2 border-l-2 border-lime-400/50" />
-      <span className="absolute bottom-8 right-8 w-8 h-8 border-b-2 border-r-2 border-lime-400/50" />
-
       {/* Content */}
       <div className="relative z-10 max-w-md">
         {/* Logo */}
