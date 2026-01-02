@@ -81,7 +81,8 @@ export default function SettingsPage() {
   const [notificationsDirty, setNotificationsDirty] = useState(false);
 
   // User preferences state (localStorage)
-  const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
+  const [preferences, setPreferences] =
+    useState<UserPreferences>(defaultPreferences);
   const [preferencesDirty, setPreferencesDirty] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
 
@@ -91,7 +92,10 @@ export default function SettingsPage() {
 
   const updateProfile = trpc.user.updateProfile.useMutation({
     onSuccess: () => {
-      toast.success("Profile updated", "Your profile has been saved successfully.");
+      toast.success(
+        "Profile updated",
+        "Your profile has been saved successfully.",
+      );
       setProfileDirty(false);
       refetchUser();
     },
@@ -100,15 +104,19 @@ export default function SettingsPage() {
     },
   });
 
-  const updateNotifications = trpc.user.updateNotificationPreferences.useMutation({
-    onSuccess: () => {
-      toast.success("Preferences saved", "Your notification preferences have been updated.");
-      setNotificationsDirty(false);
-    },
-    onError: (error) => {
-      toast.error("Failed to save preferences", error.message);
-    },
-  });
+  const updateNotifications =
+    trpc.user.updateNotificationPreferences.useMutation({
+      onSuccess: () => {
+        toast.success(
+          "Preferences saved",
+          "Your notification preferences have been updated.",
+        );
+        setNotificationsDirty(false);
+      },
+      onError: (error) => {
+        toast.error("Failed to save preferences", error.message);
+      },
+    });
 
   const getAvatarUploadUrl = trpc.user.getAvatarUploadUrl.useMutation();
   const updateAvatarUrl = trpc.user.updateAvatarUrl.useMutation({
@@ -123,7 +131,10 @@ export default function SettingsPage() {
 
   const changePassword = trpc.user.changePassword.useMutation({
     onSuccess: () => {
-      toast.success("Password updated", "Your password has been changed successfully.");
+      toast.success(
+        "Password updated",
+        "Your password has been changed successfully.",
+      );
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -171,7 +182,10 @@ export default function SettingsPage() {
   }, []);
 
   // Handle preferences change
-  const handlePreferenceChange = (key: keyof UserPreferences, value: string | boolean) => {
+  const handlePreferenceChange = (
+    key: keyof UserPreferences,
+    value: string | boolean,
+  ) => {
     setPreferences((prev) => ({ ...prev, [key]: value }));
     setPreferencesDirty(true);
   };
@@ -181,10 +195,16 @@ export default function SettingsPage() {
     setSavingPreferences(true);
     try {
       localStorage.setItem("userPreferences", JSON.stringify(preferences));
-      toast.success("Preferences saved", "Your preferences have been saved to this browser.");
+      toast.success(
+        "Preferences saved",
+        "Your preferences have been saved to this browser.",
+      );
       setPreferencesDirty(false);
     } catch {
-      toast.error("Failed to save", "Could not save preferences. Please try again.");
+      toast.error(
+        "Failed to save",
+        "Could not save preferences. Please try again.",
+      );
     } finally {
       setSavingPreferences(false);
     }
@@ -222,14 +242,19 @@ export default function SettingsPage() {
   };
 
   // Handle avatar upload
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
     const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!validTypes.includes(file.type)) {
-      toast.error("Invalid file type", "Please upload a JPEG, PNG, WebP, or GIF image.");
+      toast.error(
+        "Invalid file type",
+        "Please upload a JPEG, PNG, WebP, or GIF image.",
+      );
       return;
     }
 
@@ -264,7 +289,10 @@ export default function SettingsPage() {
       // Update avatar URL in database
       await updateAvatarUrl.mutateAsync({ avatarUrl: publicUrl });
     } catch {
-      toast.error("Upload failed", "Failed to upload your profile photo. Please try again.");
+      toast.error(
+        "Upload failed",
+        "Failed to upload your profile photo. Please try again.",
+      );
     } finally {
       setIsUploadingAvatar(false);
       // Reset file input
@@ -277,12 +305,18 @@ export default function SettingsPage() {
   // Handle password change
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords don't match", "New password and confirmation must match.");
+      toast.error(
+        "Passwords don't match",
+        "New password and confirmation must match.",
+      );
       return;
     }
 
     if (newPassword.length < 8) {
-      toast.error("Password too short", "Password must be at least 8 characters.");
+      toast.error(
+        "Password too short",
+        "Password must be at least 8 characters.",
+      );
       return;
     }
 
@@ -300,7 +334,7 @@ export default function SettingsPage() {
   // Mark profile as dirty when fields change
   const handleProfileFieldChange = (
     setter: React.Dispatch<React.SetStateAction<string>>,
-    value: string
+    value: string,
   ) => {
     setter(value);
     setProfileDirty(true);
@@ -313,8 +347,12 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">Settings</h1>
-        <p className="text-[var(--muted-foreground)]">Manage your account settings and preferences</p>
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">
+          Settings
+        </h1>
+        <p className="text-[var(--muted-foreground)]">
+          Manage your account settings and preferences
+        </p>
       </div>
 
       <div className="flex gap-8">
@@ -327,10 +365,10 @@ export default function SettingsPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as SettingsTab)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 clip-notch-sm text-left transition-colors font-mono text-sm ${
                     activeTab === tab.id
-                      ? "bg-[var(--primary)]/10 text-[var(--primary)]"
-                      : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
+                      ? "bg-lime-400/10 text-lime-400 border border-lime-400/30"
+                      : "text-gray-400 hover:bg-gray-800"
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -345,8 +383,10 @@ export default function SettingsPage() {
         <div className="flex-1">
           {/* Profile Tab */}
           {activeTab === "profile" && (
-            <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">Profile Information</h2>
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">
+                Profile Information
+              </h2>
 
               {/* Avatar */}
               <div className="flex items-center gap-6 mb-8">
@@ -372,7 +412,7 @@ export default function SettingsPage() {
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploadingAvatar}
-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUploadingAvatar ? (
                       <>
@@ -386,7 +426,9 @@ export default function SettingsPage() {
                       </>
                     )}
                   </button>
-                  <p className="text-sm text-[var(--muted-foreground)] mt-1">JPG, PNG, WebP, GIF up to 2MB</p>
+                  <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                    JPG, PNG, WebP, GIF up to 2MB
+                  </p>
                 </div>
               </div>
 
@@ -399,7 +441,9 @@ export default function SettingsPage() {
                   <input
                     type="text"
                     value={firstName}
-                    onChange={(e) => handleProfileFieldChange(setFirstName, e.target.value)}
+                    onChange={(e) =>
+                      handleProfileFieldChange(setFirstName, e.target.value)
+                    }
                     className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   />
                 </div>
@@ -410,7 +454,9 @@ export default function SettingsPage() {
                   <input
                     type="text"
                     value={lastName}
-                    onChange={(e) => handleProfileFieldChange(setLastName, e.target.value)}
+                    onChange={(e) =>
+                      handleProfileFieldChange(setLastName, e.target.value)
+                    }
                     className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   />
                 </div>
@@ -434,7 +480,9 @@ export default function SettingsPage() {
                   <input
                     type="text"
                     value={jobTitle}
-                    onChange={(e) => handleProfileFieldChange(setJobTitle, e.target.value)}
+                    onChange={(e) =>
+                      handleProfileFieldChange(setJobTitle, e.target.value)
+                    }
                     placeholder="Loan Officer"
                     className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   />
@@ -447,7 +495,9 @@ export default function SettingsPage() {
                   <input
                     type="text"
                     value={location}
-                    onChange={(e) => handleProfileFieldChange(setLocation, e.target.value)}
+                    onChange={(e) =>
+                      handleProfileFieldChange(setLocation, e.target.value)
+                    }
                     placeholder="Austin, TX"
                     className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   />
@@ -458,7 +508,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSaveProfile}
                   disabled={updateProfile.isPending || !profileDirty}
-                  className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-6 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {updateProfile.isPending ? (
                     <>
@@ -483,29 +533,68 @@ export default function SettingsPage() {
 
           {/* Notifications Tab */}
           {activeTab === "notifications" && (
-            <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">Notification Settings</h2>
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">
+                Notification Settings
+              </h2>
 
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-medium text-[var(--foreground)] mb-4">Email Notifications</h3>
+                  <h3 className="font-medium text-[var(--foreground)] mb-4">
+                    Email Notifications
+                  </h3>
                   <div className="space-y-3">
                     {[
-                      { id: "emailReportReady", label: "Report ready", desc: "When your appraisal report is complete" },
-                      { id: "emailStatusUpdate", label: "Status updates", desc: "Changes to appraisal request status" },
-                      { id: "emailTeamActivity", label: "Team activity", desc: "When team members join or leave" },
-                      { id: "emailBilling", label: "Billing", desc: "Invoices and payment confirmations" },
-                      { id: "emailMarketing", label: "Product updates", desc: "New features and improvements" },
+                      {
+                        id: "emailReportReady",
+                        label: "Report ready",
+                        desc: "When your appraisal report is complete",
+                      },
+                      {
+                        id: "emailStatusUpdate",
+                        label: "Status updates",
+                        desc: "Changes to appraisal request status",
+                      },
+                      {
+                        id: "emailTeamActivity",
+                        label: "Team activity",
+                        desc: "When team members join or leave",
+                      },
+                      {
+                        id: "emailBilling",
+                        label: "Billing",
+                        desc: "Invoices and payment confirmations",
+                      },
+                      {
+                        id: "emailMarketing",
+                        label: "Product updates",
+                        desc: "New features and improvements",
+                      },
                     ].map((item) => (
-                      <label key={item.id} className="flex items-center justify-between p-4 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] cursor-pointer">
+                      <label
+                        key={item.id}
+                        className="flex items-center justify-between p-4 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] cursor-pointer"
+                      >
                         <div>
-                          <p className="font-medium text-[var(--foreground)]">{item.label}</p>
-                          <p className="text-sm text-[var(--muted-foreground)]">{item.desc}</p>
+                          <p className="font-medium text-[var(--foreground)]">
+                            {item.label}
+                          </p>
+                          <p className="text-sm text-[var(--muted-foreground)]">
+                            {item.desc}
+                          </p>
                         </div>
                         <input
                           type="checkbox"
-                          checked={notificationPrefs[item.id as keyof typeof notificationPrefs]}
-                          onChange={() => handleNotificationToggle(item.id as keyof typeof notificationPrefs)}
+                          checked={
+                            notificationPrefs[
+                              item.id as keyof typeof notificationPrefs
+                            ]
+                          }
+                          onChange={() =>
+                            handleNotificationToggle(
+                              item.id as keyof typeof notificationPrefs,
+                            )
+                          }
                           className="w-5 h-5 text-[var(--primary)] rounded focus:ring-[var(--primary)]"
                         />
                       </label>
@@ -514,21 +603,46 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <h3 className="font-medium text-[var(--foreground)] mb-4">Push Notifications</h3>
+                  <h3 className="font-medium text-[var(--foreground)] mb-4">
+                    Push Notifications
+                  </h3>
                   <div className="space-y-3">
                     {[
-                      { id: "pushUrgent", label: "Urgent updates", desc: "Critical status changes" },
-                      { id: "pushReports", label: "Report completion", desc: "When reports are ready" },
+                      {
+                        id: "pushUrgent",
+                        label: "Urgent updates",
+                        desc: "Critical status changes",
+                      },
+                      {
+                        id: "pushReports",
+                        label: "Report completion",
+                        desc: "When reports are ready",
+                      },
                     ].map((item) => (
-                      <label key={item.id} className="flex items-center justify-between p-4 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] cursor-pointer">
+                      <label
+                        key={item.id}
+                        className="flex items-center justify-between p-4 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] cursor-pointer"
+                      >
                         <div>
-                          <p className="font-medium text-[var(--foreground)]">{item.label}</p>
-                          <p className="text-sm text-[var(--muted-foreground)]">{item.desc}</p>
+                          <p className="font-medium text-[var(--foreground)]">
+                            {item.label}
+                          </p>
+                          <p className="text-sm text-[var(--muted-foreground)]">
+                            {item.desc}
+                          </p>
                         </div>
                         <input
                           type="checkbox"
-                          checked={notificationPrefs[item.id as keyof typeof notificationPrefs]}
-                          onChange={() => handleNotificationToggle(item.id as keyof typeof notificationPrefs)}
+                          checked={
+                            notificationPrefs[
+                              item.id as keyof typeof notificationPrefs
+                            ]
+                          }
+                          onChange={() =>
+                            handleNotificationToggle(
+                              item.id as keyof typeof notificationPrefs,
+                            )
+                          }
                           className="w-5 h-5 text-[var(--primary)] rounded focus:ring-[var(--primary)]"
                         />
                       </label>
@@ -540,8 +654,10 @@ export default function SettingsPage() {
               <div className="mt-6 pt-6 border-t border-[var(--border)] flex items-center gap-4">
                 <button
                   onClick={handleSaveNotifications}
-                  disabled={updateNotifications.isPending || !notificationsDirty}
-                  className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={
+                    updateNotifications.isPending || !notificationsDirty
+                  }
+                  className="flex items-center gap-2 px-6 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {updateNotifications.isPending ? (
                     <>
@@ -567,8 +683,10 @@ export default function SettingsPage() {
           {/* Security Tab */}
           {activeTab === "security" && (
             <div className="space-y-6">
-              <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-                <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">Password</h2>
+              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+                <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">
+                  Password
+                </h2>
                 <div className="space-y-4 max-w-md">
                   <div>
                     <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
@@ -611,12 +729,14 @@ export default function SettingsPage() {
                         Passwords do not match
                       </p>
                     )}
-                    {confirmPassword && newPassword === confirmPassword && newPassword.length >= 8 && (
-                      <p className="text-xs text-green-500 mt-1 flex items-center gap-1">
-                        <Check className="w-3 h-3" />
-                        Passwords match
-                      </p>
-                    )}
+                    {confirmPassword &&
+                      newPassword === confirmPassword &&
+                      newPassword.length >= 8 && (
+                        <p className="text-xs text-green-500 mt-1 flex items-center gap-1">
+                          <Check className="w-3 h-3" />
+                          Passwords match
+                        </p>
+                      )}
                   </div>
                   <button
                     onClick={handleChangePassword}
@@ -627,7 +747,7 @@ export default function SettingsPage() {
                       newPassword !== confirmPassword ||
                       newPassword.length < 8
                     }
-                    className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-6 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isChangingPassword ? (
                       <>
@@ -644,18 +764,26 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-                <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">Active Sessions</h2>
+              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+                <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+                  Active Sessions
+                </h2>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-lg bg-green-500/5">
                     <div className="flex items-center gap-3">
                       <Monitor className="w-5 h-5 text-[var(--muted-foreground)]" />
                       <div>
-                        <p className="font-medium text-[var(--foreground)]">Current Session</p>
-                        <p className="text-sm text-[var(--muted-foreground)]">This device</p>
+                        <p className="font-medium text-[var(--foreground)]">
+                          Current Session
+                        </p>
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                          This device
+                        </p>
                       </div>
                     </div>
-                    <span className="text-green-500 text-sm font-medium">Active now</span>
+                    <span className="text-green-500 text-sm font-medium">
+                      Active now
+                    </span>
                   </div>
                 </div>
                 <button
@@ -671,8 +799,10 @@ export default function SettingsPage() {
 
           {/* Preferences Tab */}
           {activeTab === "preferences" && (
-            <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">Preferences</h2>
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">
+                Preferences
+              </h2>
 
               <div className="space-y-6">
                 <div>
@@ -681,7 +811,9 @@ export default function SettingsPage() {
                   </label>
                   <select
                     value={preferences.language}
-                    onChange={(e) => handlePreferenceChange("language", e.target.value)}
+                    onChange={(e) =>
+                      handlePreferenceChange("language", e.target.value)
+                    }
                     className="w-full max-w-xs px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   >
                     <option value="en-US">English (US)</option>
@@ -695,12 +827,16 @@ export default function SettingsPage() {
                   </label>
                   <select
                     value={preferences.timezone}
-                    onChange={(e) => handlePreferenceChange("timezone", e.target.value)}
+                    onChange={(e) =>
+                      handlePreferenceChange("timezone", e.target.value)
+                    }
                     className="w-full max-w-xs px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   >
                     <option value="America/Chicago">Central Time (CT)</option>
                     <option value="America/New_York">Eastern Time (ET)</option>
-                    <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                    <option value="America/Los_Angeles">
+                      Pacific Time (PT)
+                    </option>
                     <option value="America/Denver">Mountain Time (MT)</option>
                   </select>
                 </div>
@@ -711,7 +847,9 @@ export default function SettingsPage() {
                   </label>
                   <select
                     value={preferences.dateFormat}
-                    onChange={(e) => handlePreferenceChange("dateFormat", e.target.value)}
+                    onChange={(e) =>
+                      handlePreferenceChange("dateFormat", e.target.value)
+                    }
                     className="w-full max-w-xs px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   >
                     <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -726,7 +864,9 @@ export default function SettingsPage() {
                   </label>
                   <select
                     value={preferences.currency}
-                    onChange={(e) => handlePreferenceChange("currency", e.target.value)}
+                    onChange={(e) =>
+                      handlePreferenceChange("currency", e.target.value)
+                    }
                     className="w-full max-w-xs px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   >
                     <option value="USD">USD ($)</option>
@@ -734,34 +874,57 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="pt-4">
-                  <h3 className="font-medium text-[var(--foreground)] mb-4">Default Report Settings</h3>
+                  <h3 className="font-medium text-[var(--foreground)] mb-4">
+                    Default Report Settings
+                  </h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={preferences.autoDownloadPdf}
-                        onChange={(e) => handlePreferenceChange("autoDownloadPdf", e.target.checked)}
+                        onChange={(e) =>
+                          handlePreferenceChange(
+                            "autoDownloadPdf",
+                            e.target.checked,
+                          )
+                        }
                         className="w-4 h-4 text-[var(--primary)] rounded"
                       />
-                      <span className="text-[var(--foreground)]">Auto-download PDF when report is ready</span>
+                      <span className="text-[var(--foreground)]">
+                        Auto-download PDF when report is ready
+                      </span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={preferences.includeComparableSales}
-                        onChange={(e) => handlePreferenceChange("includeComparableSales", e.target.checked)}
+                        onChange={(e) =>
+                          handlePreferenceChange(
+                            "includeComparableSales",
+                            e.target.checked,
+                          )
+                        }
                         className="w-4 h-4 text-[var(--primary)] rounded"
                       />
-                      <span className="text-[var(--foreground)]">Include comparable sales in reports</span>
+                      <span className="text-[var(--foreground)]">
+                        Include comparable sales in reports
+                      </span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={preferences.showRiskFlags}
-                        onChange={(e) => handlePreferenceChange("showRiskFlags", e.target.checked)}
+                        onChange={(e) =>
+                          handlePreferenceChange(
+                            "showRiskFlags",
+                            e.target.checked,
+                          )
+                        }
                         className="w-4 h-4 text-[var(--primary)] rounded"
                       />
-                      <span className="text-[var(--foreground)]">Show risk flags by default</span>
+                      <span className="text-[var(--foreground)]">
+                        Show risk flags by default
+                      </span>
                     </label>
                   </div>
                 </div>
@@ -771,7 +934,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSavePreferences}
                   disabled={savingPreferences || !preferencesDirty}
-                  className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-6 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {savingPreferences ? (
                     <>

@@ -14,32 +14,74 @@ import {
   ChevronRight,
   Download,
 } from "lucide-react";
-import { Skeleton, SkeletonStats, SkeletonTable } from "@/shared/components/ui/Skeleton";
+import {
+  Skeleton,
+  SkeletonStats,
+  SkeletonTable,
+} from "@/shared/components/ui/Skeleton";
 
 // Match Prisma AppraisalStatus enum
-type AppraisalStatus = "DRAFT" | "QUEUED" | "RUNNING" | "READY" | "FAILED" | "EXPIRED";
+type AppraisalStatus =
+  | "DRAFT"
+  | "QUEUED"
+  | "RUNNING"
+  | "READY"
+  | "FAILED"
+  | "EXPIRED";
 
-const statusConfig: Record<AppraisalStatus, { label: string; color: string; icon: typeof Clock }> = {
-  DRAFT: { label: "Draft", color: "bg-[var(--muted)] text-[var(--muted-foreground)]", icon: FileText },
-  QUEUED: { label: "Queued", color: "bg-blue-500/20 text-blue-400", icon: Clock },
-  RUNNING: { label: "Processing", color: "bg-yellow-500/20 text-yellow-400", icon: Clock },
-  READY: { label: "Ready", color: "bg-green-500/20 text-green-400", icon: CheckCircle },
-  FAILED: { label: "Failed", color: "bg-red-500/20 text-red-400", icon: AlertCircle },
-  EXPIRED: { label: "Expired", color: "bg-[var(--muted)] text-[var(--muted-foreground)]", icon: AlertCircle },
+const statusConfig: Record<
+  AppraisalStatus,
+  { label: string; color: string; icon: typeof Clock }
+> = {
+  DRAFT: {
+    label: "Draft",
+    color: "bg-[var(--muted)] text-[var(--muted-foreground)]",
+    icon: FileText,
+  },
+  QUEUED: {
+    label: "Queued",
+    color: "bg-blue-500/20 text-blue-400",
+    icon: Clock,
+  },
+  RUNNING: {
+    label: "Processing",
+    color: "bg-yellow-500/20 text-yellow-400",
+    icon: Clock,
+  },
+  READY: {
+    label: "Ready",
+    color: "bg-green-500/20 text-green-400",
+    icon: CheckCircle,
+  },
+  FAILED: {
+    label: "Failed",
+    color: "bg-red-500/20 text-red-400",
+    icon: AlertCircle,
+  },
+  EXPIRED: {
+    label: "Expired",
+    color: "bg-[var(--muted)] text-[var(--muted-foreground)]",
+    icon: AlertCircle,
+  },
 };
 
 export default function AppraisalsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<AppraisalStatus | "ALL">("ALL");
+  const [statusFilter, setStatusFilter] = useState<AppraisalStatus | "ALL">(
+    "ALL",
+  );
 
   const { data: appraisals, isLoading } = trpc.appraisal.list.useQuery({
     limit: 50,
     status: statusFilter === "ALL" ? undefined : statusFilter,
   });
 
-  const filteredAppraisals = appraisals?.items.filter((a) =>
-    a.property?.addressFull?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.referenceCode.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredAppraisals = appraisals?.items.filter(
+    (a) =>
+      a.property?.addressFull
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      a.referenceCode.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -47,14 +89,18 @@ export default function AppraisalsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Appraisals</h1>
-          <p className="text-[var(--muted-foreground)]">Manage your property valuation requests</p>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">
+            Appraisals
+          </h1>
+          <p className="text-[var(--muted-foreground)]">
+            Manage your property valuation requests
+          </p>
         </div>
         <Link
           href="/appraisals/new"
-          className="flex items-center gap-2 bg-[var(--primary)] text-black font-medium px-4 py-2 rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+          className="flex items-center gap-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider px-5 py-3 clip-notch hover:bg-lime-300 transition-colors"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4" />
           New Appraisal
         </Link>
       </div>
@@ -68,15 +114,17 @@ export default function AppraisalsPage() {
             placeholder="Search by address or reference..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-700 clip-notch bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
           />
         </div>
         <div className="flex items-center gap-2">
           <Filter className="w-5 h-5 text-[var(--muted-foreground)]" />
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as AppraisalStatus | "ALL")}
-            className="border border-[var(--border)] rounded-lg px-3 py-2 bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            onChange={(e) =>
+              setStatusFilter(e.target.value as AppraisalStatus | "ALL")
+            }
+            className="border border-gray-700 clip-notch-sm px-4 py-2.5 bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
           >
             <option value="ALL">All Status</option>
             <option value="DRAFT">Draft</option>
@@ -93,29 +141,51 @@ export default function AppraisalsPage() {
         <SkeletonStats count={4} />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-            <p className="text-sm text-[var(--muted-foreground)]">Total Appraisals</p>
-            <p className="text-2xl font-bold text-[var(--foreground)]">{appraisals?.items?.length || 0}</p>
-          </div>
-          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-            <p className="text-sm text-[var(--muted-foreground)]">Processing</p>
-            <p className="text-2xl font-bold text-yellow-500">
-              {appraisals?.items.filter((a: { status: string }) => a.status === "RUNNING" || a.status === "QUEUED").length || 0}
+          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+            <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-lime-400" />
+            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+              Total Appraisals
+            </p>
+            <p className="text-2xl font-bold text-white mt-1">
+              {appraisals?.items?.length || 0}
             </p>
           </div>
-          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-            <p className="text-sm text-[var(--muted-foreground)]">Ready</p>
-            <p className="text-2xl font-bold text-green-500">
-              {appraisals?.items.filter((a: { status: string }) => a.status === "READY").length || 0}
+          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+            <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-yellow-400" />
+            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+              Processing
+            </p>
+            <p className="text-2xl font-bold text-yellow-400 mt-1">
+              {appraisals?.items.filter(
+                (a: { status: string }) =>
+                  a.status === "RUNNING" || a.status === "QUEUED",
+              ).length || 0}
             </p>
           </div>
-          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-            <p className="text-sm text-[var(--muted-foreground)]">This Month</p>
-            <p className="text-2xl font-bold text-[var(--primary)]">
+          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+            <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-green-400" />
+            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+              Ready
+            </p>
+            <p className="text-2xl font-bold text-green-400 mt-1">
+              {appraisals?.items.filter(
+                (a: { status: string }) => a.status === "READY",
+              ).length || 0}
+            </p>
+          </div>
+          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+            <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-lime-400" />
+            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+              This Month
+            </p>
+            <p className="text-2xl font-bold text-lime-400 mt-1">
               {appraisals?.items.filter((a) => {
                 const date = new Date(a.createdAt);
                 const now = new Date();
-                return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                return (
+                  date.getMonth() === now.getMonth() &&
+                  date.getFullYear() === now.getFullYear()
+                );
               }).length || 0}
             </p>
           </div>
@@ -126,40 +196,66 @@ export default function AppraisalsPage() {
       {isLoading ? (
         <SkeletonTable rows={5} columns={7} />
       ) : (
-        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden overflow-x-auto">
+        <div className="relative bg-gray-900 clip-notch border border-gray-800 overflow-hidden overflow-x-auto">
           <table className="w-full min-w-[800px]">
             <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Reference</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Property</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase hidden md:table-cell">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase hidden lg:table-cell">Value</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase hidden md:table-cell">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                  Reference
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                  Property
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase hidden md:table-cell">
+                  Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase hidden lg:table-cell">
+                  Value
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase hidden md:table-cell">
+                  Date
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
               {filteredAppraisals?.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-[var(--muted-foreground)]">
-                    No appraisals found. Create your first appraisal to get started.
+                  <td
+                    colSpan={7}
+                    className="px-6 py-12 text-center text-[var(--muted-foreground)]"
+                  >
+                    No appraisals found. Create your first appraisal to get
+                    started.
                   </td>
                 </tr>
               ) : (
                 filteredAppraisals?.map((appraisal) => {
-                  const status = statusConfig[appraisal.status as AppraisalStatus];
+                  const status =
+                    statusConfig[appraisal.status as AppraisalStatus];
                   const StatusIcon = status?.icon || FileText;
                   return (
-                    <tr key={appraisal.id} className="hover:bg-[var(--secondary)]">
+                    <tr
+                      key={appraisal.id}
+                      className="hover:bg-[var(--secondary)]"
+                    >
                       <td className="px-6 py-4">
-                        <span className="font-mono text-sm text-[var(--foreground)]">{appraisal.referenceCode}</span>
+                        <span className="font-mono text-sm text-[var(--foreground)]">
+                          {appraisal.referenceCode}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-medium text-[var(--foreground)]">{appraisal.property?.addressLine1}</p>
+                          <p className="font-medium text-[var(--foreground)]">
+                            {appraisal.property?.addressLine1}
+                          </p>
                           <p className="text-sm text-[var(--muted-foreground)]">
-                            {appraisal.property?.city}, {appraisal.property?.state} {appraisal.property?.zipCode}
+                            {appraisal.property?.city},{" "}
+                            {appraisal.property?.state}{" "}
+                            {appraisal.property?.zipCode}
                           </p>
                         </div>
                       </td>
@@ -169,7 +265,9 @@ export default function AppraisalsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${status?.color}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 clip-notch-sm text-xs font-mono uppercase tracking-wider ${status?.color}`}
+                        >
                           <StatusIcon className="w-3 h-3" />
                           {status?.label}
                         </span>
@@ -177,10 +275,15 @@ export default function AppraisalsPage() {
                       <td className="px-6 py-4 hidden lg:table-cell">
                         {appraisal.report?.valueEstimate ? (
                           <span className="font-medium text-[var(--foreground)]">
-                            ${Number(appraisal.report.valueEstimate).toLocaleString()}
+                            $
+                            {Number(
+                              appraisal.report.valueEstimate,
+                            ).toLocaleString()}
                           </span>
                         ) : (
-                          <span className="text-[var(--muted-foreground)]">-</span>
+                          <span className="text-[var(--muted-foreground)]">
+                            -
+                          </span>
                         )}
                       </td>
                       <td className="px-6 py-4 hidden md:table-cell">

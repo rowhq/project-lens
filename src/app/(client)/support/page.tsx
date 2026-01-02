@@ -76,7 +76,9 @@ export default function SupportPage() {
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">Help & Support</h1>
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">
+          Help & Support
+        </h1>
         <p className="text-[var(--muted-foreground)] mt-1">
           Get help with TruPlat or contact our support team
         </p>
@@ -86,52 +88,56 @@ export default function SupportPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <a
           href="mailto:support@truplat.com"
-          className="flex items-center gap-4 p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl hover:bg-[var(--secondary)] transition-colors"
+          className="relative flex items-center gap-4 p-4 bg-gray-900 border border-gray-800 clip-notch hover:bg-gray-800 transition-colors group"
         >
-          <div className="p-3 bg-blue-500/20 rounded-lg">
-            <Mail className="w-5 h-5 text-blue-500" />
+          <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-blue-400" />
+          <div className="p-3 bg-blue-500/10 clip-notch-sm border border-blue-500/30">
+            <Mail className="w-5 h-5 text-blue-400" />
           </div>
           <div>
-            <p className="font-medium text-[var(--foreground)]">Email Support</p>
-            <p className="text-sm text-[var(--muted-foreground)]">support@truplat.com</p>
+            <p className="font-medium text-white">Email Support</p>
+            <p className="text-sm text-gray-400">support@truplat.com</p>
           </div>
         </a>
 
         <a
           href="tel:+15125551000"
-          className="flex items-center gap-4 p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl hover:bg-[var(--secondary)] transition-colors"
+          className="relative flex items-center gap-4 p-4 bg-gray-900 border border-gray-800 clip-notch hover:bg-gray-800 transition-colors group"
         >
-          <div className="p-3 bg-green-500/20 rounded-lg">
-            <Phone className="w-5 h-5 text-green-500" />
+          <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-green-400" />
+          <div className="p-3 bg-green-500/10 clip-notch-sm border border-green-500/30">
+            <Phone className="w-5 h-5 text-green-400" />
           </div>
           <div>
-            <p className="font-medium text-[var(--foreground)]">Phone Support</p>
-            <p className="text-sm text-[var(--muted-foreground)]">(512) 555-1000</p>
+            <p className="font-medium text-white">Phone Support</p>
+            <p className="text-sm text-gray-400">(512) 555-1000</p>
           </div>
         </a>
 
         <a
           href="#"
-          className="flex items-center gap-4 p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl hover:bg-[var(--secondary)] transition-colors"
+          className="relative flex items-center gap-4 p-4 bg-gray-900 border border-gray-800 clip-notch hover:bg-gray-800 transition-colors group"
         >
-          <div className="p-3 bg-purple-500/20 rounded-lg">
-            <FileText className="w-5 h-5 text-purple-500" />
+          <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-purple-400" />
+          <div className="p-3 bg-purple-500/10 clip-notch-sm border border-purple-500/30">
+            <FileText className="w-5 h-5 text-purple-400" />
           </div>
           <div className="flex items-center gap-2">
             <div>
-              <p className="font-medium text-[var(--foreground)]">Documentation</p>
-              <p className="text-sm text-[var(--muted-foreground)]">View guides</p>
+              <p className="font-medium text-white">Documentation</p>
+              <p className="text-sm text-gray-400">View guides</p>
             </div>
-            <ExternalLink className="w-4 h-4 text-[var(--muted-foreground)]" />
+            <ExternalLink className="w-4 h-4 text-gray-500" />
           </div>
         </a>
       </div>
 
       {/* FAQs */}
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6">
+      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+        <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
         <div className="flex items-center gap-3 mb-6">
-          <HelpCircle className="w-5 h-5 text-[var(--primary)]" />
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
+          <HelpCircle className="w-5 h-5 text-lime-400" />
+          <h2 className="text-lg font-semibold text-white">
             Frequently Asked Questions
           </h2>
         </div>
@@ -140,23 +146,23 @@ export default function SupportPage() {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="border border-[var(--border)] rounded-lg overflow-hidden"
+              className="border border-gray-800 clip-notch-sm overflow-hidden"
             >
               <button
-                onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
-                className="w-full flex items-center justify-between p-4 text-left hover:bg-[var(--secondary)] transition-colors"
+                onClick={() =>
+                  setExpandedFaq(expandedFaq === index ? null : index)
+                }
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-800 transition-colors"
               >
-                <span className="font-medium text-[var(--foreground)]">{faq.question}</span>
+                <span className="font-medium text-white">{faq.question}</span>
                 {expandedFaq === index ? (
-                  <ChevronUp className="w-4 h-4 text-[var(--muted-foreground)]" />
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-[var(--muted-foreground)]" />
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
                 )}
               </button>
               {expandedFaq === index && (
-                <div className="px-4 pb-4 text-[var(--muted-foreground)]">
-                  {faq.answer}
-                </div>
+                <div className="px-4 pb-4 text-gray-400">{faq.answer}</div>
               )}
             </div>
           ))}
@@ -164,23 +170,26 @@ export default function SupportPage() {
       </div>
 
       {/* Contact Form */}
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6">
+      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+        <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-blue-400" />
         <div className="flex items-center gap-3 mb-6">
-          <MessageSquare className="w-5 h-5 text-[var(--primary)]" />
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
+          <MessageSquare className="w-5 h-5 text-blue-400" />
+          <h2 className="text-lg font-semibold text-white">
             Send us a Message
           </h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+            <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
               Subject
             </label>
             <select
               value={contactForm.subject}
-              onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-              className="w-full px-4 py-2.5 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)]"
+              onChange={(e) =>
+                setContactForm({ ...contactForm, subject: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
             >
               <option value="">Select a topic</option>
               <option value="technical">Technical Issue</option>
@@ -193,14 +202,16 @@ export default function SupportPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+            <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
               Message
             </label>
             <textarea
               value={contactForm.message}
-              onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+              onChange={(e) =>
+                setContactForm({ ...contactForm, message: e.target.value })
+              }
               placeholder="Describe your issue or question..."
-              className="w-full px-4 py-2.5 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] resize-none"
+              className="w-full px-4 py-2.5 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 resize-none focus:outline-none focus:border-lime-400/50"
               rows={5}
             />
           </div>
@@ -208,7 +219,7 @@ export default function SupportPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 transition-colors disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>
@@ -226,11 +237,15 @@ export default function SupportPage() {
       </div>
 
       {/* Business Hours */}
-      <div className="bg-[var(--secondary)] rounded-xl p-6 text-center">
-        <p className="text-[var(--muted-foreground)]">
-          <strong className="text-[var(--foreground)]">Support Hours:</strong> Monday - Friday, 8am - 6pm CT
+      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6 text-center">
+        <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-gray-600" />
+        <p className="text-gray-400">
+          <strong className="text-white font-mono uppercase tracking-wider">
+            Support Hours:
+          </strong>{" "}
+          Monday - Friday, 8am - 6pm CT
         </p>
-        <p className="text-sm text-[var(--muted-foreground)] mt-1">
+        <p className="text-sm text-gray-500 mt-1">
           Emergency support available 24/7 for Enterprise customers
         </p>
       </div>

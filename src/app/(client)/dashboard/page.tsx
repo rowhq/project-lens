@@ -238,11 +238,11 @@ export default function ClientDashboard() {
             <Link
               href={`/appraisals/${drafts[0].id}`}
               className={cn(
-                "px-4 py-2",
+                "px-4 py-2.5",
                 "bg-blue-500 text-white",
                 "font-mono text-label uppercase tracking-wider",
-                "clip-notch-sm",
-                "hover:bg-blue-600 transition-colors",
+                "clip-notch",
+                "hover:bg-blue-400 transition-colors",
                 "flex items-center gap-2",
               )}
             >

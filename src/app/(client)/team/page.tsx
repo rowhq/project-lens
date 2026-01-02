@@ -23,7 +23,10 @@ import { EmptyState } from "@/shared/components/common/EmptyState";
 
 type MemberRole = "CLIENT" | "APPRAISER" | "ADMIN";
 
-const roleLabels: Record<MemberRole, { label: string; color: string; description: string }> = {
+const roleLabels: Record<
+  MemberRole,
+  { label: string; color: string; description: string }
+> = {
   CLIENT: {
     label: "Member",
     color: "bg-blue-500/20 text-blue-400",
@@ -49,7 +52,9 @@ const availableRoles: { value: MemberRole; label: string }[] = [
 export default function TeamPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showEditOrgModal, setShowEditOrgModal] = useState(false);
-  const [showRemoveConfirm, setShowRemoveConfirm] = useState<string | null>(null);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState<string | null>(
+    null,
+  );
   const [showRoleDropdown, setShowRoleDropdown] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteFirstName, setInviteFirstName] = useState("");
@@ -57,11 +62,17 @@ export default function TeamPage() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [orgName, setOrgName] = useState("");
   const [orgPhone, setOrgPhone] = useState("");
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
-  const { data: organization, refetch: refetchOrg } = trpc.organization.get.useQuery();
-  const { data: members, refetch: refetchMembers } = trpc.organization.members.list.useQuery();
-  const { data: pendingInvitations, refetch: refetchPending } = trpc.organization.members.pending.useQuery();
+  const { data: organization, refetch: refetchOrg } =
+    trpc.organization.get.useQuery();
+  const { data: members, refetch: refetchMembers } =
+    trpc.organization.members.list.useQuery();
+  const { data: pendingInvitations, refetch: refetchPending } =
+    trpc.organization.members.pending.useQuery();
 
   const utils = trpc.useUtils();
 
@@ -141,7 +152,11 @@ export default function TeamPage() {
 
   const handleInvite = () => {
     if (!inviteEmail || !inviteFirstName || !inviteLastName) return;
-    inviteMember.mutate({ email: inviteEmail, firstName: inviteFirstName, lastName: inviteLastName });
+    inviteMember.mutate({
+      email: inviteEmail,
+      firstName: inviteFirstName,
+      lastName: inviteLastName,
+    });
   };
 
   const handleEditOrg = () => {
@@ -194,30 +209,38 @@ export default function TeamPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--foreground)]">Team</h1>
-          <p className="text-[var(--muted-foreground)]">Manage your organization members</p>
+          <p className="text-[var(--muted-foreground)]">
+            Manage your organization members
+          </p>
         </div>
         <button
           onClick={() => setShowInviteModal(true)}
-          className="flex items-center gap-2 bg-[var(--primary)] text-black font-medium px-4 py-2 rounded-lg hover:bg-[var(--primary)]/90"
+          className="flex items-center gap-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider px-5 py-3 clip-notch hover:bg-lime-300 transition-colors"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4" />
           Invite Member
         </button>
       </div>
 
       {/* Organization Info */}
-      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+      <div className="relative bg-gray-900 clip-notch border border-gray-800 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-[var(--primary)]/10 rounded-lg flex items-center justify-center">
               <Users className="w-8 h-8 text-[var(--primary)]" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-[var(--foreground)]">{organization?.name}</h2>
+              <h2 className="text-xl font-semibold text-[var(--foreground)]">
+                {organization?.name}
+              </h2>
               <p className="text-[var(--muted-foreground)]">
-                {activeMembers.length} active member{activeMembers.length !== 1 ? "s" : ""}
+                {activeMembers.length} active member
+                {activeMembers.length !== 1 ? "s" : ""}
                 {pendingInvitations && pendingInvitations.length > 0 && (
-                  <span className="text-yellow-500"> ({pendingInvitations.length} pending)</span>
+                  <span className="text-yellow-500">
+                    {" "}
+                    ({pendingInvitations.length} pending)
+                  </span>
                 )}
               </p>
             </div>
@@ -233,7 +256,7 @@ export default function TeamPage() {
       </div>
 
       {/* Members List */}
-      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
+      <div className="relative bg-gray-900 clip-notch border border-gray-800">
         <div className="px-6 py-4 border-b border-[var(--border)]">
           <h3 className="font-semibold text-[var(--foreground)]">Members</h3>
         </div>
@@ -250,7 +273,10 @@ export default function TeamPage() {
             />
           ) : (
             activeMembers.map((member) => (
-              <div key={member.id} className="px-6 py-4 flex items-center justify-between">
+              <div
+                key={member.id}
+                className="px-6 py-4 flex items-center justify-between"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-[var(--muted)] rounded-full flex items-center justify-center">
                     <span className="text-[var(--muted-foreground)] font-medium">
@@ -262,16 +288,20 @@ export default function TeamPage() {
                     <p className="font-medium text-[var(--foreground)]">
                       {member.firstName} {member.lastName}
                     </p>
-                    <p className="text-sm text-[var(--muted-foreground)]">{member.email}</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      {member.email}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      roleLabels[member.role as MemberRole]?.color || "bg-gray-500/20 text-gray-400"
+                    className={`px-2 py-0.5 clip-notch-sm text-xs font-mono uppercase tracking-wider ${
+                      roleLabels[member.role as MemberRole]?.color ||
+                      "bg-gray-500/20 text-gray-400"
                     }`}
                   >
-                    {roleLabels[member.role as MemberRole]?.label || member.role}
+                    {roleLabels[member.role as MemberRole]?.label ||
+                      member.role}
                   </span>
                   <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                     <UserCheck className="w-4 h-4 text-green-400" />
@@ -279,7 +309,11 @@ export default function TeamPage() {
                   </div>
                   <div className="relative">
                     <button
-                      onClick={() => setActiveMenu(activeMenu === member.id ? null : member.id)}
+                      onClick={() =>
+                        setActiveMenu(
+                          activeMenu === member.id ? null : member.id,
+                        )
+                      }
                       className="p-2 hover:bg-[var(--muted)] rounded-lg"
                     >
                       <MoreVertical className="w-4 h-4 text-[var(--muted-foreground)]" />
@@ -290,7 +324,11 @@ export default function TeamPage() {
                         <div className="relative">
                           <button
                             onClick={() =>
-                              setShowRoleDropdown(showRoleDropdown === member.id ? null : member.id)
+                              setShowRoleDropdown(
+                                showRoleDropdown === member.id
+                                  ? null
+                                  : member.id,
+                              )
                             }
                             className="w-full px-4 py-2 text-left text-sm text-[var(--foreground)] hover:bg-[var(--secondary)] flex items-center gap-2"
                           >
@@ -302,7 +340,9 @@ export default function TeamPage() {
                               {availableRoles.map((role) => (
                                 <button
                                   key={role.value}
-                                  onClick={() => handleRoleChange(member.id, role.value)}
+                                  onClick={() =>
+                                    handleRoleChange(member.id, role.value)
+                                  }
                                   disabled={changeRole.isPending}
                                   className={`w-full px-4 py-2 text-left text-sm hover:bg-[var(--secondary)] flex items-center gap-2 ${
                                     member.role === role.value
@@ -310,7 +350,9 @@ export default function TeamPage() {
                                       : "text-[var(--foreground)]"
                                   }`}
                                 >
-                                  {member.role === role.value && <Check className="w-4 h-4" />}
+                                  {member.role === role.value && (
+                                    <Check className="w-4 h-4" />
+                                  )}
                                   {role.label}
                                 </button>
                               ))}
@@ -337,9 +379,11 @@ export default function TeamPage() {
       </div>
 
       {/* Pending Invitations */}
-      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
+      <div className="relative bg-gray-900 clip-notch border border-gray-800">
         <div className="px-6 py-4 border-b border-[var(--border)]">
-          <h3 className="font-semibold text-[var(--foreground)]">Pending Invitations</h3>
+          <h3 className="font-semibold text-[var(--foreground)]">
+            Pending Invitations
+          </h3>
         </div>
         {!pendingInvitations || pendingInvitations.length === 0 ? (
           <div className="p-6 text-center text-[var(--muted-foreground)]">
@@ -349,7 +393,10 @@ export default function TeamPage() {
         ) : (
           <div className="divide-y divide-[var(--border)]">
             {pendingInvitations.map((invite) => (
-              <div key={invite.id} className="px-6 py-4 flex items-center justify-between">
+              <div
+                key={invite.id}
+                className="px-6 py-4 flex items-center justify-between"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-yellow-500/10 rounded-full flex items-center justify-center">
                     <Clock className="w-5 h-5 text-yellow-500" />
@@ -358,7 +405,9 @@ export default function TeamPage() {
                     <p className="font-medium text-[var(--foreground)]">
                       {invite.firstName} {invite.lastName}
                     </p>
-                    <p className="text-sm text-[var(--muted-foreground)]">{invite.email}</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      {invite.email}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -393,21 +442,30 @@ export default function TeamPage() {
       </div>
 
       {/* Roles & Permissions */}
-      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
+      <div className="relative bg-gray-900 clip-notch border border-gray-800">
         <div className="px-6 py-4 border-b border-[var(--border)]">
-          <h3 className="font-semibold text-[var(--foreground)]">Roles & Permissions</h3>
+          <h3 className="font-semibold text-[var(--foreground)]">
+            Roles & Permissions
+          </h3>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-3 gap-4">
             {Object.entries(roleLabels).map(([role, config]) => (
-              <div key={role} className="border border-[var(--border)] rounded-lg p-4">
+              <div
+                key={role}
+                className="border border-[var(--border)] rounded-lg p-4"
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="w-5 h-5 text-[var(--muted-foreground)]" />
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}
+                  >
                     {config.label}
                   </span>
                 </div>
-                <p className="text-sm text-[var(--muted-foreground)]">{config.description}</p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  {config.description}
+                </p>
               </div>
             ))}
           </div>
@@ -419,7 +477,9 @@ export default function TeamPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[var(--card)] rounded-lg w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-[var(--foreground)]">Invite Team Member</h2>
+              <h2 className="text-xl font-semibold text-[var(--foreground)]">
+                Invite Team Member
+              </h2>
               <button
                 onClick={() => setShowInviteModal(false)}
                 className="p-2 hover:bg-[var(--muted)] rounded-lg"
@@ -444,7 +504,9 @@ export default function TeamPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">First Name</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                    First Name
+                  </label>
                   <input
                     type="text"
                     value={inviteFirstName}
@@ -454,7 +516,9 @@ export default function TeamPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Last Name</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                    Last Name
+                  </label>
                   <input
                     type="text"
                     value={inviteLastName}
@@ -469,14 +533,19 @@ export default function TeamPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="flex-1 px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)]"
+                className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleInvite}
-                disabled={!inviteEmail || !inviteFirstName || !inviteLastName || inviteMember.isPending}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:bg-[var(--muted)] disabled:cursor-not-allowed"
+                disabled={
+                  !inviteEmail ||
+                  !inviteFirstName ||
+                  !inviteLastName ||
+                  inviteMember.isPending
+                }
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
               >
                 {inviteMember.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -495,7 +564,9 @@ export default function TeamPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[var(--card)] rounded-lg w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-[var(--foreground)]">Edit Organization</h2>
+              <h2 className="text-xl font-semibold text-[var(--foreground)]">
+                Edit Organization
+              </h2>
               <button
                 onClick={() => setShowEditOrgModal(false)}
                 className="p-2 hover:bg-[var(--muted)] rounded-lg"
@@ -519,7 +590,9 @@ export default function TeamPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Phone</label>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  Phone
+                </label>
                 <input
                   type="tel"
                   value={orgPhone}
@@ -536,14 +609,14 @@ export default function TeamPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowEditOrgModal(false)}
-                className="flex-1 px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)]"
+                className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveOrg}
                 disabled={!orgName || updateOrganization.isPending}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:bg-[var(--muted)] disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
               >
                 {updateOrganization.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -565,11 +638,14 @@ export default function TeamPage() {
               <div className="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">Remove Member</h2>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">
+                Remove Member
+              </h2>
             </div>
 
             <p className="text-[var(--muted-foreground)] mb-6">
-              Are you sure you want to remove this member from your organization? This action cannot be undone.
+              Are you sure you want to remove this member from your
+              organization? This action cannot be undone.
             </p>
 
             <div className="flex gap-3">
@@ -578,14 +654,14 @@ export default function TeamPage() {
                   setShowRemoveConfirm(null);
                   setActiveMenu(null);
                 }}
-                className="flex-1 px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)]"
+                className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleRemoveMember(showRemoveConfirm)}
                 disabled={removeMember.isPending}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 text-white font-mono text-sm uppercase tracking-wider clip-notch hover:bg-red-600 disabled:opacity-50 transition-colors"
               >
                 {removeMember.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
