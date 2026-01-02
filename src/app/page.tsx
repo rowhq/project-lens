@@ -107,7 +107,7 @@ export default function LandingPage() {
 
           {/* Pricing Cards - Popular elevated */}
           <div className="mx-auto max-w-5xl">
-            <div className="grid gap-6 lg:grid-cols-3 lg:items-center">
+            <div className="grid gap-6 lg:grid-cols-3 lg:items-center pt-6">
               {/* AI Report - Basic tier */}
               <PricingCard
                 icon={Zap}
