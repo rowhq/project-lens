@@ -8,7 +8,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Zap, BarChart3, CheckCircle, Quote } from "lucide-react";
+import { Zap, BarChart3, CheckCircle } from "lucide-react";
 
 const valueProps = [
   {
@@ -24,14 +24,6 @@ const valueProps = [
     text: "95%+ accuracy rate",
   },
 ];
-
-const testimonial = {
-  quote:
-    "Turnaround dropped from weeks to 24 hours. Game changer for our pipeline.",
-  author: "Sarah M.",
-  role: "VP of Lending",
-  company: "Texas Home Loans",
-};
 
 export function BrandPanel() {
   return (
@@ -79,7 +71,7 @@ export function BrandPanel() {
         <div className="w-16 h-px bg-lime-400/50 mb-8" />
 
         {/* Value Props */}
-        <ul className="space-y-4 mb-12">
+        <ul className="space-y-4">
           {valueProps.map((prop) => (
             <li key={prop.text} className="flex items-center gap-3">
               <div className="w-8 h-8 clip-notch-sm bg-lime-400/10 border border-lime-400/30 flex items-center justify-center">
@@ -89,29 +81,6 @@ export function BrandPanel() {
             </li>
           ))}
         </ul>
-
-        {/* Testimonial */}
-        <div className="relative p-6 bg-gray-900/50 border border-gray-800 clip-notch">
-          <Quote className="absolute top-4 left-4 w-6 h-6 text-lime-400/20" />
-          <p className="text-white text-sm leading-relaxed pl-6 mb-4">
-            &ldquo;{testimonial.quote}&rdquo;
-          </p>
-          <div className="flex items-center gap-3 pl-6">
-            <div className="w-8 h-8 clip-notch-sm bg-lime-500/10 border border-lime-500/30 flex items-center justify-center">
-              <span className="font-mono text-xs font-bold text-lime-400">
-                {testimonial.author.charAt(0)}
-              </span>
-            </div>
-            <div>
-              <p className="text-white text-sm font-medium">
-                {testimonial.author}
-              </p>
-              <p className="font-mono text-[10px] uppercase tracking-wider text-gray-500">
-                {testimonial.role}, {testimonial.company}
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Bottom gradient fade */}
