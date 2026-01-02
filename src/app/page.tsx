@@ -503,116 +503,121 @@ function PricingCard({
 
   return (
     <div
-      className={`group relative bg-gray-900 clip-notch border transition-all duration-500 ${
-        popular
-          ? "border-lime-400 lg:scale-105 lg:-my-4 shadow-xl shadow-lime-400/10"
-          : "border-gray-800 hover:border-gray-700"
-      }`}
+      className={`relative ${popular ? "lg:scale-105 lg:-my-4" : ""}`}
       style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
     >
-      {/* Glow effect for popular */}
+      {/* Popular badge - OUTSIDE clip-notch container */}
       {popular && (
-        <div className="absolute -inset-px bg-gradient-to-b from-lime-400/20 to-transparent opacity-50 clip-notch pointer-events-none" />
-      )}
-
-      {/* L-bracket corners */}
-      <span
-        className={`absolute top-0 left-0 w-3 h-3 border-t border-l pointer-events-none transition-colors ${
-          popular
-            ? "border-lime-400"
-            : "border-gray-700 group-hover:border-lime-400/50"
-        }`}
-      />
-      <span
-        className={`absolute bottom-0 right-0 w-3 h-3 border-b border-r pointer-events-none transition-colors ${
-          popular
-            ? "border-lime-400"
-            : "border-gray-700 group-hover:border-lime-400/50"
-        }`}
-      />
-
-      {/* Content */}
-      <div className="relative p-6 lg:p-8">
-        {/* Popular badge */}
-        {popular && (
-          <div className="absolute -top-px left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <span className="px-4 py-1.5 bg-lime-400 text-black font-mono text-xs uppercase tracking-wider clip-notch-sm">
-              Most Popular
-            </span>
-          </div>
-        )}
-
-        {/* Header: Icon + Tier badge */}
-        <div className="flex items-start justify-between mb-6">
-          <div
-            className={`w-12 h-12 clip-notch-sm flex items-center justify-center border ${tierColors[tier]}`}
-          >
-            <Icon className="w-6 h-6" />
-          </div>
-          <span
-            className={`px-2 py-1 font-mono text-[10px] uppercase tracking-wider border clip-notch-sm ${tierColors[tier]}`}
-          >
-            {tierLabels[tier]}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+          <span className="px-4 py-1.5 bg-lime-400 text-black font-mono text-xs uppercase tracking-wider clip-notch-sm">
+            Most Popular
           </span>
         </div>
+      )}
 
-        {/* Plan name */}
-        <h3 className="font-mono text-xl uppercase tracking-wider text-white mb-2">
-          {name}
-        </h3>
+      <div
+        className={`group relative bg-gray-900 clip-notch border transition-all duration-500 ${
+          popular
+            ? "border-lime-400 shadow-xl shadow-lime-400/10"
+            : "border-gray-800 hover:border-gray-700"
+        }`}
+        style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
+      >
+        {/* Glow effect for popular */}
+        {popular && (
+          <div className="absolute -inset-px bg-gradient-to-b from-lime-400/20 to-transparent opacity-50 clip-notch pointer-events-none" />
+        )}
 
-        {/* Use case */}
-        <p className="text-sm text-gray-400 mb-6">{useCase}</p>
+        {/* L-bracket corners */}
+        <span
+          className={`absolute top-0 left-0 w-3 h-3 border-t border-l pointer-events-none transition-colors ${
+            popular
+              ? "border-lime-400"
+              : "border-gray-700 group-hover:border-lime-400/50"
+          }`}
+        />
+        <span
+          className={`absolute bottom-0 right-0 w-3 h-3 border-b border-r pointer-events-none transition-colors ${
+            popular
+              ? "border-lime-400"
+              : "border-gray-700 group-hover:border-lime-400/50"
+          }`}
+        />
 
-        {/* Price + Turnaround hero */}
-        <div className="flex items-end justify-between mb-6 pb-6 border-b border-gray-800">
-          <div>
-            <span className="text-4xl font-bold text-white">${price}</span>
-            <span className="text-gray-500 font-mono text-sm">/report</span>
-          </div>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 clip-notch-sm">
-            <Clock className="w-3.5 h-3.5 text-lime-400" />
-            <span className="font-mono text-xs uppercase tracking-wider text-white">
-              {turnaround}
+        {/* Content */}
+        <div className="relative p-6 lg:p-8">
+          {/* Header: Icon + Tier badge */}
+          <div className="flex items-start justify-between mb-6">
+            <div
+              className={`w-12 h-12 clip-notch-sm flex items-center justify-center border ${tierColors[tier]}`}
+            >
+              <Icon className="w-6 h-6" />
+            </div>
+            <span
+              className={`px-2 py-1 font-mono text-[10px] uppercase tracking-wider border clip-notch-sm ${tierColors[tier]}`}
+            >
+              {tierLabels[tier]}
             </span>
           </div>
-        </div>
 
-        {/* Features */}
-        <ul className="space-y-3 mb-8">
-          {features.map((feature, index) => (
-            <li key={feature} className="flex items-start gap-3 text-sm">
-              <Check
-                className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
-                  index === 0 && feature.startsWith("Everything")
-                    ? "text-lime-400"
-                    : "text-gray-600"
-                }`}
-              />
-              <span
-                className={
-                  index === 0 && feature.startsWith("Everything")
-                    ? "text-lime-400 font-medium"
-                    : "text-gray-400"
-                }
-              >
-                {feature}
+          {/* Plan name */}
+          <h3 className="font-mono text-xl uppercase tracking-wider text-white mb-2">
+            {name}
+          </h3>
+
+          {/* Use case */}
+          <p className="text-sm text-gray-400 mb-6">{useCase}</p>
+
+          {/* Price + Turnaround hero */}
+          <div className="flex items-end justify-between mb-6 pb-6 border-b border-gray-800">
+            <div>
+              <span className="text-4xl font-bold text-white">${price}</span>
+              <span className="text-gray-500 font-mono text-sm">/report</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 clip-notch-sm">
+              <Clock className="w-3.5 h-3.5 text-lime-400" />
+              <span className="font-mono text-xs uppercase tracking-wider text-white">
+                {turnaround}
               </span>
-            </li>
-          ))}
-        </ul>
+            </div>
+          </div>
 
-        {/* CTA */}
-        <Link href="/register" className="block">
-          <Button
-            variant={popular ? "lime" : "outline"}
-            size="md"
-            className="w-full"
-            rightIcon={<ArrowRight className="w-4 h-4" />}
-          >
-            Get Started
-          </Button>
-        </Link>
+          {/* Features */}
+          <ul className="space-y-3 mb-8">
+            {features.map((feature, index) => (
+              <li key={feature} className="flex items-start gap-3 text-sm">
+                <Check
+                  className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                    index === 0 && feature.startsWith("Everything")
+                      ? "text-lime-400"
+                      : "text-gray-600"
+                  }`}
+                />
+                <span
+                  className={
+                    index === 0 && feature.startsWith("Everything")
+                      ? "text-lime-400 font-medium"
+                      : "text-gray-400"
+                  }
+                >
+                  {feature}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          {/* CTA */}
+          <Link href="/register" className="block">
+            <Button
+              variant={popular ? "lime" : "outline"}
+              size="md"
+              className="w-full"
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              Get Started
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );
