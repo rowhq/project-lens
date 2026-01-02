@@ -69,7 +69,7 @@ export default function MarketplacePage() {
             <ShoppingCart className="w-4 h-4" />
             Cart
             {cartItemCount > 0 && (
-              <span className="absolute -top-2 -right-2 w-5 h-5 bg-[var(--primary)] text-white text-xs rounded-full flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 w-5 h-5 bg-[var(--primary)] text-black text-xs font-bold rounded-full flex items-center justify-center">
                 {cartItemCount}
               </span>
             )}
@@ -82,7 +82,7 @@ export default function MarketplacePage() {
           </Link>
           <Link
             href="/marketplace/sell"
-            className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-colors"
+            className="px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 transition-colors"
           >
             Sell a Report
           </Link>

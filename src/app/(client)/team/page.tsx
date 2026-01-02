@@ -198,7 +198,7 @@ export default function TeamPage() {
         </div>
         <button
           onClick={() => setShowInviteModal(true)}
-          className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primary)]/90"
+          className="flex items-center gap-2 bg-[var(--primary)] text-black font-medium px-4 py-2 rounded-lg hover:bg-[var(--primary)]/90"
         >
           <Plus className="w-5 h-5" />
           Invite Member
@@ -476,7 +476,7 @@ export default function TeamPage() {
               <button
                 onClick={handleInvite}
                 disabled={!inviteEmail || !inviteFirstName || !inviteLastName || inviteMember.isPending}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:bg-[var(--muted)] disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:bg-[var(--muted)] disabled:cursor-not-allowed"
               >
                 {inviteMember.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -543,7 +543,7 @@ export default function TeamPage() {
               <button
                 onClick={handleSaveOrg}
                 disabled={!orgName || updateOrganization.isPending}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:bg-[var(--muted)] disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:bg-[var(--muted)] disabled:cursor-not-allowed"
               >
                 {updateOrganization.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

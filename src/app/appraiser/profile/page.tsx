@@ -106,7 +106,7 @@ export default function AppraiserProfilePage() {
                       description: "Profile photo upload is being developed. For now, your profile uses a default avatar.",
                     });
                   }}
-                  className="absolute bottom-0 right-0 p-2 bg-[var(--primary)] text-white rounded-full hover:bg-[var(--primary)]/90"
+                  className="absolute bottom-0 right-0 p-2 bg-[var(--primary)] text-black font-medium rounded-full hover:bg-[var(--primary)]/90"
                 >
                   <Camera className="w-4 h-4" />
                 </button>
@@ -361,7 +361,7 @@ export default function AppraiserProfilePage() {
               <button
                 onClick={() => updateProfile.mutate({ coverageRadiusMiles })}
                 disabled={updateProfile.isPending}
-                className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
                 {updateProfile.isPending ? "Saving..." : "Save Changes"}
@@ -431,7 +431,7 @@ export default function AppraiserProfilePage() {
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                         pushNotifications.isSubscribed
                           ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                          : "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90"
+                          : "bg-[var(--primary)] text-black font-medium hover:bg-[var(--primary)]/90"
                       } disabled:opacity-50`}
                     >
                       {pushNotifications.isLoading ? (

@@ -75,7 +75,7 @@ export default function MyListingsPage() {
         </div>
         <Link
           href="/marketplace/sell"
-          className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg flex items-center gap-2 hover:opacity-90"
+          className="px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg flex items-center gap-2 hover:opacity-90"
         >
           <Plus className="w-4 h-4" />
           Sell a Report
@@ -312,7 +312,7 @@ export default function MyListingsPage() {
                     <button
                       onClick={() => handleDownload(purchase.id)}
                       disabled={downloadMutation.isPending}
-                      className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center gap-2 text-sm"
+                      className="px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center gap-2 text-sm"
                     >
                       {downloadMutation.isPending ? (
                         <Loader2 className="w-4 h-4 animate-spin" />

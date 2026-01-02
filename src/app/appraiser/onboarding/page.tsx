@@ -286,7 +286,7 @@ export default function AppraiserOnboardingPage() {
                       isCompleted
                         ? "bg-green-500 text-white"
                         : isActive
-                        ? "bg-[var(--primary)] text-white"
+                        ? "bg-[var(--primary)] text-black font-medium"
                         : "bg-[var(--muted)] text-[var(--muted-foreground)]"
                     }`}
                   >

@@ -84,7 +84,7 @@ export default function CartPage() {
           <p className="text-[var(--muted-foreground)] mb-4">Your cart is empty</p>
           <Link
             href="/marketplace"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90"
           >
             Browse Marketplace
           </Link>
@@ -168,7 +168,7 @@ export default function CartPage() {
               <button
                 onClick={handleCheckout}
                 disabled={isCheckingOut || items.length === 0}
-                className="w-full mt-6 py-3 bg-[var(--primary)] text-white rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full mt-6 py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isCheckingOut ? (
                   <>

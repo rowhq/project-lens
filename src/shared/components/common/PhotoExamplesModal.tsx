@@ -493,7 +493,7 @@ export const PhotoExamplesModal = ({
         <div className="sticky bottom-0 p-4 bg-[var(--card)] border-t border-[var(--border)]">
           <button
             onClick={onClose}
-            className="w-full py-3 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90"
+            className="w-full py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-medium hover:bg-[var(--primary)]/90"
           >
             Got It
           </button>

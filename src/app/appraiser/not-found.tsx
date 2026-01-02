@@ -13,7 +13,7 @@ export default function AppraiserNotFound() {
         </p>
         <Link
           href="/appraiser/dashboard"
-          className="inline-block mt-6 px-6 py-3 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-opacity"
+          className="inline-block mt-6 px-6 py-3 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 transition-opacity"
         >
           Back to Dashboard
         </Link>

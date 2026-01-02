@@ -530,7 +530,7 @@ export default function AppraiserJobsPage() {
 
       {/* Refreshing Indicator */}
       {isRefreshing && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex justify-center items-center py-3 bg-[var(--primary)] text-white">
+        <div className="fixed top-0 left-0 right-0 z-50 flex justify-center items-center py-3 bg-[var(--primary)] text-black font-medium">
           <Loader2 className="w-5 h-5 animate-spin mr-2" />
           <span className="text-sm font-medium">Refreshing jobs...</span>
         </div>
@@ -583,7 +583,7 @@ export default function AppraiserJobsPage() {
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
               hasActiveFilters
-                ? "bg-[var(--primary)] text-white"
+                ? "bg-[var(--primary)] text-black font-medium"
                 : "bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
             }`}
           >
@@ -722,7 +722,7 @@ export default function AppraiserJobsPage() {
             onClick={() => setFilter(tab.id as JobFilter)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-full whitespace-nowrap transition-colors ${
               filter === tab.id
-                ? "bg-[var(--primary)] text-white"
+                ? "bg-[var(--primary)] text-black font-medium"
                 : "bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
             }`}
           >
@@ -903,7 +903,7 @@ export default function AppraiserJobsPage() {
                         description: "Now showing jobs within 50 miles.",
                       });
                     }}
-                    className="px-6 py-3 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
+                    className="px-6 py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
                   >
                     <Navigation className="w-4 h-4 inline mr-2" />
                     Expand to 50 Miles
@@ -921,7 +921,7 @@ export default function AppraiserJobsPage() {
               {filter === "active" && (
                 <button
                   onClick={() => setFilter("available")}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
                 >
                   <Briefcase className="w-5 h-5" />
                   Browse Available Jobs
@@ -936,7 +936,7 @@ export default function AppraiserJobsPage() {
                   </div>
                   <button
                     onClick={() => setFilter("available")}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
                   >
                     <Briefcase className="w-5 h-5" />
                     Find Your First Job

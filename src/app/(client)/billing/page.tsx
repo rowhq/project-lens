@@ -318,7 +318,7 @@ export default function BillingPage() {
                     isCurrentPlan
                       ? "bg-[var(--muted)] text-[var(--muted-foreground)] cursor-default"
                       : plan.popular
-                      ? "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90"
+                      ? "bg-[var(--primary)] text-black font-medium hover:bg-[var(--primary)]/90"
                       : "border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--secondary)]"
                   }`}
                   disabled={isCurrentPlan}
@@ -538,7 +538,7 @@ export default function BillingPage() {
             <button
               onClick={handleSaveBillingInfo}
               disabled={!hasChanges || updateBillingInfo.isPending}
-              className="mt-4 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:bg-[var(--muted)] disabled:cursor-not-allowed flex items-center gap-2"
+              className="mt-4 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:bg-[var(--muted)] disabled:cursor-not-allowed flex items-center gap-2"
             >
               {updateBillingInfo.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -591,7 +591,7 @@ export default function BillingPage() {
               <button
                 onClick={() => addPaymentMethod.mutate()}
                 disabled={addPaymentMethod.isPending}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50"
               >
                 {addPaymentMethod.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

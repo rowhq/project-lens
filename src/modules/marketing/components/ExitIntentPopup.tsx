@@ -143,7 +143,7 @@ export function ExitIntentPopup() {
                     <button
                       type="submit"
                       disabled={status === "loading"}
-                      className="w-full px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--accent)] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                      className="w-full px-6 py-3 bg-[var(--primary)] text-black font-semibold rounded-xl hover:bg-[var(--accent)] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       {status === "loading" ? (
                         <>

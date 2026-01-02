@@ -346,7 +346,7 @@ export default function EarningsPage() {
               />
               <button
                 onClick={saveMonthlyGoal}
-                className="px-2 py-1 text-sm bg-[var(--primary)] text-white rounded"
+                className="px-2 py-1 text-sm bg-[var(--primary)] text-black font-medium rounded"
               >
                 Save
               </button>
@@ -539,7 +539,7 @@ export default function EarningsPage() {
             <button
               onClick={() => setupPayoutLink.mutate()}
               disabled={setupPayoutLink.isPending}
-              className="px-3 py-1.5 text-sm bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50"
+              className="px-3 py-1.5 text-sm bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50"
             >
               {setupPayoutLink.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

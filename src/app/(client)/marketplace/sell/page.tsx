@@ -256,7 +256,7 @@ export default function SellReportPage() {
           <button
             type="submit"
             disabled={!selectedReportId || !title || !price || createListingMutation.isPending}
-            className="px-6 py-2 bg-[var(--primary)] text-white rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+            className="px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
           >
             {createListingMutation.isPending ? (
               <>

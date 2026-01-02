@@ -522,7 +522,7 @@ export default function MapPage() {
                 </div>
 
                 <div className="pt-4 border-t border-[var(--border)]">
-                  <button className="w-full py-3 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 flex items-center justify-center gap-2">
+                  <button className="w-full py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-medium hover:bg-[var(--primary)]/90 flex items-center justify-center gap-2">
                     <DollarSign className="w-5 h-5" />
                     Generate AI Valuation
                   </button>
@@ -572,7 +572,7 @@ export default function MapPage() {
 
                 <button
                   onClick={() => (window.location.href = `/orders/${selectedJob.id}`)}
-                  className="w-full py-3 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-medium hover:bg-[var(--primary)]/90 flex items-center justify-center gap-2"
                 >
                   View Full Details
                   <ChevronRight className="w-5 h-5" />
@@ -666,7 +666,7 @@ export default function MapPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors ${
                   activeTab === tab.id
-                    ? "bg-[var(--primary)] text-white"
+                    ? "bg-[var(--primary)] text-black font-medium"
                     : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
                 }`}
               >
@@ -683,7 +683,7 @@ export default function MapPage() {
             onClick={() => handleBaseLayerChange("streets")}
             className={`p-2 rounded-md transition-colors ${
               baseLayer === "streets"
-                ? "bg-[var(--primary)] text-white"
+                ? "bg-[var(--primary)] text-black font-medium"
                 : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
             }`}
             title="Streets"
@@ -694,7 +694,7 @@ export default function MapPage() {
             onClick={() => handleBaseLayerChange("satellite")}
             className={`p-2 rounded-md transition-colors ${
               baseLayer === "satellite"
-                ? "bg-[var(--primary)] text-white"
+                ? "bg-[var(--primary)] text-black font-medium"
                 : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
             }`}
             title="Satellite"
@@ -705,7 +705,7 @@ export default function MapPage() {
             onClick={() => handleBaseLayerChange("hybrid")}
             className={`p-2 rounded-md transition-colors ${
               baseLayer === "hybrid"
-                ? "bg-[var(--primary)] text-white"
+                ? "bg-[var(--primary)] text-black font-medium"
                 : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
             }`}
             title="Hybrid"

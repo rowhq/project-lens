@@ -52,7 +52,7 @@ export default function AppraisalsPage() {
         </div>
         <Link
           href="/appraisals/new"
-          className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+          className="flex items-center gap-2 bg-[var(--primary)] text-black font-medium px-4 py-2 rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
         >
           <Plus className="w-5 h-5" />
           New Appraisal

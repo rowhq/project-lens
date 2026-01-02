@@ -372,7 +372,7 @@ export default function SettingsPage() {
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploadingAvatar}
-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUploadingAvatar ? (
                       <>
@@ -458,7 +458,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSaveProfile}
                   disabled={updateProfile.isPending || !profileDirty}
-                  className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {updateProfile.isPending ? (
                     <>
@@ -541,7 +541,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSaveNotifications}
                   disabled={updateNotifications.isPending || !notificationsDirty}
-                  className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {updateNotifications.isPending ? (
                     <>
@@ -627,7 +627,7 @@ export default function SettingsPage() {
                       newPassword !== confirmPassword ||
                       newPassword.length < 8
                     }
-                    className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isChangingPassword ? (
                       <>
@@ -771,7 +771,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSavePreferences}
                   disabled={savingPreferences || !preferencesDirty}
-                  className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {savingPreferences ? (
                     <>

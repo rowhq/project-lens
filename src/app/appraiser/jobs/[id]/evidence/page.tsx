@@ -525,7 +525,7 @@ export default function EvidenceCapturePage({ params }: PageProps) {
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium ${
                   uploadedPhotos[photo.id]
                     ? "bg-[var(--muted)] text-[var(--muted-foreground)]"
-                    : "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90"
+                    : "bg-[var(--primary)] text-black font-medium hover:bg-[var(--primary)]/90"
                 }`}
               >
                 {isUploading && activeCategory === photo.id ? (
@@ -640,7 +640,7 @@ export default function EvidenceCapturePage({ params }: PageProps) {
             ) : (
               <button
                 onClick={startRecording}
-                className="flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white rounded-full font-medium hover:bg-[var(--primary)]/90"
+                className="flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-black font-medium rounded-full font-medium hover:bg-[var(--primary)]/90"
               >
                 <Mic className="w-5 h-5" />
                 Record Voice Note
@@ -662,7 +662,7 @@ export default function EvidenceCapturePage({ params }: PageProps) {
                       onClick={() => playVoiceNote(note)}
                       className={`w-10 h-10 rounded-full flex items-center justify-center ${
                         playingNoteId === note.id
-                          ? "bg-[var(--primary)] text-white"
+                          ? "bg-[var(--primary)] text-black font-medium"
                           : "bg-[var(--secondary)] text-[var(--foreground)]"
                       }`}
                     >

@@ -239,7 +239,7 @@ export default function ListingDetailPage() {
               <div className="space-y-2">
                 <button
                   onClick={handleGoToCart}
-                  className="w-full py-3 bg-[var(--primary)] text-white rounded-lg font-semibold hover:opacity-90 flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-semibold hover:opacity-90 flex items-center justify-center gap-2"
                 >
                   <ShoppingCart className="w-5 h-5" />
                   Go to Cart
@@ -254,7 +254,7 @@ export default function ListingDetailPage() {
             ) : (
               <button
                 onClick={handleAddToCart}
-                className="w-full py-3 bg-[var(--primary)] text-white rounded-lg font-semibold hover:opacity-90 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-semibold hover:opacity-90 flex items-center justify-center gap-2"
               >
                 <ShoppingCart className="w-5 h-5" />
                 Add to Cart

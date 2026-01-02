@@ -122,7 +122,7 @@ export function MapBaseLayers({
             onClick={() => onStyleChange(option.id, option.styleUrl)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
               isActive
-                ? "bg-[var(--primary)] text-white"
+                ? "bg-[var(--primary)] text-black font-medium"
                 : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
             }`}
             title={option.label}

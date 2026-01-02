@@ -461,7 +461,7 @@ export default function JobDetailPage({ params }: PageProps) {
               }
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors touch-manipulation"
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors touch-manipulation"
             >
               <Navigation className="w-5 h-5" />
               Navigate
@@ -747,7 +747,7 @@ export default function JobDetailPage({ params }: PageProps) {
               );
             }}
             disabled={startJob.isPending}
-            className="w-full flex items-center justify-center gap-2 py-4 bg-[var(--primary)] text-white rounded-xl font-semibold hover:bg-[var(--primary)]/90 disabled:bg-[var(--muted)] transition-colors touch-manipulation text-lg"
+            className="w-full flex items-center justify-center gap-2 py-4 bg-[var(--primary)] text-black font-medium rounded-xl font-semibold hover:bg-[var(--primary)]/90 disabled:bg-[var(--muted)] transition-colors touch-manipulation text-lg"
           >
             {startJob.isPending ? (
               <Loader2 className="w-6 h-6 animate-spin" />

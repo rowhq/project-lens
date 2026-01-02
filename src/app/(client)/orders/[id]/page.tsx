@@ -517,7 +517,7 @@ export default function OrderDetailPage() {
                       isCompleted
                         ? "bg-green-500 text-white"
                         : isCurrent
-                        ? "bg-[var(--primary)] text-white"
+                        ? "bg-[var(--primary)] text-black font-medium"
                         : "bg-[var(--muted)] text-[var(--muted-foreground)]"
                     }`}
                   >
@@ -667,7 +667,7 @@ export default function OrderDetailPage() {
         {order.status === "COMPLETED" && order.appraisalRequestId && (
           <Link
             href={`/appraisals/${order.appraisalRequestId}`}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
           >
             <FileText className="w-4 h-4" />
             View Report
@@ -817,7 +817,7 @@ export default function OrderDetailPage() {
                   order.evidence![selectedPhotoIndex].id,
                   order.evidence![selectedPhotoIndex].category || `photo-${selectedPhotoIndex + 1}`
                 )}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 transition-colors"
               >
                 <Download className="w-4 h-4" />
                 Download

@@ -213,7 +213,7 @@ export default function SchedulePage() {
           </button>
           <button
             onClick={() => handleOpenDayModal(today)}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90"
           >
             <Clock className="w-4 h-4" />
             Set Availability
@@ -270,7 +270,7 @@ export default function SchedulePage() {
                 {/* Day Header */}
                 <div
                   className={`p-3 text-center border-b border-[var(--border)] ${
-                    isToday ? "bg-[var(--primary)] text-white" : ""
+                    isToday ? "bg-[var(--primary)] text-black font-medium" : ""
                   }`}
                 >
                   <p className={`text-xs ${isToday ? "text-white/70" : "text-[var(--muted-foreground)]"}`}>
@@ -449,7 +449,7 @@ export default function SchedulePage() {
               <button
                 onClick={handleSaveDateAvailability}
                 disabled={setDateAvailability.isPending}
-                className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {setDateAvailability.isPending ? (
                   <>
@@ -551,7 +551,7 @@ export default function SchedulePage() {
               <button
                 onClick={handleSaveWeeklySchedule}
                 disabled={setWeeklyAvailability.isPending}
-                className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {setWeeklyAvailability.isPending ? (
                   <>
