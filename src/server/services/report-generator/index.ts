@@ -345,7 +345,7 @@ class ReportGenerator {
     const shareToken = this.generateShareToken();
     const expiresAt = new Date(Date.now() + expiresIn * 60 * 60 * 1000);
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://projectlens.com";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://truplat.com";
     const shareableUrl = `${baseUrl}/reports/shared/${shareToken}`;
 
     return { shareableUrl, expiresAt };

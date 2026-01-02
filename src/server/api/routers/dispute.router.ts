@@ -84,7 +84,7 @@ export const disputeRouter = createTRPCRouter({
       }
 
       // Send notification to admin
-      const adminEmail = process.env.ADMIN_EMAIL || "admin@projectlens.com";
+      const adminEmail = process.env.ADMIN_EMAIL || "admin@truplat.com";
       try {
         await sendDisputeNotification({
           adminEmail,

@@ -200,14 +200,18 @@ export const adminRouter = createTRPCRouter({
     list: adminProcedure
       .input(
         z.object({
-          status: z.enum(["PENDING", "VERIFIED", "EXPIRED", "REVOKED"]).optional(),
+          status: z
+            .enum(["PENDING", "VERIFIED", "EXPIRED", "REVOKED"])
+            .optional(),
           limit: z.number().min(1).max(100).default(20),
           cursor: z.string().optional(),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         const profiles = await ctx.prisma.appraiserProfile.findMany({
-          where: input.status ? { verificationStatus: input.status } : undefined,
+          where: input.status
+            ? { verificationStatus: input.status }
+            : undefined,
           include: {
             user: {
               select: {
@@ -269,7 +273,7 @@ export const adminRouter = createTRPCRouter({
         z.object({
           userId: z.string(),
           reason: z.string(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         await ctx.prisma.user.update({
@@ -324,10 +328,12 @@ export const adminRouter = createTRPCRouter({
     list: adminProcedure
       .input(
         z.object({
-          plan: z.enum(["FREE_TRIAL", "STARTER", "PROFESSIONAL", "ENTERPRISE"]).optional(),
+          plan: z
+            .enum(["FREE_TRIAL", "STARTER", "PROFESSIONAL", "ENTERPRISE"])
+            .optional(),
           limit: z.number().min(1).max(100).default(20),
           cursor: z.string().optional(),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         const orgs = await ctx.prisma.organization.findMany({
@@ -405,15 +411,29 @@ export const adminRouter = createTRPCRouter({
             where: { organizationId: input.id, createdAt: { gte: thisMonth } },
           }),
           ctx.prisma.appraisalRequest.count({
-            where: { organizationId: input.id, createdAt: { gte: lastMonth, lt: thisMonth } },
+            where: {
+              organizationId: input.id,
+              createdAt: { gte: lastMonth, lt: thisMonth },
+            },
           }),
         ]);
 
-        const growthPercent = lastMonthRequests > 0
-          ? Math.round(((thisMonthRequests - lastMonthRequests) / lastMonthRequests) * 100)
-          : thisMonthRequests > 0 ? 100 : 0;
+        const growthPercent =
+          lastMonthRequests > 0
+            ? Math.round(
+                ((thisMonthRequests - lastMonthRequests) / lastMonthRequests) *
+                  100,
+              )
+            : thisMonthRequests > 0
+              ? 100
+              : 0;
 
-        return { org, recentAppraisals, payments, stats: { thisMonthRequests, lastMonthRequests, growthPercent } };
+        return {
+          org,
+          recentAppraisals,
+          payments,
+          stats: { thisMonthRequests, lastMonthRequests, growthPercent },
+        };
       }),
 
     update: adminProcedure
@@ -425,7 +445,7 @@ export const adminRouter = createTRPCRouter({
           phone: z.string().optional(),
           address: z.string().optional(),
           seats: z.number().min(1).optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const { id, ...data } = input;
@@ -441,7 +461,7 @@ export const adminRouter = createTRPCRouter({
           id: z.string(),
           plan: z.enum(["FREE_TRIAL", "STARTER", "PROFESSIONAL", "ENTERPRISE"]),
           seats: z.number().min(1).optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const { id, plan, seats } = input;
@@ -477,7 +497,7 @@ export const adminRouter = createTRPCRouter({
         z.object({
           id: z.string(),
           reason: z.string(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         // Suspend all users in the organization
@@ -555,7 +575,7 @@ export const adminRouter = createTRPCRouter({
           slaBreach: z.boolean().optional(),
           limit: z.number().min(1).max(100).default(20),
           cursor: z.string().optional(),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         const now = new Date();
@@ -568,7 +588,9 @@ export const adminRouter = createTRPCRouter({
             }),
           },
           include: {
-            property: { select: { addressFull: true, city: true, county: true } },
+            property: {
+              select: { addressFull: true, city: true, county: true },
+            },
             organization: { select: { name: true } },
             assignedAppraiser: {
               select: { firstName: true, lastName: true },
@@ -616,7 +638,7 @@ export const adminRouter = createTRPCRouter({
         z.object({
           jobId: z.string(),
           reason: z.string(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         return ctx.prisma.job.update({
@@ -634,6 +656,495 @@ export const adminRouter = createTRPCRouter({
           },
         });
       }),
+
+    /**
+     * Start review of a submitted job
+     */
+    startReview: adminProcedure
+      .input(z.object({ jobId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const job = await ctx.prisma.job.findUnique({
+          where: { id: input.jobId },
+        });
+
+        if (!job) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        }
+
+        if (job.status !== "SUBMITTED") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Job must be in SUBMITTED status to start review",
+          });
+        }
+
+        return ctx.prisma.job.update({
+          where: { id: input.jobId },
+          data: {
+            status: "UNDER_REVIEW",
+            statusHistory: {
+              push: {
+                status: "UNDER_REVIEW",
+                timestamp: new Date().toISOString(),
+                adminId: ctx.user.id,
+              },
+            },
+          },
+        });
+      }),
+
+    /**
+     * Approve a job and mark as completed
+     */
+    approve: adminProcedure
+      .input(
+        z.object({
+          jobId: z.string(),
+          notes: z.string().optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const job = await ctx.prisma.job.findUnique({
+          where: { id: input.jobId },
+          include: { assignedAppraiser: true },
+        });
+
+        if (!job) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        }
+
+        if (!["SUBMITTED", "UNDER_REVIEW"].includes(job.status)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "Job must be in SUBMITTED or UNDER_REVIEW status to approve",
+          });
+        }
+
+        // Update job to completed
+        const updatedJob = await ctx.prisma.job.update({
+          where: { id: input.jobId },
+          data: {
+            status: "COMPLETED",
+            completedAt: new Date(),
+            statusHistory: {
+              push: {
+                status: "COMPLETED",
+                timestamp: new Date().toISOString(),
+                adminId: ctx.user.id,
+                notes: input.notes,
+              },
+            },
+          },
+        });
+
+        // Create payment record for appraiser
+        if (job.assignedAppraiserId && job.payoutAmount) {
+          await ctx.prisma.payment.create({
+            data: {
+              userId: job.assignedAppraiserId,
+              relatedJobId: job.id,
+              amount: job.payoutAmount,
+              type: "JOB_PAYOUT",
+              status: "PENDING",
+              description: `Payout for job at ${job.propertyId}`,
+            },
+          });
+        }
+
+        return updatedJob;
+      }),
+
+    /**
+     * Reject a job
+     */
+    reject: adminProcedure
+      .input(
+        z.object({
+          jobId: z.string(),
+          reason: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const job = await ctx.prisma.job.findUnique({
+          where: { id: input.jobId },
+        });
+
+        if (!job) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        }
+
+        if (!["SUBMITTED", "UNDER_REVIEW"].includes(job.status)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "Job must be in SUBMITTED or UNDER_REVIEW status to reject",
+          });
+        }
+
+        return ctx.prisma.job.update({
+          where: { id: input.jobId },
+          data: {
+            status: "FAILED",
+            statusHistory: {
+              push: {
+                status: "FAILED",
+                timestamp: new Date().toISOString(),
+                adminId: ctx.user.id,
+                reason: input.reason,
+              },
+            },
+          },
+        });
+      }),
+
+    /**
+     * Request revision - send back to appraiser
+     */
+    requestRevision: adminProcedure
+      .input(
+        z.object({
+          jobId: z.string(),
+          reason: z.string(),
+          requiredPhotos: z.array(z.string()).optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const job = await ctx.prisma.job.findUnique({
+          where: { id: input.jobId },
+        });
+
+        if (!job) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        }
+
+        if (!["SUBMITTED", "UNDER_REVIEW"].includes(job.status)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Job must be in SUBMITTED or UNDER_REVIEW status",
+          });
+        }
+
+        return ctx.prisma.job.update({
+          where: { id: input.jobId },
+          data: {
+            status: "IN_PROGRESS",
+            revisionRequested: true,
+            revisionNotes: input.reason,
+            statusHistory: {
+              push: {
+                status: "REVISION_REQUESTED",
+                timestamp: new Date().toISOString(),
+                adminId: ctx.user.id,
+                reason: input.reason,
+                requiredPhotos: input.requiredPhotos,
+              },
+            },
+          },
+        });
+      }),
+
+    /**
+     * Reassign job to different appraiser
+     */
+    reassign: adminProcedure
+      .input(
+        z.object({
+          jobId: z.string(),
+          appraiserId: z.string().nullable(),
+          reason: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const job = await ctx.prisma.job.findUnique({
+          where: { id: input.jobId },
+        });
+
+        if (!job) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        }
+
+        if (["COMPLETED", "CANCELLED", "FAILED"].includes(job.status)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cannot reassign completed, cancelled, or failed jobs",
+          });
+        }
+
+        // If assigning to new appraiser, verify they exist and are verified
+        if (input.appraiserId) {
+          const appraiser = await ctx.prisma.appraiserProfile.findUnique({
+            where: { userId: input.appraiserId },
+          });
+
+          if (!appraiser) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Appraiser not found",
+            });
+          }
+
+          if (appraiser.verificationStatus !== "VERIFIED") {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Appraiser must be verified",
+            });
+          }
+        }
+
+        return ctx.prisma.job.update({
+          where: { id: input.jobId },
+          data: {
+            assignedAppraiserId: input.appraiserId,
+            status: input.appraiserId ? "ACCEPTED" : "DISPATCHED",
+            acceptedAt: input.appraiserId ? new Date() : null,
+            startedAt: null,
+            statusHistory: {
+              push: {
+                status: input.appraiserId ? "REASSIGNED" : "UNASSIGNED",
+                timestamp: new Date().toISOString(),
+                adminId: ctx.user.id,
+                reason: input.reason,
+                previousAppraiserId: job.assignedAppraiserId,
+                newAppraiserId: input.appraiserId,
+              },
+            },
+          },
+        });
+      }),
+
+    /**
+     * Get list of available appraisers for reassignment
+     */
+    getAvailableAppraisers: adminProcedure
+      .input(z.object({ jobId: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const job = await ctx.prisma.job.findUnique({
+          where: { id: input.jobId },
+          include: { property: true },
+        });
+
+        if (!job) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        }
+
+        // Get verified appraisers
+        const appraisers = await ctx.prisma.appraiserProfile.findMany({
+          where: {
+            verificationStatus: "VERIFIED",
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+        });
+
+        return appraisers.map((a) => ({
+          id: a.userId,
+          name: `${a.user.firstName} ${a.user.lastName}`,
+          email: a.user.email,
+          coverageRadius: a.coverageRadiusMiles,
+        }));
+      }),
+
+    /**
+     * Bulk cancel jobs
+     */
+    bulkCancel: adminProcedure
+      .input(
+        z.object({
+          jobIds: z.array(z.string()),
+          reason: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const result = await ctx.prisma.job.updateMany({
+          where: {
+            id: { in: input.jobIds },
+            status: { notIn: ["COMPLETED", "CANCELLED", "FAILED"] },
+          },
+          data: {
+            status: "CANCELLED",
+          },
+        });
+
+        // Add to status history for each job
+        for (const jobId of input.jobIds) {
+          await ctx.prisma.job
+            .update({
+              where: { id: jobId },
+              data: {
+                statusHistory: {
+                  push: {
+                    status: "CANCELLED",
+                    timestamp: new Date().toISOString(),
+                    adminId: ctx.user.id,
+                    reason: input.reason,
+                    bulkOperation: true,
+                  },
+                },
+              },
+            })
+            .catch(() => {}); // Ignore errors for already completed/cancelled jobs
+        }
+
+        return {
+          success: true,
+          cancelledCount: result.count,
+        };
+      }),
+
+    /**
+     * Bulk approve jobs
+     */
+    bulkApprove: adminProcedure
+      .input(
+        z.object({
+          jobIds: z.array(z.string()),
+          notes: z.string().optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const jobs = await ctx.prisma.job.findMany({
+          where: {
+            id: { in: input.jobIds },
+            status: { in: ["SUBMITTED", "UNDER_REVIEW"] },
+          },
+        });
+
+        let approvedCount = 0;
+        for (const job of jobs) {
+          await ctx.prisma.job.update({
+            where: { id: job.id },
+            data: {
+              status: "COMPLETED",
+              completedAt: new Date(),
+              statusHistory: {
+                push: {
+                  status: "COMPLETED",
+                  timestamp: new Date().toISOString(),
+                  adminId: ctx.user.id,
+                  notes: input.notes,
+                  bulkOperation: true,
+                },
+              },
+            },
+          });
+
+          // Create payment record
+          if (job.assignedAppraiserId && job.payoutAmount) {
+            await ctx.prisma.payment.create({
+              data: {
+                userId: job.assignedAppraiserId,
+                relatedJobId: job.id,
+                amount: job.payoutAmount,
+                type: "JOB_PAYOUT",
+                status: "PENDING",
+                description: `Payout for job ${job.id}`,
+              },
+            });
+          }
+
+          approvedCount++;
+        }
+
+        return {
+          success: true,
+          approvedCount,
+        };
+      }),
+
+    /**
+     * Check SLA breaches and get stats
+     */
+    getSLAStats: adminProcedure.query(async ({ ctx }) => {
+      const now = new Date();
+
+      const [pendingDispatch, dispatched, active, breached] = await Promise.all(
+        [
+          ctx.prisma.job.count({ where: { status: "PENDING_DISPATCH" } }),
+          ctx.prisma.job.count({ where: { status: "DISPATCHED" } }),
+          ctx.prisma.job.count({
+            where: {
+              status: {
+                in: ["ACCEPTED", "IN_PROGRESS", "SUBMITTED", "UNDER_REVIEW"],
+              },
+            },
+          }),
+          ctx.prisma.job.count({
+            where: {
+              status: {
+                in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS", "SUBMITTED"],
+              },
+              slaDueAt: { lt: now },
+            },
+          }),
+        ],
+      );
+
+      // Get breached jobs
+      const breachedJobs = await ctx.prisma.job.findMany({
+        where: {
+          status: {
+            in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS", "SUBMITTED"],
+          },
+          slaDueAt: { lt: now },
+        },
+        include: {
+          property: { select: { addressFull: true, city: true } },
+          assignedAppraiser: { select: { firstName: true, lastName: true } },
+        },
+        orderBy: { slaDueAt: "asc" },
+        take: 10,
+      });
+
+      return {
+        pendingDispatch,
+        dispatched,
+        active,
+        breached,
+        breachedJobs: breachedJobs.map((j) => ({
+          id: j.id,
+          address: j.property?.addressFull,
+          city: j.property?.city,
+          appraiser: j.assignedAppraiser
+            ? `${j.assignedAppraiser.firstName} ${j.assignedAppraiser.lastName}`
+            : null,
+          status: j.status,
+          slaDueAt: j.slaDueAt,
+          hoursOverdue: j.slaDueAt
+            ? Math.round(
+                ((now.getTime() - j.slaDueAt.getTime()) / (1000 * 60 * 60)) *
+                  10,
+              ) / 10
+            : 0,
+        })),
+      };
+    }),
+
+    /**
+     * Get job counts by status
+     */
+    getStatusCounts: adminProcedure.query(async ({ ctx }) => {
+      const counts = await ctx.prisma.job.groupBy({
+        by: ["status"],
+        _count: { id: true },
+      });
+
+      return counts.reduce(
+        (acc, item) => {
+          acc[item.status] = item._count.id;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+    }),
   }),
 
   /**
@@ -668,7 +1179,7 @@ export const adminRouter = createTRPCRouter({
           multiplier: z.number().optional(),
           platformFeePercent: z.number().optional(),
           appraiserPayoutPercent: z.number().optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         return ctx.prisma.pricingRule.create({
@@ -686,7 +1197,7 @@ export const adminRouter = createTRPCRouter({
           platformFeePercent: z.number().optional(),
           appraiserPayoutPercent: z.number().optional(),
           isActive: z.boolean().optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const { id, ...data } = input;
@@ -711,7 +1222,7 @@ export const adminRouter = createTRPCRouter({
         z.object({
           productId: z.string(),
           basePrice: z.number().min(0),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         // Find existing rule or create new one
@@ -760,9 +1271,13 @@ export const adminRouter = createTRPCRouter({
       };
 
       return {
-        schedule: (value.schedule as "weekly" | "biweekly" | "monthly") || defaultConfig.schedule,
+        schedule:
+          (value.schedule as "weekly" | "biweekly" | "monthly") ||
+          defaultConfig.schedule,
         minAmount: value.minAmount ?? defaultConfig.minAmount,
-        paymentMethod: (value.paymentMethod as "stripe_connect" | "ach") || defaultConfig.paymentMethod,
+        paymentMethod:
+          (value.paymentMethod as "stripe_connect" | "ach") ||
+          defaultConfig.paymentMethod,
       };
     }),
 
@@ -773,7 +1288,7 @@ export const adminRouter = createTRPCRouter({
           schedule: z.enum(["weekly", "biweekly", "monthly"]),
           minAmount: z.number().min(0),
           paymentMethod: z.enum(["stripe_connect", "ach"]),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         return ctx.prisma.systemConfig.upsert({
@@ -804,14 +1319,18 @@ export const adminRouter = createTRPCRouter({
           id: z.string(),
           basePayout: z.number().min(0).optional(),
           percentage: z.number().min(0).max(100).optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         return ctx.prisma.pricingRule.update({
           where: { id: input.id },
           data: {
-            ...(input.basePayout !== undefined && { basePrice: input.basePayout }),
-            ...(input.percentage !== undefined && { appraiserPayoutPercent: input.percentage }),
+            ...(input.basePayout !== undefined && {
+              basePrice: input.basePayout,
+            }),
+            ...(input.percentage !== undefined && {
+              appraiserPayoutPercent: input.percentage,
+            }),
           },
         });
       }),
@@ -839,7 +1358,7 @@ export const adminRouter = createTRPCRouter({
 
       const totalPending = pendingPayouts.reduce(
         (sum, p) => sum + Number(p.amount),
-        0
+        0,
       );
 
       const appraiserCount = new Set(pendingPayouts.map((p) => p.userId)).size;
@@ -853,7 +1372,8 @@ export const adminRouter = createTRPCRouter({
         totalPending,
         appraiserCount,
         nextPayoutDate: nextMonday,
-        avgPayout: appraiserCount > 0 ? Math.round(totalPending / appraiserCount) : 0,
+        avgPayout:
+          appraiserCount > 0 ? Math.round(totalPending / appraiserCount) : 0,
         pendingPayouts,
       };
     }),
@@ -863,10 +1383,14 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           appraiserIds: z.array(z.string()).optional(), // If empty, process all
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
-        const whereClause: { type: "PAYOUT"; status: "PENDING"; userId?: { in: string[] } } = {
+        const whereClause: {
+          type: "PAYOUT";
+          status: "PENDING";
+          userId?: { in: string[] };
+        } = {
           type: "PAYOUT",
           status: "PENDING",
         };
@@ -929,14 +1453,20 @@ export const adminRouter = createTRPCRouter({
             data: { status: "PROCESSING" },
           });
 
-          const totalAmount = payouts.reduce((sum, p) => sum + Number(p.amount), 0);
+          const totalAmount = payouts.reduce(
+            (sum, p) => sum + Number(p.amount),
+            0,
+          );
           const stripeConnectId = appraiser.appraiserProfile?.stripeConnectId;
 
           // Check if appraiser has Stripe Connect account
           if (!stripeConnectId) {
             await ctx.prisma.payment.updateMany({
               where: { id: { in: payouts.map((p) => p.id) } },
-              data: { status: "PENDING", statusMessage: "Stripe Connect not configured" },
+              data: {
+                status: "PENDING",
+                statusMessage: "Stripe Connect not configured",
+              },
             });
             results.push({
               appraiserId,
@@ -980,13 +1510,19 @@ export const adminRouter = createTRPCRouter({
               where: { id: { in: payouts.map((p) => p.id) } },
               data: {
                 status: "FAILED",
-                statusMessage: stripeError instanceof Error ? stripeError.message : "Stripe transfer failed",
+                statusMessage:
+                  stripeError instanceof Error
+                    ? stripeError.message
+                    : "Stripe transfer failed",
               },
             });
             results.push({
               appraiserId,
               success: false,
-              error: stripeError instanceof Error ? stripeError.message : "Stripe transfer failed",
+              error:
+                stripeError instanceof Error
+                  ? stripeError.message
+                  : "Stripe transfer failed",
             });
           }
         }
@@ -999,7 +1535,10 @@ export const adminRouter = createTRPCRouter({
             resource: "payment",
             metadata: {
               totalProcessed: results.filter((r) => r.success).length,
-              totalAmount: results.reduce((sum, r) => sum + (r.success ? (r.amount ?? 0) : 0), 0),
+              totalAmount: results.reduce(
+                (sum, r) => sum + (r.success ? (r.amount ?? 0) : 0),
+                0,
+              ),
             },
           },
         });
@@ -1028,7 +1567,7 @@ export const adminRouter = createTRPCRouter({
         z.object({
           name: z.string(),
           enabled: z.boolean(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         return ctx.prisma.featureFlag.upsert({
@@ -1049,7 +1588,7 @@ export const adminRouter = createTRPCRouter({
         userId: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const logs = await ctx.prisma.auditLog.findMany({

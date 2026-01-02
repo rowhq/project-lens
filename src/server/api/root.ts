@@ -1,6 +1,6 @@
 /**
  * Root tRPC Router
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  *
  * This is the main router that aggregates all sub-routers
  */
@@ -20,6 +20,7 @@ import { marketplaceRouter } from "./routers/marketplace.router";
 import { userRouter } from "./routers/user.router";
 import { notificationsRouter } from "./routers/notifications.router";
 import { mapRouter } from "./routers/map.router";
+import { paymentRouter } from "./routers/payment.router";
 
 /**
  * Main application router
@@ -40,6 +41,7 @@ export const appRouter = createTRPCRouter({
   user: userRouter,
   notifications: notificationsRouter,
   map: mapRouter,
+  payment: paymentRouter,
 });
 
 // Export type definition of API

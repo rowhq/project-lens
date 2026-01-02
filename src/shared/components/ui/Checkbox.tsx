@@ -4,8 +4,10 @@ import { forwardRef, useId } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
-export interface CheckboxProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+export interface CheckboxProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "type"
+> {
   label?: string;
   description?: string;
   error?: string;
@@ -30,18 +32,22 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             />
             <div
               className={cn(
-                "w-5 h-5 border-2 rounded transition-colors cursor-pointer",
-                "border-border bg-card",
-                "peer-checked:bg-brand-500 peer-checked:border-brand-500",
-                "peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500 peer-focus-visible:ring-offset-2",
+                "w-5 h-5 border transition-all cursor-pointer clip-notch-sm",
+                "border-gray-700 bg-gray-900",
+                "peer-checked:bg-lime-500 peer-checked:border-lime-500",
+                "peer-focus-visible:ring-2 peer-focus-visible:ring-lime-500 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-gray-950",
                 "peer-disabled:opacity-50 peer-disabled:cursor-not-allowed",
-                error && "border-red-500"
+                "hover:border-gray-600",
+                error && "border-red-500",
               )}
+              style={{
+                transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+              }}
             >
               <Check
                 className={cn(
-                  "w-full h-full text-white p-0.5 opacity-0 transition-opacity",
-                  "peer-checked:opacity-100"
+                  "w-full h-full text-black p-0.5 opacity-0 transition-opacity",
+                  "peer-checked:opacity-100",
                 )}
               />
             </div>
@@ -52,22 +58,20 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             {label && (
               <label
                 htmlFor={checkboxId}
-                className="text-sm font-medium text-foreground cursor-pointer"
+                className="text-sm font-medium text-white cursor-pointer"
               >
                 {label}
               </label>
             )}
             {description && (
-              <p className="text-sm text-muted-foreground">{description}</p>
+              <p className="text-sm text-gray-400">{description}</p>
             )}
-            {error && (
-              <p className="text-sm text-red-600 mt-1">{error}</p>
-            )}
+            {error && <p className="text-sm text-red-400 mt-1">{error}</p>}
           </div>
         )}
       </div>
     );
-  }
+  },
 );
 
 Checkbox.displayName = "Checkbox";

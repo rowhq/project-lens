@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Production
-      url: https://lens.rowship.com
+      url: https://truplat.rowship.com
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,13 +55,13 @@ jobs:
         with:
           payload: |
             {
-              "text": "✅ LENS deployed to production",
+              "text": "✅ TruPlat deployed to production",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "✅ *LENS deployed to production*\n<https://lens.rowship.com|View deployment>"
+                    "text": "✅ *TruPlat deployed to production*\n<https://truplat.rowship.com|View deployment>"
                   }
                 },
                 {

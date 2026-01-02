@@ -1,4 +1,4 @@
-// Project LENS - Database Schema
+// TruPlat - Database Schema
 // Texas V1 - AI Appraisal Platform
 
 generator client {
@@ -103,6 +103,7 @@ enum PaymentType {
   CHARGE
   REFUND
   PAYOUT
+  JOB_PAYOUT
   ADJUSTMENT
 }
 
@@ -395,6 +396,10 @@ model Job {
   // Geofencing
   geofenceRadius   Int     @default(500) // meters
   geofenceVerified Boolean @default(false)
+
+  // Revision handling
+  revisionRequested Boolean @default(false)
+  revisionNotes     String?
 
   // Timestamps
   createdAt DateTime @default(now())

@@ -1,6 +1,6 @@
 /**
  * Storage Client (Cloudflare R2 / AWS S3)
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  */
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";

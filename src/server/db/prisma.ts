@@ -1,6 +1,6 @@
 /**
  * Prisma Client Instance
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  */
 
 import { PrismaClient } from "@prisma/client";

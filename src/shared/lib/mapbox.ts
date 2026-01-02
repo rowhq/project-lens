@@ -1,6 +1,6 @@
 /**
  * Mapbox Client
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  */
 
 const MAPBOX_GEOCODING_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places";

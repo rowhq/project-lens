@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Mail, AlertCircle } from "lucide-react";
 import { Button } from "@/shared/components/ui/Button";
 import { Input } from "@/shared/components/ui/Input";
+import { Alert } from "@/shared/components/ui/Alert";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -41,39 +42,48 @@ export default function ForgotPasswordPage() {
     return (
       <div className="text-center">
         <div className="mb-6">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20">
-            <CheckCircle className="h-8 w-8 text-green-400" />
+          {/* Ledger-style success icon */}
+          <div className="relative mx-auto mb-4 flex h-16 w-16 items-center justify-center bg-lime-500/10 border border-lime-500/30 clip-notch">
+            <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400" />
+            <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400" />
+            <CheckCircle className="h-8 w-8 text-lime-400" />
           </div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Check your email</h1>
-          <p className="mt-2 text-[var(--muted-foreground)]">
-            We&apos;ve sent a password reset link to <strong className="text-[var(--foreground)]">{email}</strong>
+          <h1 className="text-2xl font-bold text-white">Check your email</h1>
+          <p className="mt-3 text-gray-400">
+            We&apos;ve sent a password reset link to
           </p>
+          <p className="mt-1 font-mono text-sm text-lime-400">{email}</p>
         </div>
         <Link
           href="/login"
-          className="block text-center text-sm font-medium text-[var(--primary)] hover:text-[var(--primary)]/80"
+          className="inline-block text-sm font-mono uppercase tracking-wider text-lime-400 hover:text-lime-300 transition-colors"
+          style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
         >
-          Back to login
+          ← Back to login
         </Link>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">Reset your password</h1>
-        <p className="mt-2 text-[var(--muted-foreground)]">
-          Enter your email address and we&apos;ll send you a link to reset your
-          password.
+    <div className="flex flex-col items-center">
+      <div className="mb-8 text-center">
+        <h1 className="text-2xl font-bold text-white mb-2">
+          Reset your password
+        </h1>
+        <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+          Enter your email to receive a reset link
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="w-full space-y-5">
         {error && (
-          <div className="rounded-md bg-red-500/20 border border-red-500/30 p-4 text-sm text-red-400">
-            {error}
-          </div>
+          <Alert variant="error" dismissible onDismiss={() => setError(null)}>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {error}
+            </div>
+          </Alert>
         )}
 
         <Input
@@ -83,23 +93,27 @@ export default function ForgotPasswordPage() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           required
+          leftIcon={<Mail className="w-5 h-5" />}
         />
 
         <Button
           type="submit"
+          variant="lime"
+          size="lg"
           className="w-full"
           isLoading={isSubmitting}
         >
-          Send reset link
+          {isSubmitting ? "Sending..." : "Send reset link"}
         </Button>
       </form>
 
-      <div className="mt-6 text-center">
+      <div className="mt-8 text-center">
         <Link
           href="/login"
-          className="text-sm font-medium text-[var(--primary)] hover:text-[var(--primary)]/80"
+          className="text-sm font-mono uppercase tracking-wider text-lime-400 hover:text-lime-300 transition-colors"
+          style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
         >
-          Back to login
+          ← Back to login
         </Link>
       </div>
     </div>

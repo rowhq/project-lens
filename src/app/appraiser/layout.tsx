@@ -1,13 +1,13 @@
 /**
  * Appraiser Portal Layout
- * Mobile-first design for field appraisers
+ * Desktop: Sidebar navigation (consistent with Client)
+ * Mobile: Bottom navigation (mobile-first for field work)
  */
 
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth/auth";
 import { prisma } from "@/server/db/prisma";
-import { AppraiserBottomNav } from "@/shared/components/layout/AppraiserBottomNav";
-import { AppraiserHeader } from "@/shared/components/layout/AppraiserHeader";
+import { AppraiserLayoutWrapper } from "@/shared/components/layout/AppraiserLayoutWrapper";
 
 export default async function AppraiserLayout({
   children,
@@ -49,16 +49,5 @@ export default async function AppraiserLayout({
     redirect("/appraiser/onboarding");
   }
 
-  return (
-    <div className="flex min-h-screen flex-col bg-[var(--background)]">
-      {/* Header */}
-      <AppraiserHeader />
-
-      {/* Main Content - with bottom padding for nav */}
-      <main className="flex-1 overflow-y-auto pb-20">{children}</main>
-
-      {/* Bottom Navigation (mobile-first) */}
-      <AppraiserBottomNav />
-    </div>
-  );
+  return <AppraiserLayoutWrapper>{children}</AppraiserLayoutWrapper>;
 }

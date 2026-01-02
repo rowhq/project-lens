@@ -1,6 +1,6 @@
 /**
  * Utility Functions
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  */
 
 import { clsx, type ClassValue } from "clsx";

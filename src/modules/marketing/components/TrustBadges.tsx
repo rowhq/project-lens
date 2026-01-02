@@ -8,80 +8,83 @@ const badges = [
     icon: Shield,
     label: "SOC 2 Type II",
     description: "Certified",
-    color: "text-green-400",
   },
   {
     icon: Award,
     label: "E&O Insured",
     description: "$2M Coverage",
-    color: "text-blue-400",
   },
   {
     icon: FileCheck,
     label: "USPAP",
     description: "Compliant",
-    color: "text-purple-400",
   },
   {
     icon: Building2,
     label: "TALCB",
     description: "Licensed",
-    color: "text-orange-400",
   },
 ];
 
 export function TrustBadges() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.8 }}
-      className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-8"
-    >
-      {badges.map((badge, index) => (
+    <div className="py-8 bg-gray-950 border-y border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <p className="font-mono text-xs uppercase tracking-wider text-gray-500 text-center mb-6">
+          Trusted by Leading Lenders
+        </p>
         <motion.div
-          key={badge.label}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.9 + index * 0.1 }}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--card)]/50 border border-[var(--border)] backdrop-blur-sm"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex flex-wrap items-center justify-center gap-4 md:gap-6"
         >
-          <badge.icon className={`w-4 h-4 ${badge.color}`} />
-          <div className="flex flex-col">
-            <span className="text-xs font-semibold text-[var(--foreground)]">
-              {badge.label}
-            </span>
-            <span className="text-[10px] text-[var(--muted-foreground)]">
-              {badge.description}
-            </span>
-          </div>
+          {badges.map((badge, index) => (
+            <motion.div
+              key={badge.label}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.4 + index * 0.1 }}
+              className="flex items-center gap-3 px-4 py-3 bg-gray-900 border border-gray-800"
+            >
+              <badge.icon className="w-5 h-5 text-lime-400" />
+              <div className="flex flex-col">
+                <span className="font-mono text-xs uppercase tracking-wider text-white">
+                  {badge.label}
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-wider text-gray-500">
+                  {badge.description}
+                </span>
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
-      ))}
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
 // Inline variant for hero section
 export function TrustBadgesInline() {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[var(--muted-foreground)]">
-      <span className="flex items-center gap-1">
-        <Shield className="w-4 h-4 text-green-400" />
+    <div className="flex flex-wrap items-center justify-center gap-4 font-mono text-xs uppercase tracking-wider text-gray-400">
+      <span className="flex items-center gap-2">
+        <Shield className="w-4 h-4 text-lime-400" />
         SOC 2
       </span>
-      <span className="text-[var(--border)]">|</span>
-      <span className="flex items-center gap-1">
-        <Award className="w-4 h-4 text-blue-400" />
+      <span className="w-px h-3 bg-gray-700" />
+      <span className="flex items-center gap-2">
+        <Award className="w-4 h-4 text-lime-400" />
         E&O Insured
       </span>
-      <span className="text-[var(--border)]">|</span>
-      <span className="flex items-center gap-1">
-        <FileCheck className="w-4 h-4 text-purple-400" />
+      <span className="w-px h-3 bg-gray-700" />
+      <span className="flex items-center gap-2">
+        <FileCheck className="w-4 h-4 text-lime-400" />
         USPAP
       </span>
-      <span className="text-[var(--border)]">|</span>
-      <span className="flex items-center gap-1">
-        <Building2 className="w-4 h-4 text-orange-400" />
+      <span className="w-px h-3 bg-gray-700" />
+      <span className="flex items-center gap-2">
+        <Building2 className="w-4 h-4 text-lime-400" />
         Texas Licensed
       </span>
     </div>

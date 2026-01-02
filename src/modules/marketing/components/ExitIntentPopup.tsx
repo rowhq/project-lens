@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Gift, ArrowRight, Loader2 } from "lucide-react";
 
-const STORAGE_KEY = "lens_exit_popup_dismissed";
+const STORAGE_KEY = "truplat_exit_popup_dismissed";
 const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function ExitIntentPopup() {

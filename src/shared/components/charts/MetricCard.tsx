@@ -1,11 +1,8 @@
 "use client";
 
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-import {
-  AreaChart,
-  Area,
-  ResponsiveContainer,
-} from "recharts";
+import { AreaChart, Area, ResponsiveContainer } from "recharts";
+import { cn } from "@/shared/lib/utils";
 
 export interface SparklineDataPoint {
   value: number;
@@ -32,43 +29,43 @@ export function MetricCard({
   change,
   changeLabel,
   sparklineData,
-  sparklineColor = "#3B6CF3",
+  sparklineColor = "#4ADE80",
   icon: Icon,
-  iconColor = "text-[var(--primary)]",
-  iconBgColor = "bg-[var(--primary)]/10",
+  iconColor = "text-lime-400",
+  iconBgColor = "bg-lime-400/10 border-lime-400/20",
   className = "",
 }: MetricCardProps) {
   const isPositive = change !== undefined && change > 0;
   const isNegative = change !== undefined && change < 0;
-  const isNeutral = change !== undefined && change === 0;
 
-  const getTrendIcon = () => {
-    if (isPositive) return TrendingUp;
-    if (isNegative) return TrendingDown;
-    return Minus;
-  };
+  const TrendIcon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
 
-  const getTrendColor = () => {
-    if (isPositive) return "text-green-500";
-    if (isNegative) return "text-red-500";
-    return "text-[var(--muted-foreground)]";
-  };
+  const trendColor = isPositive
+    ? "text-lime-400"
+    : isNegative
+      ? "text-red-400"
+      : "text-gray-500";
 
-  const getTrendBgColor = () => {
-    if (isPositive) return "bg-green-500/10";
-    if (isNegative) return "bg-red-500/10";
-    return "bg-[var(--muted)]/50";
-  };
-
-  const TrendIcon = getTrendIcon();
+  const trendBgColor = isPositive
+    ? "bg-lime-400/10 border-lime-400/20"
+    : isNegative
+      ? "bg-red-400/10 border-red-400/20"
+      : "bg-gray-800 border-gray-700";
 
   return (
     <div
-      className={`relative bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 overflow-hidden ${className}`}
+      className={cn(
+        "relative bg-gray-950 border border-gray-800 p-5 overflow-hidden clip-notch",
+        className,
+      )}
     >
+      {/* Bracket corners */}
+      <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30 z-10" />
+      <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30 z-10" />
+
       {/* Background sparkline */}
       {sparklineData && sparklineData.length > 0 && (
-        <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0 opacity-10">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={sparklineData}
@@ -93,11 +90,11 @@ export function MetricCard({
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             {Icon && (
-              <div className={`p-2 rounded-lg ${iconBgColor}`}>
-                <Icon className={`w-4 h-4 ${iconColor}`} />
+              <div className={cn("p-2 border clip-notch-sm", iconBgColor)}>
+                <Icon className={cn("w-4 h-4", iconColor)} />
               </div>
             )}
-            <span className="text-sm font-medium text-[var(--muted-foreground)]">
+            <span className="font-mono text-label uppercase tracking-wider text-gray-500">
               {title}
             </span>
           </div>
@@ -105,10 +102,13 @@ export function MetricCard({
           {/* Trend indicator */}
           {change !== undefined && (
             <div
-              className={`flex items-center gap-1 px-2 py-1 rounded-full ${getTrendBgColor()}`}
+              className={cn(
+                "flex items-center gap-1 px-2 py-0.5 border clip-notch-sm",
+                trendBgColor,
+              )}
             >
-              <TrendIcon className={`w-3 h-3 ${getTrendColor()}`} />
-              <span className={`text-xs font-medium ${getTrendColor()}`}>
+              <TrendIcon className={cn("w-3 h-3", trendColor)} />
+              <span className={cn("text-label font-mono", trendColor)}>
                 {isPositive && "+"}
                 {change}%
               </span>
@@ -118,7 +118,7 @@ export function MetricCard({
 
         {/* Value */}
         <div className="mb-1">
-          <span className="text-2xl font-bold text-[var(--foreground)]">
+          <span className="text-2xl font-bold text-white tracking-tight">
             {typeof value === "number" ? value.toLocaleString() : value}
           </span>
         </div>
@@ -127,12 +127,10 @@ export function MetricCard({
         {(subtitle || changeLabel) && (
           <div className="flex items-center gap-2">
             {subtitle && (
-              <span className="text-sm text-[var(--muted-foreground)]">
-                {subtitle}
-              </span>
+              <span className="text-sm text-gray-500">{subtitle}</span>
             )}
             {changeLabel && (
-              <span className="text-xs text-[var(--muted-foreground)]">
+              <span className="text-label text-gray-500 font-mono">
                 {changeLabel}
               </span>
             )}
@@ -142,7 +140,7 @@ export function MetricCard({
 
       {/* Mini sparkline at bottom */}
       {sparklineData && sparklineData.length > 0 && (
-        <div className="mt-4 h-10">
+        <div className="relative mt-4 h-10 z-10">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={sparklineData}
@@ -153,7 +151,7 @@ export function MetricCard({
                 dataKey="value"
                 stroke={sparklineColor}
                 fill={sparklineColor}
-                fillOpacity={0.2}
+                fillOpacity={0.15}
                 strokeWidth={2}
               />
             </AreaChart>

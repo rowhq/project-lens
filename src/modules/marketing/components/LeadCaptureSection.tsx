@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FileText, ArrowRight, Check, Loader2 } from "lucide-react";
+import { FileText, ArrowRight, Check, Mail } from "lucide-react";
+import { Input } from "@/shared/components/ui/Input";
+import { Button } from "@/shared/components/ui/Button";
 
 export function LeadCaptureSection() {
   const [email, setEmail] = useState("");
@@ -29,8 +31,8 @@ export function LeadCaptureSection() {
 
   return (
     <section className="py-16 relative overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/5 via-transparent to-[var(--accent)]/5" />
+      {/* Background pattern */}
+      <div className="absolute inset-0 grid-pattern opacity-20" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -41,15 +43,20 @@ export function LeadCaptureSection() {
           className="mx-auto max-w-2xl text-center"
         >
           {/* Icon */}
-          <div className="mx-auto w-16 h-16 bg-[var(--primary)]/10 rounded-2xl flex items-center justify-center mb-6 border border-[var(--primary)]/20">
-            <FileText className="w-8 h-8 text-[var(--primary)]" />
+          <div className="relative mx-auto w-16 h-16 bg-lime-500/10 clip-notch flex items-center justify-center mb-6 border border-lime-500/30">
+            <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400" />
+            <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400" />
+            <FileText className="w-8 h-8 text-lime-400" />
           </div>
 
           {/* Headline */}
-          <h2 className="text-2xl sm:text-3xl font-bold text-[var(--foreground)] mb-3">
+          <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-2">
+            Free Resource
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
             Get the Free Texas Market Report
           </h2>
-          <p className="text-[var(--muted-foreground)] mb-8">
+          <p className="text-gray-400 mb-8">
             Q4 2025 property trends, hot markets, and valuation insights.
             Updated weekly.
           </p>
@@ -59,43 +66,40 @@ export function LeadCaptureSection() {
             onSubmit={handleSubmit}
             className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
           >
-            <div className="flex-1 relative">
-              <input
+            <div className="flex-1">
+              <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 disabled={status === "loading" || status === "success"}
-                className="w-full px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 required
+                leftIcon={<Mail className="w-5 h-5" />}
               />
             </div>
-            <button
+            <Button
               type="submit"
+              variant="lime"
               disabled={status === "loading" || status === "success"}
-              className="px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--accent)] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-            >
-              {status === "loading" ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Sending...
-                </>
-              ) : status === "success" ? (
-                <>
+              isLoading={status === "loading"}
+              rightIcon={
+                status === "success" ? (
                   <Check className="w-4 h-4" />
-                  Sent!
-                </>
-              ) : (
-                <>
-                  Download Now
+                ) : status !== "loading" ? (
                   <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
+                ) : undefined
+              }
+            >
+              {status === "loading"
+                ? "Sending..."
+                : status === "success"
+                  ? "Sent!"
+                  : "Download Now"}
+            </Button>
           </form>
 
           {/* Social proof */}
-          <p className="mt-4 text-sm text-[var(--muted-foreground)]">
+          <p className="mt-4 font-mono text-xs uppercase tracking-wider text-gray-500">
             Join 2,000+ real estate professionals. No spam, unsubscribe anytime.
           </p>
 
@@ -104,8 +108,10 @@ export function LeadCaptureSection() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm"
+              className="relative mt-4 p-3 bg-lime-500/10 border border-lime-500/30 clip-notch-sm text-lime-400 text-sm"
             >
+              <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400" />
+              <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400" />
               Check your inbox! The report is on its way.
             </motion.div>
           )}

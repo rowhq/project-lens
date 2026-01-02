@@ -20,6 +20,9 @@ import {
   RefreshCw,
   ChevronRight,
   Briefcase,
+  ThumbsUp,
+  Square,
+  CheckSquare,
 } from "lucide-react";
 import { EmptyState } from "@/shared/components/common/EmptyState";
 
@@ -43,6 +46,10 @@ export default function AdminJobsPage() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [cancellingJob, setCancellingJob] = useState<string | null>(null);
+  const [selectedJobs, setSelectedJobs] = useState<Set<string>>(new Set());
+  const [showBulkCancelDialog, setShowBulkCancelDialog] = useState(false);
+  const [showBulkApproveDialog, setShowBulkApproveDialog] = useState(false);
+  const [bulkReason, setBulkReason] = useState("");
 
   const {
     data: jobsData,
@@ -69,6 +76,46 @@ export default function AdminJobsPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to cancel job",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const bulkCancelMutation = trpc.admin.jobs.bulkCancel.useMutation({
+    onSuccess: (data) => {
+      refetch();
+      setSelectedJobs(new Set());
+      setShowBulkCancelDialog(false);
+      setBulkReason("");
+      toast({
+        title: "Jobs cancelled",
+        description: `${data.cancelledCount} job(s) have been cancelled.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to cancel jobs",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const bulkApproveMutation = trpc.admin.jobs.bulkApprove.useMutation({
+    onSuccess: (data) => {
+      refetch();
+      setSelectedJobs(new Set());
+      setShowBulkApproveDialog(false);
+      setBulkReason("");
+      toast({
+        title: "Jobs approved",
+        description: `${data.approvedCount} job(s) have been approved.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to approve jobs",
         variant: "destructive",
       });
     },
@@ -140,7 +187,7 @@ export default function AdminJobsPage() {
       job.assignedAppraiser?.lastName
         ?.toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
-      job.id.toLowerCase().includes(searchQuery.toLowerCase())
+      job.id.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleCancel = (jobId: string) => {
@@ -164,6 +211,39 @@ export default function AdminJobsPage() {
       ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"].includes(job.status)
     );
   };
+
+  const toggleJobSelection = (jobId: string) => {
+    const newSelected = new Set(selectedJobs);
+    if (newSelected.has(jobId)) {
+      newSelected.delete(jobId);
+    } else {
+      newSelected.add(jobId);
+    }
+    setSelectedJobs(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (!filteredJobs) return;
+    if (selectedJobs.size === filteredJobs.length) {
+      setSelectedJobs(new Set());
+    } else {
+      setSelectedJobs(new Set(filteredJobs.map((job) => job.id)));
+    }
+  };
+
+  const selectedJobsCanCancel =
+    filteredJobs?.filter(
+      (job) =>
+        selectedJobs.has(job.id) &&
+        !["COMPLETED", "CANCELLED", "FAILED"].includes(job.status),
+    ).length || 0;
+
+  const selectedJobsCanApprove =
+    filteredJobs?.filter(
+      (job) =>
+        selectedJobs.has(job.id) &&
+        ["SUBMITTED", "UNDER_REVIEW"].includes(job.status),
+    ).length || 0;
 
   return (
     <div className="space-y-6">
@@ -199,7 +279,7 @@ export default function AdminJobsPage() {
               (j) =>
                 j.status === "IN_PROGRESS" ||
                 j.status === "ACCEPTED" ||
-                j.status === "DISPATCHED"
+                j.status === "DISPATCHED",
             ).length || 0}
           </p>
         </div>
@@ -213,7 +293,7 @@ export default function AdminJobsPage() {
           <p className="text-sm text-[var(--muted-foreground)]">Under Review</p>
           <p className="text-2xl font-bold text-orange-400">
             {jobs?.filter(
-              (j) => j.status === "SUBMITTED" || j.status === "UNDER_REVIEW"
+              (j) => j.status === "SUBMITTED" || j.status === "UNDER_REVIEW",
             ).length || 0}
           </p>
         </div>
@@ -263,15 +343,69 @@ export default function AdminJobsPage() {
             onChange={(e) => setSlaBreach(e.target.checked)}
             className="rounded"
           />
-          <span className="text-sm text-[var(--foreground)]">SLA Breach Only</span>
+          <span className="text-sm text-[var(--foreground)]">
+            SLA Breach Only
+          </span>
         </label>
       </div>
+
+      {/* Bulk Action Bar */}
+      {selectedJobs.size > 0 && (
+        <div className="bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-[var(--foreground)]">
+              {selectedJobs.size} job{selectedJobs.size !== 1 ? "s" : ""}{" "}
+              selected
+            </span>
+            <button
+              onClick={() => setSelectedJobs(new Set())}
+              className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+            >
+              Clear selection
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            {selectedJobsCanApprove > 0 && (
+              <button
+                onClick={() => setShowBulkApproveDialog(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <ThumbsUp className="w-4 h-4" />
+                Approve ({selectedJobsCanApprove})
+              </button>
+            )}
+            {selectedJobsCanCancel > 0 && (
+              <button
+                onClick={() => setShowBulkCancelDialog(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                <XCircle className="w-4 h-4" />
+                Cancel ({selectedJobsCanCancel})
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Jobs Table */}
       <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden overflow-x-auto">
         <table className="w-full min-w-[900px]">
           <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
             <tr>
+              <th className="px-4 py-3 text-left">
+                <button
+                  onClick={toggleSelectAll}
+                  className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                >
+                  {filteredJobs &&
+                  selectedJobs.size === filteredJobs.length &&
+                  filteredJobs.length > 0 ? (
+                    <CheckSquare className="w-5 h-5 text-[var(--primary)]" />
+                  ) : (
+                    <Square className="w-5 h-5" />
+                  )}
+                </button>
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Property
               </th>
@@ -294,7 +428,7 @@ export default function AdminJobsPage() {
             {isLoading ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-6 py-12 text-center text-[var(--muted-foreground)]"
                 >
                   Loading jobs...
@@ -302,7 +436,7 @@ export default function AdminJobsPage() {
               </tr>
             ) : filteredJobs?.length === 0 ? (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={7}>
                   <EmptyState
                     icon={Briefcase}
                     title="No jobs found"
@@ -322,8 +456,20 @@ export default function AdminJobsPage() {
                     key={job.id}
                     className={`hover:bg-[var(--secondary)] ${
                       breach ? "bg-red-500/5" : ""
-                    }`}
+                    } ${selectedJobs.has(job.id) ? "bg-[var(--primary)]/5" : ""}`}
                   >
+                    <td className="px-4 py-4">
+                      <button
+                        onClick={() => toggleJobSelection(job.id)}
+                        className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                      >
+                        {selectedJobs.has(job.id) ? (
+                          <CheckSquare className="w-5 h-5 text-[var(--primary)]" />
+                        ) : (
+                          <Square className="w-5 h-5" />
+                        )}
+                      </button>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-start gap-2">
                         <MapPin className="w-4 h-4 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0" />
@@ -409,7 +555,7 @@ export default function AdminJobsPage() {
                               <ChevronRight className="w-4 h-4 ml-auto" />
                             </Link>
                             {!["COMPLETED", "CANCELLED", "FAILED"].includes(
-                              job.status
+                              job.status,
                             ) && (
                               <button
                                 onClick={() => {
@@ -467,6 +613,128 @@ export default function AdminJobsPage() {
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
                 {cancelJob.isPending ? "Cancelling..." : "Confirm Cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Cancel Dialog */}
+      {showBulkCancelDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card)] rounded-lg p-6 w-full max-w-md border border-[var(--border)]">
+            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+              Cancel {selectedJobsCanCancel} Job
+              {selectedJobsCanCancel !== 1 ? "s" : ""}
+            </h3>
+            <p className="text-sm text-[var(--muted-foreground)] mb-4">
+              Please provide a reason for cancelling these jobs. This action
+              cannot be undone.
+            </p>
+            <textarea
+              value={bulkReason}
+              onChange={(e) => setBulkReason(e.target.value)}
+              placeholder="Enter cancellation reason..."
+              rows={3}
+              className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            />
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => {
+                  setShowBulkCancelDialog(false);
+                  setBulkReason("");
+                }}
+                className="px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!bulkReason.trim()) {
+                    toast({
+                      title: "Reason required",
+                      description: "Please provide a reason for cancellation",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  const jobsToCancel =
+                    filteredJobs
+                      ?.filter(
+                        (job) =>
+                          selectedJobs.has(job.id) &&
+                          !["COMPLETED", "CANCELLED", "FAILED"].includes(
+                            job.status,
+                          ),
+                      )
+                      .map((job) => job.id) || [];
+                  bulkCancelMutation.mutate({
+                    jobIds: jobsToCancel,
+                    reason: bulkReason,
+                  });
+                }}
+                disabled={bulkCancelMutation.isPending}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {bulkCancelMutation.isPending
+                  ? "Cancelling..."
+                  : "Confirm Cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Approve Dialog */}
+      {showBulkApproveDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card)] rounded-lg p-6 w-full max-w-md border border-[var(--border)]">
+            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+              Approve {selectedJobsCanApprove} Job
+              {selectedJobsCanApprove !== 1 ? "s" : ""}
+            </h3>
+            <p className="text-sm text-[var(--muted-foreground)] mb-4">
+              Are you sure you want to approve these jobs? This will mark them
+              as completed and create payout records for the appraisers.
+            </p>
+            <textarea
+              value={bulkReason}
+              onChange={(e) => setBulkReason(e.target.value)}
+              placeholder="Optional notes..."
+              rows={3}
+              className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            />
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => {
+                  setShowBulkApproveDialog(false);
+                  setBulkReason("");
+                }}
+                className="px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const jobsToApprove =
+                    filteredJobs
+                      ?.filter(
+                        (job) =>
+                          selectedJobs.has(job.id) &&
+                          ["SUBMITTED", "UNDER_REVIEW"].includes(job.status),
+                      )
+                      .map((job) => job.id) || [];
+                  bulkApproveMutation.mutate({
+                    jobIds: jobsToApprove,
+                    notes: bulkReason || undefined,
+                  });
+                }}
+                disabled={bulkApproveMutation.isPending}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                {bulkApproveMutation.isPending
+                  ? "Approving..."
+                  : "Confirm Approve"}
               </button>
             </div>
           </div>

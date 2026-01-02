@@ -50,10 +50,12 @@ export function Tooltip({
   };
 
   const arrows = {
-    top: "top-full left-1/2 -translate-x-1/2 border-t-neutral-800 border-x-transparent border-b-transparent",
-    bottom: "bottom-full left-1/2 -translate-x-1/2 border-b-neutral-800 border-x-transparent border-t-transparent",
-    left: "left-full top-1/2 -translate-y-1/2 border-l-neutral-800 border-y-transparent border-r-transparent",
-    right: "right-full top-1/2 -translate-y-1/2 border-r-neutral-800 border-y-transparent border-l-transparent",
+    top: "top-full left-1/2 -translate-x-1/2 border-t-gray-900 border-x-transparent border-b-transparent",
+    bottom:
+      "bottom-full left-1/2 -translate-x-1/2 border-b-gray-900 border-x-transparent border-t-transparent",
+    left: "left-full top-1/2 -translate-y-1/2 border-l-gray-900 border-y-transparent border-r-transparent",
+    right:
+      "right-full top-1/2 -translate-y-1/2 border-r-gray-900 border-y-transparent border-l-transparent",
   };
 
   return (
@@ -69,18 +71,18 @@ export function Tooltip({
         <div
           role="tooltip"
           className={cn(
-            "absolute z-tooltip px-2 py-1 text-xs text-white bg-neutral-800 rounded shadow-lg whitespace-nowrap animate-fade-in",
+            // Ledger style: clip-path, monospace, dark bg
+            "absolute z-tooltip px-3 py-1.5",
+            "font-mono text-label text-white",
+            "bg-gray-900 border border-gray-700",
+            "clip-notch-xs",
+            "whitespace-nowrap animate-fade-in",
             positions[position],
-            className
+            className,
           )}
         >
           {content}
-          <div
-            className={cn(
-              "absolute w-0 h-0 border-4",
-              arrows[position]
-            )}
-          />
+          <div className={cn("absolute w-0 h-0 border-4", arrows[position])} />
         </div>
       )}
     </div>

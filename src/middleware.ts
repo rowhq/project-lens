@@ -1,6 +1,6 @@
 /**
  * Middleware
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  *
  * Handles authentication and role-based routing with NextAuth
  */
@@ -25,6 +25,7 @@ export default auth(async (req) => {
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/for-appraisers") ||
     pathname.startsWith("/api/webhooks") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/share/");
@@ -32,7 +33,10 @@ export default auth(async (req) => {
   // Allow public routes
   if (isPublicRoute) {
     // Redirect to dashboard if already authenticated and trying to access login/register
-    if (isAuthenticated && (pathname.startsWith("/login") || pathname.startsWith("/register"))) {
+    if (
+      isAuthenticated &&
+      (pathname.startsWith("/login") || pathname.startsWith("/register"))
+    ) {
       if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
         return NextResponse.redirect(new URL("/admin/dashboard", req.url));
       }

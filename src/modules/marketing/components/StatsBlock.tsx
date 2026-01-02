@@ -16,30 +16,34 @@ const stats: Stat[] = [
     icon: Building2,
     value: 50000,
     suffix: "+",
-    label: "Properties Analyzed",
+    label: "Properties Valued",
   },
   {
     icon: Clock,
     value: 24,
     suffix: "hr",
-    label: "Average Turnaround",
+    label: "Avg. Delivery Time",
   },
   {
     icon: Target,
     value: 95,
     suffix: "%",
-    label: "Accuracy Rate",
+    label: "Within 5% of Sale Price",
   },
   {
     icon: DollarSign,
     value: 2,
     suffix: "M+",
     prefix: "$",
-    label: "Client Savings",
+    label: "Saved by Clients",
   },
 ];
 
-function useCountUp(end: number, duration: number = 2000, start: boolean = false) {
+function useCountUp(
+  end: number,
+  duration: number = 2000,
+  start: boolean = false,
+) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -74,25 +78,27 @@ function StatCard({ stat, isVisible }: { stat: Stat; isVisible: boolean }) {
   const Icon = stat.icon;
 
   const formattedValue =
-    stat.value >= 1000
-      ? count.toLocaleString()
-      : count.toString();
+    stat.value >= 1000 ? count.toLocaleString() : count.toString();
 
   return (
-    <div className="relative group">
-      <div className="absolute -inset-1 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity" />
-      <div className="relative flex flex-col items-center p-8 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
-        <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center mb-4">
-          <Icon className="w-6 h-6 text-[var(--primary)]" />
-        </div>
-        <div className="text-4xl sm:text-5xl font-bold text-[var(--foreground)] mb-2">
-          {stat.prefix}
-          {formattedValue}
-          {stat.suffix}
-        </div>
-        <div className="text-[var(--muted-foreground)] text-sm text-center">
-          {stat.label}
-        </div>
+    <div
+      className="group relative flex flex-col items-center p-8 clip-notch bg-gray-900 border border-gray-800 hover:border-lime-500/50 transition-all"
+      style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
+    >
+      {/* L-bracket corners */}
+      <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+      <div className="w-12 h-12 clip-notch-sm bg-lime-500/10 border border-lime-500/30 flex items-center justify-center mb-4">
+        <Icon className="w-6 h-6 text-lime-400" />
+      </div>
+      <div className="text-4xl sm:text-5xl font-bold text-white mb-2">
+        {stat.prefix}
+        {formattedValue}
+        {stat.suffix}
+      </div>
+      <div className="font-mono text-xs uppercase tracking-wider text-gray-500 text-center">
+        {stat.label}
       </div>
     </div>
   );
@@ -110,7 +116,7 @@ export function StatsBlock() {
           observer.disconnect();
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.2 },
     );
 
     if (ref.current) {
@@ -122,19 +128,22 @@ export function StatsBlock() {
 
   return (
     <section ref={ref} className="py-24 relative">
-      {/* Background accent */}
+      {/* Background pattern */}
       <div
-        className="absolute inset-0 bg-[var(--gradient-glow)] opacity-50"
+        className="absolute inset-0 grid-pattern opacity-30"
         aria-hidden="true"
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4">
+          <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
+            Platform Metrics
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             Trusted by Leading Lenders
           </h2>
-          <p className="text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto">
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
             Our AI-powered platform delivers consistent, accurate valuations at
             unprecedented speed.
           </p>

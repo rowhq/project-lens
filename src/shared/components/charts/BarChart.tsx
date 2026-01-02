@@ -42,12 +42,13 @@ export interface BarChartProps {
   ariaLabel?: string;
 }
 
+// Ledger-inspired color palette
 const DEFAULT_COLORS = [
-  "#3B6CF3", // Primary blue
-  "#10B981", // Green
-  "#8B5CF6", // Purple
-  "#F59E0B", // Amber
-  "#EF4444", // Red
+  "#4ADE80", // Lime green (primary)
+  "#6B7280", // Gray
+  "#A78BFA", // Purple
+  "#FBBF24", // Amber
+  "#F87171", // Red
 ];
 
 export function BarChart({
@@ -61,7 +62,7 @@ export function BarChart({
   layout = "horizontal",
   formatYAxis,
   formatTooltip,
-  barRadius = 4,
+  barRadius = 0,
   className = "",
   colorByValue,
   ariaLabel,
@@ -73,7 +74,9 @@ export function BarChart({
       className={className}
       style={{ height }}
       role="img"
-      aria-label={ariaLabel || `Bar chart showing ${series.map(s => s.name).join(", ")}`}
+      aria-label={
+        ariaLabel || `Bar chart showing ${series.map((s) => s.name).join(", ")}`
+      }
     >
       <ResponsiveContainer width="100%" height="100%">
         <RechartsBarChart
@@ -84,8 +87,8 @@ export function BarChart({
           {showGrid && (
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="var(--border)"
-              opacity={0.5}
+              stroke="#374151"
+              opacity={0.3}
               horizontal={!isVertical}
               vertical={isVertical}
             />
@@ -94,17 +97,25 @@ export function BarChart({
             <>
               <XAxis
                 type="number"
-                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
-                tickLine={{ stroke: "var(--border)" }}
-                axisLine={{ stroke: "var(--border)" }}
+                tick={{
+                  fill: "#6B7280",
+                  fontSize: 11,
+                  fontFamily: "JetBrains Mono, monospace",
+                }}
+                tickLine={{ stroke: "#374151" }}
+                axisLine={{ stroke: "#374151" }}
                 tickFormatter={formatYAxis}
               />
               <YAxis
                 dataKey={xAxisDataKey}
                 type="category"
-                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
-                tickLine={{ stroke: "var(--border)" }}
-                axisLine={{ stroke: "var(--border)" }}
+                tick={{
+                  fill: "#6B7280",
+                  fontSize: 11,
+                  fontFamily: "JetBrains Mono, monospace",
+                }}
+                tickLine={{ stroke: "#374151" }}
+                axisLine={{ stroke: "#374151" }}
                 width={80}
               />
             </>
@@ -112,14 +123,22 @@ export function BarChart({
             <>
               <XAxis
                 dataKey={xAxisDataKey}
-                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
-                tickLine={{ stroke: "var(--border)" }}
-                axisLine={{ stroke: "var(--border)" }}
+                tick={{
+                  fill: "#6B7280",
+                  fontSize: 11,
+                  fontFamily: "JetBrains Mono, monospace",
+                }}
+                tickLine={{ stroke: "#374151" }}
+                axisLine={{ stroke: "#374151" }}
               />
               <YAxis
-                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
-                tickLine={{ stroke: "var(--border)" }}
-                axisLine={{ stroke: "var(--border)" }}
+                tick={{
+                  fill: "#6B7280",
+                  fontSize: 11,
+                  fontFamily: "JetBrains Mono, monospace",
+                }}
+                tickLine={{ stroke: "#374151" }}
+                axisLine={{ stroke: "#374151" }}
                 tickFormatter={formatYAxis}
               />
             </>
@@ -127,23 +146,35 @@ export function BarChart({
           {showTooltip && (
             <Tooltip
               contentStyle={{
-                backgroundColor: "var(--card)",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                color: "var(--foreground)",
+                backgroundColor: "#0A0A0A",
+                border: "1px solid #374151",
+                borderRadius: "0",
+                color: "#FFFFFF",
+                fontFamily: "JetBrains Mono, monospace",
+                fontSize: "12px",
+                clipPath:
+                  "polygon(0 4px, 4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%)",
               }}
               formatter={(value) => {
                 const numValue = typeof value === "number" ? value : 0;
-                return formatTooltip ? formatTooltip(numValue) : numValue.toLocaleString();
+                return formatTooltip
+                  ? formatTooltip(numValue)
+                  : numValue.toLocaleString();
               }}
-              cursor={{ fill: "var(--muted)", opacity: 0.3 }}
+              cursor={{ fill: "#1F2937", opacity: 0.5 }}
             />
           )}
           {showLegend && series.length > 1 && (
             <Legend
-              wrapperStyle={{ color: "var(--foreground)" }}
+              wrapperStyle={{
+                color: "#9CA3AF",
+                fontFamily: "JetBrains Mono, monospace",
+                fontSize: "11px",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
               formatter={(value) => (
-                <span style={{ color: "var(--muted-foreground)" }}>{value}</span>
+                <span style={{ color: "#9CA3AF" }}>{value}</span>
               )}
             />
           )}

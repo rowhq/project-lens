@@ -24,7 +24,81 @@ export const appraiserRouter = createTRPCRouter({
         where: { userId: ctx.user.id },
         include: { user: true },
       });
-      return profile;
+
+      if (!profile) return null;
+
+      // Calculate streaks from job history
+      const completedJobs = await ctx.prisma.job.findMany({
+        where: {
+          assignedAppraiserId: ctx.user.id,
+          status: "COMPLETED",
+          completedAt: { not: null },
+        },
+        orderBy: { completedAt: "desc" },
+        select: { completedAt: true },
+      });
+
+      // Group jobs by date
+      const jobDates = new Set<string>();
+      completedJobs.forEach((job) => {
+        if (job.completedAt) {
+          jobDates.add(job.completedAt.toISOString().split("T")[0]);
+        }
+      });
+
+      // Calculate current streak
+      let currentStreak = 0;
+      const today = new Date();
+      const checkDate = new Date(today);
+
+      while (true) {
+        const dateStr = checkDate.toISOString().split("T")[0];
+        if (jobDates.has(dateStr)) {
+          currentStreak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else if (currentStreak === 0) {
+          // Check if we should look at yesterday (job might not be done today yet)
+          checkDate.setDate(checkDate.getDate() - 1);
+          const yesterdayStr = checkDate.toISOString().split("T")[0];
+          if (jobDates.has(yesterdayStr)) {
+            currentStreak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+
+      // Calculate longest streak
+      let longestStreak = 0;
+      let tempStreak = 0;
+      const sortedDates = Array.from(jobDates).sort().reverse();
+
+      for (let i = 0; i < sortedDates.length; i++) {
+        if (i === 0) {
+          tempStreak = 1;
+        } else {
+          const prevDate = new Date(sortedDates[i - 1]);
+          const currDate = new Date(sortedDates[i]);
+          const diffDays = Math.round((prevDate.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24));
+
+          if (diffDays === 1) {
+            tempStreak++;
+          } else {
+            longestStreak = Math.max(longestStreak, tempStreak);
+            tempStreak = 1;
+          }
+        }
+      }
+      longestStreak = Math.max(longestStreak, tempStreak);
+
+      return {
+        ...profile,
+        currentStreak,
+        longestStreak,
+      };
     }),
 
     update: appraiserProcedure
@@ -296,9 +370,19 @@ export const appraiserRouter = createTRPCRouter({
   earnings: createTRPCRouter({
     summary: appraiserProcedure.query(async ({ ctx }) => {
       const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - now.getDay());
+
+      // Get completed jobs today
+      const todayJobs = await ctx.prisma.job.findMany({
+        where: {
+          assignedAppraiserId: ctx.user.id,
+          status: "COMPLETED",
+          completedAt: { gte: startOfDay },
+        },
+      });
 
       // Get completed jobs this month
       const monthlyJobs = await ctx.prisma.job.findMany({
@@ -338,6 +422,10 @@ export const appraiserRouter = createTRPCRouter({
         _sum: { amount: true },
       });
 
+      const todayEarnings = todayJobs.reduce(
+        (sum, job) => sum + Number(job.payoutAmount),
+        0
+      );
       const monthlyEarnings = monthlyJobs.reduce(
         (sum, job) => sum + Number(job.payoutAmount),
         0
@@ -349,9 +437,11 @@ export const appraiserRouter = createTRPCRouter({
 
       return {
         totalEarnings: Number(totalEarnings._sum.amount || 0),
+        todayEarnings,
         monthlyEarnings,
         weeklyEarnings,
         pendingPayout: Number(pendingPayouts._sum.amount || 0),
+        completedJobsToday: todayJobs.length,
         completedJobsThisMonth: monthlyJobs.length,
         completedJobsThisWeek: weeklyJobs.length,
         rating: ctx.appraiserProfile.rating,

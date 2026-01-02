@@ -1,242 +1,587 @@
 "use client";
 
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
 import {
   Briefcase,
   DollarSign,
-  Clock,
   Star,
   MapPin,
   ChevronRight,
   Calendar,
   CheckCircle,
   AlertCircle,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
+import {
+  StreakBanner,
+  BadgeDisplay,
+  DailyGoalWidget,
+  LevelProgressWidget,
+  calculateUnlockedBadges,
+} from "@/shared/components/common/GamificationWidget";
+import { getUrgencyConfig } from "@/shared/hooks/useLiveCountdown";
+import { cn } from "@/shared/lib/utils";
+
+// Stat Card - Ledger Style
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  accentColor = "lime",
+}: {
+  label: string;
+  value: string | number;
+  icon: React.ComponentType<{ className?: string }>;
+  accentColor?: "lime" | "amber" | "purple" | "red";
+}) {
+  const colorClasses = {
+    lime: "text-lime-400 bg-lime-400/10 border-lime-400/20",
+    amber: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+    purple: "text-purple-400 bg-purple-400/10 border-purple-400/20",
+    red: "text-red-400 bg-red-400/10 border-red-400/20",
+  };
+
+  return (
+    <div className="relative bg-gray-950 border border-gray-800 p-4 clip-notch-sm group hover:border-gray-700 transition-colors duration-fast">
+      {/* Bracket corners */}
+      <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-lime-400/30" />
+      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-lime-400/30" />
+
+      <div className="flex items-center justify-between mb-2">
+        <div
+          className={cn("p-2 border clip-notch-sm", colorClasses[accentColor])}
+        >
+          <Icon className="w-4 h-4" />
+        </div>
+      </div>
+      <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
+      <p className="text-label text-gray-500 font-mono uppercase tracking-wider mt-0.5">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+// Job List Item - Ledger Style
+function JobListItem({
+  href,
+  address,
+  city,
+  state,
+  distance,
+  payout,
+  jobType,
+  status,
+  urgency,
+  dueDate,
+}: {
+  href: string;
+  address: string;
+  city?: string;
+  state?: string;
+  distance?: number;
+  payout?: number;
+  jobType?: string;
+  status?: string;
+  urgency?: {
+    textClass?: string;
+    bgClass?: string;
+    level?: string;
+    icon?: string;
+  };
+  dueDate?: Date;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center justify-between p-4 hover:bg-gray-900 transition-colors border-b border-gray-800 last:border-b-0"
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={cn(
+            "w-10 h-10 flex items-center justify-center clip-notch-sm",
+            urgency?.bgClass || "bg-lime-400/10 border border-lime-400/20",
+          )}
+        >
+          <MapPin
+            className={cn("w-5 h-5", urgency?.textClass || "text-lime-400")}
+          />
+        </div>
+        <div>
+          <p className="font-medium text-white">{address}</p>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            {city && (
+              <span>
+                {city}
+                {state && `, ${state}`}
+              </span>
+            )}
+            {distance !== undefined && (
+              <>
+                <span
+                  className="w-1 h-1 bg-gray-600"
+                  style={{
+                    clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+                  }}
+                />
+                <span>{distance.toFixed(1)} mi away</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="text-right">
+        {payout !== undefined && (
+          <p className="font-mono font-bold text-lime-400">${payout}</p>
+        )}
+        {status && (
+          <span
+            className={cn(
+              "px-2 py-0.5 text-label font-mono clip-notch-sm",
+              status === "IN_PROGRESS"
+                ? "bg-purple-400/20 text-purple-400 border border-purple-400/30"
+                : "bg-amber-400/20 text-amber-400 border border-amber-400/30",
+            )}
+          >
+            {status.replace("_", " ")}
+          </span>
+        )}
+        {jobType && !status && (
+          <p className="text-sm text-gray-500 font-mono uppercase">
+            {jobType.replace("_", " ")}
+          </p>
+        )}
+        {dueDate && (
+          <p
+            className={cn(
+              "text-sm mt-1",
+              urgency?.textClass || "text-gray-500",
+            )}
+          >
+            {urgency?.level !== "normal" && urgency?.icon} Due{" "}
+            {dueDate.toLocaleDateString()}
+          </p>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+// Weekly Stat Card - Ledger Style
+function WeeklyStatCard({
+  title,
+  icon: Icon,
+  stats,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  stats: { label: string; value: string | number; color?: string }[];
+}) {
+  return (
+    <div className="relative bg-gray-950 border border-gray-800 p-4 clip-notch-sm">
+      {/* Bracket corners */}
+      <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-lime-400/30" />
+      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-lime-400/30" />
+
+      <div className="flex items-center gap-2 mb-3">
+        <Icon className="w-5 h-5 text-gray-500" />
+        <h3 className="font-mono text-sm uppercase tracking-wider text-gray-400">
+          {title}
+        </h3>
+      </div>
+      <div className="space-y-3">
+        {stats.map((stat, i) => (
+          <div key={i} className="flex items-center justify-between">
+            <span className="text-gray-400 text-sm">{stat.label}</span>
+            <span
+              className={cn("font-mono font-bold", stat.color || "text-white")}
+            >
+              {stat.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function AppraiserDashboardPage() {
-  // Fixed: Use nested router paths
   const { data: profile } = trpc.appraiser.profile.get.useQuery();
   const { data: availableJobs } = trpc.job.available.useQuery({ limit: 5 });
   const { data: activeJobs } = trpc.job.myActive.useQuery();
   const { data: earnings } = trpc.appraiser.earnings.summary.useQuery();
+
+  // Calculate unlocked badges based on stats
+  const unlockedBadges = calculateUnlockedBadges({
+    completedJobs: profile?.completedJobs || 0,
+    currentStreak: profile?.currentStreak || 0,
+    totalEarnings: earnings?.totalEarnings || 0,
+    rating: profile?.rating || 5.0,
+    ratedJobs: profile?.completedJobs || 0,
+  });
 
   const stats = [
     {
       label: "This Month",
       value: `$${earnings?.monthlyEarnings?.toLocaleString() || "0"}`,
       icon: DollarSign,
-      color: "text-green-400",
-      bg: "bg-green-500/20",
+      accentColor: "lime" as const,
     },
     {
       label: "Active Jobs",
       value: activeJobs?.length || 0,
       icon: Briefcase,
-      color: "text-[var(--primary)]",
-      bg: "bg-[var(--primary)]/20",
+      accentColor: "amber" as const,
     },
     {
       label: "Completed",
       value: earnings?.completedJobsThisMonth || 0,
-      icon: Clock,
-      color: "text-yellow-400",
-      bg: "bg-yellow-500/20",
+      icon: CheckCircle,
+      accentColor: "lime" as const,
     },
     {
       label: "Rating",
       value: profile?.rating?.toFixed(1) || "5.0",
       icon: Star,
-      color: "text-purple-400",
-      bg: "bg-purple-500/20",
+      accentColor: "purple" as const,
     },
   ];
 
+  // Client-side timestamp for hydration safety
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    const updateNow = () => setNow(Date.now());
+    updateNow();
+    const interval = setInterval(updateNow, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Pre-compute urgency data for active jobs (only on client)
+  const activeJobsWithUrgency = useMemo(() => {
+    if (!activeJobs || now === null) return [];
+    return activeJobs.map((job) => {
+      const hoursRemaining = job.slaDueAt
+        ? (new Date(job.slaDueAt).getTime() - now) / (1000 * 60 * 60)
+        : Infinity;
+      return {
+        ...job,
+        hoursRemaining,
+        urgency: getUrgencyConfig(hoursRemaining, hoursRemaining < 0),
+      };
+    });
+  }, [activeJobs, now]);
+
+  // Calculate jobs due today (only on client)
+  const jobsDueToday = useMemo(() => {
+    if (!activeJobs || now === null) return [];
+    const today = new Date(now).toDateString();
+    return activeJobs.filter((job) => {
+      if (!job.slaDueAt) return false;
+      return new Date(job.slaDueAt).toDateString() === today;
+    });
+  }, [activeJobs, now]);
+
   return (
-    <div className="space-y-6 pb-20 md:pb-6">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/80 text-white rounded-xl p-6">
-        <h1 className="text-2xl font-bold">
-          Welcome back, {profile?.user?.firstName || "Appraiser"}!
-        </h1>
-        <p className="text-white/70 mt-1">
-          {availableJobs?.length || 0} new jobs available in your area
-        </p>
+    <div className="space-y-6">
+      {/* Welcome Banner - Ledger Style */}
+      <div className="relative bg-gray-950 border border-lime-400/30 p-6 clip-notch overflow-hidden">
+        {/* Bracket corners */}
+        <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400" />
+        <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400" />
+
+        {/* Decorative grid */}
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `linear-gradient(to right, #4ADE80 1px, transparent 1px),
+                             linear-gradient(to bottom, #4ADE80 1px, transparent 1px)`,
+              backgroundSize: "20px 20px",
+            }}
+          />
+        </div>
+
+        <div className="relative flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Welcome back, {profile?.user?.firstName || "Appraiser"}!
+            </h1>
+            <p className="text-gray-400 mt-1 font-mono text-sm">
+              <span className="text-lime-400 font-bold">
+                {availableJobs?.length || 0}
+              </span>{" "}
+              new jobs available in your area
+            </p>
+          </div>
+          {profile?.completedJobs && profile.completedJobs > 0 && (
+            <div className="text-right">
+              <p className="text-label text-gray-500 font-mono uppercase tracking-wider">
+                Total Earned
+              </p>
+              <p className="text-xl font-bold text-lime-400 font-mono">
+                ${earnings?.totalEarnings?.toLocaleString() || "0"}
+              </p>
+            </div>
+          )}
+        </div>
         <Link
           href="/appraiser/jobs"
-          className="inline-flex items-center gap-2 mt-4 bg-[var(--card)] text-[var(--primary)] px-4 py-2 rounded-lg font-medium hover:bg-[var(--secondary)]"
+          className={cn(
+            "inline-flex items-center gap-2 mt-4",
+            "bg-lime-400 text-black",
+            "px-4 py-2.5",
+            "font-mono text-sm uppercase tracking-wider",
+            "clip-notch-sm",
+            "hover:bg-lime-300",
+            "transition-colors duration-fast",
+          )}
         >
+          <Zap className="w-4 h-4" />
           View Available Jobs
           <ChevronRight className="w-4 h-4" />
         </Link>
       </div>
 
+      {/* Streak Banner */}
+      <StreakBanner
+        currentStreak={profile?.currentStreak || 0}
+        longestStreak={profile?.longestStreak || 0}
+      />
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className={`p-2 rounded-lg ${stat.bg}`}>
-                  <Icon className={`w-5 h-5 ${stat.color}`} />
-                </div>
-                </div>
-              <p className="text-2xl font-bold text-[var(--foreground)]">{stat.value}</p>
-              <p className="text-sm text-[var(--muted-foreground)]">{stat.label}</p>
-            </div>
-          );
-        })}
+        {stats.map((stat) => (
+          <StatCard
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            accentColor={stat.accentColor}
+          />
+        ))}
       </div>
 
-      {/* Active Jobs */}
-      {activeJobs && activeJobs.length > 0 && (
-        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
-          <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
-            <h2 className="font-semibold text-[var(--foreground)]">Active Jobs</h2>
-            <Link href="/appraiser/jobs?filter=active" className="text-[var(--primary)] text-sm hover:underline">
-              View all
-            </Link>
+      {/* Daily Goal & Level Progress */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <DailyGoalWidget
+          completedToday={earnings?.completedJobsToday || 0}
+          dailyGoal={3}
+          earningsToday={earnings?.todayEarnings || 0}
+        />
+        <LevelProgressWidget completedJobs={profile?.completedJobs || 0} />
+      </div>
+
+      {/* Urgent Jobs Alert - Ledger Style */}
+      {jobsDueToday.length > 0 && (
+        <div className="relative bg-gray-950 border border-amber-400/30 p-4 clip-notch">
+          {/* Bracket corners */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400" />
+
+          <div className="flex items-center gap-2 mb-3">
+            <AlertCircle className="w-5 h-5 text-amber-400" />
+            <h3 className="font-mono text-sm uppercase tracking-wider text-amber-400">
+              {jobsDueToday.length} Job{jobsDueToday.length !== 1 ? "s" : ""}{" "}
+              Due Today!
+            </h3>
           </div>
-          <div className="divide-y divide-[var(--border)]">
-            {activeJobs.map((job) => (
+          <div className="space-y-2">
+            {jobsDueToday.map((job) => (
               <Link
                 key={job.id}
                 href={`/appraiser/jobs/${job.id}`}
-                className="flex items-center justify-between p-4 hover:bg-[var(--secondary)]"
+                className="flex items-center justify-between p-3 bg-gray-900 border border-gray-800 clip-notch-sm hover:border-amber-400/30 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[var(--primary)]/20 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-5 h-5 text-[var(--primary)]" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-[var(--foreground)]">{job.property?.addressLine1}</p>
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                      {job.property?.city}, {job.property?.state}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
-                    {job.status.replace("_", " ")}
+                  <MapPin className="w-4 h-4 text-amber-400" />
+                  <span className="font-medium text-white">
+                    {job.property?.addressLine1}
                   </span>
-                  <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                    Due {new Date(job.slaDueAt || "").toLocaleDateString()}
-                  </p>
                 </div>
+                <span className="text-sm text-amber-400 font-mono">
+                  Due{" "}
+                  {new Date(job.slaDueAt!).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
               </Link>
             ))}
           </div>
         </div>
       )}
 
-      {/* Available Jobs */}
-      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
-        <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
-          <h2 className="font-semibold text-[var(--foreground)]">Available Jobs</h2>
-          <Link href="/appraiser/jobs" className="text-[var(--primary)] text-sm hover:underline">
+      {/* Active Jobs - Ledger Style */}
+      {activeJobs && activeJobs.length > 0 && (
+        <div className="relative bg-gray-950 border border-gray-800 clip-notch overflow-hidden">
+          {/* Bracket corners */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400/30 z-10" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400/30 z-10" />
+
+          <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-amber-400" />
+              <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400">
+                Active Jobs
+              </h2>
+            </div>
+            <Link
+              href="/appraiser/jobs?tab=active"
+              className="flex items-center gap-1 text-lime-400 text-sm font-mono uppercase tracking-wider hover:text-lime-300 transition-colors"
+            >
+              View all
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div>
+            {activeJobsWithUrgency.slice(0, 3).map((job) => (
+              <JobListItem
+                key={job.id}
+                href={`/appraiser/jobs/${job.id}`}
+                address={job.property?.addressLine1 || ""}
+                city={job.property?.city}
+                state={job.property?.state}
+                status={job.status}
+                urgency={job.urgency}
+                dueDate={job.slaDueAt ? new Date(job.slaDueAt) : undefined}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Achievements */}
+      <BadgeDisplay
+        unlockedBadges={unlockedBadges.map((b) => b.id)}
+        onViewAll={() => {
+          // Could open a modal or navigate to achievements page
+        }}
+      />
+
+      {/* Available Jobs - Ledger Style */}
+      <div className="relative bg-gray-950 border border-gray-800 clip-notch overflow-hidden">
+        {/* Bracket corners */}
+        <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30 z-10" />
+        <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30 z-10" />
+
+        <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Briefcase className="w-5 h-5 text-lime-400" />
+            <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400">
+              Available Jobs
+            </h2>
+          </div>
+          <Link
+            href="/appraiser/jobs"
+            className="flex items-center gap-1 text-lime-400 text-sm font-mono uppercase tracking-wider hover:text-lime-300 transition-colors"
+          >
             View all
+            <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
         {!availableJobs?.length ? (
-          <div className="p-8 text-center text-[var(--muted-foreground)]">
-            <Briefcase className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
-            <p>No available jobs in your area right now</p>
-            <p className="text-sm mt-1">Check back soon or expand your service area</p>
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-900 border border-gray-800 flex items-center justify-center clip-notch">
+              <Briefcase className="w-8 h-8 text-gray-600" />
+            </div>
+            <p className="text-white font-medium">
+              No available jobs right now
+            </p>
+            <p className="text-sm text-gray-500 mt-1 font-mono">
+              Check back soon or expand your service area
+            </p>
           </div>
         ) : (
-          <div className="divide-y divide-[var(--border)]">
+          <div>
             {availableJobs.map((job) => (
-              <Link
+              <JobListItem
                 key={job.id}
                 href={`/appraiser/jobs/${job.id}`}
-                className="flex items-center justify-between p-4 hover:bg-[var(--secondary)]"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-5 h-5 text-green-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-[var(--foreground)]">{job.property?.addressLine1}</p>
-                    <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                      <span>{job.property?.city}</span>
-                      <span>•</span>
-                      <span>{job.distance?.toFixed(1)} mi away</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-green-400">${Number(job.payoutAmount)}</p>
-                  <p className="text-sm text-[var(--muted-foreground)]">{job.jobType?.replace("_", " ")}</p>
-                </div>
-              </Link>
+                address={job.property?.addressLine1 || ""}
+                city={job.property?.city}
+                state={job.property?.state}
+                distance={job.distance}
+                payout={Number(job.payoutAmount)}
+                jobType={job.jobType}
+              />
             ))}
           </div>
         )}
       </div>
 
-      {/* Quick Stats */}
+      {/* Weekly Performance - Ledger Style */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Calendar className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <h3 className="font-medium text-[var(--foreground)]">This Week</h3>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Completed</span>
-              <span className="font-medium text-[var(--foreground)]">
-                {earnings?.completedJobsThisWeek || 0} jobs
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Earnings</span>
-              <span className="font-medium text-green-400">
-                ${earnings?.weeklyEarnings?.toLocaleString() || "0"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <CheckCircle className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <h3 className="font-medium text-[var(--foreground)]">Performance</h3>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Completion Rate</span>
-              <span className="font-medium text-green-400">
-                {profile?.completedJobs && profile?.cancelledJobs
-                  ? Math.round((profile.completedJobs / (profile.completedJobs + profile.cancelledJobs)) * 100)
-                  : 100}%
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Total Jobs</span>
-              <span className="font-medium text-[var(--foreground)]">
-                {profile?.completedJobs || 0}
-              </span>
-            </div>
-          </div>
-        </div>
+        <WeeklyStatCard
+          title="This Week"
+          icon={Calendar}
+          stats={[
+            {
+              label: "Completed",
+              value: `${earnings?.completedJobsThisWeek || 0} jobs`,
+              color: "text-white",
+            },
+            {
+              label: "Earnings",
+              value: `$${earnings?.weeklyEarnings?.toLocaleString() || "0"}`,
+              color: "text-lime-400",
+            },
+          ]}
+        />
+        <WeeklyStatCard
+          title="Performance"
+          icon={TrendingUp}
+          stats={[
+            {
+              label: "Completion",
+              value: `${
+                profile?.completedJobs && profile?.cancelledJobs
+                  ? Math.round(
+                      (profile.completedJobs /
+                        (profile.completedJobs + profile.cancelledJobs)) *
+                        100,
+                    )
+                  : 100
+              }%`,
+              color: "text-lime-400",
+            },
+            {
+              label: "Total Jobs",
+              value: profile?.completedJobs || 0,
+              color: "text-white",
+            },
+          ]}
+        />
       </div>
 
-      {/* Alerts */}
+      {/* Profile Completion Alert - Ledger Style */}
       {profile?.verificationStatus !== "VERIFIED" && (
-        <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium text-yellow-400">Complete Your Profile</p>
-            <p className="text-sm text-yellow-400/80 mt-1">
-              Verify your license and complete your profile to start receiving jobs.
-            </p>
-            <Link
-              href="/appraiser/profile"
-              className="inline-block mt-2 text-yellow-400 font-medium hover:underline"
-            >
-              Complete Profile →
-            </Link>
+        <div className="relative bg-gray-950 border border-amber-400/30 p-4 clip-notch">
+          {/* Bracket corners */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400" />
+
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-mono text-sm uppercase tracking-wider text-amber-400">
+                Complete Your Profile
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                Verify your license and complete your profile to start receiving
+                jobs.
+              </p>
+              <Link
+                href="/appraiser/profile"
+                className="inline-flex items-center gap-1 mt-2 text-amber-400 font-mono text-sm uppercase tracking-wider hover:text-amber-300 transition-colors"
+              >
+                Complete Profile
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </div>
       )}

@@ -65,16 +65,25 @@ function SLAProgressTracker({
       const createdAt = new Date(appraisal.createdAt);
 
       // Expected hours based on type
-      const expectedHours = appraisal.requestedType === "AI_REPORT" ? 1 :
-                           appraisal.requestedType === "AI_REPORT_WITH_ONSITE" ? 48 : 72;
+      const expectedHours =
+        appraisal.requestedType === "AI_REPORT"
+          ? 1
+          : appraisal.requestedType === "AI_REPORT_WITH_ONSITE"
+            ? 48
+            : 72;
 
-      const expectedCompletion = new Date(createdAt.getTime() + expectedHours * 60 * 60 * 1000);
+      const expectedCompletion = new Date(
+        createdAt.getTime() + expectedHours * 60 * 60 * 1000,
+      );
       const totalDuration = expectedCompletion.getTime() - createdAt.getTime();
       const elapsed = now.getTime() - createdAt.getTime();
       const remaining = expectedCompletion.getTime() - now.getTime();
 
       // Calculate progress (0-100)
-      const progressPct = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+      const progressPct = Math.min(
+        100,
+        Math.max(0, (elapsed / totalDuration) * 100),
+      );
       setProgress(progressPct);
 
       // Calculate time remaining
@@ -82,7 +91,9 @@ function SLAProgressTracker({
         setTimeLeft("Overdue");
       } else {
         const hours = Math.floor(remaining / (1000 * 60 * 60));
-        const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+        const minutes = Math.floor(
+          (remaining % (1000 * 60 * 60)) / (1000 * 60),
+        );
         if (hours >= 24) {
           const days = Math.floor(hours / 24);
           const hrs = hours % 24;
@@ -103,38 +114,73 @@ function SLAProgressTracker({
   // Determine current step based on status
   const steps = [
     { id: "submitted", label: "Order Received", complete: true },
-    { id: "queued", label: "In Queue", complete: ["QUEUED", "RUNNING", "READY"].includes(appraisal.status) },
-    { id: "processing", label: "AI Analysis", complete: ["RUNNING", "READY"].includes(appraisal.status) },
-    ...(appraisal.requestedType !== "AI_REPORT" ? [
-      { id: "inspection", label: "On-Site Inspection", complete: job?.status === "COMPLETED" || appraisal.status === "READY" },
-    ] : []),
-    { id: "complete", label: "Report Ready", complete: appraisal.status === "READY" },
+    {
+      id: "queued",
+      label: "In Queue",
+      complete: ["QUEUED", "RUNNING", "READY"].includes(appraisal.status),
+    },
+    {
+      id: "processing",
+      label: "AI Analysis",
+      complete: ["RUNNING", "READY"].includes(appraisal.status),
+    },
+    ...(appraisal.requestedType !== "AI_REPORT"
+      ? [
+          {
+            id: "inspection",
+            label: "On-Site Inspection",
+            complete:
+              job?.status === "COMPLETED" || appraisal.status === "READY",
+          },
+        ]
+      : []),
+    {
+      id: "complete",
+      label: "Report Ready",
+      complete: appraisal.status === "READY",
+    },
   ];
 
   const isOverdue = timeLeft === "Overdue";
-  const currentStepIdx = steps.findIndex(s => !s.complete);
+  const currentStepIdx = steps.findIndex((s) => !s.complete);
 
   return (
-    <div className={`rounded-xl border p-6 ${isOverdue ? "bg-red-50 border-red-200" : "bg-blue-50 border-blue-200"}`}>
+    <div
+      className={`rounded-xl border p-6 ${isOverdue ? "bg-red-50 border-red-200" : "bg-blue-50 border-blue-200"}`}
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isOverdue ? "bg-red-100" : "bg-blue-100"}`}>
-            <Clock className={`w-5 h-5 ${isOverdue ? "text-red-600" : "text-blue-600"}`} />
+          <div
+            className={`w-10 h-10 rounded-full flex items-center justify-center ${isOverdue ? "bg-red-100" : "bg-blue-100"}`}
+          >
+            <Clock
+              className={`w-5 h-5 ${isOverdue ? "text-red-600" : "text-blue-600"}`}
+            />
           </div>
           <div>
-            <h3 className={`font-semibold ${isOverdue ? "text-red-900" : "text-blue-900"}`}>
+            <h3
+              className={`font-semibold ${isOverdue ? "text-red-900" : "text-blue-900"}`}
+            >
               {isOverdue ? "Processing Delayed" : "Processing Your Request"}
             </h3>
-            <p className={`text-sm ${isOverdue ? "text-red-700" : "text-blue-700"}`}>
+            <p
+              className={`text-sm ${isOverdue ? "text-red-700" : "text-blue-700"}`}
+            >
               {timeLeft}
             </p>
           </div>
         </div>
         <div className="text-right">
-          <p className={`text-2xl font-bold ${isOverdue ? "text-red-600" : "text-blue-600"}`}>
+          <p
+            className={`text-2xl font-bold ${isOverdue ? "text-red-600" : "text-blue-600"}`}
+          >
             {Math.round(progress)}%
           </p>
-          <p className={`text-xs ${isOverdue ? "text-red-600" : "text-blue-600"}`}>complete</p>
+          <p
+            className={`text-xs ${isOverdue ? "text-red-600" : "text-blue-600"}`}
+          >
+            complete
+          </p>
         </div>
       </div>
 
@@ -156,15 +202,13 @@ function SLAProgressTracker({
                   step.complete
                     ? "bg-green-500 text-white"
                     : idx === currentStepIdx
-                    ? isOverdue ? "bg-red-500 text-white" : "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-500"
+                      ? isOverdue
+                        ? "bg-red-500 text-white"
+                        : "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-500"
                 }`}
               >
-                {step.complete ? (
-                  <CheckCircle className="w-4 h-4" />
-                ) : (
-                  idx + 1
-                )}
+                {step.complete ? <CheckCircle className="w-4 h-4" /> : idx + 1}
               </div>
               {idx < steps.length - 1 && (
                 <div
@@ -174,9 +218,11 @@ function SLAProgressTracker({
                 />
               )}
             </div>
-            <span className={`mt-2 text-xs text-center ${
-              step.complete ? "text-green-700 font-medium" : "text-gray-500"
-            }`}>
+            <span
+              className={`mt-2 text-xs text-center ${
+                step.complete ? "text-green-700 font-medium" : "text-gray-500"
+              }`}
+            >
               {step.label}
             </span>
           </div>
@@ -185,11 +231,16 @@ function SLAProgressTracker({
 
       {/* Current status message */}
       {currentStepIdx >= 0 && currentStepIdx < steps.length && (
-        <p className={`mt-4 text-sm text-center ${isOverdue ? "text-red-700" : "text-blue-700"}`}>
-          {appraisal.status === "QUEUED" && "Your request is queued and will be processed shortly."}
-          {appraisal.status === "RUNNING" && appraisal.requestedType === "AI_REPORT" &&
+        <p
+          className={`mt-4 text-sm text-center ${isOverdue ? "text-red-700" : "text-blue-700"}`}
+        >
+          {appraisal.status === "QUEUED" &&
+            "Your request is queued and will be processed shortly."}
+          {appraisal.status === "RUNNING" &&
+            appraisal.requestedType === "AI_REPORT" &&
             "AI is analyzing property data and comparables..."}
-          {appraisal.status === "RUNNING" && appraisal.requestedType !== "AI_REPORT" &&
+          {appraisal.status === "RUNNING" &&
+            appraisal.requestedType !== "AI_REPORT" &&
             (job?.status === "COMPLETED"
               ? "On-site inspection complete. Generating final report..."
               : "AI analysis complete. Waiting for on-site inspection...")}
@@ -245,7 +296,9 @@ function ShareModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-card rounded-xl border border-border w-full max-w-md p-6 animate-scale-in">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-card-foreground">Share Report</h2>
+          <h2 className="text-xl font-bold text-card-foreground">
+            Share Report
+          </h2>
           <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg">
             <X className="w-5 h-5 text-muted-foreground" />
           </button>
@@ -277,7 +330,10 @@ function ShareModal({
                 onChange={(e) => setAllowDownload(e.target.checked)}
                 className="w-4 h-4 rounded border-border"
               />
-              <label htmlFor="allowDownload" className="text-sm text-card-foreground">
+              <label
+                htmlFor="allowDownload"
+                className="text-sm text-card-foreground"
+              >
                 Allow PDF download
               </label>
             </div>
@@ -291,7 +347,10 @@ function ShareModal({
                   onChange={(e) => setUsePassword(e.target.checked)}
                   className="w-4 h-4 rounded border-border"
                 />
-                <label htmlFor="usePassword" className="text-sm text-card-foreground">
+                <label
+                  htmlFor="usePassword"
+                  className="text-sm text-card-foreground"
+                >
                   Password protect
                 </label>
               </div>
@@ -334,7 +393,9 @@ function ShareModal({
           <div className="space-y-4">
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">Share Link</p>
-              <p className="text-sm text-card-foreground break-all font-mono">{shareUrl}</p>
+              <p className="text-sm text-card-foreground break-all font-mono">
+                {shareUrl}
+              </p>
             </div>
 
             <div className="flex gap-2">
@@ -433,8 +494,13 @@ function EmailModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-card rounded-xl border border-border w-full max-w-md p-6 animate-scale-in">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-card-foreground">Email Report</h2>
-          <button onClick={handleClose} className="p-2 hover:bg-muted rounded-lg">
+          <h2 className="text-xl font-bold text-card-foreground">
+            Email Report
+          </h2>
+          <button
+            onClick={handleClose}
+            className="p-2 hover:bg-muted rounded-lg"
+          >
             <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
@@ -475,7 +541,10 @@ function EmailModal({
                 onChange={(e) => setIncludeDownload(e.target.checked)}
                 className="w-4 h-4 rounded border-border"
               />
-              <label htmlFor="includeDownload" className="text-sm text-card-foreground">
+              <label
+                htmlFor="includeDownload"
+                className="text-sm text-card-foreground"
+              >
                 Include download link
               </label>
             </div>
@@ -509,7 +578,9 @@ function EmailModal({
             <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-green-500" />
             </div>
-            <h3 className="text-lg font-semibold text-card-foreground mb-2">Email Sent!</h3>
+            <h3 className="text-lg font-semibold text-card-foreground mb-2">
+              Email Sent!
+            </h3>
             <p className="text-muted-foreground mb-6">
               The report has been sent to {recipientEmail}
             </p>
@@ -535,7 +606,11 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   const [linkCopied, setLinkCopied] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
-  const { data: appraisal, isLoading, refetch } = trpc.appraisal.getById.useQuery({ id });
+  const {
+    data: appraisal,
+    isLoading,
+    refetch,
+  } = trpc.appraisal.getById.useQuery({ id });
 
   // Payment confirmation mutation
   const confirmPayment = trpc.appraisal.confirmPayment.useMutation({
@@ -550,7 +625,8 @@ export default function AppraisalDetailPage({ params }: PageProps) {
     onError: (error) => {
       toast({
         title: "Payment confirmation failed",
-        description: error.message || "Please contact support if you were charged.",
+        description:
+          error.message || "Please contact support if you were charged.",
         variant: "destructive",
       });
     },
@@ -559,7 +635,11 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   // Handle payment success callback from Stripe
   useEffect(() => {
     const paymentStatus = searchParams.get("payment");
-    if (paymentStatus === "success" && !paymentConfirmed && appraisal?.status === "DRAFT") {
+    if (
+      paymentStatus === "success" &&
+      !paymentConfirmed &&
+      appraisal?.status === "DRAFT"
+    ) {
       confirmPayment.mutate({ appraisalId: id });
     }
   }, [searchParams, id, paymentConfirmed, appraisal?.status, confirmPayment]);
@@ -567,7 +647,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   // Get existing share link
   const { data: existingShareLink } = trpc.report.getShareLink.useQuery(
     { reportId: appraisal?.report?.id || "" },
-    { enabled: !!appraisal?.report?.id }
+    { enabled: !!appraisal?.report?.id },
   );
 
   // Create share link mutation for quick copy
@@ -645,7 +725,10 @@ export default function AppraisalDetailPage({ params }: PageProps) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500">Appraisal not found</p>
-        <Link href="/appraisals" className="text-blue-600 hover:underline mt-2 inline-block">
+        <Link
+          href="/appraisals"
+          className="text-blue-600 hover:underline mt-2 inline-block"
+        >
           Back to appraisals
         </Link>
       </div>
@@ -663,11 +746,18 @@ export default function AppraisalDetailPage({ params }: PageProps) {
     const estimate = Number(report.valueEstimate);
 
     // Use comparable sales average if available
-    if (report.comps && Array.isArray(report.comps) && report.comps.length > 0) {
-      const compsWithPrice = (report.comps as Array<{ salePrice?: number }>)
-        .filter(c => c.salePrice && c.salePrice > 0);
+    if (
+      report.comps &&
+      Array.isArray(report.comps) &&
+      report.comps.length > 0
+    ) {
+      const compsWithPrice = (
+        report.comps as Array<{ salePrice?: number }>
+      ).filter((c) => c.salePrice && c.salePrice > 0);
       if (compsWithPrice.length > 0) {
-        const avgCompPrice = compsWithPrice.reduce((sum, c) => sum + (c.salePrice || 0), 0) / compsWithPrice.length;
+        const avgCompPrice =
+          compsWithPrice.reduce((sum, c) => sum + (c.salePrice || 0), 0) /
+          compsWithPrice.length;
         return ((estimate - avgCompPrice) / avgCompPrice) * 100;
       }
     }
@@ -706,8 +796,12 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900">{appraisal.referenceCode}</h1>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[appraisal.status]}`}>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {appraisal.referenceCode}
+              </h1>
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[appraisal.status]}`}
+              >
                 {appraisal.status.replace("_", " ")}
               </span>
             </div>
@@ -738,10 +832,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
       {/* SLA Progress Tracker */}
       {["QUEUED", "RUNNING"].includes(appraisal.status) && (
-        <SLAProgressTracker
-          appraisal={appraisal}
-          job={appraisal.jobs?.[0]}
-        />
+        <SLAProgressTracker appraisal={appraisal} job={appraisal.jobs?.[0]} />
       )}
 
       {/* Share Modal */}
@@ -768,7 +859,9 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           <div className="grid grid-cols-4 gap-8">
             <div>
               <p className="text-blue-200 text-sm">Estimated Value</p>
-              <p className="text-3xl font-bold">${Number(report.valueEstimate).toLocaleString()}</p>
+              <p className="text-3xl font-bold">
+                ${Number(report.valueEstimate).toLocaleString()}
+              </p>
               {valueChange !== null && (
                 <div className="flex items-center gap-1 mt-1">
                   {valueChange >= 0 ? (
@@ -776,7 +869,11 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                   ) : (
                     <TrendingDown className="w-4 h-4 text-red-300" />
                   )}
-                  <span className={valueChange >= 0 ? "text-green-300" : "text-red-300"}>
+                  <span
+                    className={
+                      valueChange >= 0 ? "text-green-300" : "text-red-300"
+                    }
+                  >
                     {valueChange >= 0 ? "+" : ""}
                     {valueChange.toFixed(1)}% vs comps avg
                   </span>
@@ -802,7 +899,9 @@ export default function AppraisalDetailPage({ params }: PageProps) {
             </div>
             <div>
               <p className="text-blue-200 text-sm">Report Type</p>
-              <p className="text-xl font-semibold">{report.type.replace("_", " ")}</p>
+              <p className="text-xl font-semibold">
+                {report.type.replace("_", " ")}
+              </p>
             </div>
           </div>
         </div>
@@ -819,28 +918,40 @@ export default function AppraisalDetailPage({ params }: PageProps) {
             <div className="grid grid-cols-3 gap-6">
               <div>
                 <p className="text-sm text-gray-500">Property Type</p>
-                <p className="font-medium text-gray-900">{property?.propertyType.replace("_", " ")}</p>
+                <p className="font-medium text-gray-900">
+                  {property?.propertyType.replace("_", " ")}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Square Feet</p>
-                <p className="font-medium text-gray-900">{property?.sqft?.toLocaleString() || "-"}</p>
+                <p className="font-medium text-gray-900">
+                  {property?.sqft?.toLocaleString() || "-"}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Year Built</p>
-                <p className="font-medium text-gray-900">{property?.yearBuilt || "-"}</p>
+                <p className="font-medium text-gray-900">
+                  {property?.yearBuilt || "-"}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Bedrooms</p>
-                <p className="font-medium text-gray-900">{property?.bedrooms || "-"}</p>
+                <p className="font-medium text-gray-900">
+                  {property?.bedrooms || "-"}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Bathrooms</p>
-                <p className="font-medium text-gray-900">{property?.bathrooms || "-"}</p>
+                <p className="font-medium text-gray-900">
+                  {property?.bathrooms || "-"}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Lot Size</p>
                 <p className="font-medium text-gray-900">
-                  {property?.lotSizeSqft ? `${(property.lotSizeSqft / 43560).toFixed(2)} acres` : "-"}
+                  {property?.lotSizeSqft
+                    ? `${(property.lotSizeSqft / 43560).toFixed(2)} acres`
+                    : "-"}
                 </p>
               </div>
             </div>
@@ -849,7 +960,9 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           {/* AI Analysis */}
           {report?.aiAnalysis && (
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">AI Analysis</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                AI Analysis
+              </h2>
               <p className="text-gray-700 mb-4">
                 {(report.aiAnalysis as { summary?: string })?.summary}
               </p>
@@ -861,13 +974,14 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                     Strengths
                   </h3>
                   <ul className="space-y-1">
-                    {((report.aiAnalysis as { strengths?: string[] })?.strengths || []).map(
-                      (strength: string, i: number) => (
-                        <li key={i} className="text-sm text-gray-600">
-                          • {strength}
-                        </li>
-                      )
-                    )}
+                    {(
+                      (report.aiAnalysis as { strengths?: string[] })
+                        ?.strengths || []
+                    ).map((strength: string, i: number) => (
+                      <li key={i} className="text-sm text-gray-600">
+                        • {strength}
+                      </li>
+                    ))}
                   </ul>
                 </div>
                 <div>
@@ -876,13 +990,14 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                     Considerations
                   </h3>
                   <ul className="space-y-1">
-                    {((report.aiAnalysis as { concerns?: string[] })?.concerns || []).map(
-                      (concern: string, i: number) => (
-                        <li key={i} className="text-sm text-gray-600">
-                          • {concern}
-                        </li>
-                      )
-                    )}
+                    {(
+                      (report.aiAnalysis as { concerns?: string[] })
+                        ?.concerns || []
+                    ).map((concern: string, i: number) => (
+                      <li key={i} className="text-sm text-gray-600">
+                        • {concern}
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </div>
@@ -892,7 +1007,9 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           {/* Comparable Sales */}
           {report?.comps && Array.isArray(report.comps) && (
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Comparable Sales</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Comparable Sales
+              </h2>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">
@@ -915,31 +1032,37 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {(report.comps as Array<{
-                      address: string;
-                      salePrice: number;
-                      sqft: number;
-                      distance: number;
-                      similarityScore: number;
-                    }>).slice(0, 5).map((comp, i) => (
-                      <tr key={i}>
-                        <td className="px-4 py-3 text-sm text-gray-900">{comp.address}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
-                          ${comp.salePrice?.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">
-                          {comp.sqft?.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">
-                          {comp.distance?.toFixed(1)} mi
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                            {comp.similarityScore}%
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {(
+                      report.comps as Array<{
+                        address: string;
+                        salePrice: number;
+                        sqft: number;
+                        distance: number;
+                        similarityScore: number;
+                      }>
+                    )
+                      .slice(0, 5)
+                      .map((comp, i) => (
+                        <tr key={i}>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {comp.address}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            ${comp.salePrice?.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-500">
+                            {comp.sqft?.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-500">
+                            {comp.distance?.toFixed(1)} mi
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                              {comp.similarityScore}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -947,46 +1070,62 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           )}
 
           {/* Risk Flags */}
-          {report?.riskFlags && Array.isArray(report.riskFlags) && (report.riskFlags as Array<{
-            type: string;
-            severity: string;
-            description: string;
-            recommendation: string;
-          }>).length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Risk Assessment</h2>
-              <div className="space-y-3">
-                {(report.riskFlags as Array<{
-                  type: string;
-                  severity: string;
-                  description: string;
-                  recommendation: string;
-                }>).map((risk, i) => (
-                  <div
-                    key={i}
-                    className={`p-4 rounded-lg border-l-4 ${
-                      risk.severity === "HIGH"
-                        ? "bg-red-50 border-red-500"
-                        : risk.severity === "MEDIUM"
-                        ? "bg-yellow-50 border-yellow-500"
-                        : "bg-green-50 border-green-500"
-                    }`}
-                  >
-                    <p className="font-medium text-gray-900">{risk.type.replace(/_/g, " ")}</p>
-                    <p className="text-sm text-gray-600 mt-1">{risk.description}</p>
-                    <p className="text-sm text-gray-500 mt-1 italic">{risk.recommendation}</p>
-                  </div>
-                ))}
+          {report?.riskFlags &&
+            Array.isArray(report.riskFlags) &&
+            (
+              report.riskFlags as Array<{
+                type: string;
+                severity: string;
+                description: string;
+                recommendation: string;
+              }>
+            ).length > 0 && (
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Risk Assessment
+                </h2>
+                <div className="space-y-3">
+                  {(
+                    report.riskFlags as Array<{
+                      type: string;
+                      severity: string;
+                      description: string;
+                      recommendation: string;
+                    }>
+                  ).map((risk, i) => (
+                    <div
+                      key={i}
+                      className={`p-4 rounded-lg border-l-4 ${
+                        risk.severity === "HIGH"
+                          ? "bg-red-50 border-red-500"
+                          : risk.severity === "MEDIUM"
+                            ? "bg-yellow-50 border-yellow-500"
+                            : "bg-green-50 border-green-500"
+                      }`}
+                    >
+                      <p className="font-medium text-gray-900">
+                        {risk.type?.replace(/_/g, " ") ?? "Unknown"}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {risk.description ?? ""}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1 italic">
+                        {risk.recommendation ?? ""}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Request Info */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Request Info</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Request Info
+            </h2>
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-gray-400" />
@@ -1001,14 +1140,18 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 <FileText className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-500">Purpose</p>
-                  <p className="font-medium text-gray-900">{appraisal.purpose}</p>
+                  <p className="font-medium text-gray-900">
+                    {appraisal.purpose}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <DollarSign className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-500">Price Paid</p>
-                  <p className="font-medium text-gray-900">${Number(appraisal.price).toFixed(2)}</p>
+                  <p className="font-medium text-gray-900">
+                    ${Number(appraisal.price).toFixed(2)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -1022,24 +1165,69 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 On-Site Inspection
               </h2>
               {appraisal.jobs.map((job) => {
-                const jobStatusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-                  PENDING_DISPATCH: { label: "Finding Appraiser", color: "bg-gray-100 text-gray-700", icon: Clock },
-                  DISPATCHED: { label: "Awaiting Assignment", color: "bg-yellow-100 text-yellow-700", icon: Truck },
-                  ACCEPTED: { label: "Appraiser Assigned", color: "bg-blue-100 text-blue-700", icon: User },
-                  IN_PROGRESS: { label: "Inspection In Progress", color: "bg-purple-100 text-purple-700", icon: Camera },
-                  SUBMITTED: { label: "Photos Submitted", color: "bg-orange-100 text-orange-700", icon: FileText },
-                  UNDER_REVIEW: { label: "Under Review", color: "bg-indigo-100 text-indigo-700", icon: Clock },
-                  COMPLETED: { label: "Completed", color: "bg-green-100 text-green-700", icon: CheckCircle },
-                  CANCELLED: { label: "Cancelled", color: "bg-red-100 text-red-700", icon: AlertTriangle },
-                  FAILED: { label: "Failed", color: "bg-red-100 text-red-700", icon: AlertTriangle },
+                const jobStatusConfig: Record<
+                  string,
+                  { label: string; color: string; icon: typeof Clock }
+                > = {
+                  PENDING_DISPATCH: {
+                    label: "Finding Appraiser",
+                    color: "bg-gray-100 text-gray-700",
+                    icon: Clock,
+                  },
+                  DISPATCHED: {
+                    label: "Awaiting Assignment",
+                    color: "bg-yellow-100 text-yellow-700",
+                    icon: Truck,
+                  },
+                  ACCEPTED: {
+                    label: "Appraiser Assigned",
+                    color: "bg-blue-100 text-blue-700",
+                    icon: User,
+                  },
+                  IN_PROGRESS: {
+                    label: "Inspection In Progress",
+                    color: "bg-purple-100 text-purple-700",
+                    icon: Camera,
+                  },
+                  SUBMITTED: {
+                    label: "Photos Submitted",
+                    color: "bg-orange-100 text-orange-700",
+                    icon: FileText,
+                  },
+                  UNDER_REVIEW: {
+                    label: "Under Review",
+                    color: "bg-indigo-100 text-indigo-700",
+                    icon: Clock,
+                  },
+                  COMPLETED: {
+                    label: "Completed",
+                    color: "bg-green-100 text-green-700",
+                    icon: CheckCircle,
+                  },
+                  CANCELLED: {
+                    label: "Cancelled",
+                    color: "bg-red-100 text-red-700",
+                    icon: AlertTriangle,
+                  },
+                  FAILED: {
+                    label: "Failed",
+                    color: "bg-red-100 text-red-700",
+                    icon: AlertTriangle,
+                  },
                 };
-                const status = jobStatusConfig[job.status] || { label: job.status, color: "bg-gray-100 text-gray-700", icon: Clock };
+                const status = jobStatusConfig[job.status] || {
+                  label: job.status,
+                  color: "bg-gray-100 text-gray-700",
+                  icon: Clock,
+                };
                 const StatusIcon = status.icon;
 
                 return (
                   <div key={job.id} className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${status.color}`}>
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${status.color}`}
+                      >
                         <StatusIcon className="w-4 h-4" />
                         {status.label}
                       </span>
@@ -1051,13 +1239,16 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                         <div>
                           <p className="text-gray-500">Due by</p>
                           <p className="font-medium text-gray-900">
-                            {new Date(job.slaDueAt).toLocaleDateString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              hour: "numeric",
-                              minute: "2-digit",
-                            })}
+                            {new Date(job.slaDueAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                              },
+                            )}
                           </p>
                         </div>
                       </div>
@@ -1066,22 +1257,45 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                     {/* Progress indicator */}
                     <div className="space-y-2">
                       <div className="flex items-center text-xs text-gray-500">
-                        {["DISPATCHED", "ACCEPTED", "IN_PROGRESS", "SUBMITTED", "COMPLETED"].map((step, idx, arr) => {
-                          const stepOrder = ["PENDING_DISPATCH", "DISPATCHED", "ACCEPTED", "IN_PROGRESS", "SUBMITTED", "UNDER_REVIEW", "COMPLETED"];
+                        {[
+                          "DISPATCHED",
+                          "ACCEPTED",
+                          "IN_PROGRESS",
+                          "SUBMITTED",
+                          "COMPLETED",
+                        ].map((step, idx, arr) => {
+                          const stepOrder = [
+                            "PENDING_DISPATCH",
+                            "DISPATCHED",
+                            "ACCEPTED",
+                            "IN_PROGRESS",
+                            "SUBMITTED",
+                            "UNDER_REVIEW",
+                            "COMPLETED",
+                          ];
                           const currentIdx = stepOrder.indexOf(job.status);
                           const stepIdx = stepOrder.indexOf(step);
                           const isComplete = stepIdx <= currentIdx;
                           const isCurrent = step === job.status;
 
                           return (
-                            <div key={step} className="flex items-center flex-1">
+                            <div
+                              key={step}
+                              className="flex items-center flex-1"
+                            >
                               <div
                                 className={`w-2.5 h-2.5 rounded-full ${
-                                  isComplete ? "bg-green-500" : isCurrent ? "bg-blue-500" : "bg-gray-300"
+                                  isComplete
+                                    ? "bg-green-500"
+                                    : isCurrent
+                                      ? "bg-blue-500"
+                                      : "bg-gray-300"
                                 }`}
                               />
                               {idx < arr.length - 1 && (
-                                <div className={`flex-1 h-0.5 mx-1 ${isComplete ? "bg-green-500" : "bg-gray-300"}`} />
+                                <div
+                                  className={`flex-1 h-0.5 mx-1 ${isComplete ? "bg-green-500" : "bg-gray-300"}`}
+                                />
                               )}
                             </div>
                           );
@@ -1101,12 +1315,16 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           {/* Share Report */}
           {report && (
             <div className="bg-card rounded-lg border border-border p-6">
-              <h2 className="text-lg font-semibold text-card-foreground mb-4">Share Report</h2>
+              <h2 className="text-lg font-semibold text-card-foreground mb-4">
+                Share Report
+              </h2>
               <div className="space-y-3">
                 <button
                   onClick={async () => {
                     if (existingShareLink?.url) {
-                      await navigator.clipboard.writeText(existingShareLink.url);
+                      await navigator.clipboard.writeText(
+                        existingShareLink.url,
+                      );
                       setLinkCopied(true);
                       setTimeout(() => setLinkCopied(false), 2000);
                     } else {
@@ -1151,7 +1369,8 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               </div>
               {existingShareLink && (
                 <p className="text-xs text-muted-foreground mt-3">
-                  Active link expires {new Date(existingShareLink.expiresAt).toLocaleDateString()}
+                  Active link expires{" "}
+                  {new Date(existingShareLink.expiresAt).toLocaleDateString()}
                 </p>
               )}
             </div>
@@ -1161,10 +1380,11 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
             <h2 className="font-semibold text-gray-900 mb-2">Need Help?</h2>
             <p className="text-sm text-gray-600 mb-4">
-              Have questions about this appraisal or need a different report type?
+              Have questions about this appraisal or need a different report
+              type?
             </p>
             <a
-              href="mailto:support@projectlens.com?subject=Support Request - Appraisal"
+              href="mailto:support@truplat.com?subject=Support Request - Appraisal"
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               <Phone className="w-4 h-4" />

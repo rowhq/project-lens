@@ -263,7 +263,7 @@ class PDFGenerator {
   private createPlaceholderPDF(options: PDFOptions): Buffer {
     return this.createTextPDF(
       [
-        "LENS Property Valuation Report",
+        "TruPlat Property Valuation Report",
         "",
         `Report ID: ${options.reportId}`,
         `Type: ${options.reportType}`,

@@ -1,6 +1,6 @@
 /**
  * tRPC Client Configuration
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  */
 
 "use client";

@@ -30,7 +30,7 @@ export function VideoModal({ videoUrl }: VideoModalProps) {
               Watch Demo (2 min)
             </p>
             <p className="text-sm text-[var(--muted-foreground)]">
-              See LENS in action
+              See TruPlat in action
             </p>
           </div>
         </div>
@@ -50,7 +50,7 @@ export function VideoModal({ videoUrl }: VideoModalProps) {
           </div>
           <div className="flex-1 h-8 bg-[var(--secondary)] rounded-md flex items-center px-3">
             <span className="text-xs text-[var(--muted-foreground)]">
-              app.projectlens.com
+              app.truplat.com
             </span>
           </div>
         </div>

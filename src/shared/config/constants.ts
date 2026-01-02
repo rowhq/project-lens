@@ -1,7 +1,7 @@
 // App constants
-export const APP_NAME = "Project LENS";
+export const APP_NAME = "TruPlat";
 export const APP_DESCRIPTION = "AI-Powered Property Valuations + On-Site Verification";
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://projectlens.com";
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://truplat.com";
 
 // SLA Configuration (in hours)
 export const SLA_CONFIG = {

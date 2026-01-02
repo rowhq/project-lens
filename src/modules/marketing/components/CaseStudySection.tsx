@@ -10,7 +10,7 @@ const caseStudies = [
     industry: "Mortgage Lender",
     location: "Dallas, TX",
     quote:
-      "LENS cut our appraisal turnaround from 2 weeks to 48 hours. Our closings are faster and our borrowers are happier.",
+      "TruPlat cut our appraisal turnaround from 2 weeks to 48 hours. Our closings are faster and our borrowers are happier.",
     author: "Sarah Mitchell",
     role: "VP of Operations",
     metrics: [
@@ -55,7 +55,7 @@ export function CaseStudySection() {
           </h2>
           <p className="mt-4 text-lg text-[var(--muted-foreground)]">
             See how lenders and investors are transforming their workflow with
-            LENS
+            TruPlat
           </p>
         </motion.div>
 
@@ -145,7 +145,7 @@ export function CaseStudySection() {
             href="/register"
             className="inline-flex items-center gap-2 text-[var(--primary)] font-semibold hover:underline"
           >
-            Join 500+ Texas professionals using LENS
+            Join 500+ Texas professionals using TruPlat
             <ArrowRight className="w-4 h-4" />
           </a>
         </motion.div>

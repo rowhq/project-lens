@@ -30,15 +30,16 @@ export interface PieChartProps {
   ariaLabel?: string;
 }
 
+// Ledger-inspired color palette
 const DEFAULT_COLORS = [
-  "#3B6CF3", // Primary blue
-  "#10B981", // Green
-  "#8B5CF6", // Purple
-  "#F59E0B", // Amber
-  "#EF4444", // Red
-  "#06B6D4", // Cyan
-  "#EC4899", // Pink
-  "#84CC16", // Lime
+  "#4ADE80", // Lime green (primary)
+  "#6B7280", // Gray
+  "#A78BFA", // Purple
+  "#FBBF24", // Amber
+  "#F87171", // Red
+  "#22D3EE", // Cyan
+  "#F472B6", // Pink
+  "#A3E635", // Lime light
 ];
 
 export function PieChart({
@@ -64,7 +65,15 @@ export function PieChart({
     percent?: number;
     name?: string;
   }) => {
-    const { cx = 0, cy = 0, midAngle = 0, innerRadius = 0, outerRadius = 0, percent = 0, name = "" } = props;
+    const {
+      cx = 0,
+      cy = 0,
+      midAngle = 0,
+      innerRadius = 0,
+      outerRadius = 0,
+      percent = 0,
+      name = "",
+    } = props;
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 1.4;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -76,10 +85,12 @@ export function PieChart({
       <text
         x={x}
         y={y}
-        fill="var(--muted-foreground)"
+        fill="#9CA3AF"
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
-        fontSize={12}
+        fontSize={11}
+        fontFamily="JetBrains Mono, monospace"
+        style={{ textTransform: "uppercase", letterSpacing: "0.05em" }}
       >
         {name} ({(percent * 100).toFixed(0)}%)
       </text>
@@ -91,7 +102,9 @@ export function PieChart({
       className={className}
       style={{ height }}
       role="img"
-      aria-label={ariaLabel || `Pie chart showing ${data.map(d => d.name).join(", ")}`}
+      aria-label={
+        ariaLabel || `Pie chart showing ${data.map((d) => d.name).join(", ")}`
+      }
     >
       <ResponsiveContainer width="100%" height="100%">
         <RechartsPieChart>
@@ -104,28 +117,37 @@ export function PieChart({
             paddingAngle={2}
             dataKey="value"
             label={showLabels ? renderLabel : undefined}
-            labelLine={showLabels ? { stroke: "var(--muted-foreground)" } : false}
+            labelLine={showLabels ? { stroke: "#6B7280" } : false}
+            stroke="#0A0A0A"
+            strokeWidth={2}
           >
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={entry.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
-                strokeWidth={0}
+                fill={
+                  entry.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length]
+                }
               />
             ))}
           </Pie>
           {showTooltip && (
             <Tooltip
               contentStyle={{
-                backgroundColor: "var(--card)",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                color: "var(--foreground)",
+                backgroundColor: "#0A0A0A",
+                border: "1px solid #374151",
+                borderRadius: "0",
+                color: "#FFFFFF",
+                fontFamily: "JetBrains Mono, monospace",
+                fontSize: "12px",
+                clipPath:
+                  "polygon(0 4px, 4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%)",
               }}
               formatter={(value, name) => {
                 const numValue = typeof value === "number" ? value : 0;
                 return [
-                  formatValue ? formatValue(numValue) : numValue.toLocaleString(),
+                  formatValue
+                    ? formatValue(numValue)
+                    : numValue.toLocaleString(),
                   name,
                 ];
               }}
@@ -136,11 +158,22 @@ export function PieChart({
               layout="vertical"
               align="right"
               verticalAlign="middle"
+              wrapperStyle={{
+                fontFamily: "JetBrains Mono, monospace",
+                fontSize: "11px",
+              }}
               formatter={(value, entry) => {
-                const entryValue = (entry.payload as PieChartDataPoint)?.value ?? 0;
+                const entryValue =
+                  (entry.payload as PieChartDataPoint)?.value ?? 0;
                 return (
-                  <span style={{ color: "var(--muted-foreground)" }}>
-                    {value} ({((entryValue / total) * 100).toFixed(1)}%)
+                  <span
+                    style={{
+                      color: "#9CA3AF",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    {value} ({((entryValue / total) * 100).toFixed(0)}%)
                   </span>
                 );
               }}
@@ -154,7 +187,16 @@ export function PieChart({
 
 // Donut chart variant
 export function DonutChart(props: Omit<PieChartProps, "innerRadius">) {
-  return <PieChart {...props} innerRadius={60} ariaLabel={props.ariaLabel || `Donut chart showing ${props.data.map(d => d.name).join(", ")}`} />;
+  return (
+    <PieChart
+      {...props}
+      innerRadius={60}
+      ariaLabel={
+        props.ariaLabel ||
+        `Donut chart showing ${props.data.map((d) => d.name).join(", ")}`
+      }
+    />
+  );
 }
 
 export default PieChart;

@@ -1,6 +1,6 @@
 /**
  * tRPC Server Configuration
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  */
 
 import { initTRPC, TRPCError } from "@trpc/server";

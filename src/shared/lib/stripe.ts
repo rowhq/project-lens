@@ -1,6 +1,6 @@
 /**
  * Stripe Client
- * Project LENS - Texas V1
+ * TruPlat - Texas V1
  */
 
 import Stripe from "stripe";
