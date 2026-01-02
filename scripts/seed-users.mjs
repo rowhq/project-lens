@@ -8,10 +8,10 @@ async function main() {
 
   // Create or update admin user
   await prisma.user.upsert({
-    where: { email: 'admin@lens.app' },
+    where: { email: 'admin@truplat.app' },
     update: { password },
     create: {
-      email: 'admin@lens.app',
+      email: 'admin@truplat.app',
       password,
       firstName: 'Admin',
       lastName: 'User',
@@ -22,10 +22,10 @@ async function main() {
 
   // Create or update client user
   await prisma.user.upsert({
-    where: { email: 'client@lens.app' },
+    where: { email: 'client@truplat.app' },
     update: { password },
     create: {
-      email: 'client@lens.app',
+      email: 'client@truplat.app',
       password,
       firstName: 'Client',
       lastName: 'User',
@@ -35,8 +35,8 @@ async function main() {
   });
 
   console.log('✅ Users created:');
-  console.log('   - admin@lens.app / password123 (ADMIN)');
-  console.log('   - client@lens.app / password123 (CLIENT)');
+  console.log('   - admin@truplat.app / password123 (ADMIN)');
+  console.log('   - client@truplat.app / password123 (CLIENT)');
 }
 
 main()

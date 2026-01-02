@@ -18,13 +18,13 @@ export function ROICalculator() {
   const [currentDays, setCurrentDays] = useState(14);
 
   // TruPlat pricing (average of AI Report + On-Site)
-  const lensAvgCost = 89; // Blended average
-  const lensDays = 2; // Average turnaround
+  const truplatAvgCost = 89; // Blended average
+  const truplatDays = 2; // Average turnaround
 
   const savings = useMemo(() => {
-    const monthlySavings = dealsPerMonth * (currentCost - lensAvgCost);
+    const monthlySavings = dealsPerMonth * (currentCost - truplatAvgCost);
     const annualSavings = monthlySavings * 12;
-    const daysSaved = dealsPerMonth * (currentDays - lensDays);
+    const daysSaved = dealsPerMonth * (currentDays - truplatDays);
     const hoursSaved = daysSaved * 2; // Assume 2 hours of admin work per deal saved
     const additionalDeals = Math.floor(daysSaved / currentDays); // Extra deals possible
 

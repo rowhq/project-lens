@@ -1,4 +1,4 @@
-// Comprehensive seed script for Project LENS
+// Comprehensive seed script for TruPlat
 // Creates realistic test data for all pages
 
 import { PrismaClient } from "@prisma/client";
@@ -84,7 +84,7 @@ async function main() {
   // Admin users
   const admin = await prisma.user.create({
     data: {
-      email: "admin@lens.app",
+      email: "admin@truplat.app",
       password: hashedPassword,
       firstName: "Admin",
       lastName: "User",
@@ -95,7 +95,7 @@ async function main() {
 
   const superAdmin = await prisma.user.create({
     data: {
-      email: "super@lens.app",
+      email: "super@truplat.app",
       password: hashedPassword,
       firstName: "Super",
       lastName: "Admin",
@@ -108,7 +108,7 @@ async function main() {
   const clients = await Promise.all([
     prisma.user.create({
       data: {
-        email: "client@lens.app",
+        email: "client@truplat.app",
         password: hashedPassword,
         firstName: "John",
         lastName: "Smith",
@@ -151,7 +151,7 @@ async function main() {
   const appraisers = await Promise.all([
     prisma.user.create({
       data: {
-        email: "appraiser@lens.app",
+        email: "appraiser@truplat.app",
         password: hashedPassword,
         firstName: "Mike",
         lastName: "Williams",
@@ -1280,14 +1280,14 @@ async function main() {
   console.log("=".repeat(50));
   console.log("\n📋 Test Accounts (all use password: password123):\n");
   console.log("  ADMIN:");
-  console.log("    - admin@lens.app (Admin)");
-  console.log("    - super@lens.app (Super Admin)\n");
+  console.log("    - admin@truplat.app (Admin)");
+  console.log("    - super@truplat.app (Super Admin)\n");
   console.log("  CLIENTS:");
-  console.log("    - client@lens.app (Texas Lending Corp)");
+  console.log("    - client@truplat.app (Texas Lending Corp)");
   console.log("    - maria@lonestarmortgage.com (Lone Star Mortgage)");
   console.log("    - robert@houstoncapital.com (Houston Capital Group)\n");
   console.log("  APPRAISERS:");
-  console.log("    - appraiser@lens.app (Austin area)");
+  console.log("    - appraiser@truplat.app (Austin area)");
   console.log("    - sarah.appraiser@gmail.com (Dallas area)");
   console.log("    - james.appraiser@gmail.com (Houston area)\n");
 }

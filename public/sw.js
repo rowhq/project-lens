@@ -1,6 +1,6 @@
 /**
  * Service Worker for Push Notifications
- * Project LENS - Appraiser Notifications
+ * TruPlat - Appraiser Notifications
  */
 
 self.addEventListener("install", (event) => {

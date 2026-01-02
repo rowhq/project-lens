@@ -1,6 +1,6 @@
 /**
  * Root Layout
- * Project Lens - Ledger-Inspired Design
+ * TruPlat - Ledger-Inspired Design
  */
 
 import type { Metadata } from "next";
