@@ -106,11 +106,9 @@ export default function RegisterPage() {
 
   return (
     <div className="flex flex-col items-center">
-      <h2 className="mb-2 text-2xl font-bold text-white">
-        Create your account
-      </h2>
+      <h2 className="mb-2 text-2xl font-bold text-white">Create Account</h2>
       <p className="mb-8 text-center font-mono text-xs uppercase tracking-wider text-gray-500">
-        AI-powered property appraisals
+        Get started with TruPlat
       </p>
 
       <form onSubmit={handleSubmit} className="w-full space-y-5">
