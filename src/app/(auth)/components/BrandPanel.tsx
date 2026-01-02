@@ -6,6 +6,8 @@
  * Ledger-style design
  */
 
+import Image from "next/image";
+import Link from "next/link";
 import { Zap, BarChart3, CheckCircle, Quote } from "lucide-react";
 
 const valueProps = [
@@ -53,8 +55,19 @@ export function BrandPanel() {
 
       {/* Content */}
       <div className="relative z-10 max-w-md">
+        {/* Logo */}
+        <Link href="/" className="inline-block mb-10">
+          <Image
+            src="/truplat.svg"
+            alt="TruPlat"
+            width={140}
+            height={42}
+            priority
+          />
+        </Link>
+
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 clip-notch-sm border border-lime-400/30 mb-8">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 clip-notch-sm border border-lime-400/30 mb-6">
           <span className="w-1.5 h-1.5 bg-lime-400 animate-pulse" />
           <span className="font-mono text-[10px] uppercase tracking-wider text-gray-400">
             Now Live in Texas

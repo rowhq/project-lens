@@ -22,17 +22,20 @@ export default function AuthLayout({
 
       {/* Form Panel */}
       <div className="flex-1 flex flex-col min-h-screen">
-        {/* Header */}
-        <header className="flex items-center justify-between h-16 px-6 border-b border-gray-800">
-          <Link href="/" className="flex-shrink-0">
+        {/* Header - Simplified for desktop (logo is in brand panel), full for mobile */}
+        <header className="flex items-center justify-between h-14 px-6 border-b border-gray-800">
+          {/* Logo only visible on mobile (when brand panel is hidden) */}
+          <Link href="/" className="flex-shrink-0 lg:hidden">
             <Image
               src="/truplat.svg"
               alt="TruPlat"
-              width={120}
-              height={36}
+              width={100}
+              height={30}
               priority
             />
           </Link>
+          {/* Spacer for desktop */}
+          <div className="hidden lg:block" />
           <Link
             href="/"
             className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
