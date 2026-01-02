@@ -219,9 +219,9 @@ export default function BillingPage() {
       {/* Feedback Toast */}
       {feedback && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-top-2 ${
+          className={`fixed top-4 right-4 z-50 px-4 py-3 clip-notch shadow-lg flex items-center gap-2 animate-in slide-in-from-top-2 ${
             feedback.type === "success"
-              ? "bg-green-500 text-white"
+              ? "bg-lime-400 text-black"
               : "bg-red-500 text-white"
           }`}
         >
@@ -236,8 +236,8 @@ export default function BillingPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">Billing</h1>
-        <p className="text-[var(--muted-foreground)]">
+        <h1 className="text-2xl font-bold text-white">Billing</h1>
+        <p className="text-gray-400">
           Manage your subscription and payment methods
         </p>
       </div>
@@ -306,7 +306,7 @@ export default function BillingPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-[var(--border)]">
+      <div className="border-b border-gray-700">
         <nav className="flex gap-6">
           {[
             { id: "overview", label: "Plans" },
@@ -316,10 +316,10 @@ export default function BillingPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`pb-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              className={`pb-3 font-mono text-sm uppercase tracking-wider border-b-2 -mb-px transition-colors ${
                 activeTab === tab.id
-                  ? "border-[var(--primary)] text-[var(--primary)]"
-                  : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  ? "border-lime-400 text-lime-400"
+                  : "border-transparent text-gray-400 hover:text-white"
               }`}
             >
               {tab.label}
@@ -398,24 +398,24 @@ export default function BillingPage() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px]">
-              <thead className="bg-[var(--secondary)]">
+              <thead className="bg-gray-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-gray-400">
                     Invoice
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-gray-400">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-gray-400">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-gray-400">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase"></th>
+                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-gray-400"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--border)]">
+              <tbody className="divide-y divide-gray-800">
                 {allInvoices.length === 0 ? (
                   <tr>
                     <td colSpan={5}>
@@ -428,31 +428,31 @@ export default function BillingPage() {
                   </tr>
                 ) : (
                   allInvoices.map((invoice) => (
-                    <tr key={invoice.id}>
+                    <tr key={invoice.id} className="hover:bg-gray-800/50">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-[var(--muted-foreground)]" />
-                          <span className="font-mono text-sm text-[var(--foreground)]">
+                          <FileText className="w-4 h-4 text-gray-500" />
+                          <span className="font-mono text-sm text-white">
                             {invoice.number ||
                               `INV-${invoice.id.slice(-8).toUpperCase()}`}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-[var(--muted-foreground)]">
+                      <td className="px-6 py-4 text-sm text-gray-400">
                         {new Date(invoice.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 font-medium text-[var(--foreground)]">
+                      <td className="px-6 py-4 font-medium text-white font-mono">
                         ${invoice.amount.toFixed(2)}
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          className={`px-2 py-1 clip-notch-sm text-xs font-mono uppercase tracking-wider ${
                             invoice.status === "COMPLETED" ||
                             invoice.status === "paid"
-                              ? "bg-green-500/10 text-green-500"
+                              ? "bg-lime-400/10 text-lime-400 border border-lime-400/30"
                               : invoice.status === "PENDING"
-                                ? "bg-yellow-500/10 text-yellow-500"
-                                : "bg-red-500/10 text-red-500"
+                                ? "bg-amber-400/10 text-amber-400 border border-amber-400/30"
+                                : "bg-red-500/10 text-red-400 border border-red-400/30"
                           }`}
                         >
                           {invoice.status}
@@ -464,7 +464,7 @@ export default function BillingPage() {
                             href={invoice.pdfUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[var(--primary)] hover:underline text-sm flex items-center gap-1"
+                            className="text-lime-400 hover:text-lime-300 text-sm font-mono uppercase tracking-wider flex items-center gap-1"
                           >
                             <Download className="w-4 h-4" />
                             PDF
@@ -473,7 +473,7 @@ export default function BillingPage() {
                           <button
                             onClick={() => handleDownloadInvoice(invoice.id)}
                             disabled={downloadInvoice.isPending}
-                            className="text-[var(--primary)] hover:underline text-sm flex items-center gap-1 disabled:opacity-50"
+                            className="text-lime-400 hover:text-lime-300 text-sm font-mono uppercase tracking-wider flex items-center gap-1 disabled:opacity-50"
                           >
                             {downloadInvoice.isPending ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -483,9 +483,7 @@ export default function BillingPage() {
                             PDF
                           </button>
                         ) : (
-                          <span className="text-[var(--muted-foreground)] text-sm">
-                            -
-                          </span>
+                          <span className="text-gray-500 text-sm">-</span>
                         )}
                       </td>
                     </tr>
@@ -505,13 +503,13 @@ export default function BillingPage() {
               <h3 className="font-semibold text-white">Payment Methods</h3>
               <button
                 onClick={() => setShowAddPaymentModal(true)}
-                className="flex items-center gap-2 text-[var(--primary)] hover:underline text-sm"
+                className="flex items-center gap-2 text-lime-400 hover:text-lime-300 text-sm font-mono uppercase tracking-wider"
               >
                 <Plus className="w-4 h-4" />
                 Add Method
               </button>
             </div>
-            <div className="divide-y divide-[var(--border)]">
+            <div className="divide-y divide-gray-800">
               {!paymentMethods || paymentMethods.length === 0 ? (
                 <EmptyState
                   icon={CreditCard}
@@ -529,27 +527,27 @@ export default function BillingPage() {
                     className="px-6 py-4 flex items-center justify-between"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-8 bg-[var(--secondary)] rounded flex items-center justify-center">
-                        <CreditCard className="w-5 h-5 text-[var(--muted-foreground)]" />
+                      <div className="w-12 h-8 bg-gray-800 clip-notch-sm flex items-center justify-center">
+                        <CreditCard className="w-5 h-5 text-gray-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-[var(--foreground)] capitalize">
+                        <p className="font-medium text-white capitalize">
                           {method.brand} ending in {method.last4}
                         </p>
-                        <p className="text-sm text-[var(--muted-foreground)]">
+                        <p className="text-sm text-gray-400">
                           Expires {method.expMonth}/{method.expYear}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       {method.isDefault && (
-                        <span className="px-2 py-1 bg-green-500/10 text-green-500 text-xs rounded-full">
+                        <span className="px-2 py-1 bg-lime-400/10 text-lime-400 text-xs font-mono uppercase tracking-wider clip-notch-sm border border-lime-400/30">
                           Default
                         </span>
                       )}
                       <button
                         onClick={() => setShowRemoveConfirm(method.id)}
-                        className="text-[var(--muted-foreground)] hover:text-red-500 text-sm"
+                        className="text-gray-400 hover:text-red-500 text-sm"
                       >
                         Remove
                       </button>
@@ -567,7 +565,7 @@ export default function BillingPage() {
             </h3>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                   Company Name
                 </label>
                 <input
@@ -575,11 +573,11 @@ export default function BillingPage() {
                   value={displayCompanyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder="Your company name"
-                  className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                   Billing Email
                 </label>
                 <input
@@ -587,11 +585,11 @@ export default function BillingPage() {
                   value={displayBillingEmail}
                   onChange={(e) => setBillingEmail(e.target.value)}
                   placeholder="billing@company.com"
-                  className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
                 />
               </div>
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                   Billing Address
                 </label>
                 <input
@@ -599,7 +597,7 @@ export default function BillingPage() {
                   value={displayBillingAddress}
                   onChange={(e) => setBillingAddress(e.target.value)}
                   placeholder="123 Main Street, Austin, TX 78701"
-                  className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
                 />
               </div>
             </div>
@@ -622,34 +620,32 @@ export default function BillingPage() {
       {/* Add Payment Method Modal */}
       {showAddPaymentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--card)] rounded-lg w-full max-w-md p-6">
+          <div className="bg-gray-900 clip-notch border border-gray-700 w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-[var(--foreground)]">
+              <h2 className="text-xl font-semibold text-white">
                 Add Payment Method
               </h2>
               <button
                 onClick={() => setShowAddPaymentModal(false)}
-                className="p-2 hover:bg-[var(--muted)] rounded-lg"
+                className="p-2 hover:bg-gray-800 clip-notch-sm"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-gray-400" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-[var(--secondary)] rounded-lg p-4 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-[var(--primary)] mt-0.5" />
+              <div className="bg-lime-400/10 clip-notch p-4 flex items-start gap-3 border border-lime-400/30">
+                <AlertCircle className="w-5 h-5 text-lime-400 mt-0.5" />
                 <div>
-                  <p className="text-sm text-[var(--foreground)]">
-                    Secure Payment
-                  </p>
-                  <p className="text-xs text-[var(--muted-foreground)]">
+                  <p className="text-sm text-white">Secure Payment</p>
+                  <p className="text-xs text-gray-400">
                     Your payment information is securely processed by Stripe. We
                     never store your card details.
                   </p>
                 </div>
               </div>
 
-              <p className="text-sm text-[var(--muted-foreground)]">
+              <p className="text-sm text-gray-400">
                 Click below to securely add a payment method through Stripe.
               </p>
             </div>
@@ -683,17 +679,17 @@ export default function BillingPage() {
       {/* Remove Payment Method Confirmation Modal */}
       {showRemoveConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--card)] rounded-lg w-full max-w-sm p-6">
+          <div className="bg-gray-900 clip-notch border border-gray-700 w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-red-500/10 clip-notch-sm flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">
+              <h2 className="text-lg font-semibold text-white">
                 Remove Payment Method
               </h2>
             </div>
 
-            <p className="text-[var(--muted-foreground)] mb-6">
+            <p className="text-gray-400 mb-6">
               Are you sure you want to remove this payment method? If this is
               your only payment method, you may need to add a new one for future
               payments.

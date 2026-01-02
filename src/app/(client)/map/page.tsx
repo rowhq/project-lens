@@ -468,17 +468,17 @@ export default function MapPage() {
   }, [activeTab]);
 
   return (
-    <div className="fixed inset-0 top-16 flex bg-[var(--background)]">
+    <div className="fixed inset-0 top-16 flex bg-black">
       {/* Sidebar */}
       <div
-        className={`absolute top-0 left-0 h-full bg-[var(--card)] border-r border-[var(--border)] z-20 transition-all duration-300 ${
+        className={`absolute top-0 left-0 h-full bg-gray-900 border-r border-gray-800 z-20 transition-all duration-300 ${
           sidebarOpen ? "w-80" : "w-0"
         } overflow-hidden`}
       >
         <div className="w-80 h-full flex flex-col">
           {/* Sidebar Header */}
-          <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
-            <h2 className="font-semibold text-[var(--foreground)]">
+          <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+            <h2 className="font-semibold text-white">
               {selectedParcel
                 ? "Property Details"
                 : selectedJob
@@ -487,9 +487,9 @@ export default function MapPage() {
             </h2>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="p-1 hover:bg-[var(--secondary)] rounded"
+              className="p-1 hover:bg-gray-800 rounded"
             >
-              <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <X className="w-5 h-5 text-gray-400" />
             </button>
           </div>
 
@@ -498,13 +498,11 @@ export default function MapPage() {
             {selectedParcel && (
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-[var(--muted-foreground)]">
-                    Address
-                  </p>
-                  <p className="font-medium text-[var(--foreground)]">
+                  <p className="text-sm text-gray-400">Address</p>
+                  <p className="font-medium text-white">
                     {selectedParcel.situs}
                   </p>
-                  <p className="text-sm text-[var(--muted-foreground)]">
+                  <p className="text-sm text-gray-400">
                     {selectedParcel.city}, {selectedParcel.state}{" "}
                     {selectedParcel.zip}
                   </p>
@@ -531,34 +529,22 @@ export default function MapPage() {
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-[var(--muted-foreground)]">
-                      Owner
-                    </span>
-                    <span className="text-[var(--foreground)]">
-                      {selectedParcel.owner}
-                    </span>
+                    <span className="text-gray-400">Owner</span>
+                    <span className="text-white">{selectedParcel.owner}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-[var(--muted-foreground)]">
-                      Lot Size
-                    </span>
-                    <span className="text-[var(--foreground)]">
+                    <span className="text-gray-400">Lot Size</span>
+                    <span className="text-white">
                       {selectedParcel.acres?.toFixed(2)} acres
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-[var(--muted-foreground)]">
-                      Zoning
-                    </span>
-                    <span className="text-[var(--foreground)]">
-                      {selectedParcel.zoning}
-                    </span>
+                    <span className="text-gray-400">Zoning</span>
+                    <span className="text-white">{selectedParcel.zoning}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-[var(--muted-foreground)]">
-                      Flood Zone
-                    </span>
-                    <span className="text-[var(--foreground)]">
+                    <span className="text-gray-400">Flood Zone</span>
+                    <span className="text-white">
                       {selectedParcel.floodZone}
                     </span>
                   </div>
@@ -586,20 +572,18 @@ export default function MapPage() {
             {selectedJob && (
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-[var(--muted-foreground)]">
-                    Address
-                  </p>
-                  <p className="font-medium text-[var(--foreground)]">
+                  <p className="text-sm text-gray-400">Address</p>
+                  <p className="font-medium text-white">
                     {selectedJob.address}
                   </p>
-                  <p className="text-sm text-[var(--muted-foreground)]">
+                  <p className="text-sm text-gray-400">
                     {selectedJob.city}, TX
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <span
-                    className="px-2 py-1 rounded text-xs font-medium"
+                    className="px-2 py-1 clip-notch-sm text-xs font-mono uppercase tracking-wider"
                     style={{
                       backgroundColor: `${JOB_STATUS_COLORS[selectedJob.status]}20`,
                       color: JOB_STATUS_COLORS[selectedJob.status],
@@ -607,7 +591,7 @@ export default function MapPage() {
                   >
                     {selectedJob.status.replace(/_/g, " ")}
                   </span>
-                  <span className="text-sm text-[var(--muted-foreground)]">
+                  <span className="text-sm text-gray-400">
                     {selectedJob.jobType}
                   </span>
                 </div>
@@ -635,8 +619,8 @@ export default function MapPage() {
 
             {!selectedParcel && !selectedJob && (
               <div className="text-center py-8">
-                <MapPin className="w-12 h-12 text-[var(--muted-foreground)] mx-auto mb-3" />
-                <p className="text-[var(--muted-foreground)]">
+                <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-400">
                   {activeTab === "parcels"
                     ? "Click on a parcel to see details"
                     : activeTab === "jobs"
@@ -649,22 +633,18 @@ export default function MapPage() {
 
           {/* Stats Footer */}
           {mapStats && (
-            <div className="p-4 border-t border-[var(--border)] grid grid-cols-2 gap-2">
+            <div className="p-4 border-t border-gray-800 grid grid-cols-2 gap-2">
               <div className="text-center">
-                <p className="text-lg font-bold text-[var(--foreground)]">
+                <p className="text-lg font-bold text-white">
                   {mapStats.pendingJobs}
                 </p>
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  Pending Jobs
-                </p>
+                <p className="text-xs text-gray-400">Pending Jobs</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-bold text-[var(--foreground)]">
+                <p className="text-lg font-bold text-white">
                   {mapStats.activeJobs}
                 </p>
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  Active Jobs
-                </p>
+                <p className="text-xs text-gray-400">Active Jobs</p>
               </div>
             </div>
           )}
@@ -678,8 +658,8 @@ export default function MapPage() {
 
         {/* Loading Overlay */}
         {(!isLoaded || loadingParcels) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[var(--background)]/80 z-10">
-            <div className="flex items-center gap-3 text-[var(--foreground)]">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+            <div className="flex items-center gap-3 text-white">
               <Loader2 className="w-6 h-6 animate-spin" />
               <span>
                 {loadingParcels ? "Loading parcels..." : "Loading map..."}

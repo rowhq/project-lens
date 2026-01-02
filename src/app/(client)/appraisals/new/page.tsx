@@ -34,10 +34,16 @@ const reportTypes = [
   {
     id: "AI_REPORT",
     label: "AI Report",
-    description: "Instant automated valuation using AI and comparable sales data",
+    description:
+      "Instant automated valuation using AI and comparable sales data",
     price: 29,
     time: "5 minutes",
-    features: ["Comparable sales analysis", "AI-powered insights", "Market trends", "Risk assessment"],
+    features: [
+      "Comparable sales analysis",
+      "AI-powered insights",
+      "Market trends",
+      "Risk assessment",
+    ],
   },
   {
     id: "ON_SITE",
@@ -45,7 +51,12 @@ const reportTypes = [
     description: "AI report enhanced with property photos and inspection notes",
     price: 149,
     time: "48 hours",
-    features: ["Everything in AI Report", "Property photos", "Condition assessment", "Field notes"],
+    features: [
+      "Everything in AI Report",
+      "Property photos",
+      "Condition assessment",
+      "Field notes",
+    ],
   },
   {
     id: "CERTIFIED",
@@ -53,7 +64,12 @@ const reportTypes = [
     description: "Full USPAP-compliant appraisal signed by licensed appraiser",
     price: 449,
     time: "72 hours",
-    features: ["Everything in On-Site", "Licensed appraiser review", "Digital signature", "Bank-ready"],
+    features: [
+      "Everything in On-Site",
+      "Licensed appraiser review",
+      "Digital signature",
+      "Bank-ready",
+    ],
   },
 ];
 
@@ -77,7 +93,7 @@ export default function NewAppraisalPage() {
   const [formData, setFormData] = useState({
     // Property
     addressQuery: "",
-    selectedProperty: null as typeof searchResults[0] | null,
+    selectedProperty: null as (typeof searchResults)[0] | null,
     propertyType: "SINGLE_FAMILY",
 
     // Details
@@ -108,7 +124,7 @@ export default function NewAppraisalPage() {
     {
       enabled: formData.addressQuery.length >= 5 && searchEnabled,
       staleTime: 30000, // Cache results for 30 seconds
-    }
+    },
   );
 
   // Derive search results directly from query data
@@ -137,10 +153,13 @@ export default function NewAppraisalPage() {
     if (!formData.selectedProperty) return;
 
     // Map report types to API expected values
-    const reportTypeMap: Record<string, "AI_REPORT" | "AI_REPORT_WITH_ONSITE" | "CERTIFIED_APPRAISAL"> = {
-      "AI_REPORT": "AI_REPORT",
-      "ON_SITE": "AI_REPORT_WITH_ONSITE",
-      "CERTIFIED": "CERTIFIED_APPRAISAL",
+    const reportTypeMap: Record<
+      string,
+      "AI_REPORT" | "AI_REPORT_WITH_ONSITE" | "CERTIFIED_APPRAISAL"
+    > = {
+      AI_REPORT: "AI_REPORT",
+      ON_SITE: "AI_REPORT_WITH_ONSITE",
+      CERTIFIED: "CERTIFIED_APPRAISAL",
     };
 
     createWithCheckout.mutate({
@@ -148,10 +167,19 @@ export default function NewAppraisalPage() {
       propertyCity: formData.selectedProperty.city,
       propertyState: formData.selectedProperty.state,
       propertyZipCode: formData.selectedProperty.zipCode,
-      propertyType: formData.propertyType as "SINGLE_FAMILY" | "MULTI_FAMILY" | "CONDO" | "TOWNHOUSE" | "COMMERCIAL" | "LAND" | "MIXED_USE",
+      propertyType: formData.propertyType as
+        | "SINGLE_FAMILY"
+        | "MULTI_FAMILY"
+        | "CONDO"
+        | "TOWNHOUSE"
+        | "COMMERCIAL"
+        | "LAND"
+        | "MIXED_USE",
       purpose: formData.purpose,
       requestedType: reportTypeMap[formData.reportType] || "AI_REPORT",
-      notes: formData.notes ? `${formData.notes}\nLoan: ${formData.loanNumber || "N/A"}\nBorrower: ${formData.borrowerName || "N/A"}` : undefined,
+      notes: formData.notes
+        ? `${formData.notes}\nLoan: ${formData.loanNumber || "N/A"}\nBorrower: ${formData.borrowerName || "N/A"}`
+        : undefined,
     });
   };
 
@@ -163,14 +191,16 @@ export default function NewAppraisalPage() {
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
-  const selectedReportType = reportTypes.find((t) => t.id === formData.reportType);
+  const selectedReportType = reportTypes.find(
+    (t) => t.id === formData.reportType,
+  );
 
   return (
     <div className="max-w-3xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Request Appraisal</h1>
-        <p className="text-gray-600">Get a property valuation in minutes</p>
+        <h1 className="text-2xl font-bold text-white">Request Appraisal</h1>
+        <p className="text-gray-400">Get a property valuation in minutes</p>
       </div>
 
       {/* Progress Steps */}
@@ -184,12 +214,12 @@ export default function NewAppraisalPage() {
             return (
               <div key={step.id} className="flex items-center">
                 <div
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full ${
+                  className={`flex items-center gap-2 px-4 py-2 clip-notch-sm font-mono text-sm uppercase tracking-wider ${
                     isActive
-                      ? "bg-blue-600 text-white"
+                      ? "bg-lime-400 text-black"
                       : isCompleted
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-500"
+                        ? "bg-lime-400/10 text-lime-400 border border-lime-400/30"
+                        : "bg-gray-800 text-gray-500"
                   }`}
                 >
                   {isCompleted ? (
@@ -200,7 +230,7 @@ export default function NewAppraisalPage() {
                   <span className="font-medium">{step.label}</span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="w-12 h-0.5 bg-gray-200 mx-2" />
+                  <div className="w-12 h-0.5 bg-gray-700 mx-2" />
                 )}
               </div>
             );
@@ -209,31 +239,38 @@ export default function NewAppraisalPage() {
       </div>
 
       {/* Step Content */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="relative bg-gray-900 clip-notch border border-gray-800 p-6">
+        <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
         {/* Property Step */}
         {currentStep === "property" && (
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                 Property Address
               </label>
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                   <input
                     type="text"
                     placeholder="Enter property address..."
                     value={formData.addressQuery}
-                    onChange={(e) => setFormData({ ...formData, addressQuery: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) =>
+                      setFormData({ ...formData, addressQuery: e.target.value })
+                    }
+                    className="w-full pl-10 pr-4 py-3 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
                   />
                 </div>
                 <button
                   onClick={handleSearch}
                   disabled={isSearching || formData.addressQuery.length < 5}
-                  className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="px-4 py-3 bg-lime-400 text-black clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed"
                 >
-                  {isSearching ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                  {isSearching ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Search className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -243,15 +280,17 @@ export default function NewAppraisalPage() {
                 {searchResults.map((result) => (
                   <button
                     key={result.id}
-                    onClick={() => setFormData({ ...formData, selectedProperty: result })}
-                    className={`w-full text-left p-4 border rounded-lg transition-colors ${
+                    onClick={() =>
+                      setFormData({ ...formData, selectedProperty: result })
+                    }
+                    className={`w-full text-left p-4 border clip-notch-sm transition-colors ${
                       formData.selectedProperty?.id === result.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-lime-400 bg-lime-400/5"
+                        : "border-gray-700 hover:border-gray-600"
                     }`}
                   >
-                    <p className="font-medium text-gray-900">{result.address}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-medium text-white">{result.address}</p>
+                    <p className="text-sm text-gray-400">
                       {result.city}, {result.state} {result.zipCode}
                     </p>
                   </button>
@@ -261,7 +300,7 @@ export default function NewAppraisalPage() {
 
             {formData.selectedProperty && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                   Property Type
                 </label>
                 <div className="grid grid-cols-3 gap-3">
@@ -270,15 +309,19 @@ export default function NewAppraisalPage() {
                     return (
                       <button
                         key={type.id}
-                        onClick={() => setFormData({ ...formData, propertyType: type.id })}
-                        className={`p-4 border rounded-lg text-center transition-colors ${
+                        onClick={() =>
+                          setFormData({ ...formData, propertyType: type.id })
+                        }
+                        className={`p-4 border clip-notch text-center transition-colors ${
                           formData.propertyType === type.id
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-200 hover:border-gray-300"
+                            ? "border-lime-400 bg-lime-400/5 text-lime-400"
+                            : "border-gray-700 hover:border-gray-600 text-gray-300"
                         }`}
                       >
                         <Icon className="w-6 h-6 mx-auto mb-2" />
-                        <span className="text-sm font-medium">{type.label}</span>
+                        <span className="text-sm font-medium">
+                          {type.label}
+                        </span>
                       </button>
                     );
                   })}
@@ -292,57 +335,67 @@ export default function NewAppraisalPage() {
         {currentStep === "details" && (
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                 Purpose of Appraisal
               </label>
               <select
                 value={formData.purpose}
-                onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) =>
+                  setFormData({ ...formData, purpose: e.target.value })
+                }
+                className="w-full px-4 py-3 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
               >
                 <option value="">Select purpose...</option>
                 {purposes.map((p) => (
-                  <option key={p} value={p}>{p}</option>
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                 Loan Number (Optional)
               </label>
               <input
                 type="text"
                 placeholder="Enter loan number..."
                 value={formData.loanNumber}
-                onChange={(e) => setFormData({ ...formData, loanNumber: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) =>
+                  setFormData({ ...formData, loanNumber: e.target.value })
+                }
+                className="w-full px-4 py-3 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                 Borrower Name (Optional)
               </label>
               <input
                 type="text"
                 placeholder="Enter borrower name..."
                 value={formData.borrowerName}
-                onChange={(e) => setFormData({ ...formData, borrowerName: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) =>
+                  setFormData({ ...formData, borrowerName: e.target.value })
+                }
+                className="w-full px-4 py-3 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                 Additional Notes (Optional)
               </label>
               <textarea
                 placeholder="Any special instructions or notes..."
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50 resize-none"
               />
             </div>
           </div>
@@ -354,20 +407,24 @@ export default function NewAppraisalPage() {
             {reportTypes.map((type) => (
               <button
                 key={type.id}
-                onClick={() => setFormData({ ...formData, reportType: type.id })}
-                className={`w-full text-left p-6 border rounded-lg transition-colors ${
+                onClick={() =>
+                  setFormData({ ...formData, reportType: type.id })
+                }
+                className={`w-full text-left p-6 border clip-notch transition-colors ${
                   formData.reportType === type.id
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
+                    ? "border-lime-400 bg-lime-400/5"
+                    : "border-gray-700 hover:border-gray-600"
                 }`}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 className="font-semibold text-gray-900">{type.label}</h3>
-                    <p className="text-sm text-gray-500">{type.description}</p>
+                    <h3 className="font-semibold text-white">{type.label}</h3>
+                    <p className="text-sm text-gray-400">{type.description}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-gray-900">${type.price}</p>
+                    <p className="text-2xl font-bold text-lime-400">
+                      ${type.price}
+                    </p>
                     <p className="text-sm text-gray-500">{type.time}</p>
                   </div>
                 </div>
@@ -375,7 +432,7 @@ export default function NewAppraisalPage() {
                   {type.features.map((feature) => (
                     <span
                       key={feature}
-                      className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                      className="px-2 py-1 bg-gray-800 text-gray-300 text-xs font-mono clip-notch-sm"
                     >
                       {feature}
                     </span>
@@ -389,51 +446,76 @@ export default function NewAppraisalPage() {
         {/* Review Step */}
         {currentStep === "review" && (
           <div className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-3">Property</h3>
-              <p className="text-gray-700">{formData.selectedProperty?.address}</p>
-              <p className="text-sm text-gray-500">
-                {formData.selectedProperty?.city}, {formData.selectedProperty?.state}{" "}
+            <div className="bg-gray-800 p-4 clip-notch">
+              <h3 className="font-semibold text-white mb-3 font-mono uppercase tracking-wider text-sm">
+                Property
+              </h3>
+              <p className="text-white">{formData.selectedProperty?.address}</p>
+              <p className="text-sm text-gray-400">
+                {formData.selectedProperty?.city},{" "}
+                {formData.selectedProperty?.state}{" "}
                 {formData.selectedProperty?.zipCode}
               </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Type: {propertyTypes.find((t) => t.id === formData.propertyType)?.label}
+              <p className="text-sm text-gray-400 mt-1">
+                Type:{" "}
+                {
+                  propertyTypes.find((t) => t.id === formData.propertyType)
+                    ?.label
+                }
               </p>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-3">Details</h3>
+            <div className="bg-gray-800 p-4 clip-notch">
+              <h3 className="font-semibold text-white mb-3 font-mono uppercase tracking-wider text-sm">
+                Details
+              </h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500">Purpose</p>
-                  <p className="text-gray-900">{formData.purpose || "-"}</p>
+                  <p className="text-gray-500 font-mono uppercase tracking-wider text-xs">
+                    Purpose
+                  </p>
+                  <p className="text-white">{formData.purpose || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Loan Number</p>
-                  <p className="text-gray-900">{formData.loanNumber || "-"}</p>
+                  <p className="text-gray-500 font-mono uppercase tracking-wider text-xs">
+                    Loan Number
+                  </p>
+                  <p className="text-white">{formData.loanNumber || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Borrower</p>
-                  <p className="text-gray-900">{formData.borrowerName || "-"}</p>
+                  <p className="text-gray-500 font-mono uppercase tracking-wider text-xs">
+                    Borrower
+                  </p>
+                  <p className="text-white">{formData.borrowerName || "-"}</p>
                 </div>
               </div>
               {formData.notes && (
                 <div className="mt-4">
-                  <p className="text-gray-500 text-sm">Notes</p>
-                  <p className="text-gray-900 text-sm">{formData.notes}</p>
+                  <p className="text-gray-500 text-xs font-mono uppercase tracking-wider">
+                    Notes
+                  </p>
+                  <p className="text-white text-sm">{formData.notes}</p>
                 </div>
               )}
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div className="bg-lime-400/10 p-4 clip-notch border border-lime-400/30">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="font-semibold text-gray-900">{selectedReportType?.label}</h3>
-                  <p className="text-sm text-gray-500">{selectedReportType?.description}</p>
+                  <h3 className="font-semibold text-white">
+                    {selectedReportType?.label}
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    {selectedReportType?.description}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-blue-600">${selectedReportType?.price}</p>
-                  <p className="text-sm text-gray-500">Delivery: {selectedReportType?.time}</p>
+                  <p className="text-2xl font-bold text-lime-400">
+                    ${selectedReportType?.price}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Delivery: {selectedReportType?.time}
+                  </p>
                 </div>
               </div>
             </div>
@@ -441,14 +523,14 @@ export default function NewAppraisalPage() {
         )}
 
         {/* Navigation */}
-        <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+        <div className="flex justify-between mt-8 pt-6 border-t border-gray-800">
           <button
             onClick={() => {
               const prevIndex = currentStepIndex - 1;
               if (prevIndex >= 0) setCurrentStep(steps[prevIndex].id);
             }}
             disabled={currentStepIndex === 0}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 text-gray-400 hover:text-white disabled:opacity-50 font-mono text-sm uppercase tracking-wider"
           >
             <ChevronLeft className="w-5 h-5" />
             Back
@@ -458,13 +540,14 @@ export default function NewAppraisalPage() {
             <button
               onClick={() => {
                 const nextIndex = currentStepIndex + 1;
-                if (nextIndex < steps.length) setCurrentStep(steps[nextIndex].id);
+                if (nextIndex < steps.length)
+                  setCurrentStep(steps[nextIndex].id);
               }}
               disabled={
                 (currentStep === "property" && !formData.selectedProperty) ||
                 (currentStep === "details" && !formData.purpose)
               }
-              className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed"
             >
               Continue
               <ChevronRight className="w-5 h-5" />
@@ -473,7 +556,7 @@ export default function NewAppraisalPage() {
             <button
               onClick={handleSubmit}
               disabled={createWithCheckout.isPending}
-              className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400"
+              className="flex items-center gap-2 px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500"
             >
               {createWithCheckout.isPending ? (
                 <>

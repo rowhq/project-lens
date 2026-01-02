@@ -146,25 +146,25 @@ function SLAProgressTracker({
 
   return (
     <div
-      className={`rounded-xl border p-6 ${isOverdue ? "bg-red-50 border-red-200" : "bg-blue-50 border-blue-200"}`}
+      className={`clip-notch border p-6 ${isOverdue ? "bg-red-500/10 border-red-500/30" : "bg-gray-900 border-lime-400/30"}`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${isOverdue ? "bg-red-100" : "bg-blue-100"}`}
+            className={`w-10 h-10 clip-notch-sm flex items-center justify-center ${isOverdue ? "bg-red-500/20" : "bg-lime-400/20"}`}
           >
             <Clock
-              className={`w-5 h-5 ${isOverdue ? "text-red-600" : "text-blue-600"}`}
+              className={`w-5 h-5 ${isOverdue ? "text-red-500" : "text-lime-400"}`}
             />
           </div>
           <div>
             <h3
-              className={`font-semibold ${isOverdue ? "text-red-900" : "text-blue-900"}`}
+              className={`font-semibold font-mono ${isOverdue ? "text-red-400" : "text-white"}`}
             >
               {isOverdue ? "Processing Delayed" : "Processing Your Request"}
             </h3>
             <p
-              className={`text-sm ${isOverdue ? "text-red-700" : "text-blue-700"}`}
+              className={`text-sm ${isOverdue ? "text-red-400/70" : "text-gray-400"}`}
             >
               {timeLeft}
             </p>
@@ -172,12 +172,12 @@ function SLAProgressTracker({
         </div>
         <div className="text-right">
           <p
-            className={`text-2xl font-bold ${isOverdue ? "text-red-600" : "text-blue-600"}`}
+            className={`text-2xl font-bold font-mono ${isOverdue ? "text-red-500" : "text-lime-400"}`}
           >
             {Math.round(progress)}%
           </p>
           <p
-            className={`text-xs ${isOverdue ? "text-red-600" : "text-blue-600"}`}
+            className={`text-xs font-mono uppercase tracking-wider ${isOverdue ? "text-red-500/70" : "text-lime-400/70"}`}
           >
             complete
           </p>
@@ -185,9 +185,9 @@ function SLAProgressTracker({
       </div>
 
       {/* Progress bar */}
-      <div className="h-2 bg-white rounded-full overflow-hidden mb-4">
+      <div className="h-2 bg-gray-800 clip-notch-sm overflow-hidden mb-4">
         <div
-          className={`h-full transition-all duration-500 ${isOverdue ? "bg-red-500" : "bg-blue-500"}`}
+          className={`h-full transition-all duration-500 ${isOverdue ? "bg-red-500" : "bg-lime-400"}`}
           style={{ width: `${Math.min(100, progress)}%` }}
         />
       </div>
@@ -198,14 +198,14 @@ function SLAProgressTracker({
           <div key={step.id} className="flex flex-col items-center flex-1">
             <div className="flex items-center w-full">
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                className={`w-6 h-6 clip-notch-sm flex items-center justify-center text-xs font-medium font-mono ${
                   step.complete
-                    ? "bg-green-500 text-white"
+                    ? "bg-lime-400 text-black"
                     : idx === currentStepIdx
                       ? isOverdue
                         ? "bg-red-500 text-white"
-                        : "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-500"
+                        : "bg-lime-400/50 text-black"
+                      : "bg-gray-700 text-gray-500"
                 }`}
               >
                 {step.complete ? <CheckCircle className="w-4 h-4" /> : idx + 1}
@@ -213,14 +213,14 @@ function SLAProgressTracker({
               {idx < steps.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mx-1 ${
-                    step.complete ? "bg-green-500" : "bg-gray-200"
+                    step.complete ? "bg-lime-400" : "bg-gray-700"
                   }`}
                 />
               )}
             </div>
             <span
-              className={`mt-2 text-xs text-center ${
-                step.complete ? "text-green-700 font-medium" : "text-gray-500"
+              className={`mt-2 text-xs text-center font-mono ${
+                step.complete ? "text-lime-400 font-medium" : "text-gray-500"
               }`}
             >
               {step.label}
@@ -232,7 +232,7 @@ function SLAProgressTracker({
       {/* Current status message */}
       {currentStepIdx >= 0 && currentStepIdx < steps.length && (
         <p
-          className={`mt-4 text-sm text-center ${isOverdue ? "text-red-700" : "text-blue-700"}`}
+          className={`mt-4 text-sm text-center ${isOverdue ? "text-red-400" : "text-gray-400"}`}
         >
           {appraisal.status === "QUEUED" &&
             "Your request is queued and will be processed shortly."}
@@ -294,26 +294,27 @@ function ShareModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-card rounded-xl border border-border w-full max-w-md p-6 animate-scale-in">
+      <div className="bg-gray-900 clip-notch border border-gray-800 w-full max-w-md p-6 animate-scale-in">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-card-foreground">
-            Share Report
-          </h2>
-          <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg">
-            <X className="w-5 h-5 text-muted-foreground" />
+          <h2 className="text-xl font-bold text-white">Share Report</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-800 clip-notch-sm"
+          >
+            <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
         {!shareUrl ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">
+              <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                 Link Expires In
               </label>
               <select
                 value={expiresInDays}
                 onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                className="w-full px-4 py-2 bg-input border border-border rounded-lg text-foreground"
+                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
               >
                 <option value={1}>1 day</option>
                 <option value={7}>7 days</option>
@@ -328,12 +329,9 @@ function ShareModal({
                 id="allowDownload"
                 checked={allowDownload}
                 onChange={(e) => setAllowDownload(e.target.checked)}
-                className="w-4 h-4 rounded border-border"
+                className="w-4 h-4 clip-notch-sm border-gray-700 bg-gray-900 text-lime-400 focus:ring-lime-400"
               />
-              <label
-                htmlFor="allowDownload"
-                className="text-sm text-card-foreground"
-              >
+              <label htmlFor="allowDownload" className="text-sm text-white">
                 Allow PDF download
               </label>
             </div>
@@ -345,12 +343,9 @@ function ShareModal({
                   id="usePassword"
                   checked={usePassword}
                   onChange={(e) => setUsePassword(e.target.checked)}
-                  className="w-4 h-4 rounded border-border"
+                  className="w-4 h-4 clip-notch-sm border-gray-700 bg-gray-900 text-lime-400 focus:ring-lime-400"
                 />
-                <label
-                  htmlFor="usePassword"
-                  className="text-sm text-card-foreground"
-                >
+                <label htmlFor="usePassword" className="text-sm text-white">
                   Password protect
                 </label>
               </div>
@@ -360,7 +355,7 @@ function ShareModal({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter password"
-                  className="w-full px-4 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground"
+                  className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
                 />
               )}
             </div>
@@ -368,11 +363,11 @@ function ShareModal({
             <button
               onClick={handleShare}
               disabled={shareMutation.isPending || (usePassword && !password)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50"
             >
               {shareMutation.isPending ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-black border-t-transparent clip-notch-sm animate-spin" />
                   Creating Link...
                 </>
               ) : (
@@ -384,16 +379,18 @@ function ShareModal({
             </button>
 
             {shareMutation.isError && (
-              <p className="text-sm text-destructive text-center">
+              <p className="text-sm text-red-500 text-center">
                 Failed to create share link. Please try again.
               </p>
             )}
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">Share Link</p>
-              <p className="text-sm text-card-foreground break-all font-mono">
+            <div className="p-4 bg-gray-800 clip-notch-sm">
+              <p className="text-sm text-gray-400 mb-2 font-mono uppercase tracking-wider">
+                Share Link
+              </p>
+              <p className="text-sm text-white break-all font-mono">
                 {shareUrl}
               </p>
             </div>
@@ -401,7 +398,7 @@ function ShareModal({
             <div className="flex gap-2">
               <button
                 onClick={handleCopyLink}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300"
               >
                 {copied ? (
                   <>
@@ -420,13 +417,13 @@ function ShareModal({
                   setShareUrl(null);
                   onClose();
                 }}
-                className="px-4 py-2 border border-border rounded-lg hover:bg-muted text-card-foreground"
+                className="px-4 py-2 border border-gray-700 clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider"
               >
                 Done
               </button>
             </div>
 
-            <div className="text-sm text-muted-foreground space-y-1">
+            <div className="text-sm text-gray-400 space-y-1">
               <p className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
                 Expires in {expiresInDays} days
@@ -492,23 +489,21 @@ function EmailModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-card rounded-xl border border-border w-full max-w-md p-6 animate-scale-in">
+      <div className="bg-gray-900 clip-notch border border-gray-800 w-full max-w-md p-6 animate-scale-in">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-card-foreground">
-            Email Report
-          </h2>
+          <h2 className="text-xl font-bold text-white">Email Report</h2>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-muted rounded-lg"
+            className="p-2 hover:bg-gray-800 clip-notch-sm"
           >
-            <X className="w-5 h-5 text-muted-foreground" />
+            <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
         {!sent ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">
+              <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                 Recipient Email
               </label>
               <input
@@ -516,12 +511,12 @@ function EmailModal({
                 value={recipientEmail}
                 onChange={(e) => setRecipientEmail(e.target.value)}
                 placeholder="email@example.com"
-                className="w-full px-4 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground"
+                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">
+              <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                 Message (optional)
               </label>
               <textarea
@@ -529,7 +524,7 @@ function EmailModal({
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Add a personal message..."
                 rows={3}
-                className="w-full px-4 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground resize-none"
+                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50 resize-none"
               />
             </div>
 
@@ -539,12 +534,9 @@ function EmailModal({
                 id="includeDownload"
                 checked={includeDownload}
                 onChange={(e) => setIncludeDownload(e.target.checked)}
-                className="w-4 h-4 rounded border-border"
+                className="w-4 h-4 clip-notch-sm border-gray-700 bg-gray-900 text-lime-400 focus:ring-lime-400"
               />
-              <label
-                htmlFor="includeDownload"
-                className="text-sm text-card-foreground"
-              >
+              <label htmlFor="includeDownload" className="text-sm text-white">
                 Include download link
               </label>
             </div>
@@ -552,11 +544,11 @@ function EmailModal({
             <button
               onClick={handleSend}
               disabled={emailMutation.isPending || !recipientEmail}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50"
             >
               {emailMutation.isPending ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-black border-t-transparent clip-notch-sm animate-spin" />
                   Sending...
                 </>
               ) : (
@@ -568,25 +560,25 @@ function EmailModal({
             </button>
 
             {emailMutation.isError && (
-              <p className="text-sm text-destructive text-center">
+              <p className="text-sm text-red-500 text-center">
                 Failed to send email. Please try again.
               </p>
             )}
           </div>
         ) : (
           <div className="text-center py-6">
-            <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
-              <Check className="w-8 h-8 text-green-500" />
+            <div className="w-16 h-16 clip-notch-sm bg-lime-400/20 flex items-center justify-center mx-auto mb-4">
+              <Check className="w-8 h-8 text-lime-400" />
             </div>
-            <h3 className="text-lg font-semibold text-card-foreground mb-2">
+            <h3 className="text-lg font-semibold text-white mb-2">
               Email Sent!
             </h3>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-gray-400 mb-6">
               The report has been sent to {recipientEmail}
             </p>
             <button
               onClick={handleClose}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+              className="px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300"
             >
               Done
             </button>
@@ -659,27 +651,27 @@ export default function AppraisalDetailPage({ params }: PageProps) {
         {/* Header skeleton */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Skeleton className="w-10 h-10 rounded-lg" />
+            <Skeleton className="w-10 h-10 clip-notch-sm" />
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-8 w-48" />
-                <Skeleton className="h-6 w-24 rounded-full" />
+                <Skeleton className="h-6 w-24 clip-notch-sm" />
               </div>
               <Skeleton className="h-4 w-64" />
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Skeleton className="h-10 w-24 rounded-lg" />
-            <Skeleton className="h-10 w-36 rounded-lg" />
+            <Skeleton className="h-10 w-24 clip-notch" />
+            <Skeleton className="h-10 w-36 clip-notch" />
           </div>
         </div>
         {/* Value summary skeleton */}
-        <div className="bg-[var(--primary)] rounded-xl p-6">
+        <div className="bg-gray-900 clip-notch border border-lime-400/30 p-6">
           <div className="grid grid-cols-4 gap-8">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="space-y-2">
-                <Skeleton className="h-4 w-24 bg-white/20" />
-                <Skeleton className="h-8 w-32 bg-white/20" />
+                <Skeleton className="h-4 w-24 bg-gray-800" />
+                <Skeleton className="h-8 w-32 bg-gray-800" />
               </div>
             ))}
           </div>
@@ -687,7 +679,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
         <div className="grid grid-cols-3 gap-6">
           {/* Property details skeleton */}
           <div className="col-span-2 space-y-6">
-            <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
               <Skeleton className="h-6 w-40 mb-4" />
               <div className="grid grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -701,7 +693,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           </div>
           {/* Sidebar skeleton */}
           <div className="space-y-6">
-            <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
               <Skeleton className="h-6 w-32 mb-4" />
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
@@ -724,10 +716,10 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   if (!appraisal) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Appraisal not found</p>
+        <p className="text-gray-400">Appraisal not found</p>
         <Link
           href="/appraisals"
-          className="text-blue-600 hover:underline mt-2 inline-block"
+          className="text-lime-400 hover:text-lime-300 mt-2 inline-block"
         >
           Back to appraisals
         </Link>
@@ -778,12 +770,13 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   const valueChange = calculateValueChange();
 
   const statusColors: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-700",
-    SUBMITTED: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-yellow-100 text-yellow-700",
-    UNDER_REVIEW: "bg-purple-100 text-purple-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    CANCELLED: "bg-red-100 text-red-700",
+    DRAFT: "bg-gray-700/50 text-gray-300 border border-gray-600",
+    SUBMITTED: "bg-lime-400/10 text-lime-400 border border-lime-400/30",
+    IN_PROGRESS: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30",
+    UNDER_REVIEW:
+      "bg-purple-500/10 text-purple-400 border border-purple-500/30",
+    COMPLETED: "bg-lime-400/10 text-lime-400 border border-lime-400/30",
+    CANCELLED: "bg-red-500/10 text-red-400 border border-red-500/30",
   };
 
   return (
@@ -791,21 +784,24 @@ export default function AppraisalDetailPage({ params }: PageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/appraisals" className="p-2 hover:bg-gray-100 rounded-lg">
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          <Link
+            href="/appraisals"
+            className="p-2 hover:bg-gray-800 clip-notch-sm"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-400" />
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-white">
                 {appraisal.referenceCode}
               </h1>
               <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[appraisal.status]}`}
+                className={`px-3 py-1 clip-notch-sm text-sm font-mono uppercase tracking-wider ${statusColors[appraisal.status]}`}
               >
                 {appraisal.status.replace("_", " ")}
               </span>
             </div>
-            <p className="text-gray-500">{property?.addressFull}</p>
+            <p className="text-gray-400">{property?.addressFull}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -813,14 +809,14 @@ export default function AppraisalDetailPage({ params }: PageProps) {
             <>
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-muted text-card-foreground"
+                className="flex items-center gap-2 px-4 py-2 border border-gray-700 clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider"
               >
                 <Share2 className="w-4 h-4" />
                 Share
               </button>
               <a
                 href={report.pdfUrl}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+                className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300"
               >
                 <Download className="w-4 h-4" />
                 Download PDF
@@ -855,23 +851,29 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
       {/* Value Summary */}
       {report && (
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl p-6">
+        <div className="relative bg-gray-900 clip-notch border border-lime-400/30 p-6">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
+          <div className="absolute -top-px -right-px w-3 h-3 border-r border-t border-lime-400" />
+          <div className="absolute -bottom-px -left-px w-3 h-3 border-l border-b border-lime-400" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-lime-400" />
           <div className="grid grid-cols-4 gap-8">
             <div>
-              <p className="text-blue-200 text-sm">Estimated Value</p>
-              <p className="text-3xl font-bold">
+              <p className="text-gray-400 text-sm font-mono uppercase tracking-wider">
+                Estimated Value
+              </p>
+              <p className="text-3xl font-bold text-lime-400 font-mono">
                 ${Number(report.valueEstimate).toLocaleString()}
               </p>
               {valueChange !== null && (
                 <div className="flex items-center gap-1 mt-1">
                   {valueChange >= 0 ? (
-                    <TrendingUp className="w-4 h-4 text-green-300" />
+                    <TrendingUp className="w-4 h-4 text-lime-400" />
                   ) : (
-                    <TrendingDown className="w-4 h-4 text-red-300" />
+                    <TrendingDown className="w-4 h-4 text-red-400" />
                   )}
                   <span
                     className={
-                      valueChange >= 0 ? "text-green-300" : "text-red-300"
+                      valueChange >= 0 ? "text-lime-400" : "text-red-400"
                     }
                   >
                     {valueChange >= 0 ? "+" : ""}
@@ -881,25 +883,33 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               )}
             </div>
             <div>
-              <p className="text-blue-200 text-sm">Value Range</p>
-              <p className="text-xl font-semibold">
+              <p className="text-gray-400 text-sm font-mono uppercase tracking-wider">
+                Value Range
+              </p>
+              <p className="text-xl font-semibold text-white font-mono">
                 ${Number(report.valueRangeMin).toLocaleString()} - $
                 {Number(report.valueRangeMax).toLocaleString()}
               </p>
             </div>
             <div>
-              <p className="text-blue-200 text-sm">Confidence Score</p>
-              <p className="text-xl font-semibold">{report.confidenceScore}%</p>
-              <div className="w-full bg-blue-800 rounded-full h-2 mt-2">
+              <p className="text-gray-400 text-sm font-mono uppercase tracking-wider">
+                Confidence Score
+              </p>
+              <p className="text-xl font-semibold text-white font-mono">
+                {report.confidenceScore}%
+              </p>
+              <div className="w-full bg-gray-700 clip-notch-sm h-2 mt-2">
                 <div
-                  className="bg-green-400 h-2 rounded-full"
+                  className="bg-lime-400 h-2 clip-notch-sm"
                   style={{ width: `${report.confidenceScore}%` }}
                 />
               </div>
             </div>
             <div>
-              <p className="text-blue-200 text-sm">Report Type</p>
-              <p className="text-xl font-semibold">
+              <p className="text-gray-400 text-sm font-mono uppercase tracking-wider">
+                Report Type
+              </p>
+              <p className="text-xl font-semibold text-white">
                 {report.type.replace("_", " ")}
               </p>
             </div>
@@ -910,45 +920,57 @@ export default function AppraisalDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-3 gap-6">
         {/* Property Details */}
         <div className="col-span-2 space-y-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Home className="w-5 h-5 text-blue-600" />
+          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <Home className="w-5 h-5 text-lime-400" />
               Property Details
             </h2>
             <div className="grid grid-cols-3 gap-6">
               <div>
-                <p className="text-sm text-gray-500">Property Type</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                  Property Type
+                </p>
+                <p className="font-medium text-white">
                   {property?.propertyType.replace("_", " ")}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Square Feet</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                  Square Feet
+                </p>
+                <p className="font-medium text-white">
                   {property?.sqft?.toLocaleString() || "-"}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Year Built</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                  Year Built
+                </p>
+                <p className="font-medium text-white">
                   {property?.yearBuilt || "-"}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Bedrooms</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                  Bedrooms
+                </p>
+                <p className="font-medium text-white">
                   {property?.bedrooms || "-"}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Bathrooms</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                  Bathrooms
+                </p>
+                <p className="font-medium text-white">
                   {property?.bathrooms || "-"}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Lot Size</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                  Lot Size
+                </p>
+                <p className="font-medium text-white">
                   {property?.lotSizeSqft
                     ? `${(property.lotSizeSqft / 43560).toFixed(2)} acres`
                     : "-"}
@@ -959,17 +981,17 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
           {/* AI Analysis */}
           {report?.aiAnalysis && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <h2 className="text-lg font-semibold text-white mb-4">
                 AI Analysis
               </h2>
-              <p className="text-gray-700 mb-4">
+              <p className="text-gray-300 mb-4">
                 {(report.aiAnalysis as { summary?: string })?.summary}
               </p>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="font-medium text-green-700 mb-2 flex items-center gap-2">
+                  <h3 className="font-medium text-lime-400 mb-2 flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
                     Strengths
                   </h3>
@@ -978,14 +1000,14 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                       (report.aiAnalysis as { strengths?: string[] })
                         ?.strengths || []
                     ).map((strength: string, i: number) => (
-                      <li key={i} className="text-sm text-gray-600">
+                      <li key={i} className="text-sm text-gray-400">
                         • {strength}
                       </li>
                     ))}
                   </ul>
                 </div>
                 <div>
-                  <h3 className="font-medium text-yellow-700 mb-2 flex items-center gap-2">
+                  <h3 className="font-medium text-yellow-400 mb-2 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4" />
                     Considerations
                   </h3>
@@ -994,7 +1016,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                       (report.aiAnalysis as { concerns?: string[] })
                         ?.concerns || []
                     ).map((concern: string, i: number) => (
-                      <li key={i} className="text-sm text-gray-600">
+                      <li key={i} className="text-sm text-gray-400">
                         • {concern}
                       </li>
                     ))}
@@ -1006,32 +1028,32 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
           {/* Comparable Sales */}
           {report?.comps && Array.isArray(report.comps) && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <h2 className="text-lg font-semibold text-white mb-4">
                 Comparable Sales
               </h2>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-800">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-gray-400 uppercase tracking-wider">
                         Address
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-gray-400 uppercase tracking-wider">
                         Sale Price
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-gray-400 uppercase tracking-wider">
                         Sq Ft
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-gray-400 uppercase tracking-wider">
                         Distance
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-gray-400 uppercase tracking-wider">
                         Match
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-700">
                     {(
                       report.comps as Array<{
                         address: string;
@@ -1044,20 +1066,20 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                       .slice(0, 5)
                       .map((comp, i) => (
                         <tr key={i}>
-                          <td className="px-4 py-3 text-sm text-gray-900">
+                          <td className="px-4 py-3 text-sm text-white">
                             {comp.address}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
+                          <td className="px-4 py-3 text-sm text-white font-mono">
                             ${comp.salePrice?.toLocaleString()}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-500">
+                          <td className="px-4 py-3 text-sm text-gray-400 font-mono">
                             {comp.sqft?.toLocaleString()}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-500">
+                          <td className="px-4 py-3 text-sm text-gray-400 font-mono">
                             {comp.distance?.toFixed(1)} mi
                           </td>
                           <td className="px-4 py-3">
-                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                            <span className="px-2 py-1 bg-lime-400/10 text-lime-400 text-xs clip-notch-sm font-mono">
                               {comp.similarityScore}%
                             </span>
                           </td>
@@ -1080,8 +1102,8 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 recommendation: string;
               }>
             ).length > 0 && (
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+                <h2 className="text-lg font-semibold text-white mb-4">
                   Risk Assessment
                 </h2>
                 <div className="space-y-3">
@@ -1095,21 +1117,21 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                   ).map((risk, i) => (
                     <div
                       key={i}
-                      className={`p-4 rounded-lg border-l-4 ${
+                      className={`p-4 clip-notch-sm border-l-4 ${
                         risk.severity === "HIGH"
-                          ? "bg-red-50 border-red-500"
+                          ? "bg-red-500/10 border-red-500"
                           : risk.severity === "MEDIUM"
-                            ? "bg-yellow-50 border-yellow-500"
-                            : "bg-green-50 border-green-500"
+                            ? "bg-yellow-500/10 border-yellow-500"
+                            : "bg-lime-400/10 border-lime-400"
                       }`}
                     >
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
                         {risk.type?.replace(/_/g, " ") ?? "Unknown"}
                       </p>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-300 mt-1">
                         {risk.description ?? ""}
                       </p>
-                      <p className="text-sm text-gray-500 mt-1 italic">
+                      <p className="text-sm text-gray-400 mt-1 italic">
                         {risk.recommendation ?? ""}
                       </p>
                     </div>
@@ -1122,34 +1144,38 @@ export default function AppraisalDetailPage({ params }: PageProps) {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Request Info */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">
               Request Info
             </h2>
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-gray-400" />
+                <Calendar className="w-5 h-5 text-lime-400" />
                 <div>
-                  <p className="text-sm text-gray-500">Requested</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                    Requested
+                  </p>
+                  <p className="font-medium text-white">
                     {new Date(appraisal.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-gray-400" />
+                <FileText className="w-5 h-5 text-lime-400" />
                 <div>
-                  <p className="text-sm text-gray-500">Purpose</p>
-                  <p className="font-medium text-gray-900">
-                    {appraisal.purpose}
+                  <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                    Purpose
                   </p>
+                  <p className="font-medium text-white">{appraisal.purpose}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <DollarSign className="w-5 h-5 text-gray-400" />
+                <DollarSign className="w-5 h-5 text-lime-400" />
                 <div>
-                  <p className="text-sm text-gray-500">Price Paid</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                    Price Paid
+                  </p>
+                  <p className="font-medium text-white font-mono">
                     ${Number(appraisal.price).toFixed(2)}
                   </p>
                 </div>
@@ -1159,9 +1185,9 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
           {/* On-Site Inspection Status (for AI_REPORT_WITH_ONSITE or CERTIFIED_APPRAISAL) */}
           {appraisal.jobs && appraisal.jobs.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Camera className="w-5 h-5 text-blue-600" />
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <Camera className="w-5 h-5 text-lime-400" />
                 On-Site Inspection
               </h2>
               {appraisal.jobs.map((job) => {
@@ -1171,53 +1197,62 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 > = {
                   PENDING_DISPATCH: {
                     label: "Finding Appraiser",
-                    color: "bg-gray-100 text-gray-700",
+                    color:
+                      "bg-gray-700/50 text-gray-300 border border-gray-600",
                     icon: Clock,
                   },
                   DISPATCHED: {
                     label: "Awaiting Assignment",
-                    color: "bg-yellow-100 text-yellow-700",
+                    color:
+                      "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30",
                     icon: Truck,
                   },
                   ACCEPTED: {
                     label: "Appraiser Assigned",
-                    color: "bg-blue-100 text-blue-700",
+                    color:
+                      "bg-lime-400/10 text-lime-400 border border-lime-400/30",
                     icon: User,
                   },
                   IN_PROGRESS: {
                     label: "Inspection In Progress",
-                    color: "bg-purple-100 text-purple-700",
+                    color:
+                      "bg-purple-500/10 text-purple-400 border border-purple-500/30",
                     icon: Camera,
                   },
                   SUBMITTED: {
                     label: "Photos Submitted",
-                    color: "bg-orange-100 text-orange-700",
+                    color:
+                      "bg-orange-500/10 text-orange-400 border border-orange-500/30",
                     icon: FileText,
                   },
                   UNDER_REVIEW: {
                     label: "Under Review",
-                    color: "bg-indigo-100 text-indigo-700",
+                    color:
+                      "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30",
                     icon: Clock,
                   },
                   COMPLETED: {
                     label: "Completed",
-                    color: "bg-green-100 text-green-700",
+                    color:
+                      "bg-lime-400/10 text-lime-400 border border-lime-400/30",
                     icon: CheckCircle,
                   },
                   CANCELLED: {
                     label: "Cancelled",
-                    color: "bg-red-100 text-red-700",
+                    color:
+                      "bg-red-500/10 text-red-400 border border-red-500/30",
                     icon: AlertTriangle,
                   },
                   FAILED: {
                     label: "Failed",
-                    color: "bg-red-100 text-red-700",
+                    color:
+                      "bg-red-500/10 text-red-400 border border-red-500/30",
                     icon: AlertTriangle,
                   },
                 };
                 const status = jobStatusConfig[job.status] || {
                   label: job.status,
-                  color: "bg-gray-100 text-gray-700",
+                  color: "bg-gray-700/50 text-gray-300 border border-gray-600",
                   icon: Clock,
                 };
                 const StatusIcon = status.icon;
@@ -1226,7 +1261,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                   <div key={job.id} className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${status.color}`}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 clip-notch-sm text-sm font-mono uppercase tracking-wider ${status.color}`}
                       >
                         <StatusIcon className="w-4 h-4" />
                         {status.label}
@@ -1235,10 +1270,12 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
                     {job.slaDueAt && (
                       <div className="flex items-center gap-3 text-sm">
-                        <Clock className="w-4 h-4 text-gray-400" />
+                        <Clock className="w-4 h-4 text-lime-400" />
                         <div>
-                          <p className="text-gray-500">Due by</p>
-                          <p className="font-medium text-gray-900">
+                          <p className="text-gray-400 font-mono uppercase tracking-wider text-xs">
+                            Due by
+                          </p>
+                          <p className="font-medium text-white">
                             {new Date(job.slaDueAt).toLocaleDateString(
                               "en-US",
                               {
@@ -1284,24 +1321,24 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                               className="flex items-center flex-1"
                             >
                               <div
-                                className={`w-2.5 h-2.5 rounded-full ${
+                                className={`w-2.5 h-2.5 clip-notch-sm ${
                                   isComplete
-                                    ? "bg-green-500"
+                                    ? "bg-lime-400"
                                     : isCurrent
-                                      ? "bg-blue-500"
-                                      : "bg-gray-300"
+                                      ? "bg-lime-400/50"
+                                      : "bg-gray-700"
                                 }`}
                               />
                               {idx < arr.length - 1 && (
                                 <div
-                                  className={`flex-1 h-0.5 mx-1 ${isComplete ? "bg-green-500" : "bg-gray-300"}`}
+                                  className={`flex-1 h-0.5 mx-1 ${isComplete ? "bg-lime-400" : "bg-gray-700"}`}
                                 />
                               )}
                             </div>
                           );
                         })}
                       </div>
-                      <div className="flex justify-between text-xs text-gray-400">
+                      <div className="flex justify-between text-xs text-gray-500 font-mono">
                         <span>Assigned</span>
                         <span>Complete</span>
                       </div>
@@ -1314,8 +1351,8 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
           {/* Share Report */}
           {report && (
-            <div className="bg-card rounded-lg border border-border p-6">
-              <h2 className="text-lg font-semibold text-card-foreground mb-4">
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <h2 className="text-lg font-semibold text-white mb-4">
                 Share Report
               </h2>
               <div className="space-y-3">
@@ -1340,16 +1377,16 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                     }
                   }}
                   disabled={shareMutation.isPending}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-muted text-card-foreground disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-700 clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider disabled:opacity-50"
                 >
                   {linkCopied ? (
                     <>
-                      <Check className="w-4 h-4 text-green-500" />
+                      <Check className="w-4 h-4 text-lime-400" />
                       Copied!
                     </>
                   ) : shareMutation.isPending ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent clip-notch-sm animate-spin" />
                       Creating...
                     </>
                   ) : (
@@ -1361,14 +1398,14 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 </button>
                 <button
                   onClick={() => setIsEmailModalOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-muted text-card-foreground"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-700 clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider"
                 >
                   <Mail className="w-4 h-4" />
                   Email Report
                 </button>
               </div>
               {existingShareLink && (
-                <p className="text-xs text-muted-foreground mt-3">
+                <p className="text-xs text-gray-400 mt-3">
                   Active link expires{" "}
                   {new Date(existingShareLink.expiresAt).toLocaleDateString()}
                 </p>
@@ -1377,15 +1414,15 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           )}
 
           {/* Need Help */}
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-            <h2 className="font-semibold text-gray-900 mb-2">Need Help?</h2>
-            <p className="text-sm text-gray-600 mb-4">
+          <div className="bg-gray-800/50 clip-notch border border-gray-700 p-6">
+            <h2 className="font-semibold text-white mb-2">Need Help?</h2>
+            <p className="text-sm text-gray-400 mb-4">
               Have questions about this appraisal or need a different report
               type?
             </p>
             <a
               href="mailto:support@truplat.com?subject=Support Request - Appraisal"
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300"
             >
               <Phone className="w-4 h-4" />
               Contact Support

@@ -347,10 +347,8 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">
-          Settings
-        </h1>
-        <p className="text-[var(--muted-foreground)]">
+        <h1 className="text-2xl font-bold text-white">Settings</h1>
+        <p className="text-gray-400">
           Manage your account settings and preferences
         </p>
       </div>
@@ -384,7 +382,7 @@ export default function SettingsPage() {
           {/* Profile Tab */}
           {activeTab === "profile" && (
             <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
-              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">
+              <h2 className="text-lg font-semibold text-white mb-6">
                 Profile Information
               </h2>
 
@@ -397,8 +395,8 @@ export default function SettingsPage() {
                     className="w-20 h-20 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-20 h-20 bg-[var(--muted)] rounded-full flex items-center justify-center">
-                    <User className="w-10 h-10 text-[var(--muted-foreground)]" />
+                  <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center">
+                    <User className="w-10 h-10 text-gray-400" />
                   </div>
                 )}
                 <div>
@@ -426,7 +424,7 @@ export default function SettingsPage() {
                       </>
                     )}
                   </button>
-                  <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                  <p className="text-sm text-gray-400 mt-1">
                     JPG, PNG, WebP, GIF up to 2MB
                   </p>
                 </div>
@@ -435,7 +433,7 @@ export default function SettingsPage() {
               {/* Form */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  <label className="block text-sm font-medium text-white mb-1">
                     First Name
                   </label>
                   <input
@@ -448,7 +446,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  <label className="block text-sm font-medium text-white mb-1">
                     Last Name
                   </label>
                   <input
@@ -461,7 +459,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  <label className="block text-sm font-medium text-white mb-1">
                     <Mail className="w-4 h-4 inline mr-1" />
                     Email
                   </label>
@@ -473,7 +471,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  <label className="block text-sm font-medium text-white mb-1">
                     <Building className="w-4 h-4 inline mr-1" />
                     Job Title
                   </label>
@@ -488,7 +486,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  <label className="block text-sm font-medium text-white mb-1">
                     <MapPin className="w-4 h-4 inline mr-1" />
                     Location
                   </label>
@@ -504,7 +502,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-[var(--border)] flex items-center gap-4">
+              <div className="mt-6 pt-6 border-t border-gray-800 flex items-center gap-4">
                 <button
                   onClick={handleSaveProfile}
                   disabled={updateProfile.isPending || !profileDirty}
@@ -523,7 +521,7 @@ export default function SettingsPage() {
                   )}
                 </button>
                 {profileDirty && (
-                  <span className="text-sm text-[var(--muted-foreground)]">
+                  <span className="text-sm text-gray-400">
                     You have unsaved changes
                   </span>
                 )}
@@ -534,13 +532,13 @@ export default function SettingsPage() {
           {/* Notifications Tab */}
           {activeTab === "notifications" && (
             <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
-              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">
+              <h2 className="text-lg font-semibold text-white mb-6">
                 Notification Settings
               </h2>
 
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-medium text-[var(--foreground)] mb-4">
+                  <h3 className="font-medium text-white mb-4">
                     Email Notifications
                   </h3>
                   <div className="space-y-3">
@@ -576,12 +574,8 @@ export default function SettingsPage() {
                         className="flex items-center justify-between p-4 border border-gray-800 clip-notch-sm hover:bg-gray-800 cursor-pointer"
                       >
                         <div>
-                          <p className="font-medium text-[var(--foreground)]">
-                            {item.label}
-                          </p>
-                          <p className="text-sm text-[var(--muted-foreground)]">
-                            {item.desc}
-                          </p>
+                          <p className="font-medium text-white">{item.label}</p>
+                          <p className="text-sm text-gray-400">{item.desc}</p>
                         </div>
                         <input
                           type="checkbox"
@@ -595,7 +589,7 @@ export default function SettingsPage() {
                               item.id as keyof typeof notificationPrefs,
                             )
                           }
-                          className="w-5 h-5 text-[var(--primary)] rounded focus:ring-[var(--primary)]"
+                          className="w-5 h-5 text-lime-400 rounded focus:ring-[var(--primary)]"
                         />
                       </label>
                     ))}
@@ -603,7 +597,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <h3 className="font-medium text-[var(--foreground)] mb-4">
+                  <h3 className="font-medium text-white mb-4">
                     Push Notifications
                   </h3>
                   <div className="space-y-3">
@@ -624,12 +618,8 @@ export default function SettingsPage() {
                         className="flex items-center justify-between p-4 border border-gray-800 clip-notch-sm hover:bg-gray-800 cursor-pointer"
                       >
                         <div>
-                          <p className="font-medium text-[var(--foreground)]">
-                            {item.label}
-                          </p>
-                          <p className="text-sm text-[var(--muted-foreground)]">
-                            {item.desc}
-                          </p>
+                          <p className="font-medium text-white">{item.label}</p>
+                          <p className="text-sm text-gray-400">{item.desc}</p>
                         </div>
                         <input
                           type="checkbox"
@@ -643,7 +633,7 @@ export default function SettingsPage() {
                               item.id as keyof typeof notificationPrefs,
                             )
                           }
-                          className="w-5 h-5 text-[var(--primary)] rounded focus:ring-[var(--primary)]"
+                          className="w-5 h-5 text-lime-400 rounded focus:ring-[var(--primary)]"
                         />
                       </label>
                     ))}
@@ -651,7 +641,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-[var(--border)] flex items-center gap-4">
+              <div className="mt-6 pt-6 border-t border-gray-800 flex items-center gap-4">
                 <button
                   onClick={handleSaveNotifications}
                   disabled={
@@ -672,7 +662,7 @@ export default function SettingsPage() {
                   )}
                 </button>
                 {notificationsDirty && (
-                  <span className="text-sm text-[var(--muted-foreground)]">
+                  <span className="text-sm text-gray-400">
                     You have unsaved changes
                   </span>
                 )}
@@ -684,12 +674,12 @@ export default function SettingsPage() {
           {activeTab === "security" && (
             <div className="space-y-6">
               <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
-                <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">
+                <h2 className="text-lg font-semibold text-white mb-6">
                   Password
                 </h2>
                 <div className="space-y-4 max-w-md">
                   <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Current Password
                     </label>
                     <input
@@ -700,7 +690,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       New Password
                     </label>
                     <input
@@ -709,12 +699,12 @@ export default function SettingsPage() {
                       onChange={(e) => setNewPassword(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                     />
-                    <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                    <p className="text-xs text-gray-400 mt-1">
                       Must be at least 8 characters
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Confirm New Password
                     </label>
                     <input
@@ -765,20 +755,18 @@ export default function SettingsPage() {
               </div>
 
               <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
-                <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+                <h2 className="text-lg font-semibold text-white mb-4">
                   Active Sessions
                 </h2>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-4 border border-gray-800 clip-notch-sm bg-green-500/5">
                     <div className="flex items-center gap-3">
-                      <Monitor className="w-5 h-5 text-[var(--muted-foreground)]" />
+                      <Monitor className="w-5 h-5 text-gray-400" />
                       <div>
-                        <p className="font-medium text-[var(--foreground)]">
+                        <p className="font-medium text-white">
                           Current Session
                         </p>
-                        <p className="text-sm text-[var(--muted-foreground)]">
-                          This device
-                        </p>
+                        <p className="text-sm text-gray-400">This device</p>
                       </div>
                     </div>
                     <span className="text-green-500 text-sm font-medium">
@@ -800,13 +788,13 @@ export default function SettingsPage() {
           {/* Preferences Tab */}
           {activeTab === "preferences" && (
             <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
-              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">
+              <h2 className="text-lg font-semibold text-white mb-6">
                 Preferences
               </h2>
 
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  <label className="block text-sm font-medium text-white mb-1">
                     Language
                   </label>
                   <select
@@ -822,7 +810,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  <label className="block text-sm font-medium text-white mb-1">
                     Timezone
                   </label>
                   <select
@@ -842,7 +830,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  <label className="block text-sm font-medium text-white mb-1">
                     Date Format
                   </label>
                   <select
@@ -859,7 +847,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  <label className="block text-sm font-medium text-white mb-1">
                     Currency
                   </label>
                   <select
@@ -874,7 +862,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="pt-4">
-                  <h3 className="font-medium text-[var(--foreground)] mb-4">
+                  <h3 className="font-medium text-white mb-4">
                     Default Report Settings
                   </h3>
                   <div className="space-y-3">
@@ -888,9 +876,9 @@ export default function SettingsPage() {
                             e.target.checked,
                           )
                         }
-                        className="w-4 h-4 text-[var(--primary)] rounded"
+                        className="w-4 h-4 text-lime-400 rounded"
                       />
-                      <span className="text-[var(--foreground)]">
+                      <span className="text-white">
                         Auto-download PDF when report is ready
                       </span>
                     </label>
@@ -904,9 +892,9 @@ export default function SettingsPage() {
                             e.target.checked,
                           )
                         }
-                        className="w-4 h-4 text-[var(--primary)] rounded"
+                        className="w-4 h-4 text-lime-400 rounded"
                       />
-                      <span className="text-[var(--foreground)]">
+                      <span className="text-white">
                         Include comparable sales in reports
                       </span>
                     </label>
@@ -920,9 +908,9 @@ export default function SettingsPage() {
                             e.target.checked,
                           )
                         }
-                        className="w-4 h-4 text-[var(--primary)] rounded"
+                        className="w-4 h-4 text-lime-400 rounded"
                       />
-                      <span className="text-[var(--foreground)]">
+                      <span className="text-white">
                         Show risk flags by default
                       </span>
                     </label>
@@ -930,7 +918,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-[var(--border)] flex items-center gap-4">
+              <div className="mt-6 pt-6 border-t border-gray-800 flex items-center gap-4">
                 <button
                   onClick={handleSavePreferences}
                   disabled={savingPreferences || !preferencesDirty}
@@ -949,7 +937,7 @@ export default function SettingsPage() {
                   )}
                 </button>
                 {preferencesDirty && (
-                  <span className="text-sm text-[var(--muted-foreground)]">
+                  <span className="text-sm text-gray-400">
                     You have unsaved changes
                   </span>
                 )}

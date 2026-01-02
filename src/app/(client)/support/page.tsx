@@ -76,10 +76,8 @@ export default function SupportPage() {
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">
-          Help & Support
-        </h1>
-        <p className="text-[var(--muted-foreground)] mt-1">
+        <h1 className="text-2xl font-bold text-white">Help & Support</h1>
+        <p className="text-gray-400 mt-1">
           Get help with TruPlat or contact our support team
         </p>
       </div>

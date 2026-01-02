@@ -48,15 +48,16 @@ export function PropertyCard({
   const formattedAddress = `${address.street}, ${address.city}, ${address.state} ${address.zipCode}`;
 
   const cardClassName = cn(
-    "block bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden transition-all",
-    (href || onClick) && "hover:shadow-md hover:border-[var(--primary)]/50 cursor-pointer",
-    className
+    "block bg-gray-900 border border-gray-800 clip-notch overflow-hidden transition-all",
+    (href || onClick) &&
+      "hover:shadow-md hover:border-lime-400/50 cursor-pointer",
+    className,
   );
 
   const content = (
     <>
       {/* Image */}
-      <div className="relative aspect-[16/10] bg-[var(--muted)]">
+      <div className="relative aspect-[16/10] bg-gray-800">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -65,7 +66,7 @@ export function PropertyCard({
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <MapPin className="w-8 h-8 text-[var(--muted-foreground)]" />
+            <MapPin className="w-8 h-8 text-gray-600" />
           </div>
         )}
         {status && (
@@ -79,12 +80,10 @@ export function PropertyCard({
       <div className="p-4">
         {/* Address */}
         <div className="flex items-start gap-2 mb-3">
-          <MapPin className="w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0 mt-0.5" />
+          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
           <div className="min-w-0">
-            <p className="font-medium text-[var(--foreground)] truncate">
-              {address.street}
-            </p>
-            <p className="text-sm text-[var(--muted-foreground)]">
+            <p className="font-medium text-white truncate">{address.street}</p>
+            <p className="text-sm text-gray-400">
               {address.city}, {address.state} {address.zipCode}
             </p>
           </div>
@@ -92,21 +91,21 @@ export function PropertyCard({
 
         {/* Property Details */}
         {(bedrooms || bathrooms || sqft) && (
-          <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)] mb-3">
+          <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
             {bedrooms !== undefined && (
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 font-mono">
                 <Bed className="w-4 h-4" />
                 {bedrooms} bed
               </span>
             )}
             {bathrooms !== undefined && (
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 font-mono">
                 <Bath className="w-4 h-4" />
                 {bathrooms} bath
               </span>
             )}
             {sqft !== undefined && (
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 font-mono">
                 <Square className="w-4 h-4" />
                 {sqft.toLocaleString()} sqft
               </span>
@@ -119,14 +118,19 @@ export function PropertyCard({
           <div className="flex items-center justify-between">
             <PriceDisplay value={estimatedValue} size="md" />
             {confidenceScore !== undefined && (
-              <ConfidenceMeter score={confidenceScore} size="sm" showLabel showTooltip={false} />
+              <ConfidenceMeter
+                score={confidenceScore}
+                size="sm"
+                showLabel
+                showTooltip={false}
+              />
             )}
           </div>
         )}
 
         {/* Footer */}
         {createdAt && (
-          <div className="flex items-center gap-1 text-xs text-[var(--muted-foreground)] mt-3 pt-3 border-t border-[var(--border)]">
+          <div className="flex items-center gap-1 text-xs text-gray-500 mt-3 pt-3 border-t border-gray-800">
             <Calendar className="w-3 h-3" />
             {formatDate(createdAt)}
           </div>
@@ -145,7 +149,12 @@ export function PropertyCard({
 
   if (onClick) {
     return (
-      <div onClick={onClick} role="button" tabIndex={0} className={cardClassName}>
+      <div
+        onClick={onClick}
+        role="button"
+        tabIndex={0}
+        className={cardClassName}
+      >
         {content}
       </div>
     );
@@ -183,13 +192,15 @@ export function PropertyCardCompact({
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       className={cn(
-        "flex items-center gap-3 p-3 bg-[var(--card)] border rounded-lg transition-all",
-        onClick && "cursor-pointer hover:bg-[var(--secondary)]",
-        selected ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20" : "border-[var(--border)]",
-        className
+        "flex items-center gap-3 p-3 bg-gray-900 border clip-notch transition-all",
+        onClick && "cursor-pointer hover:bg-gray-800",
+        selected
+          ? "border-lime-400 ring-2 ring-lime-400/20"
+          : "border-gray-800",
+        className,
       )}
     >
-      <div className="w-16 h-12 rounded-md bg-[var(--muted)] overflow-hidden flex-shrink-0">
+      <div className="w-16 h-12 clip-notch-sm bg-gray-800 overflow-hidden flex-shrink-0">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -198,20 +209,24 @@ export function PropertyCardCompact({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <MapPin className="w-4 h-4 text-[var(--muted-foreground)]" />
+            <MapPin className="w-4 h-4 text-gray-500" />
           </div>
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm text-[var(--foreground)] truncate">
+        <p className="font-medium text-sm text-white truncate">
           {address.street}
         </p>
-        <p className="text-xs text-[var(--muted-foreground)]">
+        <p className="text-xs text-gray-400">
           {address.city}, {address.state}
         </p>
       </div>
       {estimatedValue !== undefined && (
-        <PriceDisplay value={estimatedValue} size="sm" className="flex-shrink-0" />
+        <PriceDisplay
+          value={estimatedValue}
+          size="sm"
+          className="flex-shrink-0"
+        />
       )}
     </div>
   );

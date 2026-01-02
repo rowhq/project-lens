@@ -33,7 +33,9 @@ export default function ListingDetailPage() {
   const listingId = params.id as string;
   const { addItem, hasItem, removeItem } = useCartStore();
 
-  const { data: listing, isLoading } = trpc.marketplace.getById.useQuery({ id: listingId });
+  const { data: listing, isLoading } = trpc.marketplace.getById.useQuery({
+    id: listingId,
+  });
 
   const isInCart = hasItem(listingId);
 
@@ -46,7 +48,9 @@ export default function ListingDetailPage() {
       listingId: listing.id,
       title: listing.title,
       price: Number(listing.price),
-      property: property ? { city: property.city, state: property.state } : undefined,
+      property: property
+        ? { city: property.city, state: property.state }
+        : undefined,
       reportType: listing.report.type,
     });
 
@@ -65,7 +69,7 @@ export default function ListingDetailPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+        <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
       </div>
     );
   }
@@ -73,9 +77,12 @@ export default function ListingDetailPage() {
   if (!listing) {
     return (
       <div className="text-center py-12">
-        <FileText className="w-12 h-12 mx-auto text-[var(--muted)]" />
-        <p className="mt-4 text-[var(--muted-foreground)]">Listing not found</p>
-        <Link href="/marketplace" className="mt-4 inline-block text-[var(--primary)] hover:underline">
+        <FileText className="w-12 h-12 mx-auto text-gray-600" />
+        <p className="mt-4 text-gray-400">Listing not found</p>
+        <Link
+          href="/marketplace"
+          className="mt-4 inline-block text-lime-400 hover:text-lime-300"
+        >
           Back to Marketplace
         </Link>
       </div>
@@ -99,74 +106,94 @@ export default function ListingDetailPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Header */}
-          <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <span className="px-2 py-1 bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-medium rounded">
+                <span className="px-2 py-1 bg-lime-400/10 text-lime-400 text-xs font-mono uppercase tracking-wider clip-notch-sm">
                   {listing.category}
                 </span>
-                <h1 className="mt-2 text-2xl font-bold text-[var(--foreground)]">{listing.title}</h1>
+                <h1 className="mt-2 text-2xl font-bold text-white">
+                  {listing.title}
+                </h1>
                 {property && (
-                  <p className="mt-1 flex items-center gap-2 text-[var(--muted-foreground)]">
+                  <p className="mt-1 flex items-center gap-2 text-gray-400">
                     <MapPin className="w-4 h-4" />
                     {property.city}, {property.state} {property.zipCode}
                   </p>
                 )}
               </div>
               <div className="text-right">
-                <p className="text-3xl font-bold text-green-500">${Number(listing.price).toFixed(0)}</p>
-                <p className="text-sm text-[var(--muted-foreground)]">{listing._count.purchases} sold</p>
+                <p className="text-3xl font-bold text-lime-400 font-mono">
+                  ${Number(listing.price).toFixed(0)}
+                </p>
+                <p className="text-sm text-gray-400">
+                  {listing._count.purchases} sold
+                </p>
               </div>
             </div>
           </div>
 
           {/* Description */}
           {listing.description && (
-            <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-              <h2 className="font-semibold text-[var(--foreground)] mb-3">Description</h2>
-              <p className="text-[var(--muted-foreground)] whitespace-pre-wrap">{listing.description}</p>
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <h2 className="font-semibold text-white mb-3">Description</h2>
+              <p className="text-gray-400 whitespace-pre-wrap">
+                {listing.description}
+              </p>
             </div>
           )}
 
           {/* Property Details */}
-          <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-            <h2 className="font-semibold text-[var(--foreground)] mb-4">Property Details</h2>
+          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <h2 className="font-semibold text-white mb-4">Property Details</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg">
-                <Building2 className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <div className="flex items-center gap-3 p-3 bg-gray-800 clip-notch-sm">
+                <Building2 className="w-5 h-5 text-lime-400" />
                 <div>
-                  <p className="text-xs text-[var(--muted-foreground)]">Type</p>
-                  <p className="font-medium text-[var(--foreground)]">
+                  <p className="text-xs text-gray-400 font-mono uppercase tracking-wider">
+                    Type
+                  </p>
+                  <p className="font-medium text-white">
                     {property?.propertyType?.replace("_", " ") || "N/A"}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg">
-                <Ruler className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <div className="flex items-center gap-3 p-3 bg-gray-800 clip-notch-sm">
+                <Ruler className="w-5 h-5 text-lime-400" />
                 <div>
-                  <p className="text-xs text-[var(--muted-foreground)]">Size</p>
-                  <p className="font-medium text-[var(--foreground)]">
+                  <p className="text-xs text-gray-400 font-mono uppercase tracking-wider">
+                    Size
+                  </p>
+                  <p className="font-medium text-white">
                     {property?.sqft?.toLocaleString() || "N/A"} sqft
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg">
-                <Bed className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <div className="flex items-center gap-3 p-3 bg-gray-800 clip-notch-sm">
+                <Bed className="w-5 h-5 text-lime-400" />
                 <div>
-                  <p className="text-xs text-[var(--muted-foreground)]">Bedrooms</p>
-                  <p className="font-medium text-[var(--foreground)]">{property?.bedrooms || "N/A"}</p>
+                  <p className="text-xs text-gray-400 font-mono uppercase tracking-wider">
+                    Bedrooms
+                  </p>
+                  <p className="font-medium text-white">
+                    {property?.bedrooms || "N/A"}
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg">
-                <Bath className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <div className="flex items-center gap-3 p-3 bg-gray-800 clip-notch-sm">
+                <Bath className="w-5 h-5 text-lime-400" />
                 <div>
-                  <p className="text-xs text-[var(--muted-foreground)]">Bathrooms</p>
-                  <p className="font-medium text-[var(--foreground)]">{property?.bathrooms || "N/A"}</p>
+                  <p className="text-xs text-gray-400 font-mono uppercase tracking-wider">
+                    Bathrooms
+                  </p>
+                  <p className="font-medium text-white">
+                    {property?.bathrooms || "N/A"}
+                  </p>
                 </div>
               </div>
             </div>
             {property?.yearBuilt && (
-              <div className="mt-4 flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+              <div className="mt-4 flex items-center gap-2 text-sm text-gray-400">
                 <Calendar className="w-4 h-4" />
                 Built in {property.yearBuilt}
               </div>
@@ -174,49 +201,53 @@ export default function ListingDetailPage() {
           </div>
 
           {/* Report Details */}
-          <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-            <h2 className="font-semibold text-[var(--foreground)] mb-4">Report Information</h2>
+          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <h2 className="font-semibold text-white mb-4">
+              Report Information
+            </h2>
             <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b border-[var(--border)]">
-                <span className="text-[var(--muted-foreground)]">Report Type</span>
-                <span className="font-medium text-[var(--foreground)]">
+              <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                <span className="text-gray-400">Report Type</span>
+                <span className="font-medium text-white">
                   {listing.report.type.replace(/_/g, " ")}
                 </span>
               </div>
-              <div className="flex items-center justify-between py-3 border-b border-[var(--border)]">
-                <span className="text-[var(--muted-foreground)]">Estimated Value</span>
-                <span className="font-medium text-[var(--foreground)]">
+              <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                <span className="text-gray-400">Estimated Value</span>
+                <span className="font-medium text-white font-mono">
                   ${Number(listing.report.valueEstimate).toLocaleString()}
                 </span>
               </div>
-              <div className="flex items-center justify-between py-3 border-b border-[var(--border)]">
-                <span className="text-[var(--muted-foreground)]">Value Range</span>
-                <span className="font-medium text-[var(--foreground)]">
-                  ${Number(listing.report.valueRangeMin).toLocaleString()} -{" "}
-                  ${Number(listing.report.valueRangeMax).toLocaleString()}
+              <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                <span className="text-gray-400">Value Range</span>
+                <span className="font-medium text-white font-mono">
+                  ${Number(listing.report.valueRangeMin).toLocaleString()} - $
+                  {Number(listing.report.valueRangeMax).toLocaleString()}
                 </span>
               </div>
-              <div className="flex items-center justify-between py-3 border-b border-[var(--border)]">
-                <span className="text-[var(--muted-foreground)]">Confidence Score</span>
+              <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                <span className="text-gray-400">Confidence Score</span>
                 <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-[var(--secondary)] rounded-full overflow-hidden">
+                  <div className="w-24 h-2 bg-gray-700 clip-notch-sm overflow-hidden">
                     <div
-                      className="h-full bg-green-500 rounded-full"
+                      className="h-full bg-lime-400 clip-notch-sm"
                       style={{ width: `${listing.report.confidenceScore}%` }}
                     />
                   </div>
-                  <span className="font-medium text-[var(--foreground)]">
+                  <span className="font-medium text-white font-mono">
                     {listing.report.confidenceScore}%
                   </span>
                 </div>
               </div>
-              <div className="flex items-center justify-between py-3 border-b border-[var(--border)]">
-                <span className="text-[var(--muted-foreground)]">Comparables Used</span>
-                <span className="font-medium text-[var(--foreground)]">{listing.report.compsCount}</span>
+              <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                <span className="text-gray-400">Comparables Used</span>
+                <span className="font-medium text-white font-mono">
+                  {listing.report.compsCount}
+                </span>
               </div>
               <div className="flex items-center justify-between py-3">
-                <span className="text-[var(--muted-foreground)]">Generated</span>
-                <span className="font-medium text-[var(--foreground)]">
+                <span className="text-gray-400">Generated</span>
+                <span className="font-medium text-white">
                   {new Date(listing.report.generatedAt).toLocaleDateString()}
                 </span>
               </div>
@@ -227,26 +258,28 @@ export default function ListingDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Purchase Card */}
-          <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6 sticky top-6">
+          <div className="relative bg-gray-900 clip-notch border border-lime-400/30 p-6 sticky top-6">
+            <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
+            <div className="absolute -top-px -right-px w-3 h-3 border-r border-t border-lime-400" />
             <div className="text-center mb-6">
-              <p className="text-3xl font-bold text-[var(--foreground)]">
+              <p className="text-3xl font-bold text-lime-400 font-mono">
                 ${Number(listing.price).toFixed(0)}
               </p>
-              <p className="text-sm text-[var(--muted-foreground)]">One-time purchase</p>
+              <p className="text-sm text-gray-400">One-time purchase</p>
             </div>
 
             {isInCart ? (
               <div className="space-y-2">
                 <button
                   onClick={handleGoToCart}
-                  className="w-full py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-semibold hover:opacity-90 flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 flex items-center justify-center gap-2"
                 >
                   <ShoppingCart className="w-5 h-5" />
                   Go to Cart
                 </button>
                 <button
                   onClick={handleRemoveFromCart}
-                  className="w-full py-2 text-[var(--muted-foreground)] hover:text-red-500 text-sm flex items-center justify-center gap-1"
+                  className="w-full py-2 text-gray-400 hover:text-red-500 text-sm flex items-center justify-center gap-1"
                 >
                   Remove from cart
                 </button>
@@ -254,7 +287,7 @@ export default function ListingDetailPage() {
             ) : (
               <button
                 onClick={handleAddToCart}
-                className="w-full py-3 bg-[var(--primary)] text-black font-medium rounded-lg font-semibold hover:opacity-90 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 flex items-center justify-center gap-2"
               >
                 <ShoppingCart className="w-5 h-5" />
                 Add to Cart
@@ -262,56 +295,60 @@ export default function ListingDetailPage() {
             )}
 
             <div className="mt-6 space-y-3">
-              <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                <CheckCircle className="w-4 h-4 text-green-500" />
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <CheckCircle className="w-4 h-4 text-lime-400" />
                 Instant PDF download
               </div>
-              <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                <Shield className="w-4 h-4 text-green-500" />
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <Shield className="w-4 h-4 text-lime-400" />
                 Verified appraisal data
               </div>
-              <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                <Download className="w-4 h-4 text-green-500" />
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <Download className="w-4 h-4 text-lime-400" />
                 Unlimited downloads
               </div>
             </div>
           </div>
 
           {/* Seller Info */}
-          <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-            <h3 className="font-semibold text-[var(--foreground)] mb-3">Seller</h3>
+          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <h3 className="font-semibold text-white mb-3">Seller</h3>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[var(--secondary)] rounded-full flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-[var(--muted-foreground)]" />
+              <div className="w-12 h-12 bg-gray-800 clip-notch-sm flex items-center justify-center">
+                <Building2 className="w-6 h-6 text-lime-400" />
               </div>
               <div>
-                <p className="font-medium text-[var(--foreground)]">{listing.seller.name}</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Verified Seller</p>
+                <p className="font-medium text-white">{listing.seller.name}</p>
+                <p className="text-sm text-gray-400">Verified Seller</p>
               </div>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-            <h3 className="font-semibold text-[var(--foreground)] mb-3">Listing Stats</h3>
+          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <h3 className="font-semibold text-white mb-3">Listing Stats</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[var(--muted-foreground)] flex items-center gap-2">
+                <span className="text-gray-400 flex items-center gap-2">
                   <Eye className="w-4 h-4" /> Views
                 </span>
-                <span className="font-medium text-[var(--foreground)]">{listing.viewCount}</span>
+                <span className="font-medium text-white font-mono">
+                  {listing.viewCount}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[var(--muted-foreground)] flex items-center gap-2">
+                <span className="text-gray-400 flex items-center gap-2">
                   <ShoppingCart className="w-4 h-4" /> Sales
                 </span>
-                <span className="font-medium text-[var(--foreground)]">{listing._count.purchases}</span>
+                <span className="font-medium text-white font-mono">
+                  {listing._count.purchases}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[var(--muted-foreground)] flex items-center gap-2">
+                <span className="text-gray-400 flex items-center gap-2">
                   <Calendar className="w-4 h-4" /> Listed
                 </span>
-                <span className="font-medium text-[var(--foreground)]">
+                <span className="font-medium text-white">
                   {new Date(listing.createdAt).toLocaleDateString()}
                 </span>
               </div>
