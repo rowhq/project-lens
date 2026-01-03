@@ -54,7 +54,7 @@ export interface PropertyAnalysisResult {
  * Analyze a property using GPT-4
  */
 export async function analyzeProperty(
-  input: PropertyAnalysisInput
+  input: PropertyAnalysisInput,
 ): Promise<PropertyAnalysisResult> {
   const openai = getOpenAI();
 
@@ -78,7 +78,7 @@ ${i + 1}. ${comp.address}
    - Sale Price: $${comp.salePrice.toLocaleString()}
    - Size: ${comp.sqft} sq ft | ${comp.bedrooms}bd/${comp.bathrooms}ba
    - Year Built: ${comp.yearBuilt}
-   - Distance: ${comp.distance.toFixed(2)} miles`
+   - Distance: ${comp.distance.toFixed(2)} miles`,
   )
   .join("\n")}
 
@@ -101,7 +101,7 @@ Focus on:
 Respond ONLY with valid JSON, no additional text.`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4-turbo-preview",
+    model: "gpt-4o",
     messages: [
       {
         role: "system",
@@ -129,8 +129,10 @@ Respond ONLY with valid JSON, no additional text.`;
       summary: result.summary || "Analysis unavailable",
       strengths: result.strengths || [],
       concerns: result.concerns || [],
-      marketPosition: result.marketPosition || "Unable to determine market position",
-      investmentPotential: result.investmentPotential || "Unable to assess investment potential",
+      marketPosition:
+        result.marketPosition || "Unable to determine market position",
+      investmentPotential:
+        result.investmentPotential || "Unable to assess investment potential",
     };
   } catch {
     throw new Error("Failed to parse OpenAI response as JSON");
@@ -152,7 +154,7 @@ export async function generatePropertyDescription(params: {
   const openai = getOpenAI();
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4-turbo-preview",
+    model: "gpt-4o",
     messages: [
       {
         role: "system",
@@ -174,7 +176,9 @@ Features: ${params.features.join(", ") || "Standard features"}`,
     max_tokens: 200,
   });
 
-  return response.choices[0]?.message?.content || "Property description unavailable";
+  return (
+    response.choices[0]?.message?.content || "Property description unavailable"
+  );
 }
 
 /**
@@ -197,7 +201,7 @@ export async function analyzeMarketTrends(params: {
   const openai = getOpenAI();
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4-turbo-preview",
+    model: "gpt-4o",
     messages: [
       {
         role: "system",
