@@ -165,6 +165,37 @@ export default function BillingPage() {
     },
   });
 
+  const upgradePlan = trpc.billing.subscription.update.useMutation({
+    onSuccess: (data) => {
+      if (data && typeof data === "object" && "checkoutUrl" in data) {
+        // Redirect to Stripe checkout
+        window.location.href = (data as { checkoutUrl: string }).checkoutUrl;
+      } else {
+        showFeedback("success", "Plan updated successfully");
+      }
+    },
+    onError: (error) => {
+      showFeedback("error", error.message);
+    },
+  });
+
+  const handleUpgrade = (planId: string) => {
+    if (planId === "enterprise") {
+      // Contact sales - open email
+      window.location.href =
+        "mailto:sales@truplat.com?subject=Enterprise%20Plan%20Inquiry";
+      return;
+    }
+
+    const planMap: Record<string, "STARTER" | "PROFESSIONAL" | "ENTERPRISE"> = {
+      starter: "STARTER",
+      professional: "PROFESSIONAL",
+      enterprise: "ENTERPRISE",
+    };
+
+    upgradePlan.mutate({ plan: planMap[planId] });
+  };
+
   const showFeedback = (type: "success" | "error", message: string) => {
     setFeedback({ type, message });
     setTimeout(() => setFeedback(null), 4000);
@@ -369,15 +400,19 @@ export default function BillingPage() {
                   ))}
                 </ul>
                 <button
-                  className={`w-full mt-6 py-2.5 clip-notch font-mono text-sm uppercase tracking-wider transition-colors ${
+                  onClick={() => handleUpgrade(plan.id)}
+                  disabled={isCurrentPlan || upgradePlan.isPending}
+                  className={`w-full mt-6 py-2.5 clip-notch font-mono text-sm uppercase tracking-wider transition-colors flex items-center justify-center gap-2 ${
                     isCurrentPlan
                       ? "bg-gray-800 text-gray-500 cursor-default"
                       : plan.popular
                         ? "bg-lime-400 text-black hover:bg-lime-300"
                         : "border border-gray-700 text-white hover:bg-gray-800"
                   }`}
-                  disabled={isCurrentPlan}
                 >
+                  {upgradePlan.isPending && !isCurrentPlan ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : null}
                   {isCurrentPlan
                     ? "Current Plan"
                     : plan.id === "enterprise"

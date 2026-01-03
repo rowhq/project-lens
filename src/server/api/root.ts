@@ -21,6 +21,7 @@ import { userRouter } from "./routers/user.router";
 import { notificationsRouter } from "./routers/notifications.router";
 import { mapRouter } from "./routers/map.router";
 import { paymentRouter } from "./routers/payment.router";
+import { supportRouter } from "./routers/support.router";
 
 /**
  * Main application router
@@ -42,6 +43,7 @@ export const appRouter = createTRPCRouter({
   notifications: notificationsRouter,
   map: mapRouter,
   payment: paymentRouter,
+  support: supportRouter,
 });
 
 // Export type definition of API

@@ -5,7 +5,8 @@
  * Core product feature - Click on parcels to generate valuations
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
@@ -14,15 +15,9 @@ import {
   Satellite,
   Users,
   Briefcase,
-  MapPin,
-  X,
   Search,
-  DollarSign,
-  Calendar,
   Home,
   Loader2,
-  ChevronRight,
-  Building2,
 } from "lucide-react";
 import { trpc } from "@/shared/lib/trpc";
 import {
@@ -30,6 +25,12 @@ import {
   type ParcelProperties,
   type Bounds,
 } from "@/shared/lib/parcel-api";
+import { StatusBar } from "@/shared/components/map/StatusBar";
+import {
+  LayerControl,
+  type LayersConfig,
+} from "@/shared/components/map/LayerControl";
+import { PropertyPopup } from "@/shared/components/map/PropertyPopup";
 
 type ViewTab = "parcels" | "jobs" | "appraisers";
 type BaseLayer = "streets" | "satellite" | "hybrid";
@@ -133,6 +134,7 @@ const DEFAULT_CENTER: [number, number] = [-95.4783, 30.0893]; // Montgomery Coun
 const DEFAULT_ZOOM = 14;
 
 export default function MapPage() {
+  const router = useRouter();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
@@ -140,9 +142,25 @@ export default function MapPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<ViewTab>("parcels");
   const [baseLayer, setBaseLayer] = useState<BaseLayer>("streets");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [bounds, setBounds] = useState<Bounds | null>(null);
+  const [showPropertyPopup, setShowPropertyPopup] = useState(false);
+
+  // Map info for StatusBar
+  const [mapInfo, setMapInfo] = useState({
+    lat: DEFAULT_CENTER[1],
+    lng: DEFAULT_CENTER[0],
+    zoom: DEFAULT_ZOOM,
+  });
+
+  // Layer controls state
+  const [layers, setLayers] = useState<LayersConfig>({
+    parcels: { visible: true, opacity: 0.3 },
+    propertyLines: { visible: false, opacity: 1 },
+    floodZones: { visible: false, opacity: 0.5 },
+    zoning: { visible: false, opacity: 0.6 },
+  });
 
   // Selected items
   const [selectedParcel, setSelectedParcel] = useState<ParcelProperties | null>(
@@ -177,6 +195,94 @@ export default function MapPage() {
     { enabled: !!bounds },
   );
 
+  // Address search query
+  const searchAddresses = trpc.property.search.useQuery(
+    { query: searchQuery, limit: 5 },
+    {
+      enabled: searchQuery.length >= 5 && searchOpen,
+      staleTime: 30000,
+    },
+  );
+
+  const searchResults = useMemo(() => {
+    if (!searchAddresses.data) return [];
+    return searchAddresses.data.map((r) => ({
+      id: r.id,
+      address: r.address,
+      city: r.city,
+      state: r.state,
+      zipCode: r.zipCode,
+      latitude: r.latitude,
+      longitude: r.longitude,
+    }));
+  }, [searchAddresses.data]);
+
+  // Handle address selection from search
+  const handleAddressSelect = useCallback(
+    (result: (typeof searchResults)[0]) => {
+      if (!map.current) return;
+      map.current.flyTo({
+        center: [result.longitude, result.latitude],
+        zoom: 17,
+        duration: 2000,
+      });
+      setSearchQuery("");
+      setSearchOpen(false);
+    },
+    [],
+  );
+
+  // Handle Generate AI Valuation button
+  const handleGenerateValuation = useCallback(() => {
+    if (!selectedParcel) return;
+
+    const params = new URLSearchParams({
+      address: selectedParcel.situs || "",
+      city: selectedParcel.city || "",
+      state: selectedParcel.state || "TX",
+      zipCode: selectedParcel.zip || "",
+      type: "AI_REPORT",
+    });
+
+    router.push(`/appraisals/new?${params.toString()}`);
+  }, [selectedParcel, router]);
+
+  // Handle Request Certified Appraisal button
+  const handleRequestCertified = useCallback(() => {
+    if (!selectedParcel) return;
+
+    const params = new URLSearchParams({
+      address: selectedParcel.situs || "",
+      city: selectedParcel.city || "",
+      state: selectedParcel.state || "TX",
+      zipCode: selectedParcel.zip || "",
+      type: "CERTIFIED",
+    });
+
+    router.push(`/appraisals/new?${params.toString()}`);
+  }, [selectedParcel, router]);
+
+  // Handle layer changes
+  const handleLayerChange = useCallback(
+    (layerId: keyof LayersConfig, state: Partial<LayersConfig[keyof LayersConfig]>) => {
+      setLayers((prev) => ({
+        ...prev,
+        [layerId]: { ...prev[layerId], ...state },
+      }));
+    },
+    [],
+  );
+
+  // Handle reset view
+  const handleResetView = useCallback(() => {
+    if (!map.current) return;
+    map.current.flyTo({
+      center: DEFAULT_CENTER,
+      zoom: DEFAULT_ZOOM,
+      duration: 1500,
+    });
+  }, []);
+
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -206,9 +312,27 @@ export default function MapPage() {
       updateBounds();
     });
 
-    // Update bounds on move
+    // Update bounds and map info on move
     map.current.on("moveend", () => {
       updateBounds();
+      if (map.current) {
+        const center = map.current.getCenter();
+        setMapInfo((prev) => ({
+          ...prev,
+          lat: center.lat,
+          lng: center.lng,
+          zoom: map.current!.getZoom(),
+        }));
+      }
+    });
+
+    // Track mouse position for StatusBar
+    map.current.on("mousemove", (e) => {
+      setMapInfo((prev) => ({
+        ...prev,
+        lat: e.lngLat.lat,
+        lng: e.lngLat.lng,
+      }));
     });
 
     return () => {
@@ -316,7 +440,7 @@ export default function MapPage() {
       const feature = e.features[0];
       const props = feature.properties as ParcelProperties;
       setSelectedParcel(props);
-      setSidebarOpen(true);
+      setShowPropertyPopup(true);
     });
 
     // Change cursor on hover
@@ -356,7 +480,7 @@ export default function MapPage() {
 
       el.addEventListener("click", () => {
         setSelectedJob(job);
-        setSidebarOpen(true);
+        // TODO: Show job details popup or navigate to job page
       });
 
       markersRef.current.set(job.id, marker);
@@ -468,191 +592,9 @@ export default function MapPage() {
   }, [activeTab]);
 
   return (
-    <div className="fixed inset-0 top-16 flex bg-black">
-      {/* Sidebar */}
-      <div
-        className={`absolute top-0 left-0 h-full bg-gray-900 border-r border-gray-800 z-20 transition-all duration-300 ${
-          sidebarOpen ? "w-80" : "w-0"
-        } overflow-hidden`}
-      >
-        <div className="w-80 h-full flex flex-col">
-          {/* Sidebar Header */}
-          <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-            <h2 className="font-semibold text-white">
-              {selectedParcel
-                ? "Property Details"
-                : selectedJob
-                  ? "Job Details"
-                  : "Map Details"}
-            </h2>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="p-1 hover:bg-gray-800 rounded"
-            >
-              <X className="w-5 h-5 text-gray-400" />
-            </button>
-          </div>
-
-          {/* Sidebar Content */}
-          <div className="flex-1 overflow-y-auto p-4">
-            {selectedParcel && (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-400">Address</p>
-                  <p className="font-medium text-white">
-                    {selectedParcel.situs}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    {selectedParcel.city}, {selectedParcel.state}{" "}
-                    {selectedParcel.zip}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-gray-800 clip-notch-sm">
-                    <p className="text-xs text-gray-400 font-mono uppercase tracking-wider">
-                      Total Value
-                    </p>
-                    <p className="font-bold text-white">
-                      ${selectedParcel.totalValue?.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-gray-800 clip-notch-sm">
-                    <p className="text-xs text-gray-400 font-mono uppercase tracking-wider">
-                      Year Built
-                    </p>
-                    <p className="font-bold text-white">
-                      {selectedParcel.yearBuilt}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Owner</span>
-                    <span className="text-white">{selectedParcel.owner}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Lot Size</span>
-                    <span className="text-white">
-                      {selectedParcel.acres?.toFixed(2)} acres
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Zoning</span>
-                    <span className="text-white">{selectedParcel.zoning}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Flood Zone</span>
-                    <span className="text-white">
-                      {selectedParcel.floodZone}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-gray-800">
-                  <button className="w-full py-3 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 flex items-center justify-center gap-2">
-                    <DollarSign className="w-5 h-5" />
-                    Generate AI Valuation
-                  </button>
-                  <p className="text-xs text-gray-500 text-center mt-2">
-                    Get an instant AI-powered property valuation
-                  </p>
-                </div>
-
-                <div>
-                  <button className="w-full py-3 border border-gray-700 text-white font-mono text-sm uppercase tracking-wider clip-notch hover:bg-gray-800 flex items-center justify-center gap-2">
-                    <Building2 className="w-5 h-5" />
-                    Request Certified Appraisal
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {selectedJob && (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-400">Address</p>
-                  <p className="font-medium text-white">
-                    {selectedJob.address}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    {selectedJob.city}, TX
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span
-                    className="px-2 py-1 clip-notch-sm text-xs font-mono uppercase tracking-wider"
-                    style={{
-                      backgroundColor: `${JOB_STATUS_COLORS[selectedJob.status]}20`,
-                      color: JOB_STATUS_COLORS[selectedJob.status],
-                    }}
-                  >
-                    {selectedJob.status.replace(/_/g, " ")}
-                  </span>
-                  <span className="text-sm text-gray-400">
-                    {selectedJob.jobType}
-                  </span>
-                </div>
-
-                <div className="p-3 bg-green-500/10 clip-notch-sm border border-green-500/30">
-                  <p className="text-xs text-green-400 font-mono uppercase tracking-wider">
-                    Payout
-                  </p>
-                  <p className="font-bold text-green-400 text-lg">
-                    ${selectedJob.payoutAmount}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() =>
-                    (window.location.href = `/orders/${selectedJob.id}`)
-                  }
-                  className="w-full py-3 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 flex items-center justify-center gap-2"
-                >
-                  View Full Details
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-
-            {!selectedParcel && !selectedJob && (
-              <div className="text-center py-8">
-                <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-400">
-                  {activeTab === "parcels"
-                    ? "Click on a parcel to see details"
-                    : activeTab === "jobs"
-                      ? "Click on a job marker to see details"
-                      : "Select an appraiser to see their coverage area"}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Stats Footer */}
-          {mapStats && (
-            <div className="p-4 border-t border-gray-800 grid grid-cols-2 gap-2">
-              <div className="text-center">
-                <p className="text-lg font-bold text-white">
-                  {mapStats.pendingJobs}
-                </p>
-                <p className="text-xs text-gray-400">Pending Jobs</p>
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-bold text-white">
-                  {mapStats.activeJobs}
-                </p>
-                <p className="text-xs text-gray-400">Active Jobs</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
+    <div className="fixed inset-0 top-16 left-0 lg:left-64 bg-black z-10">
       {/* Main Map Area */}
-      <div className="flex-1 relative">
+      <div className="w-full h-full relative">
         {/* Map Container */}
         <div ref={mapContainer} className="w-full h-full" />
 
@@ -670,24 +612,52 @@ export default function MapPage() {
 
         {/* Top Controls */}
         <div className="absolute top-4 left-4 z-10 flex gap-2">
-          {/* Toggle Sidebar */}
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-3 bg-gray-900 border border-gray-800 clip-notch shadow-lg hover:bg-gray-800"
-          >
-            <Layers className="w-5 h-5 text-white" />
-          </button>
-
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 z-10" />
             <input
               type="text"
               placeholder="Search address..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-64 pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 clip-notch-sm shadow-lg text-sm font-mono text-white placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setSearchOpen(true);
+              }}
+              onFocus={() => setSearchOpen(true)}
+              className="w-48 md:w-64 pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 clip-notch-sm shadow-lg text-sm font-mono text-white placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
             />
+            {/* Search Results Dropdown */}
+            {searchOpen && searchQuery.length >= 5 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-gray-900 border border-gray-700 clip-notch-sm shadow-xl overflow-hidden z-50">
+                {searchAddresses.isLoading ? (
+                  <div className="flex items-center gap-2 px-4 py-3 text-gray-400">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Searching...</span>
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <div>
+                    {searchResults.map((result) => (
+                      <button
+                        key={result.id}
+                        onClick={() => handleAddressSelect(result)}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-800 border-b border-gray-800 last:border-b-0 transition-colors"
+                      >
+                        <p className="text-sm font-medium text-white">
+                          {result.address}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {result.city}, {result.state} {result.zipCode}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-4 py-3 text-sm text-gray-400">
+                    No results found
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -703,14 +673,14 @@ export default function MapPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-mono uppercase tracking-wider transition-colors ${
+                className={`flex items-center gap-2 px-2.5 md:px-4 py-2.5 text-sm font-mono uppercase tracking-wider transition-colors ${
                   activeTab === tab.id
                     ? "bg-lime-400 text-black"
                     : "text-gray-400 hover:bg-gray-800"
                 }`}
               >
                 <Icon className="w-4 h-4" />
-                {tab.label}
+                <span className="hidden md:inline">{tab.label}</span>
               </button>
             );
           })}
@@ -757,13 +727,45 @@ export default function MapPage() {
         {activeTab === "parcels" &&
           isLoaded &&
           (map.current?.getZoom() || 0) < 13 && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 px-4 py-2 bg-gray-900 border border-gray-800 clip-notch shadow-lg">
+            <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-10 px-4 py-2 bg-gray-900 border border-gray-800 clip-notch shadow-lg">
               <p className="text-sm text-gray-400 font-mono">
                 Zoom in to see parcel boundaries
               </p>
             </div>
           )}
+
+        {/* Layer Control Panel */}
+        {activeTab === "parcels" && (
+          <LayerControl
+            layers={layers}
+            onLayerChange={handleLayerChange}
+            onResetView={handleResetView}
+          />
+        )}
+
+        {/* Status Bar */}
+        <StatusBar
+          lat={mapInfo.lat}
+          lng={mapInfo.lng}
+          zoom={mapInfo.zoom}
+          parcelCount={parcelsData?.features.length || 0}
+        />
       </div>
+
+      {/* Property Popup Modal */}
+      {showPropertyPopup && selectedParcel && (
+        <PropertyPopup
+          parcel={selectedParcel}
+          onClose={() => {
+            setShowPropertyPopup(false);
+            setSelectedParcel(null);
+          }}
+          onRequestCertified={() => {
+            setShowPropertyPopup(false);
+            handleRequestCertified();
+          }}
+        />
+      )}
     </div>
   );
 }
