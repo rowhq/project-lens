@@ -14,23 +14,42 @@ import * as openai from "@/shared/lib/openai";
 class AIAnalyzer {
   /**
    * Generate AI analysis for a property
+   * Uses a 15-second timeout to prevent serverless function timeouts
    */
   async analyze(
     property: Property,
     comps: ComparableProperty[],
-    valueResult: ValueResult
+    valueResult: ValueResult,
   ): Promise<AIAnalysis> {
+    const OPENAI_TIMEOUT_MS = 15000; // 15 seconds max
+
     try {
-      // Try OpenAI GPT-4 analysis first
-      const aiResult = await this.analyzeWithOpenAI(property, comps, valueResult);
+      console.log("[AIAnalyzer] Starting OpenAI analysis with 15s timeout...");
+
+      // Try OpenAI GPT-4 analysis with timeout
+      const aiResult = await Promise.race([
+        this.analyzeWithOpenAI(property, comps, valueResult),
+        new Promise<null>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("OpenAI analysis timed out after 15s")),
+            OPENAI_TIMEOUT_MS,
+          ),
+        ),
+      ]);
+
       if (aiResult) {
+        console.log("[AIAnalyzer] OpenAI analysis completed successfully");
         return aiResult;
       }
     } catch (error) {
-      console.error("OpenAI analysis failed, falling back to rule-based:", error);
+      console.error(
+        "[AIAnalyzer] OpenAI failed, using rule-based:",
+        error instanceof Error ? error.message : error,
+      );
     }
 
     // Fallback to rule-based analysis
+    console.log("[AIAnalyzer] Using rule-based analysis fallback");
     return this.analyzeWithRules(property, comps, valueResult);
   }
 
@@ -40,7 +59,7 @@ class AIAnalyzer {
   private async analyzeWithOpenAI(
     property: Property,
     comps: ComparableProperty[],
-    valueResult: ValueResult
+    valueResult: ValueResult,
   ): Promise<AIAnalysis | null> {
     // Prepare input for OpenAI analysis
     const input: openai.PropertyAnalysisInput = {
@@ -55,7 +74,7 @@ class AIAnalyzer {
       yearBuilt: property.yearBuilt,
       lotSize: property.lotSizeSqft,
       estimatedValue: valueResult.estimate,
-      comparables: comps.map(comp => ({
+      comparables: comps.map((comp) => ({
         address: comp.address,
         salePrice: comp.salePrice,
         sqft: comp.sqft,
@@ -84,13 +103,26 @@ class AIAnalyzer {
   private analyzeWithRules(
     property: Property,
     comps: ComparableProperty[],
-    valueResult: ValueResult
+    valueResult: ValueResult,
   ): AIAnalysis {
     const strengths = this.identifyStrengths(property, comps, valueResult);
     const concerns = this.identifyConcerns(property, comps, valueResult);
-    const marketPosition = this.analyzeMarketPosition(property, comps, valueResult);
-    const investmentPotential = this.assessInvestmentPotential(property, comps, valueResult);
-    const summary = this.generateSummary(property, valueResult, strengths, concerns);
+    const marketPosition = this.analyzeMarketPosition(
+      property,
+      comps,
+      valueResult,
+    );
+    const investmentPotential = this.assessInvestmentPotential(
+      property,
+      comps,
+      valueResult,
+    );
+    const summary = this.generateSummary(
+      property,
+      valueResult,
+      strengths,
+      concerns,
+    );
 
     return {
       summary,
@@ -107,7 +139,7 @@ class AIAnalyzer {
   private identifyStrengths(
     property: Property,
     comps: ComparableProperty[],
-    valueResult: ValueResult
+    valueResult: ValueResult,
   ): string[] {
     const strengths: string[] = [];
     const currentYear = new Date().getFullYear();
@@ -115,7 +147,9 @@ class AIAnalyzer {
     // Location-based strengths
     const highValueCounties = ["Travis", "Collin", "Denton", "Fort Bend"];
     if (highValueCounties.includes(property.county)) {
-      strengths.push(`Located in ${property.county} County, a high-demand market`);
+      strengths.push(
+        `Located in ${property.county} County, a high-demand market`,
+      );
     }
 
     // Age-based strengths
@@ -134,7 +168,8 @@ class AIAnalyzer {
     }
 
     // Price positioning
-    const avgCompPrice = comps.reduce((sum, c) => sum + c.adjustedPrice, 0) / comps.length;
+    const avgCompPrice =
+      comps.reduce((sum, c) => sum + c.adjustedPrice, 0) / comps.length;
     if (valueResult.estimate < avgCompPrice * 0.95) {
       strengths.push("Priced competitively relative to comparable sales");
     }
@@ -145,7 +180,8 @@ class AIAnalyzer {
     }
 
     // High similarity scores
-    const avgSimilarity = comps.reduce((sum, c) => sum + c.similarityScore, 0) / comps.length;
+    const avgSimilarity =
+      comps.reduce((sum, c) => sum + c.similarityScore, 0) / comps.length;
     if (avgSimilarity >= 85) {
       strengths.push("Highly comparable properties found nearby");
     }
@@ -164,7 +200,7 @@ class AIAnalyzer {
   private identifyConcerns(
     property: Property,
     comps: ComparableProperty[],
-    valueResult: ValueResult
+    valueResult: ValueResult,
   ): string[] {
     const concerns: string[] = [];
     const currentYear = new Date().getFullYear();
@@ -181,7 +217,9 @@ class AIAnalyzer {
 
     // Old comps
     const recentComps = comps.filter((c) => {
-      const monthsAgo = (Date.now() - new Date(c.saleDate).getTime()) / (1000 * 60 * 60 * 24 * 30);
+      const monthsAgo =
+        (Date.now() - new Date(c.saleDate).getTime()) /
+        (1000 * 60 * 60 * 24 * 30);
       return monthsAgo <= 6;
     });
     if (recentComps.length < 2) {
@@ -189,13 +227,15 @@ class AIAnalyzer {
     }
 
     // Wide value range
-    const rangePercent = (valueResult.rangeMax - valueResult.rangeMin) / valueResult.estimate;
+    const rangePercent =
+      (valueResult.rangeMax - valueResult.rangeMin) / valueResult.estimate;
     if (rangePercent > 0.12) {
       concerns.push("Higher than typical valuation uncertainty");
     }
 
     // Low similarity
-    const avgSimilarity = comps.reduce((sum, c) => sum + c.similarityScore, 0) / comps.length;
+    const avgSimilarity =
+      comps.reduce((sum, c) => sum + c.similarityScore, 0) / comps.length;
     if (avgSimilarity < 75) {
       concerns.push("Property characteristics differ from area norms");
     }
@@ -219,10 +259,12 @@ class AIAnalyzer {
   private analyzeMarketPosition(
     property: Property,
     comps: ComparableProperty[],
-    valueResult: ValueResult
+    valueResult: ValueResult,
   ): string {
-    const avgCompPrice = comps.reduce((sum, c) => sum + c.adjustedPrice, 0) / comps.length;
-    const percentDiff = ((valueResult.estimate - avgCompPrice) / avgCompPrice) * 100;
+    const avgCompPrice =
+      comps.reduce((sum, c) => sum + c.adjustedPrice, 0) / comps.length;
+    const percentDiff =
+      ((valueResult.estimate - avgCompPrice) / avgCompPrice) * 100;
 
     if (percentDiff < -5) {
       return `This property is positioned approximately ${Math.abs(percentDiff).toFixed(0)}% below the average comparable sale price, suggesting potential value opportunity or reflecting condition/feature differences.`;
@@ -239,20 +281,30 @@ class AIAnalyzer {
   private assessInvestmentPotential(
     property: Property,
     comps: ComparableProperty[],
-    valueResult: ValueResult
+    valueResult: ValueResult,
   ): string {
     const factors: string[] = [];
 
     // Market strength
-    const highGrowthCounties = ["Travis", "Collin", "Denton", "Fort Bend", "Williamson"];
+    const highGrowthCounties = [
+      "Travis",
+      "Collin",
+      "Denton",
+      "Fort Bend",
+      "Williamson",
+    ];
     if (highGrowthCounties.includes(property.county)) {
       factors.push("strong market growth potential");
     }
 
     // Value vs fast sale spread
-    const upside = ((valueResult.estimate - valueResult.fastSale) / valueResult.fastSale) * 100;
+    const upside =
+      ((valueResult.estimate - valueResult.fastSale) / valueResult.fastSale) *
+      100;
     if (upside > 12) {
-      factors.push(`${upside.toFixed(0)}% potential upside from distressed purchase price`);
+      factors.push(
+        `${upside.toFixed(0)}% potential upside from distressed purchase price`,
+      );
     }
 
     // Property type
@@ -264,7 +316,11 @@ class AIAnalyzer {
 
     // Age/condition opportunity
     const currentYear = new Date().getFullYear();
-    if (property.yearBuilt && currentYear - property.yearBuilt > 25 && currentYear - property.yearBuilt < 50) {
+    if (
+      property.yearBuilt &&
+      currentYear - property.yearBuilt > 25 &&
+      currentYear - property.yearBuilt < 50
+    ) {
       factors.push("renovation opportunity for value-add strategy");
     }
 
@@ -282,7 +338,7 @@ class AIAnalyzer {
     property: Property,
     valueResult: ValueResult,
     strengths: string[],
-    concerns: string[]
+    concerns: string[],
   ): string {
     const propertyType = property.propertyType.replace("_", " ").toLowerCase();
 
