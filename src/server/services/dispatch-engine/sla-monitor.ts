@@ -273,9 +273,9 @@ class SLAMonitor {
 
     // Check if already escalated to this level from statusHistory
     const rawHistory = job.statusHistory;
-    const statusHistory: Array<{ level?: string }> = Array.isArray(rawHistory)
-      ? rawHistory
-      : [];
+    const statusHistory = (
+      Array.isArray(rawHistory) ? rawHistory : []
+    ) as Array<{ level?: string }>;
     const lastEscalation = statusHistory.filter((s) => s.level).pop();
     if (lastEscalation?.level === breach.level) return false;
 
