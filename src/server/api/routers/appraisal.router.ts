@@ -775,6 +775,81 @@ export const appraisalRouter = createTRPCRouter({
     }),
 
   /**
+   * Bulk delete appraisal requests
+   * Same logic as single delete but for multiple appraisals
+   */
+  bulkDelete: clientProcedure
+    .input(z.object({ ids: z.array(z.string()).min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      // Fetch all appraisals with their reports
+      const appraisals = await ctx.prisma.appraisalRequest.findMany({
+        where: {
+          id: { in: input.ids },
+          organizationId: ctx.organization!.id,
+        },
+        include: { report: true },
+      });
+
+      if (appraisals.length === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No appraisals found",
+        });
+      }
+
+      const results = { softDeleted: 0, hardDeleted: 0, failed: 0 };
+
+      for (const appraisal of appraisals) {
+        try {
+          if (appraisal.status === "READY") {
+            // Soft delete for READY
+            await ctx.prisma.appraisalRequest.update({
+              where: { id: appraisal.id },
+              data: { deletedAt: new Date() },
+            });
+            results.softDeleted++;
+          } else {
+            // Hard delete for others
+            if (appraisal.report?.pdfUrl) {
+              try {
+                const url = new URL(appraisal.report.pdfUrl);
+                const key = url.pathname.slice(1);
+                await deleteFile(key);
+              } catch (error) {
+                console.error(
+                  `[BulkDelete] Failed to delete R2 file for ${appraisal.id}:`,
+                  error,
+                );
+              }
+            }
+
+            if (appraisal.reportId) {
+              await ctx.prisma.report.delete({
+                where: { id: appraisal.reportId },
+              });
+            }
+
+            await ctx.prisma.appraisalRequest.delete({
+              where: { id: appraisal.id },
+            });
+            results.hardDeleted++;
+          }
+        } catch (error) {
+          console.error(
+            `[BulkDelete] Failed to delete appraisal ${appraisal.id}:`,
+            error,
+          );
+          results.failed++;
+        }
+      }
+
+      return {
+        total: appraisals.length,
+        ...results,
+      };
+    }),
+
+  /**
    * Manually trigger processing for an appraisal
    */
   process: clientProcedure

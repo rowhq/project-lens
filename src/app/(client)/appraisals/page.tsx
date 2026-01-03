@@ -77,6 +77,8 @@ export default function AppraisalsPage() {
   );
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const { data: appraisals, isLoading } = trpc.appraisal.list.useQuery({
     limit: 50,
@@ -107,6 +109,21 @@ export default function AppraisalsPage() {
     },
   });
 
+  const bulkDeleteMutation = trpc.appraisal.bulkDelete.useMutation({
+    onSuccess: (data) => {
+      toast.success(
+        `Deleted ${data.softDeleted + data.hardDeleted} appraisal${data.total > 1 ? "s" : ""} successfully`,
+      );
+      utils.appraisal.list.invalidate();
+      setSelectedIds(new Set());
+      setIsBulkDeleting(false);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete appraisals");
+      setIsBulkDeleting(false);
+    },
+  });
+
   const handleDownload = (reportId: string) => {
     setDownloadingId(reportId);
     downloadMutation.mutate({ reportId });
@@ -123,6 +140,36 @@ export default function AppraisalsPage() {
     }
   };
 
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${selectedIds.size} appraisal${selectedIds.size > 1 ? "s" : ""}? This action cannot be undone.`,
+      )
+    ) {
+      setIsBulkDeleting(true);
+      bulkDeleteMutation.mutate({ ids: Array.from(selectedIds) });
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && filteredAppraisals) {
+      setSelectedIds(new Set(filteredAppraisals.map((a) => a.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedIds);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
   const filteredAppraisals = appraisals?.items.filter(
     (a) =>
       a.property?.addressFull
@@ -130,6 +177,12 @@ export default function AppraisalsPage() {
         .includes(searchQuery.toLowerCase()) ||
       a.referenceCode.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const allSelected =
+    filteredAppraisals &&
+    filteredAppraisals.length > 0 &&
+    filteredAppraisals.every((a) => selectedIds.has(a.id));
+  const someSelected = selectedIds.size > 0;
 
   return (
     <div className="space-y-6">
@@ -181,6 +234,20 @@ export default function AppraisalsPage() {
             <option value="FAILED">Failed</option>
           </select>
         </div>
+        {someSelected && (
+          <button
+            onClick={handleBulkDelete}
+            disabled={isBulkDeleting}
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-500/20 border border-red-500/30 text-red-400 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-red-500/30 disabled:opacity-50"
+          >
+            {isBulkDeleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+            Delete ({selectedIds.size})
+          </button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -247,6 +314,14 @@ export default function AppraisalsPage() {
           <table className="w-full min-w-[800px]">
             <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
               <tr>
+                <th className="px-4 py-3 w-12">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-lime-400 focus:ring-lime-400 focus:ring-offset-gray-900"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                   Reference
                 </th>
@@ -272,7 +347,7 @@ export default function AppraisalsPage() {
               {filteredAppraisals?.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-6 py-12 text-center text-[var(--muted-foreground)]"
                   >
                     No appraisals found. Create your first appraisal to get
@@ -284,11 +359,22 @@ export default function AppraisalsPage() {
                   const status =
                     statusConfig[appraisal.status as AppraisalStatus];
                   const StatusIcon = status?.icon || FileText;
+                  const isSelected = selectedIds.has(appraisal.id);
                   return (
                     <tr
                       key={appraisal.id}
-                      className="hover:bg-[var(--secondary)]"
+                      className={`hover:bg-[var(--secondary)] ${isSelected ? "bg-lime-400/5" : ""}`}
                     >
+                      <td className="px-4 py-4 w-12">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) =>
+                            handleSelectOne(appraisal.id, e.target.checked)
+                          }
+                          className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-lime-400 focus:ring-lime-400 focus:ring-offset-gray-900"
+                        />
+                      </td>
                       <td className="px-6 py-4">
                         <span className="font-mono text-sm text-[var(--foreground)]">
                           {appraisal.referenceCode}
