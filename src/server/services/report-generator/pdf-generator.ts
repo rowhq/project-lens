@@ -387,18 +387,30 @@ class PDFGenerator {
     // Convert Buffer to Uint8Array for fetch compatibility
     const uint8Array = new Uint8Array(buffer);
 
+    console.log(
+      `[PDFGenerator] Uploading PDF (${buffer.length} bytes) to R2...`,
+    );
+
     const response = await fetch(uploadUrl, {
       method: "PUT",
       body: uint8Array,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Length": buffer.length.toString(),
       },
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to upload PDF: ${response.statusText}`);
+      const errorText = await response.text().catch(() => "No error body");
+      console.error(
+        `[PDFGenerator] R2 upload failed: ${response.status} ${response.statusText}`,
+        errorText,
+      );
+      throw new Error(
+        `Failed to upload PDF: ${response.status} ${response.statusText}`,
+      );
     }
+
+    console.log(`[PDFGenerator] PDF uploaded successfully`);
   }
 
   /**
