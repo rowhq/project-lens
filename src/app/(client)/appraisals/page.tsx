@@ -13,12 +13,14 @@ import {
   AlertCircle,
   ChevronRight,
   Download,
+  Loader2,
 } from "lucide-react";
 import {
   Skeleton,
   SkeletonStats,
   SkeletonTable,
 } from "@/shared/components/ui/Skeleton";
+import { useToast } from "@/shared/components/ui/Toast";
 
 // Match Prisma AppraisalStatus enum
 type AppraisalStatus =
@@ -66,15 +68,34 @@ const statusConfig: Record<
 };
 
 export default function AppraisalsPage() {
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<AppraisalStatus | "ALL">(
     "ALL",
   );
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const { data: appraisals, isLoading } = trpc.appraisal.list.useQuery({
     limit: 50,
     status: statusFilter === "ALL" ? undefined : statusFilter,
   });
+
+  const downloadMutation = trpc.report.download.useMutation({
+    onSuccess: (data) => {
+      // Open PDF in new tab
+      window.open(data.url, "_blank");
+      setDownloadingId(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to download PDF");
+      setDownloadingId(null);
+    },
+  });
+
+  const handleDownload = (reportId: string) => {
+    setDownloadingId(reportId);
+    downloadMutation.mutate({ reportId });
+  };
 
   const filteredAppraisals = appraisals?.items.filter(
     (a) =>
@@ -294,8 +315,17 @@ export default function AppraisalsPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           {appraisal.report && appraisal.status === "READY" && (
-                            <button className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
-                              <Download className="w-4 h-4" />
+                            <button
+                              onClick={() => handleDownload(appraisal.report!.id)}
+                              disabled={downloadingId === appraisal.report.id}
+                              className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
+                              title="Download PDF"
+                            >
+                              {downloadingId === appraisal.report.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Download className="w-4 h-4" />
+                              )}
                             </button>
                           )}
                           <Link

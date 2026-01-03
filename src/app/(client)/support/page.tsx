@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useToast } from "@/shared/components/ui/Toast";
+import { trpc } from "@/shared/lib/trpc";
 
 const faqs = [
   {
@@ -55,7 +56,16 @@ export default function SupportPage() {
     subject: "",
     message: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createTicket = trpc.support.createTicket.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setContactForm({ subject: "", message: "" });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,12 +74,10 @@ export default function SupportPage() {
       return;
     }
 
-    setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setContactForm({ subject: "", message: "" });
-    toast.success("Message sent! We'll get back to you within 24 hours.");
+    createTicket.mutate({
+      subject: contactForm.subject,
+      message: contactForm.message,
+    });
   };
 
   return (
@@ -216,10 +224,10 @@ export default function SupportPage() {
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={createTicket.isPending}
             className="flex items-center justify-center gap-2 px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 transition-colors disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? (
+            {createTicket.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Sending...

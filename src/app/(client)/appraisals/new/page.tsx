@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
 import {
   MapPin,
@@ -87,8 +87,10 @@ const purposes = [
 
 export default function NewAppraisalPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState<Step>("property");
   const [searchEnabled, setSearchEnabled] = useState(false);
+  const [prefilledFromMap, setPrefilledFromMap] = useState(false);
 
   const [formData, setFormData] = useState({
     // Property
@@ -105,6 +107,38 @@ export default function NewAppraisalPage() {
     // Type
     reportType: "AI_REPORT",
   });
+
+  // Pre-populate form from URL query params (from map page)
+  useEffect(() => {
+    if (prefilledFromMap) return;
+
+    const address = searchParams.get("address");
+    const city = searchParams.get("city");
+    const state = searchParams.get("state");
+    const zipCode = searchParams.get("zipCode");
+    const type = searchParams.get("type");
+
+    if (address && city && state && zipCode) {
+      const prefilledProperty = {
+        id: `prefilled-${Date.now()}`,
+        address,
+        city,
+        state,
+        zipCode,
+        county: "",
+        latitude: 0,
+        longitude: 0,
+      };
+
+      setFormData((prev) => ({
+        ...prev,
+        addressQuery: address,
+        selectedProperty: prefilledProperty,
+        reportType: type === "CERTIFIED" ? "CERTIFIED" : "AI_REPORT",
+      }));
+      setPrefilledFromMap(true);
+    }
+  }, [searchParams, prefilledFromMap]);
 
   const createWithCheckout = trpc.appraisal.createWithCheckout.useMutation({
     onSuccess: (data) => {
