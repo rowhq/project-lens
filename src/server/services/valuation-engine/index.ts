@@ -96,30 +96,43 @@ export class ValuationEngine {
     try {
       console.log(`[ValuationEngine] Attempting RapidCanvas valuation...`);
       const rcResult = await this.generateWithRapidCanvas(property);
+      console.log(
+        `[ValuationEngine] RapidCanvas returned: ${rcResult ? "success" : "null"}`,
+      );
+
       if (rcResult) {
         console.log(
-          `[ValuationEngine] RapidCanvas valuation successful: $${rcResult.valueEstimate}`,
+          `[ValuationEngine] RapidCanvas value: $${rcResult.valueEstimate}`,
         );
 
         // Enhance with OpenAI narrative analysis
         console.log(`[ValuationEngine] Enhancing with OpenAI analysis...`);
-        const enhancedAnalysis = await aiAnalyzer.analyze(
-          property,
-          rcResult.comps,
-          {
-            estimate: rcResult.valueEstimate,
-            rangeMin: rcResult.valueRangeMin,
-            rangeMax: rcResult.valueRangeMax,
-            fastSale: rcResult.fastSaleEstimate,
-            methodology: rcResult.methodology,
-            pricePerSqft: rcResult.pricePerSqft,
-          },
-        );
+        try {
+          const enhancedAnalysis = await aiAnalyzer.analyze(
+            property,
+            rcResult.comps,
+            {
+              estimate: rcResult.valueEstimate,
+              rangeMin: rcResult.valueRangeMin,
+              rangeMax: rcResult.valueRangeMax,
+              fastSale: rcResult.fastSaleEstimate,
+              methodology: rcResult.methodology,
+              pricePerSqft: rcResult.pricePerSqft,
+            },
+          );
+          console.log(`[ValuationEngine] OpenAI analysis complete`);
 
-        return {
-          ...rcResult,
-          aiAnalysis: enhancedAnalysis,
-        };
+          return {
+            ...rcResult,
+            aiAnalysis: enhancedAnalysis,
+          };
+        } catch (aiError) {
+          console.error(
+            `[ValuationEngine] OpenAI failed, using RC analysis:`,
+            aiError,
+          );
+          return rcResult;
+        }
       }
     } catch (error) {
       console.error(

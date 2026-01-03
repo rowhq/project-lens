@@ -89,15 +89,17 @@ export interface RapidCanvasResponse {
  */
 export async function callRapidCanvas(
   payload: RapidCanvasPayload,
-  serviceName?: string
+  serviceName?: string,
 ): Promise<RapidCanvasResponse> {
   const apiKey = process.env.RAPIDCANVAS_API_KEY;
-  const service = serviceName || process.env.RAPIDCANVAS_SERVICE_NAME || 'Appraisal-V1';
-  const baseUrl = process.env.RAPIDCANVAS_BASE_URL || 'https://app.rapidcanvas.ai/api/v2';
+  const service =
+    serviceName || process.env.RAPIDCANVAS_SERVICE_NAME || "Appraisal-V1";
+  const baseUrl =
+    process.env.RAPIDCANVAS_BASE_URL || "https://app.rapidcanvas.ai/api/v2";
 
   if (!apiKey) {
-    console.error('[RapidCanvas] API key not configured');
-    throw new Error('RapidCanvas API key not configured');
+    console.error("[RapidCanvas] API key not configured");
+    throw new Error("RapidCanvas API key not configured");
   }
 
   const url = `${baseUrl}/predict/${service}`;
@@ -107,10 +109,10 @@ export async function callRapidCanvas(
 
   try {
     const res = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
+        "Content-Type": "application/json",
+        "X-API-KEY": apiKey,
       },
       body: JSON.stringify(payload),
     });
@@ -122,11 +124,11 @@ export async function callRapidCanvas(
     }
 
     const result = await res.json();
-    console.log('[RapidCanvas] Prediction result:', result);
+    console.log("[RapidCanvas] Prediction result:", result);
 
     return result;
   } catch (error) {
-    console.error('[RapidCanvas] Request failed:', error);
+    console.error("[RapidCanvas] Request failed:", error);
     throw error;
   }
 }
@@ -138,14 +140,14 @@ export async function callRapidCanvas(
  * @returns Promise with valuation prediction
  */
 export async function predictPropertyValue(
-  propertyData: PropertyData
+  propertyData: PropertyData,
 ): Promise<ValuationResult> {
   try {
     const response = await callRapidCanvas({
-      analysis_type: 'property_valuation',
+      analysis_type: "property_valuation",
       property_data: propertyData,
       metadata: {
-        type: 'Valuation',
+        type: "Valuation",
         timestamp: new Date().toISOString(),
         county: propertyData.county,
       },
@@ -154,9 +156,17 @@ export async function predictPropertyValue(
     // Transform RapidCanvas response to our ValuationResult format
     return transformToValuationResult(response, propertyData);
   } catch (error) {
-    console.error('[RapidCanvas] Property valuation failed:', error);
-    // Return fallback estimation based on property data
-    return generateFallbackValuation(propertyData);
+    console.error(
+      "[RapidCanvas] Property valuation failed, using fallback:",
+      error,
+    );
+    console.log("[RapidCanvas] Generating fallback valuation...");
+    const fallback = generateFallbackValuation(propertyData);
+    console.log(
+      "[RapidCanvas] Fallback valuation generated:",
+      fallback.estimatedValue,
+    );
+    return fallback;
   }
 }
 
@@ -165,7 +175,7 @@ export async function predictPropertyValue(
  */
 function transformToValuationResult(
   response: RapidCanvasResponse,
-  propertyData: PropertyData
+  propertyData: PropertyData,
 ): ValuationResult {
   const prediction = response.prediction || {};
   const baseValue = prediction.estimated_value || propertyData.totalValue || 0;
@@ -181,25 +191,31 @@ function transformToValuationResult(
     comparables: (prediction.comparables as unknown[])?.map((comp: unknown) => {
       const c = comp as Record<string, unknown>;
       return {
-        address: (c.address as string) || 'Unknown',
+        address: (c.address as string) || "Unknown",
         salePrice: (c.sale_price as number) || (c.salePrice as number) || 0,
-        saleDate: (c.sale_date as string) || (c.saleDate as string) || '',
+        saleDate: (c.sale_date as string) || (c.saleDate as string) || "",
         similarity: (c.similarity as number) || 0.8,
       };
     }),
     adjustments: (prediction.adjustments as unknown[])?.map((adj: unknown) => {
       const a = adj as Record<string, unknown>;
       return {
-        factor: (a.factor as string) || '',
+        factor: (a.factor as string) || "",
         impact: (a.impact as number) || 0,
-        description: (a.description as string) || '',
+        description: (a.description as string) || "",
       };
     }),
     marketTrends: prediction.market_trends
       ? {
-          appreciation1Year: (prediction.market_trends as Record<string, number>).appreciation_1_year || 5.2,
-          appreciation3Year: (prediction.market_trends as Record<string, number>).appreciation_3_year || 18.5,
-          appreciation5Year: (prediction.market_trends as Record<string, number>).appreciation_5_year || 32.1,
+          appreciation1Year:
+            (prediction.market_trends as Record<string, number>)
+              .appreciation_1_year || 5.2,
+          appreciation3Year:
+            (prediction.market_trends as Record<string, number>)
+              .appreciation_3_year || 18.5,
+          appreciation5Year:
+            (prediction.market_trends as Record<string, number>)
+              .appreciation_5_year || 32.1,
         }
       : undefined,
     narrative: prediction.narrative,
@@ -209,7 +225,9 @@ function transformToValuationResult(
 /**
  * Generate fallback valuation when RapidCanvas is unavailable
  */
-function generateFallbackValuation(propertyData: PropertyData): ValuationResult {
+function generateFallbackValuation(
+  propertyData: PropertyData,
+): ValuationResult {
   const baseValue = propertyData.totalValue || 350000;
   const sqft = propertyData.buildingArea || propertyData.landArea || 2000;
   const yearBuilt = propertyData.yearBuilt || 2010;
@@ -244,39 +262,40 @@ function generateFallbackValuation(propertyData: PropertyData): ValuationResult 
     },
     comparables: [
       {
-        address: '123 Nearby St',
+        address: "123 Nearby St",
         salePrice: Math.round(estimatedValue * 0.97),
-        saleDate: '2024-08-15',
+        saleDate: "2024-08-15",
         similarity: 0.89,
       },
       {
-        address: '456 Similar Ave',
+        address: "456 Similar Ave",
         salePrice: Math.round(estimatedValue * 1.02),
-        saleDate: '2024-06-22',
+        saleDate: "2024-06-22",
         similarity: 0.85,
       },
       {
-        address: '789 Comparable Dr',
+        address: "789 Comparable Dr",
         salePrice: Math.round(estimatedValue * 0.95),
-        saleDate: '2024-09-10',
+        saleDate: "2024-09-10",
         similarity: 0.82,
       },
     ],
     adjustments: [
       {
-        factor: 'Location',
+        factor: "Location",
         impact: 5200,
-        description: 'Neighborhood premium adjustment',
+        description: "Neighborhood premium adjustment",
       },
       {
-        factor: 'Condition',
+        factor: "Condition",
         impact: age < 10 ? 3500 : -2800,
-        description: age < 10 ? 'Newer construction premium' : 'Age depreciation',
+        description:
+          age < 10 ? "Newer construction premium" : "Age depreciation",
       },
       {
-        factor: 'Market Trend',
+        factor: "Market Trend",
         impact: 4100,
-        description: 'Current market appreciation factor',
+        description: "Current market appreciation factor",
       },
     ],
     marketTrends: {
@@ -284,6 +303,6 @@ function generateFallbackValuation(propertyData: PropertyData): ValuationResult 
       appreciation3Year: 18.5,
       appreciation5Year: 32.1,
     },
-    narrative: `Based on ${propertyData.county || 'local'} market analysis, this ${sqft.toLocaleString()} sq ft property built in ${yearBuilt} is estimated at $${estimatedValue.toLocaleString()}. The valuation considers comparable sales, location factors, and current market conditions.`,
+    narrative: `Based on ${propertyData.county || "local"} market analysis, this ${sqft.toLocaleString()} sq ft property built in ${yearBuilt} is estimated at $${estimatedValue.toLocaleString()}. The valuation considers comparable sales, location factors, and current market conditions.`,
   };
 }
