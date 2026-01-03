@@ -4,6 +4,7 @@ import { use, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
+import { PRICING } from "@/shared/config/constants";
 import { useToast } from "@/shared/hooks/use-toast";
 import {
   ArrowLeft,
@@ -1521,7 +1522,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                   Request Certified Appraisal
                 </Link>
                 <p className="text-xs text-gray-500 mt-2 text-center">
-                  Starting at $449 • 72 hour delivery
+                  Starting at ${PRICING.CERTIFIED} • 72 hour delivery
                 </p>
               </div>
             )}

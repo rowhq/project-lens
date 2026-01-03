@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
+import { PRICING } from "@/shared/config/constants";
 import {
   DollarSign,
   TrendingUp,
@@ -143,7 +144,9 @@ export function ValuationTab({ parcel, onClose }: ValuationTabProps) {
           ) : (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 clip-notch-sm">
               <DollarSign className="w-4 h-4 text-yellow-400" />
-              <span className="text-yellow-400 font-mono text-sm">$29</span>
+              <span className="text-yellow-400 font-mono text-sm">
+                ${PRICING.AI_REPORT}
+              </span>
               <span className="text-gray-400 text-xs">
                 (free limit reached)
               </span>
@@ -165,7 +168,9 @@ export function ValuationTab({ parcel, onClose }: ValuationTabProps) {
           ) : (
             <>
               <DollarSign className="w-5 h-5" />
-              {isFree ? "Generate Free Report" : "Generate Report - $29"}
+              {isFree
+                ? "Generate Free Report"
+                : `Generate Report - $${PRICING.AI_REPORT}`}
             </>
           )}
         </button>

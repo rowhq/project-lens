@@ -4,9 +4,15 @@
  */
 
 import { z } from "zod";
-import { createTRPCRouter, clientProcedure, appraiserProcedure, adminProcedure } from "../trpc";
+import {
+  createTRPCRouter,
+  clientProcedure,
+  appraiserProcedure,
+  adminProcedure,
+} from "../trpc";
 import { TRPCError } from "@trpc/server";
 import * as stripe from "@/shared/lib/stripe";
+import { PRICING_CENTS } from "@/shared/config/constants";
 
 const PRICE_IDS = {
   STARTER: null, // Free tier
@@ -14,10 +20,11 @@ const PRICE_IDS = {
   ENTERPRISE: process.env.STRIPE_ENTERPRISE_PRICE_ID,
 };
 
+// Use centralized pricing from constants (single source of truth)
 const PRODUCT_PRICES = {
-  AI_REPORT: 2900, // $29.00 in cents
-  AI_REPORT_WITH_ONSITE: 14900, // $149.00 in cents
-  CERTIFIED_APPRAISAL: 44900, // $449.00 in cents
+  AI_REPORT: PRICING_CENTS.AI_REPORT,
+  AI_REPORT_WITH_ONSITE: PRICING_CENTS.ON_SITE,
+  CERTIFIED_APPRAISAL: PRICING_CENTS.CERTIFIED,
 };
 
 export const billingRouter = createTRPCRouter({
@@ -37,7 +44,9 @@ export const billingRouter = createTRPCRouter({
 
       if (org.stripeCustomerId) {
         try {
-          const subscription = await stripe.getSubscription(org.stripeCustomerId);
+          const subscription = await stripe.getSubscription(
+            org.stripeCustomerId,
+          );
           if (subscription) {
             // Cast to access raw API response properties
             const sub = subscription as unknown as {
@@ -71,7 +80,7 @@ export const billingRouter = createTRPCRouter({
       .input(
         z.object({
           plan: z.enum(["STARTER", "PROFESSIONAL", "ENTERPRISE"]),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const org = ctx.organization!;
@@ -80,7 +89,9 @@ export const billingRouter = createTRPCRouter({
         if (input.plan === "STARTER") {
           // Downgrading to free tier - cancel subscription
           if (org.stripeCustomerId) {
-            const subscription = await stripe.getSubscription(org.stripeCustomerId);
+            const subscription = await stripe.getSubscription(
+              org.stripeCustomerId,
+            );
             if (subscription) {
               await stripe.cancelSubscription(subscription.id);
             }
@@ -123,7 +134,8 @@ export const billingRouter = createTRPCRouter({
           await stripe.updateSubscription(existingSubscription.id, priceId);
         } else {
           // Create checkout session for new subscription
-          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+          const baseUrl =
+            process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
           const session = await stripe.createSubscriptionCheckout({
             customerId,
             priceId,
@@ -244,7 +256,7 @@ export const billingRouter = createTRPCRouter({
         try {
           await stripe.setDefaultPaymentMethod(
             org.stripeCustomerId,
-            input.paymentMethodId
+            input.paymentMethodId,
           );
           return { success: true };
         } catch (error) {
@@ -265,7 +277,7 @@ export const billingRouter = createTRPCRouter({
         z.object({
           limit: z.number().min(1).max(100).default(20),
           cursor: z.string().optional(),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         const org = ctx.organization!;
@@ -299,7 +311,10 @@ export const billingRouter = createTRPCRouter({
 
         if (org.stripeCustomerId) {
           try {
-            const invoices = await stripe.listInvoices(org.stripeCustomerId, 10);
+            const invoices = await stripe.listInvoices(
+              org.stripeCustomerId,
+              10,
+            );
             stripeInvoices = invoices.map((inv) => ({
               id: inv.id,
               number: inv.number ?? null,
@@ -360,7 +375,7 @@ export const billingRouter = createTRPCRouter({
         billingEmail: z.string().email().optional(),
         companyName: z.string().min(1).optional(),
         address: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const org = ctx.organization!;
@@ -462,7 +477,8 @@ export const billingRouter = createTRPCRouter({
 
     setupLink: appraiserProcedure.mutation(async ({ ctx }) => {
       const profile = ctx.appraiserProfile;
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
       let accountId = profile.stripeConnectId;
 
@@ -506,7 +522,7 @@ export const billingRouter = createTRPCRouter({
       .input(
         z.object({
           limit: z.number().min(1).max(100).default(20),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         const payouts = await ctx.prisma.payment.findMany({
@@ -529,12 +545,17 @@ export const billingRouter = createTRPCRouter({
     .input(
       z.object({
         appraisalRequestId: z.string(),
-        reportType: z.enum(["AI_REPORT", "AI_REPORT_WITH_ONSITE", "CERTIFIED_APPRAISAL"]),
-      })
+        reportType: z.enum([
+          "AI_REPORT",
+          "AI_REPORT_WITH_ONSITE",
+          "CERTIFIED_APPRAISAL",
+        ]),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const org = ctx.organization!;
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
       // Get appraisal request
       const appraisal = await ctx.prisma.appraisalRequest.findUnique({
@@ -597,7 +618,7 @@ export const billingRouter = createTRPCRouter({
           paymentId: z.string(),
           amount: z.number().min(0.01).optional(), // Partial or full refund
           reason: z.string().optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         // Find the original payment
@@ -690,7 +711,10 @@ export const billingRouter = createTRPCRouter({
         }
 
         // Build OR conditions for related entities
-        const orConditions: Array<{ relatedJobId?: string; relatedAppraisalId?: string }> = [];
+        const orConditions: Array<{
+          relatedJobId?: string;
+          relatedAppraisalId?: string;
+        }> = [];
         if (payment.relatedJobId) {
           orConditions.push({ relatedJobId: payment.relatedJobId });
         }

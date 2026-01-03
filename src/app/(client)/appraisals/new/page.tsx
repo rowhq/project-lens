@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
+import { PRICING } from "@/shared/config/constants";
 import {
   MapPin,
   FileText,
@@ -36,7 +37,7 @@ const reportTypes = [
     label: "AI Report",
     description:
       "Instant automated valuation using AI and comparable sales data",
-    price: 29,
+    price: PRICING.AI_REPORT,
     time: "5 minutes",
     features: [
       "Comparable sales analysis",
@@ -49,7 +50,7 @@ const reportTypes = [
     id: "ON_SITE",
     label: "On-Site Verification",
     description: "AI report enhanced with property photos and inspection notes",
-    price: 149,
+    price: PRICING.ON_SITE,
     time: "48 hours",
     features: [
       "Everything in AI Report",
@@ -62,7 +63,7 @@ const reportTypes = [
     id: "CERTIFIED",
     label: "Certified Appraisal",
     description: "Full USPAP-compliant appraisal signed by licensed appraiser",
-    price: 449,
+    price: PRICING.CERTIFIED,
     time: "72 hours",
     features: [
       "Everything in On-Site",

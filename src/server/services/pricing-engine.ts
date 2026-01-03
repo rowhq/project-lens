@@ -6,12 +6,16 @@
 import { prisma } from "@/server/db/prisma";
 import type { PropertyType, JobType, PricingRule } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
+import { PRICING } from "@/shared/config/constants";
 
 // ============================================
 // Types
 // ============================================
 
-export type ReportType = "AI_REPORT" | "AI_REPORT_WITH_ONSITE" | "CERTIFIED_APPRAISAL";
+export type ReportType =
+  | "AI_REPORT"
+  | "AI_REPORT_WITH_ONSITE"
+  | "CERTIFIED_APPRAISAL";
 
 export interface CalculateAppraisalPriceInput {
   propertyType: PropertyType;
@@ -61,11 +65,11 @@ export interface GetPricingRulesFilters {
 // Constants
 // ============================================
 
-// Default prices if no rules found (fallback)
+// Default prices if no rules found (fallback) - uses centralized config
 const DEFAULT_PRICES: Record<ReportType, number> = {
-  AI_REPORT: 99.0,
-  AI_REPORT_WITH_ONSITE: 249.0,
-  CERTIFIED_APPRAISAL: 499.0,
+  AI_REPORT: PRICING.AI_REPORT,
+  AI_REPORT_WITH_ONSITE: PRICING.ON_SITE,
+  CERTIFIED_APPRAISAL: PRICING.CERTIFIED,
 };
 
 // Default payout percentages
@@ -144,7 +148,7 @@ function isRuleValid(rule: PricingRule): boolean {
  * console.log(result.finalPrice); // e.g., 99.00
  */
 export async function calculateAppraisalPrice(
-  params: CalculateAppraisalPriceInput
+  params: CalculateAppraisalPriceInput,
 ): Promise<CalculateAppraisalPriceResult> {
   const { propertyType, county, state = "TX", requestedType } = params;
   const jobType = reportTypeToJobType(requestedType);
@@ -218,16 +222,13 @@ export async function calculateAppraisalPrice(
         { county: null, state },
       ],
     },
-    orderBy: [
-      { county: "desc" },
-      { state: "desc" },
-      { createdAt: "desc" },
-    ],
+    orderBy: [{ county: "desc" }, { state: "desc" }, { createdAt: "desc" }],
   });
 
   for (const rule of countyRules) {
     if (isRuleValid(rule) && rule.multiplier) {
-      const matchesCounty = rule.county?.toLowerCase() === county?.toLowerCase();
+      const matchesCounty =
+        rule.county?.toLowerCase() === county?.toLowerCase();
       const matchesState = rule.state?.toUpperCase() === state?.toUpperCase();
 
       if (matchesCounty && matchesState) {
@@ -256,10 +257,7 @@ export async function calculateAppraisalPrice(
       isActive: true,
       AND: [
         {
-          OR: [
-            { minPrice: { not: null } },
-            { maxPrice: { not: null } },
-          ],
+          OR: [{ minPrice: { not: null } }, { maxPrice: { not: null } }],
         },
         {
           OR: [
@@ -318,7 +316,7 @@ export async function calculateAppraisalPrice(
  * console.log(result.payoutAmount); // e.g., 174.30 (70%)
  */
 export async function calculateJobPayout(
-  params: CalculateJobPayoutInput
+  params: CalculateJobPayoutInput,
 ): Promise<CalculateJobPayoutResult> {
   const { jobType, county, state = "TX", basePrice } = params;
 
@@ -389,8 +387,10 @@ export async function calculateJobPayout(
   }
 
   // Calculate amounts
-  const payoutAmount = Math.round((basePrice * payoutPercent / 100) * 100) / 100;
-  const platformFee = Math.round((basePrice * platformFeePercent / 100) * 100) / 100;
+  const payoutAmount =
+    Math.round(((basePrice * payoutPercent) / 100) * 100) / 100;
+  const platformFee =
+    Math.round(((basePrice * platformFeePercent) / 100) * 100) / 100;
 
   return {
     payoutAmount,
@@ -417,7 +417,7 @@ export async function calculateJobPayout(
  * });
  */
 export async function getPricingRules(
-  filters: GetPricingRulesFilters = {}
+  filters: GetPricingRulesFilters = {},
 ): Promise<PricingRule[]> {
   const { ruleType, propertyType, jobType, county, state, isActive } = filters;
 

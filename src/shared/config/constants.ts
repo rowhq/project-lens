@@ -1,6 +1,7 @@
 // App constants
 export const APP_NAME = "TruPlat";
-export const APP_DESCRIPTION = "AI-Powered Property Valuations + On-Site Verification";
+export const APP_DESCRIPTION =
+  "AI-Powered Property Valuations + On-Site Verification";
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://truplat.com";
 
 // SLA Configuration (in hours)
@@ -20,12 +21,19 @@ export const SLA_CONFIG = {
   },
 } as const;
 
-// Pricing
+// Pricing (base prices in USD - single source of truth)
 export const PRICING = {
-  AI_REPORT: 29,
-  ON_SITE: 149,
-  CERTIFIED: 449,
+  AI_REPORT: 99,
+  ON_SITE: 249,
+  CERTIFIED: 499,
   RUSH_MULTIPLIER: 1.5,
+} as const;
+
+// Prices in cents for Stripe
+export const PRICING_CENTS = {
+  AI_REPORT: PRICING.AI_REPORT * 100,
+  ON_SITE: PRICING.ON_SITE * 100,
+  CERTIFIED: PRICING.CERTIFIED * 100,
 } as const;
 
 // Appraiser payout rates
@@ -87,7 +95,15 @@ export const TEXAS_METRO_AREAS = {
     population: 7200000,
   },
   "Dallas-Fort Worth-Arlington": {
-    counties: ["Dallas", "Tarrant", "Collin", "Denton", "Ellis", "Kaufman", "Rockwall"],
+    counties: [
+      "Dallas",
+      "Tarrant",
+      "Collin",
+      "Denton",
+      "Ellis",
+      "Kaufman",
+      "Rockwall",
+    ],
     population: 7700000,
   },
   "San Antonio-New Braunfels": {

@@ -17,6 +17,7 @@ import {
   processQueuedAppraisals,
 } from "@/server/services/appraisal-processor";
 import { calculateAppraisalPrice } from "@/server/services/pricing-engine";
+import { PRICING } from "@/shared/config/constants";
 import {
   getUsageStatus,
   checkUsageForPayment,
@@ -413,7 +414,7 @@ export const appraisalRouter = createTRPCRouter({
 
       // Determine if this is a free report or paid
       const isFreeReport = !requiresPayment;
-      const price = isFreeReport ? 0 : 29; // $29 for AI Report when paid
+      const price = isFreeReport ? 0 : PRICING.AI_REPORT;
 
       // Generate reference code
       const refCode = `APR-${Date.now().toString(36).toUpperCase()}`;

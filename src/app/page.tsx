@@ -15,6 +15,7 @@ import {
 } from "@/modules/marketing/components";
 import { LedgerHeader } from "@/shared/components/layout/LedgerHeader";
 import { Button } from "@/shared/components/ui/Button";
+import { PRICING } from "@/shared/config/constants";
 import { Zap, Camera, Award, Check, Clock, ArrowRight } from "lucide-react";
 
 export default function LandingPage() {
@@ -66,7 +67,7 @@ export default function LandingPage() {
               <StepCard
                 number={2}
                 title="Pick Your Report"
-                description="AI-only ($99), Verified ($249), or Certified ($499). Pick what fits."
+                description={`AI-only ($${PRICING.AI_REPORT}), Verified ($${PRICING.ON_SITE}), or Certified ($${PRICING.CERTIFIED}). Pick what fits.`}
               />
               <StepCard
                 number={3}
@@ -113,7 +114,7 @@ export default function LandingPage() {
                 icon={Zap}
                 tier="fastest"
                 name="AI Report"
-                price={99}
+                price={PRICING.AI_REPORT}
                 turnaround="5 min"
                 useCase="Quick decisions & deal screening"
                 features={[
@@ -129,7 +130,7 @@ export default function LandingPage() {
                 icon={Camera}
                 tier="popular"
                 name="Verified"
-                price={249}
+                price={PRICING.ON_SITE}
                 turnaround="48 hrs"
                 useCase="Refinancing & HELOCs"
                 features={[
@@ -146,7 +147,7 @@ export default function LandingPage() {
                 icon={Award}
                 tier="premium"
                 name="Certified"
-                price={499}
+                price={PRICING.CERTIFIED}
                 turnaround="5-7 days"
                 useCase="Purchase loans & litigation"
                 features={[
