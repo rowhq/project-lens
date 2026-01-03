@@ -118,13 +118,14 @@ export default function NewAppraisalPage() {
     const zipCode = searchParams.get("zipCode");
     const type = searchParams.get("type");
 
-    if (address && city && state && zipCode) {
+    // Solo requerir address - el resto es opcional
+    if (address) {
       const prefilledProperty = {
         id: `prefilled-${Date.now()}`,
         address,
-        city,
-        state,
-        zipCode,
+        city: city || "",
+        state: state || "TX",
+        zipCode: zipCode || "",
         county: "",
         latitude: 0,
         longitude: 0,
@@ -139,6 +140,8 @@ export default function NewAppraisalPage() {
           reportType: type === "CERTIFIED" ? "CERTIFIED" : "AI_REPORT",
         }));
         setPrefilledFromMap(true);
+        // Saltar al paso de detalles ya que tenemos la propiedad
+        setCurrentStep("details");
       }, 0);
     }
   }, [searchParams, prefilledFromMap]);

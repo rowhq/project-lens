@@ -32,6 +32,7 @@ import {
   Truck,
   Trash2,
   Loader2,
+  Award,
 } from "lucide-react";
 import { Skeleton } from "@/shared/components/ui/Skeleton";
 
@@ -1498,6 +1499,32 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               })}
             </div>
           )}
+
+          {/* Upgrade to Certified - Solo mostrar si no es CERTIFIED y está READY */}
+          {appraisal.requestedType !== "CERTIFIED_APPRAISAL" &&
+            appraisal.status === "READY" && (
+              <div className="bg-gradient-to-br from-lime-400/10 to-lime-400/5 clip-notch border border-lime-400/30 p-6">
+                <h2 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-lime-400" />
+                  Need a Certified Appraisal?
+                </h2>
+                <p className="text-sm text-gray-400 mb-4">
+                  Get a USPAP-compliant appraisal signed by a licensed
+                  appraiser. Bank-ready for refinancing, lending, or legal
+                  purposes.
+                </p>
+                <Link
+                  href={`/appraisals/new?address=${encodeURIComponent(property?.addressLine1 || "")}&city=${encodeURIComponent(property?.city || "")}&state=${encodeURIComponent(property?.state || "TX")}&zipCode=${encodeURIComponent(property?.zipCode || "")}&type=CERTIFIED`}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300"
+                >
+                  <FileText className="w-4 h-4" />
+                  Request Certified Appraisal
+                </Link>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Starting at $449 • 72 hour delivery
+                </p>
+              </div>
+            )}
 
           {/* Share Report */}
           {report && (
