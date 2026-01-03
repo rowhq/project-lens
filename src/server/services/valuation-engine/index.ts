@@ -95,14 +95,30 @@ export class ValuationEngine {
     // Try RapidCanvas first (primary source)
     try {
       console.log(`[ValuationEngine] Attempting RapidCanvas valuation...`);
-      const rcResult = await this.generateWithRapidCanvas(property);
-      console.log(
-        `[ValuationEngine] RapidCanvas returned: ${rcResult ? "success" : "null"}`,
-      );
+
+      let rcResult: ValuationResult | null = null;
+      try {
+        rcResult = await this.generateWithRapidCanvas(property);
+        console.log(
+          `[ValuationEngine] RapidCanvas returned: ${rcResult ? "success" : "null"}`,
+        );
+      } catch (rcError) {
+        console.error(
+          `[ValuationEngine] generateWithRapidCanvas threw:`,
+          rcError instanceof Error ? rcError.message : rcError,
+        );
+        throw rcError;
+      }
 
       if (rcResult) {
         console.log(
           `[ValuationEngine] RapidCanvas value: $${rcResult.valueEstimate}`,
+        );
+        console.log(
+          `[ValuationEngine] RapidCanvas comps: ${rcResult.comps?.length || 0}`,
+        );
+        console.log(
+          `[ValuationEngine] RapidCanvas confidence: ${rcResult.confidenceScore}%`,
         );
 
         // Enhance with OpenAI narrative analysis
@@ -129,7 +145,7 @@ export class ValuationEngine {
         } catch (aiError) {
           console.error(
             `[ValuationEngine] OpenAI failed, using RC analysis:`,
-            aiError,
+            aiError instanceof Error ? aiError.message : aiError,
           );
           return rcResult;
         }
@@ -137,7 +153,7 @@ export class ValuationEngine {
     } catch (error) {
       console.error(
         `[ValuationEngine] RapidCanvas failed, using fallback:`,
-        error,
+        error instanceof Error ? error.message : error,
       );
     }
 
@@ -152,6 +168,8 @@ export class ValuationEngine {
   private async generateWithRapidCanvas(
     property: Property,
   ): Promise<ValuationResult | null> {
+    console.log(`[ValuationEngine] generateWithRapidCanvas: preparing data...`);
+
     // Prepare property data for RapidCanvas
     const propertyData: rapidcanvas.PropertyData = {
       parcelId: property.parcelId || undefined,
@@ -169,8 +187,16 @@ export class ValuationEngine {
           : undefined,
     };
 
+    console.log(
+      `[ValuationEngine] generateWithRapidCanvas: calling predictPropertyValue...`,
+    );
+
     // Call RapidCanvas
     const rcValuation = await rapidcanvas.predictPropertyValue(propertyData);
+
+    console.log(
+      `[ValuationEngine] generateWithRapidCanvas: got valuation $${rcValuation.estimatedValue}`,
+    );
 
     // Transform RapidCanvas result to our format
     const comps: ComparableProperty[] = (rcValuation.comparables || []).map(
@@ -188,6 +214,10 @@ export class ValuationEngine {
         adjustedPrice: comp.salePrice,
         adjustments: [],
       }),
+    );
+
+    console.log(
+      `[ValuationEngine] generateWithRapidCanvas: transformed ${comps.length} comps`,
     );
 
     // Calculate adjustments from RapidCanvas data
@@ -209,6 +239,10 @@ export class ValuationEngine {
       });
     }
 
+    console.log(
+      `[ValuationEngine] generateWithRapidCanvas: calling riskAssessor.assess...`,
+    );
+
     // Calculate risk flags
     const riskFlags = await riskAssessor.assess(property, comps, {
       estimate: rcValuation.estimatedValue,
@@ -220,6 +254,10 @@ export class ValuationEngine {
         ? rcValuation.estimatedValue / property.sqft
         : 0,
     });
+
+    console.log(
+      `[ValuationEngine] generateWithRapidCanvas: riskAssessor returned ${riskFlags.length} flags`,
+    );
 
     // Build market trends
     const marketTrends: MarketTrends = rcValuation.marketTrends
