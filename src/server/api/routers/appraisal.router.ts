@@ -148,12 +148,14 @@ export const appraisalRouter = createTRPCRouter({
         },
       });
 
-      // Process AI Report appraisals immediately
+      // Process AI Report appraisals immediately (sync for Vercel serverless)
       if (input.requestedType === "AI_REPORT") {
-        // Fire and forget - don't block the response
-        processAppraisal(appraisal.id).catch((error) => {
+        try {
+          await processAppraisal(appraisal.id);
+        } catch (error) {
           console.error(`Failed to process appraisal ${appraisal.id}:`, error);
-        });
+          // Don't throw - appraisal is created, cron will retry
+        }
       }
 
       return appraisal;
@@ -453,13 +455,16 @@ export const appraisalRouter = createTRPCRouter({
         },
       });
 
-      // Trigger processing (fire and forget)
-      processAppraisal(appraisal.id).catch((error) => {
+      // Process synchronously (required for Vercel serverless)
+      try {
+        await processAppraisal(appraisal.id);
+      } catch (error) {
         console.error(
           `[QuickAIReport] Failed to process appraisal ${appraisal.id}:`,
           error,
         );
-      });
+        // Don't throw - appraisal is created, cron will retry if needed
+      }
 
       return {
         appraisalId: appraisal.id,
@@ -593,13 +598,16 @@ export const appraisalRouter = createTRPCRouter({
         },
       });
 
-      // Trigger processing (fire and forget)
-      processAppraisal(appraisal.id).catch((error) => {
+      // Process synchronously (required for Vercel serverless)
+      try {
+        await processAppraisal(appraisal.id);
+      } catch (error) {
         console.error(
           `[DevCheckout] Failed to process appraisal ${appraisal.id}:`,
           error,
         );
-      });
+        // Don't throw - appraisal is created, cron will retry
+      }
 
       return {
         appraisalId: appraisal.id,

@@ -696,15 +696,18 @@ export const reportRouter = createTRPCRouter({
         },
       });
 
-      // Trigger report regeneration (fire and forget)
-      processAppraisal(input.appraisalId).catch((error) => {
+      // Process synchronously (required for Vercel serverless)
+      try {
+        await processAppraisal(input.appraisalId);
+      } catch (error) {
         console.error(
           `Failed to regenerate report for ${input.appraisalId}:`,
           error,
         );
-      });
+        // Don't throw - cron will retry if needed
+      }
 
-      return { success: true, message: "Report regeneration started" };
+      return { success: true, message: "Report regeneration completed" };
     }),
 });
 

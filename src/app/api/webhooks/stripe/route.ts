@@ -197,11 +197,14 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
       console.error("Failed to send confirmation emails:", error);
     }
 
-    // Process AI appraisals immediately
+    // Process AI appraisals immediately (sync for Vercel serverless)
     if (appraisalRequest.requestedType === "AI_REPORT") {
-      processAppraisal(appraisalId).catch((error) => {
+      try {
+        await processAppraisal(appraisalId);
+      } catch (error) {
         console.error(`Failed to process appraisal ${appraisalId}:`, error);
-      });
+        // Don't throw - appraisal is created, cron will retry
+      }
     }
 
     // For on-site appraisals, auto-create and dispatch a Job

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { dispatchEngine } from "@/server/services/dispatch-engine";
 import { prisma } from "@/server/db/prisma";
+import { processQueuedAppraisals } from "@/server/services/appraisal-processor";
 
 // Verify Vercel cron secret
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -60,6 +61,16 @@ export async function GET(req: NextRequest) {
     const metricsResult = await calculateDailyMetrics();
     results.tasks.metrics = metricsResult;
 
+    // Task 6: Process queued appraisals (retry failed/stuck ones)
+    const queueResults = await processQueuedAppraisals();
+    const processed = queueResults.filter((r) => r.success).length;
+    const failed = queueResults.filter((r) => !r.success).length;
+    results.tasks.appraisalQueue = {
+      total: queueResults.length,
+      processed,
+      failed,
+    };
+
     return NextResponse.json({
       success: true,
       ...results,
@@ -68,7 +79,7 @@ export async function GET(req: NextRequest) {
     console.error("Cron job error:", error);
     return NextResponse.json(
       { error: "Cron job failed", details: String(error) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
