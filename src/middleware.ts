@@ -28,6 +28,7 @@ export default auth(async (req) => {
     pathname.startsWith("/for-appraisers") ||
     pathname.startsWith("/api/webhooks") ||
     pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/cron") ||
     pathname.startsWith("/share/");
 
   // Allow public routes
