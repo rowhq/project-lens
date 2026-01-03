@@ -3,7 +3,12 @@
  * TruPlat - Texas V1
  */
 
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 interface StorageConfig {
@@ -25,8 +30,23 @@ function getConfig(): StorageConfig {
     const bucketName = process.env.R2_BUCKET_NAME;
     const publicUrl = process.env.R2_PUBLIC_URL;
 
-    if (!accountId || !accessKeyId || !secretAccessKey || !bucketName || !publicUrl) {
-      throw new Error("R2/S3 storage configuration is incomplete. Required: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL");
+    console.log(`[Storage] Initializing R2 config...`);
+    console.log(
+      `[Storage] Account ID: ${accountId ? accountId.slice(0, 10) + "..." : "MISSING"}`,
+    );
+    console.log(`[Storage] Bucket: ${bucketName || "MISSING"}`);
+    console.log(`[Storage] Public URL: ${publicUrl || "MISSING"}`);
+
+    if (
+      !accountId ||
+      !accessKeyId ||
+      !secretAccessKey ||
+      !bucketName ||
+      !publicUrl
+    ) {
+      throw new Error(
+        "R2/S3 storage configuration is incomplete. Required: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL",
+      );
     }
 
     storageConfig = {
