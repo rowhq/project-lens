@@ -52,7 +52,7 @@ export const organizationRouter = createTRPCRouter({
         billingEmail: z.string().email().optional(),
         phone: z.string().optional(),
         address: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       return ctx.prisma.organization.update({
@@ -90,7 +90,7 @@ export const organizationRouter = createTRPCRouter({
           firstName: z.string(),
           lastName: z.string(),
           role: z.enum(["CLIENT"]).default("CLIENT"),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         // Check seat limit
@@ -192,7 +192,7 @@ export const organizationRouter = createTRPCRouter({
         z.object({
           userId: z.string(),
           role: z.enum(["CLIENT"]),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const user = await ctx.prisma.user.findUnique({
@@ -217,7 +217,7 @@ export const organizationRouter = createTRPCRouter({
         z.object({
           userId: z.string(),
           role: z.enum(["CLIENT", "ADMIN"]),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         // Cannot change own role
@@ -338,40 +338,64 @@ export const organizationRouter = createTRPCRouter({
   }),
 
   /**
+   * Lightweight team status for navigation
+   * Returns just the member count to determine if Team link should be shown
+   */
+  teamStatus: clientProcedure.query(async ({ ctx }) => {
+    const [activeCount, pendingCount] = await Promise.all([
+      ctx.prisma.user.count({
+        where: {
+          organizationId: ctx.organization!.id,
+          status: "ACTIVE",
+        },
+      }),
+      ctx.prisma.user.count({
+        where: {
+          organizationId: ctx.organization!.id,
+          status: "PENDING",
+        },
+      }),
+    ]);
+
+    return {
+      activeMembers: activeCount,
+      pendingInvitations: pendingCount,
+      totalMembers: activeCount + pendingCount,
+      showTeamPage: activeCount > 1 || pendingCount > 0,
+    };
+  }),
+
+  /**
    * Organization stats
    */
   stats: clientProcedure.query(async ({ ctx }) => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [
-      totalAppraisals,
-      monthlyAppraisals,
-      activeJobs,
-      completedJobs,
-    ] = await Promise.all([
-      ctx.prisma.appraisalRequest.count({
-        where: { organizationId: ctx.organization!.id },
-      }),
-      ctx.prisma.appraisalRequest.count({
-        where: {
-          organizationId: ctx.organization!.id,
-          createdAt: { gte: startOfMonth },
-        },
-      }),
-      ctx.prisma.job.count({
-        where: {
-          organizationId: ctx.organization!.id,
-          status: { in: ["ACCEPTED", "IN_PROGRESS", "SUBMITTED"] },
-        },
-      }),
-      ctx.prisma.job.count({
-        where: {
-          organizationId: ctx.organization!.id,
-          status: "COMPLETED",
-        },
-      }),
-    ]);
+    const [totalAppraisals, monthlyAppraisals, activeJobs, completedJobs] =
+      await Promise.all([
+        ctx.prisma.appraisalRequest.count({
+          where: { organizationId: ctx.organization!.id },
+        }),
+        ctx.prisma.appraisalRequest.count({
+          where: {
+            organizationId: ctx.organization!.id,
+            createdAt: { gte: startOfMonth },
+          },
+        }),
+        ctx.prisma.job.count({
+          where: {
+            organizationId: ctx.organization!.id,
+            status: { in: ["ACCEPTED", "IN_PROGRESS", "SUBMITTED"] },
+          },
+        }),
+        ctx.prisma.job.count({
+          where: {
+            organizationId: ctx.organization!.id,
+            status: "COMPLETED",
+          },
+        }),
+      ]);
 
     return {
       totalAppraisals,
@@ -389,7 +413,7 @@ export const organizationRouter = createTRPCRouter({
       z.object({
         name: z.string().min(1),
         billingEmail: z.string().email().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.organizationId) {

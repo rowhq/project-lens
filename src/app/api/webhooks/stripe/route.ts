@@ -3,12 +3,20 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 import { prisma } from "@/server/db/prisma";
 import { getStripe } from "@/shared/lib/stripe";
-import { sendPaymentConfirmation } from "@/shared/lib/resend";
+import {
+  sendPaymentConfirmation,
+  sendAppraisalOrderConfirmation,
+} from "@/shared/lib/resend";
+import { processAppraisal } from "@/server/services/appraisal-processor";
+import { dispatchEngine } from "@/server/services/dispatch-engine";
 
 export async function POST(req: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Webhook secret not configured" },
+      { status: 500 },
+    );
   }
   const body = await req.text();
   const headersList = await headers();
@@ -98,7 +106,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Webhook handler error:", error);
-    return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Webhook handler failed" },
+      { status: 500 },
+    );
   }
 }
 
@@ -107,9 +118,24 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
   if (!metadata) return;
 
   if (metadata.type === "appraisal") {
+    const appraisalId = metadata.appraisalRequestId;
+    const organizationId = metadata.organizationId;
+
+    // Check if already processed (avoid race condition with confirmPayment)
+    const existingAppraisal = await prisma.appraisalRequest.findUnique({
+      where: { id: appraisalId },
+    });
+
+    if (!existingAppraisal || existingAppraisal.status !== "DRAFT") {
+      console.log(
+        `Appraisal ${appraisalId} already processed, skipping webhook`,
+      );
+      return;
+    }
+
     // Update appraisal request as paid - starts processing
     const appraisalRequest = await prisma.appraisalRequest.update({
-      where: { id: metadata.appraisalRequestId },
+      where: { id: appraisalId },
       data: { status: "QUEUED" },
       include: {
         requestedBy: true,
@@ -117,17 +143,23 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
       },
     });
 
-    // Create payment record
-    await prisma.payment.create({
-      data: {
-        organizationId: metadata.organizationId,
-        relatedAppraisalId: metadata.appraisalRequestId,
-        stripePaymentIntentId: session.payment_intent as string,
-        amount: session.amount_total! / 100,
-        status: "COMPLETED",
-        type: "CHARGE",
-      },
+    // Create payment record (check for existing to avoid duplicates)
+    const existingPayment = await prisma.payment.findFirst({
+      where: { relatedAppraisalId: appraisalId },
     });
+
+    if (!existingPayment) {
+      await prisma.payment.create({
+        data: {
+          organizationId,
+          relatedAppraisalId: appraisalId,
+          stripePaymentIntentId: session.payment_intent as string,
+          amount: session.amount_total! / 100,
+          status: "COMPLETED",
+          type: "CHARGE",
+        },
+      });
+    }
 
     // Send payment confirmation email
     try {
@@ -137,9 +169,98 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
         amount: session.amount_total! / 100,
         description: `Appraisal for ${appraisalRequest.property.addressFull}`,
       });
+
+      // Send order confirmation with estimated delivery
+      const estimatedDays =
+        appraisalRequest.requestedType === "AI_REPORT" ? 1 : 3;
+      const estimatedDelivery = new Date(
+        Date.now() + estimatedDays * 24 * 60 * 60 * 1000,
+      ).toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      });
+
+      await sendAppraisalOrderConfirmation({
+        email: appraisalRequest.requestedBy.email || "",
+        userName: appraisalRequest.requestedBy.firstName || "Customer",
+        propertyAddress: appraisalRequest.property.addressFull,
+        appraisalId: appraisalRequest.id,
+        reportType:
+          appraisalRequest.requestedType === "AI_REPORT"
+            ? "AI Valuation Report"
+            : "Certified Appraisal",
+        estimatedDelivery,
+        amount: session.amount_total! / 100,
+      });
     } catch (error) {
-      console.error("Failed to send payment confirmation:", error);
+      console.error("Failed to send confirmation emails:", error);
     }
+
+    // Process AI appraisals immediately
+    if (appraisalRequest.requestedType === "AI_REPORT") {
+      processAppraisal(appraisalId).catch((error) => {
+        console.error(`Failed to process appraisal ${appraisalId}:`, error);
+      });
+    }
+
+    // For on-site appraisals, auto-create and dispatch a Job
+    if (
+      appraisalRequest.requestedType === "AI_REPORT_WITH_ONSITE" ||
+      appraisalRequest.requestedType === "CERTIFIED_APPRAISAL"
+    ) {
+      // Configuration based on appraisal type
+      const jobConfig =
+        appraisalRequest.requestedType === "AI_REPORT_WITH_ONSITE"
+          ? {
+              slaHours: 48,
+              payout: 99,
+              scope: "EXTERIOR_ONLY",
+              jobType: "ONSITE_PHOTOS" as const,
+            }
+          : {
+              slaHours: 72,
+              payout: 199,
+              scope: "INTERIOR_EXTERIOR",
+              jobType: "ONSITE_PHOTOS" as const,
+            };
+
+      const slaDueAt = new Date(
+        Date.now() + jobConfig.slaHours * 60 * 60 * 1000,
+      );
+
+      // Create the job linked to this appraisal
+      const job = await prisma.job.create({
+        data: {
+          organizationId,
+          propertyId: appraisalRequest.propertyId,
+          appraisalRequestId: appraisalId,
+          jobType: jobConfig.jobType,
+          scope: jobConfig.scope,
+          payoutAmount: jobConfig.payout,
+          slaDueAt,
+          schedulingWindow: { flexible: true },
+          status: "DISPATCHED",
+          dispatchedAt: new Date(),
+          statusHistory: [
+            {
+              status: "DISPATCHED",
+              timestamp: new Date().toISOString(),
+              note: "Auto-created from appraisal order (webhook)",
+            },
+          ],
+        },
+      });
+
+      // Dispatch to available appraisers
+      dispatchEngine.dispatch(job.id).catch((error) => {
+        console.error(`Failed to dispatch job ${job.id}:`, error);
+      });
+
+      console.log(`Auto-created job ${job.id} for appraisal ${appraisalId}`);
+    }
+
+    console.log(`Webhook processed appraisal ${appraisalId} successfully`);
   }
 }
 
@@ -312,15 +433,23 @@ async function handleRefundEvent(refund: Stripe.Refund) {
   });
 
   if (refundPayment) {
-    const newStatus = refund.status === "succeeded" ? "COMPLETED" :
-                      refund.status === "failed" ? "FAILED" :
-                      refund.status === "canceled" ? "CANCELLED" : "PENDING";
+    const newStatus =
+      refund.status === "succeeded"
+        ? "COMPLETED"
+        : refund.status === "failed"
+          ? "FAILED"
+          : refund.status === "canceled"
+            ? "CANCELLED"
+            : "PENDING";
 
     await prisma.payment.update({
       where: { id: refundPayment.id },
       data: {
         status: newStatus,
-        statusMessage: refund.status === "failed" ? (refund.failure_reason || "Refund failed") : null,
+        statusMessage:
+          refund.status === "failed"
+            ? refund.failure_reason || "Refund failed"
+            : null,
       },
     });
   }
@@ -380,6 +509,8 @@ async function handleAccountUpdated(account: Stripe.Account) {
       });
     }
 
-    console.log(`Updated appraiser ${appraiserProfile.userId} payoutEnabled: ${isPayoutReady}`);
+    console.log(
+      `Updated appraiser ${appraiserProfile.userId} payoutEnabled: ${isPayoutReady}`,
+    );
   }
 }

@@ -3,7 +3,6 @@
 import {
   User,
   MapPin,
-  Calendar,
   Home,
   Building,
   Hash,
@@ -35,7 +34,7 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
   return (
     <div className="space-y-4">
       {/* Total Value Hero */}
-      <div className="p-4 bg-gradient-to-br from-lime-400/20 to-lime-400/5 border border-lime-400/30 clip-notch">
+      <div className="p-4 bg-gray-800 border border-gray-700 clip-notch">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs font-mono text-lime-400 uppercase tracking-wider mb-1">
@@ -47,7 +46,7 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
           </div>
           {pricePerSqft && (
             <div className="text-right">
-              <p className="text-xs text-gray-400">Price/SqFt</p>
+              <p className="text-xs text-gray-300">Price/SqFt</p>
               <p className="text-lg font-mono text-lime-400">
                 ${Math.round(pricePerSqft).toLocaleString()}
               </p>
@@ -59,26 +58,26 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         <div className="p-3 bg-gray-800 clip-notch-sm text-center">
-          <p className="text-xs text-gray-400">Year Built</p>
+          <p className="text-xs text-gray-300">Year Built</p>
           <p className="text-lg font-bold text-white">
             {parcel.yearBuilt || "N/A"}
           </p>
         </div>
         <div className="p-3 bg-gray-800 clip-notch-sm text-center">
-          <p className="text-xs text-gray-400">Lot Size</p>
+          <p className="text-xs text-gray-300">Lot Size</p>
           <p className="text-lg font-bold text-white">
             {parcel.acres?.toFixed(2) || "N/A"}
           </p>
           <p className="text-xs text-gray-500">acres</p>
         </div>
         <div className="p-3 bg-gray-800 clip-notch-sm text-center">
-          <p className="text-xs text-gray-400">Stories</p>
+          <p className="text-xs text-gray-300">Stories</p>
           <p className="text-lg font-bold text-white">
             {parcel.stories || "1"}
           </p>
         </div>
         <div className="p-3 bg-gray-800 clip-notch-sm text-center">
-          <p className="text-xs text-gray-400">Flood Zone</p>
+          <p className="text-xs text-gray-300">Flood Zone</p>
           <p className="text-lg font-bold text-white">
             {parcel.floodZone || "X"}
           </p>
@@ -87,12 +86,12 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
 
       {/* Value Breakdown */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-2">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-2">
           Value Breakdown
         </h3>
         <div className="grid grid-cols-2 gap-2">
           <div className="p-3 bg-gray-800 clip-notch-sm">
-            <p className="text-xs text-gray-400 mb-1">Land Value</p>
+            <p className="text-xs text-gray-300 mb-1">Land Value</p>
             <p className="text-lg md:text-xl font-bold text-white font-mono">
               {formatCurrency(landValue)}
             </p>
@@ -101,7 +100,7 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
             </p>
           </div>
           <div className="p-3 bg-gray-800 clip-notch-sm">
-            <p className="text-xs text-gray-400 mb-1">Improvement Value</p>
+            <p className="text-xs text-gray-300 mb-1">Improvement Value</p>
             <p className="text-lg md:text-xl font-bold text-white font-mono">
               {formatCurrency(improvementValue)}
             </p>
@@ -134,12 +133,12 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
 
       {/* Property Info Grid */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-2">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-2">
           Property Information
         </h3>
         <div className="space-y-2">
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <User className="w-4 h-4" /> Owner
             </span>
             <span className="text-white font-medium text-right max-w-[200px] truncate">
@@ -147,7 +146,7 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Hash className="w-4 h-4" /> Account #
             </span>
             <span className="text-white font-mono">
@@ -155,7 +154,7 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Home className="w-4 h-4" /> Property Type
             </span>
             <span className="text-white font-medium">
@@ -163,7 +162,7 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Layers className="w-4 h-4" /> Zoning
             </span>
             <span className="text-white font-medium">
@@ -176,12 +175,12 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <MapPin className="w-4 h-4" /> Lot Size
             </span>
             <span className="text-white font-medium">
-              {parcel.acres?.toFixed(2)} acres ({Math.round(parcel.sqft || 0).toLocaleString()}{" "}
-              sqft)
+              {parcel.acres?.toFixed(2)} acres (
+              {Math.round(parcel.sqft || 0).toLocaleString()} sqft)
             </span>
           </div>
           {parcel.buildingArea && (
@@ -195,7 +194,7 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
             </div>
           )}
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Droplets className="w-4 h-4" /> Flood Zone
             </span>
             <span
@@ -213,16 +212,20 @@ export function OverviewTab({ parcel }: OverviewTabProps) {
       {/* Legal Description */}
       {(parcel.subdivision || parcel.lot || parcel.block) && (
         <div>
-          <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-2">
+          <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-2">
             Legal Description
           </h3>
           <div className="p-3 bg-gray-800 clip-notch-sm">
             <div className="flex items-start gap-2">
               <FileText className="w-4 h-4 text-gray-500 mt-0.5" />
               <p className="text-sm text-gray-300">
-                {parcel.subdivision && <span>Subdivision: {parcel.subdivision}</span>}
+                {parcel.subdivision && (
+                  <span>Subdivision: {parcel.subdivision}</span>
+                )}
                 {parcel.lot && <span className="ml-2">Lot: {parcel.lot}</span>}
-                {parcel.block && <span className="ml-2">Block: {parcel.block}</span>}
+                {parcel.block && (
+                  <span className="ml-2">Block: {parcel.block}</span>
+                )}
               </p>
             </div>
           </div>

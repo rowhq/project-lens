@@ -18,11 +18,20 @@ import {
   X,
   LogOut,
   Monitor,
+  Users,
+  Send,
+  UserPlus,
+  Sparkles,
 } from "lucide-react";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/components/ui/Toast";
 
-type SettingsTab = "profile" | "notifications" | "security" | "preferences";
+type SettingsTab =
+  | "profile"
+  | "notifications"
+  | "security"
+  | "preferences"
+  | "team";
 
 // Preferences stored in localStorage
 interface UserPreferences {
@@ -86,9 +95,30 @@ export default function SettingsPage() {
   const [preferencesDirty, setPreferencesDirty] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
 
+  // Team invite state
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteFirstName, setInviteFirstName] = useState("");
+  const [inviteLastName, setInviteLastName] = useState("");
+
   // tRPC queries and mutations
   const { data: userData, refetch: refetchUser } = trpc.user.me.useQuery();
   const { data: notifPrefs } = trpc.user.getNotificationPreferences.useQuery();
+  const { data: teamStatus, refetch: refetchTeamStatus } =
+    trpc.organization.teamStatus.useQuery();
+
+  // Team invite mutation
+  const inviteMember = trpc.organization.members.invite.useMutation({
+    onSuccess: () => {
+      toast.success("Invitation sent!", "Team member has been invited.");
+      setInviteEmail("");
+      setInviteFirstName("");
+      setInviteLastName("");
+      refetchTeamStatus();
+    },
+    onError: (error) => {
+      toast.error("Failed to send invitation", error.message);
+    },
+  });
 
   const updateProfile = trpc.user.updateProfile.useMutation({
     onSuccess: () => {
@@ -212,10 +242,21 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
+    { id: "team", label: "Team", icon: Users },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "security", label: "Security", icon: Shield },
     { id: "preferences", label: "Preferences", icon: Palette },
   ];
+
+  // Handle team invite
+  const handleInvite = () => {
+    if (!inviteEmail || !inviteFirstName || !inviteLastName) return;
+    inviteMember.mutate({
+      email: inviteEmail,
+      firstName: inviteFirstName,
+      lastName: inviteLastName,
+    });
+  };
 
   // Handle profile save
   const handleSaveProfile = async () => {
@@ -526,6 +567,152 @@ export default function SettingsPage() {
                   </span>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Team Tab */}
+          {activeTab === "team" && (
+            <div className="space-y-6">
+              {/* Team Status */}
+              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
+                    <Users className="w-6 h-6 text-lime-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-white">
+                      Team Members
+                    </h2>
+                    <p className="text-sm text-gray-400">
+                      {teamStatus?.activeMembers || 1} active member
+                      {(teamStatus?.activeMembers || 1) !== 1 ? "s" : ""}
+                      {teamStatus?.pendingInvitations
+                        ? ` (${teamStatus.pendingInvitations} pending)`
+                        : ""}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Benefits of having a team */}
+                <div className="mt-6 p-4 bg-lime-400/5 border border-lime-400/20 clip-notch-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-5 h-5 text-lime-400" />
+                    <span className="font-medium text-white">
+                      Why invite team members?
+                    </span>
+                  </div>
+                  <ul className="space-y-2 text-sm text-gray-300">
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-lime-400" />
+                      Collaborate on property valuations
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-lime-400" />
+                      Share reports across your organization
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-lime-400" />
+                      Centralized billing and usage tracking
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-lime-400" />
+                      Role-based access control (Admin, Member)
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Invite Form */}
+              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+                <div className="flex items-center gap-2 mb-6">
+                  <UserPlus className="w-5 h-5 text-lime-400" />
+                  <h2 className="text-lg font-semibold text-white">
+                    Invite Team Member
+                  </h2>
+                </div>
+
+                <div className="space-y-4 max-w-md">
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      placeholder="colleague@company.com"
+                      className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-1">
+                        First Name
+                      </label>
+                      <input
+                        type="text"
+                        value={inviteFirstName}
+                        onChange={(e) => setInviteFirstName(e.target.value)}
+                        placeholder="John"
+                        className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-1">
+                        Last Name
+                      </label>
+                      <input
+                        type="text"
+                        value={inviteLastName}
+                        onChange={(e) => setInviteLastName(e.target.value)}
+                        placeholder="Doe"
+                        className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleInvite}
+                    disabled={
+                      !inviteEmail ||
+                      !inviteFirstName ||
+                      !inviteLastName ||
+                      inviteMember.isPending
+                    }
+                    className="flex items-center gap-2 px-6 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {inviteMember.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Send Invitation
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Team Page Link (if team exists) */}
+              {teamStatus?.showTeamPage && (
+                <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+                  <p className="text-gray-400 mb-4">
+                    Need to manage existing team members, change roles, or
+                    remove members?
+                  </p>
+                  <a
+                    href="/team"
+                    className="inline-flex items-center gap-2 text-lime-400 hover:text-lime-300 font-mono text-sm uppercase tracking-wider"
+                  >
+                    <Users className="w-4 h-4" />
+                    Go to Team Management
+                  </a>
+                </div>
+              )}
             </div>
           )}
 

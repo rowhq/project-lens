@@ -130,15 +130,21 @@ export default function NewAppraisalPage() {
         longitude: 0,
       };
 
-      setFormData((prev) => ({
-        ...prev,
-        addressQuery: address,
-        selectedProperty: prefilledProperty,
-        reportType: type === "CERTIFIED" ? "CERTIFIED" : "AI_REPORT",
-      }));
-      setPrefilledFromMap(true);
+      // Use setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          addressQuery: address,
+          selectedProperty: prefilledProperty,
+          reportType: type === "CERTIFIED" ? "CERTIFIED" : "AI_REPORT",
+        }));
+        setPrefilledFromMap(true);
+      }, 0);
     }
   }, [searchParams, prefilledFromMap]);
+
+  // Check if Stripe is configured
+  const isStripeConfigured = !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
   const createWithCheckout = trpc.appraisal.createWithCheckout.useMutation({
     onSuccess: (data) => {
@@ -149,6 +155,14 @@ export default function NewAppraisalPage() {
         // Fallback if no checkout URL (shouldn't happen)
         router.push(`/appraisals/${data.appraisalId}`);
       }
+    },
+  });
+
+  // Development checkout - bypasses Stripe
+  const devCheckout = trpc.appraisal.devCheckout.useMutation({
+    onSuccess: (data) => {
+      // Redirect to appraisal page with success indicator
+      router.push(`/appraisals/${data.appraisalId}?payment=success`);
     },
   });
 
@@ -196,7 +210,7 @@ export default function NewAppraisalPage() {
       CERTIFIED: "CERTIFIED_APPRAISAL",
     };
 
-    createWithCheckout.mutate({
+    const commonData = {
       propertyAddress: formData.selectedProperty.address,
       propertyCity: formData.selectedProperty.city,
       propertyState: formData.selectedProperty.state,
@@ -214,7 +228,17 @@ export default function NewAppraisalPage() {
       notes: formData.notes
         ? `${formData.notes}\nLoan: ${formData.loanNumber || "N/A"}\nBorrower: ${formData.borrowerName || "N/A"}`
         : undefined,
-    });
+    };
+
+    // Use devCheckout if Stripe is not configured (development mode)
+    if (!isStripeConfigured) {
+      devCheckout.mutate({
+        ...commonData,
+        propertyCounty: formData.selectedProperty.county,
+      });
+    } else {
+      createWithCheckout.mutate(commonData);
+    }
   };
 
   const steps: { id: Step; label: string; icon: typeof MapPin }[] = [
@@ -589,18 +613,22 @@ export default function NewAppraisalPage() {
           ) : (
             <button
               onClick={handleSubmit}
-              disabled={createWithCheckout.isPending}
+              disabled={createWithCheckout.isPending || devCheckout.isPending}
               className="flex items-center gap-2 px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500"
             >
-              {createWithCheckout.isPending ? (
+              {createWithCheckout.isPending || devCheckout.isPending ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Redirecting to checkout...
+                  {isStripeConfigured
+                    ? "Redirecting to checkout..."
+                    : "Processing..."}
                 </>
               ) : (
                 <>
                   <CreditCard className="w-5 h-5" />
-                  Proceed to Payment ${selectedReportType?.price}
+                  {isStripeConfigured
+                    ? `Proceed to Payment $${selectedReportType?.price}`
+                    : `Process (Dev Mode) $${selectedReportType?.price}`}
                 </>
               )}
             </button>

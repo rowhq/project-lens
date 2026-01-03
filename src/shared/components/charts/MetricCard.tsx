@@ -66,7 +66,7 @@ export function MetricCard({
       {/* Background sparkline */}
       {sparklineData && sparklineData.length > 0 && (
         <div className="absolute inset-0 opacity-10">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minHeight={100}>
             <AreaChart
               data={sparklineData}
               margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
@@ -141,7 +141,7 @@ export function MetricCard({
       {/* Mini sparkline at bottom */}
       {sparklineData && sparklineData.length > 0 && (
         <div className="relative mt-4 h-10 z-10">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minHeight={40}>
             <AreaChart
               data={sparklineData}
               margin={{ top: 0, right: 0, left: 0, bottom: 0 }}

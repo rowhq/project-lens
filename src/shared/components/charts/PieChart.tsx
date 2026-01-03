@@ -106,7 +106,7 @@ export function PieChart({
         ariaLabel || `Pie chart showing ${data.map((d) => d.name).join(", ")}`
       }
     >
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minHeight={height}>
         <RechartsPieChart>
           <Pie
             data={data}

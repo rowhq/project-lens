@@ -268,10 +268,10 @@ export default function ClientDashboard() {
           className={cn(
             "inline-flex items-center gap-2",
             "px-4 py-2.5",
-            "bg-lime-400 text-black",
-            "font-mono text-label uppercase tracking-wider",
+            "bg-lime-400 text-gray-900",
+            "font-mono text-sm font-semibold uppercase tracking-wider",
             "clip-notch",
-            "hover:bg-lime-500 transition-colors",
+            "hover:bg-lime-300 transition-colors",
           )}
         >
           <Plus className="h-4 w-4" />

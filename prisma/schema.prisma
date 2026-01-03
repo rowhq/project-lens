@@ -291,6 +291,11 @@ model AppraisalRequest {
   completedAt DateTime?
   expiresAt   DateTime?
 
+  // Retry tracking for failed processing
+  retryCount    Int       @default(0)
+  lastAttemptAt DateTime?
+  nextRetryAt   DateTime?
+
   // Pricing
   price    Decimal @db.Decimal(10, 2)
   currency String  @default("USD")
@@ -306,6 +311,7 @@ model AppraisalRequest {
   @@index([status])
   @@index([referenceCode])
   @@index([createdAt])
+  @@index([nextRetryAt])
 }
 
 model Report {

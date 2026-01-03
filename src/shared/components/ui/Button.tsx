@@ -32,8 +32,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const variants = {
       primary: cn(
-        "bg-white text-black",
-        "hover:bg-lime-400 hover:text-black",
+        "bg-white text-gray-900",
+        "hover:bg-lime-400 hover:text-gray-900",
         "border border-white hover:border-lime-400",
         "focus:ring-white/30",
       ),
@@ -61,7 +61,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         "focus:ring-red-500/30",
       ),
       lime: cn(
-        "bg-lime-400 text-black",
+        "bg-lime-400 text-gray-900",
         "hover:bg-lime-300",
         "border border-lime-400 hover:border-lime-300",
         "focus:ring-lime-400/30",

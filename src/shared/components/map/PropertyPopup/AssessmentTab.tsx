@@ -1,6 +1,12 @@
 "use client";
 
-import { TrendingUp, TrendingDown, Calendar, FileText, Shield } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  FileText,
+  Shield,
+} from "lucide-react";
 import type { ParcelProperties } from "@/shared/lib/parcel-api";
 
 interface AssessmentTabProps {
@@ -24,7 +30,7 @@ export function AssessmentTab({ parcel }: AssessmentTabProps) {
       {/* Current vs Prior Year */}
       <div className="grid grid-cols-2 gap-4">
         <div className="p-4 bg-gray-800 clip-notch-sm border border-gray-700">
-          <p className="text-xs font-mono text-gray-400 uppercase tracking-wider mb-1">
+          <p className="text-xs font-mono text-gray-300 uppercase tracking-wider mb-1">
             Current Year
           </p>
           <p className="text-xl md:text-2xl font-bold text-white">
@@ -33,7 +39,7 @@ export function AssessmentTab({ parcel }: AssessmentTabProps) {
           <p className="text-xs text-gray-500 mt-1">2024 Assessment</p>
         </div>
         <div className="p-4 bg-gray-800 clip-notch-sm border border-gray-700">
-          <p className="text-xs font-mono text-gray-400 uppercase tracking-wider mb-1">
+          <p className="text-xs font-mono text-gray-300 uppercase tracking-wider mb-1">
             Prior Year
           </p>
           <p className="text-xl md:text-2xl font-bold text-gray-400">
@@ -53,7 +59,7 @@ export function AssessmentTab({ parcel }: AssessmentTabProps) {
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-mono text-gray-400 uppercase tracking-wider mb-1">
+            <p className="text-xs font-mono text-gray-300 uppercase tracking-wider mb-1">
               Year-over-Year Change
             </p>
             <p
@@ -77,12 +83,12 @@ export function AssessmentTab({ parcel }: AssessmentTabProps) {
 
       {/* Assessment Details */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-3">
           Assessment Details
         </h3>
         <div className="space-y-2">
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Calendar className="w-4 h-4" /> Assessment Date
             </span>
             <span className="text-white font-medium">
@@ -90,7 +96,7 @@ export function AssessmentTab({ parcel }: AssessmentTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Calendar className="w-4 h-4" /> Next Reappraisal
             </span>
             <span className="text-white font-medium">
@@ -98,7 +104,7 @@ export function AssessmentTab({ parcel }: AssessmentTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <FileText className="w-4 h-4" /> Tax District
             </span>
             <span className="text-white font-medium">
@@ -106,7 +112,7 @@ export function AssessmentTab({ parcel }: AssessmentTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <FileText className="w-4 h-4" /> School District
             </span>
             <span className="text-white font-medium">
@@ -118,10 +124,10 @@ export function AssessmentTab({ parcel }: AssessmentTabProps) {
 
       {/* Exemptions */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-3">
           Exemptions
         </h3>
-        {parcel.exemptions && parcel.exemptions.length > 0 ? (
+        {Array.isArray(parcel.exemptions) && parcel.exemptions.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {parcel.exemptions.map((exemption, index) => (
               <span

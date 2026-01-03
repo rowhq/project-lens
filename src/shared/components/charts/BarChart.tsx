@@ -78,7 +78,7 @@ export function BarChart({
         ariaLabel || `Bar chart showing ${series.map((s) => s.name).join(", ")}`
       }
     >
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minHeight={height}>
         <RechartsBarChart
           data={data}
           layout={layout}

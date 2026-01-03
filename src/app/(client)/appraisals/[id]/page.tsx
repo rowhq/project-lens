@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
@@ -10,7 +10,6 @@ import {
   Download,
   Share2,
   RefreshCw,
-  MapPin,
   Calendar,
   DollarSign,
   TrendingUp,
@@ -24,7 +23,6 @@ import {
   Phone,
   Mail,
   Copy,
-  ExternalLink,
   X,
   Link as LinkIcon,
   Send,
@@ -37,6 +35,47 @@ import { Skeleton } from "@/shared/components/ui/Skeleton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+// Regenerate Button Component - for reports without PDF
+function RegenerateButton({
+  appraisalId,
+  onSuccess,
+}: {
+  appraisalId: string;
+  onSuccess: () => void;
+}) {
+  const { toast } = useToast();
+  const regenerate = trpc.report.regenerate.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Regenerando reporte",
+        description:
+          "El PDF se está generando. Esto puede tomar unos segundos.",
+      });
+      onSuccess();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  return (
+    <button
+      onClick={() => regenerate.mutate({ appraisalId })}
+      disabled={regenerate.isPending}
+      className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-gray-900 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50"
+    >
+      <RefreshCw
+        className={`w-4 h-4 ${regenerate.isPending ? "animate-spin" : ""}`}
+      />
+      {regenerate.isPending ? "Regenerando..." : "Generar PDF"}
+    </button>
+  );
 }
 
 // SLA Progress Tracker Component
@@ -597,6 +636,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const paymentToastShownRef = useRef(false);
 
   const {
     data: appraisal,
@@ -604,37 +644,92 @@ export default function AppraisalDetailPage({ params }: PageProps) {
     refetch,
   } = trpc.appraisal.getById.useQuery({ id });
 
-  // Payment confirmation mutation
-  const confirmPayment = trpc.appraisal.confirmPayment.useMutation({
-    onSuccess: () => {
-      setPaymentConfirmed(true);
-      refetch();
-      toast({
-        title: "Payment successful!",
-        description: "Your appraisal request is now being processed.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Payment confirmation failed",
-        description:
-          error.message || "Please contact support if you were charged.",
-        variant: "destructive",
-      });
-    },
-  });
-
   // Handle payment success callback from Stripe
+  // Now uses polling to wait for webhook processing
   useEffect(() => {
     const paymentStatus = searchParams.get("payment");
     if (
-      paymentStatus === "success" &&
-      !paymentConfirmed &&
-      appraisal?.status === "DRAFT"
+      paymentStatus !== "success" ||
+      paymentConfirmed ||
+      paymentToastShownRef.current
     ) {
-      confirmPayment.mutate({ appraisalId: id });
+      return;
     }
-  }, [searchParams, id, paymentConfirmed, appraisal?.status, confirmPayment]);
+
+    // Check if webhook has processed the payment
+    // Processed statuses indicate the webhook has updated the appraisal
+    const processedStatuses = ["QUEUED", "RUNNING", "READY", "FAILED"];
+    if (appraisal && processedStatuses.includes(appraisal.status)) {
+      paymentToastShownRef.current = true;
+      // Use setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        setPaymentConfirmed(true);
+        toast({
+          title: "Payment successful!",
+          description: "Your appraisal request is now being processed.",
+        });
+      }, 0);
+    }
+    // If appraisal exists but status is still pending webhook processing,
+    // the polling useEffect below will handle refreshing
+  }, [searchParams, paymentConfirmed, appraisal?.status, toast]);
+
+  // Polling while waiting for payment processing
+  // This handles the case where webhook processes before page loads
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    if (paymentStatus !== "success" || paymentConfirmed) {
+      return;
+    }
+
+    // Poll every 2 seconds while waiting for webhook
+    const interval = setInterval(() => {
+      refetch();
+    }, 2000);
+
+    // Stop polling after 30 seconds (webhook should definitely have processed by then)
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      if (!paymentConfirmed) {
+        toast({
+          title: "Processing taking longer than expected",
+          description:
+            "Your payment was received. Please refresh the page in a moment.",
+        });
+      }
+    }, 30000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [searchParams, paymentConfirmed, refetch]);
+
+  // Polling while appraisal is processing (QUEUED or RUNNING)
+  useEffect(() => {
+    if (!appraisal) return;
+
+    const isProcessing = ["QUEUED", "RUNNING"].includes(appraisal.status);
+    if (!isProcessing) return;
+
+    // Poll every 3 seconds while processing
+    const interval = setInterval(() => {
+      refetch();
+    }, 3000);
+
+    // Stop polling after 5 minutes (processing should be done by then)
+    const timeout = setTimeout(
+      () => {
+        clearInterval(interval);
+      },
+      5 * 60 * 1000,
+    );
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [appraisal?.status, refetch]);
 
   // Get existing share link
   const { data: existingShareLink } = trpc.report.getShareLink.useQuery(
@@ -805,7 +900,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {report?.pdfUrl && (
+          {report && appraisal.status === "READY" && (
             <>
               <button
                 onClick={() => setIsShareModalOpen(true)}
@@ -814,13 +909,22 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 <Share2 className="w-4 h-4" />
                 Share
               </button>
-              <a
-                href={report.pdfUrl}
-                className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300"
-              >
-                <Download className="w-4 h-4" />
-                Download PDF
-              </a>
+              {report.pdfUrl ? (
+                <a
+                  href={report.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-gray-900 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300"
+                >
+                  <Download className="w-4 h-4" />
+                  Download PDF
+                </a>
+              ) : (
+                <RegenerateButton
+                  appraisalId={appraisal.id}
+                  onSuccess={() => refetch()}
+                />
+              )}
             </>
           )}
         </div>

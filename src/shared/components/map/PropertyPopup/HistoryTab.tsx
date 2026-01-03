@@ -25,8 +25,10 @@ function generateHistory(currentValue: number): HistoryItem[] {
 
   for (let i = 0; i < 5; i++) {
     const year = 2024 - i;
-    const previousValue = i === 4 ? value : value / (1 + (Math.random() * 0.1 - 0.02));
-    const change = i === 0 ? 0 : ((value - previousValue) / previousValue) * 100;
+    const previousValue =
+      i === 4 ? value : value / (1 + (Math.random() * 0.1 - 0.02));
+    const change =
+      i === 0 ? 0 : ((value - previousValue) / previousValue) * 100;
 
     history.push({
       year,
@@ -41,7 +43,11 @@ function generateHistory(currentValue: number): HistoryItem[] {
 }
 
 export function HistoryTab({ parcel }: HistoryTabProps) {
-  const historyData = parcel.assessmentHistory || generateHistory(parcel.totalValue);
+  const historyData =
+    Array.isArray(parcel.assessmentHistory) &&
+    parcel.assessmentHistory.length > 0
+      ? parcel.assessmentHistory
+      : generateHistory(parcel.totalValue);
 
   // Calculate 5-year appreciation
   const oldestValue = historyData[historyData.length - 1].value;
@@ -66,7 +72,7 @@ export function HistoryTab({ parcel }: HistoryTabProps) {
           </p>
         </div>
         <div className="p-4 bg-gray-800 clip-notch-sm">
-          <p className="text-xs font-mono text-gray-400 uppercase tracking-wider mb-1">
+          <p className="text-xs font-mono text-gray-300 uppercase tracking-wider mb-1">
             Avg Annual Growth
           </p>
           <p className="text-xl md:text-2xl font-bold text-white">
@@ -77,7 +83,7 @@ export function HistoryTab({ parcel }: HistoryTabProps) {
 
       {/* Simple Bar Chart */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-3">
           Assessment History
         </h3>
         <div className="p-4 bg-gray-800 clip-notch-sm">
@@ -88,7 +94,7 @@ export function HistoryTab({ parcel }: HistoryTabProps) {
 
               return (
                 <div key={item.year} className="flex items-center gap-3">
-                  <span className="text-sm text-gray-400 w-12 font-mono">
+                  <span className="text-sm text-gray-300 w-12 font-mono">
                     {item.year}
                   </span>
                   <div className="flex-1 h-6 bg-gray-700 rounded overflow-hidden relative">
@@ -126,20 +132,20 @@ export function HistoryTab({ parcel }: HistoryTabProps) {
 
       {/* History Table */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-3">
           Detailed History
         </h3>
         <div className="border border-gray-800 clip-notch-sm overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-800">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-mono uppercase tracking-wider text-gray-400">
+                <th className="px-4 py-2 text-left text-xs font-mono uppercase tracking-wider text-gray-300">
                   Year
                 </th>
-                <th className="px-4 py-2 text-right text-xs font-mono uppercase tracking-wider text-gray-400">
+                <th className="px-4 py-2 text-right text-xs font-mono uppercase tracking-wider text-gray-300">
                   Assessed Value
                 </th>
-                <th className="px-4 py-2 text-right text-xs font-mono uppercase tracking-wider text-gray-400">
+                <th className="px-4 py-2 text-right text-xs font-mono uppercase tracking-wider text-gray-300">
                   YoY Change
                 </th>
               </tr>
@@ -189,7 +195,7 @@ export function HistoryTab({ parcel }: HistoryTabProps) {
       {/* Neighborhood Comparison Note */}
       <div className="p-4 bg-blue-500/10 border border-blue-500/30 clip-notch-sm">
         <p className="text-sm text-blue-400">
-          This property's appreciation rate of{" "}
+          This property&apos;s appreciation rate of{" "}
           <strong>+{fiveYearAppreciation.toFixed(1)}%</strong> over 5 years{" "}
           {fiveYearAppreciation > 25
             ? "outperforms"
