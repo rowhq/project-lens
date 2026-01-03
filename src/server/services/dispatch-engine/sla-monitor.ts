@@ -174,7 +174,9 @@ class SLAMonitor {
       // Use SLA due date if set, otherwise calculate from job type
       const slaHours = job.slaDueAt
         ? (job.slaDueAt.getTime() - job.acceptedAt.getTime()) / (1000 * 60 * 60)
-        : SLA_CONFIG.completion[job.jobType as keyof typeof SLA_CONFIG.completion] || 48;
+        : SLA_CONFIG.completion[
+            job.jobType as keyof typeof SLA_CONFIG.completion
+          ] || 48;
 
       const hoursSinceAcceptance =
         (now.getTime() - job.acceptedAt.getTime()) / (1000 * 60 * 60);
@@ -235,7 +237,8 @@ class SLAMonitor {
     if (!job.slaDueAt) return "NORMAL";
 
     const now = new Date();
-    const hoursUntilDue = (job.slaDueAt.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const hoursUntilDue =
+      (job.slaDueAt.getTime() - now.getTime()) / (1000 * 60 * 60);
 
     if (hoursUntilDue <= 4) return "CRITICAL";
     if (hoursUntilDue <= 12) return "URGENT";
@@ -247,7 +250,7 @@ class SLAMonitor {
    */
   private determineEscalationLevel(
     actualHours: number,
-    slaHours: number
+    slaHours: number,
   ): EscalationLevel {
     const overdueRatio = actualHours / slaHours;
 
@@ -269,12 +272,17 @@ class SLAMonitor {
     if (!job) return false;
 
     // Check if already escalated to this level from statusHistory
-    const statusHistory = (job.statusHistory as Array<{ level?: string }>) || [];
-    const lastEscalation = statusHistory.filter(s => s.level).pop();
+    const rawHistory = job.statusHistory;
+    const statusHistory: Array<{ level?: string }> = Array.isArray(rawHistory)
+      ? rawHistory
+      : [];
+    const lastEscalation = statusHistory.filter((s) => s.level).pop();
     if (lastEscalation?.level === breach.level) return false;
 
     // Get current statusHistory as array
-    const currentHistory = Array.isArray(job.statusHistory) ? job.statusHistory : [];
+    const currentHistory = Array.isArray(job.statusHistory)
+      ? job.statusHistory
+      : [];
 
     // Update job with escalation info in statusHistory
     await prisma.job.update({
@@ -318,7 +326,12 @@ class SLAMonitor {
    */
   private async createEscalationNotifications(
     breach: SLABreachResult,
-    job: Job & { appraisalRequest: { organizationId: string; requestedById: string } | null }
+    job: Job & {
+      appraisalRequest: {
+        organizationId: string;
+        requestedById: string;
+      } | null;
+    },
   ): Promise<void> {
     const notifications: {
       userId: string;
@@ -340,7 +353,11 @@ class SLAMonitor {
     }
 
     // Notify requesting client for higher levels
-    if (breach.level === "LEVEL_2" || breach.level === "LEVEL_3" || breach.level === "CRITICAL") {
+    if (
+      breach.level === "LEVEL_2" ||
+      breach.level === "LEVEL_3" ||
+      breach.level === "CRITICAL"
+    ) {
       if (job.appraisalRequest) {
         notifications.push({
           userId: job.appraisalRequest.requestedById,
@@ -381,9 +398,7 @@ class SLAMonitor {
   /**
    * Get SLA status for a specific job
    */
-  async getJobSLAStatus(
-    jobId: string
-  ): Promise<{
+  async getJobSLAStatus(jobId: string): Promise<{
     status: "ON_TRACK" | "AT_RISK" | "BREACHED";
     dueIn: number | null; // hours until SLA breach
     breachType?: string;
@@ -406,7 +421,9 @@ class SLAMonitor {
       case "PENDING_DISPATCH": {
         const urgency = this.getJobUrgency(job);
         const slaHours = SLA_CONFIG.dispatch[urgency];
-        slaDeadline = new Date(job.createdAt.getTime() + slaHours * 60 * 60 * 1000);
+        slaDeadline = new Date(
+          job.createdAt.getTime() + slaHours * 60 * 60 * 1000,
+        );
         breachType = "DISPATCH_DELAYED";
         break;
       }
@@ -415,7 +432,7 @@ class SLAMonitor {
           const urgency = this.getJobUrgency(job);
           const slaHours = SLA_CONFIG.acceptance[urgency];
           slaDeadline = new Date(
-            job.dispatchedAt.getTime() + slaHours * 60 * 60 * 1000
+            job.dispatchedAt.getTime() + slaHours * 60 * 60 * 1000,
           );
           breachType = "ACCEPTANCE_DELAYED";
         }
@@ -457,7 +474,7 @@ class SLAMonitor {
    */
   async getSLAMetrics(
     startDate: Date,
-    endDate: Date
+    endDate: Date,
   ): Promise<{
     totalJobs: number;
     onTimeCompletion: number;
@@ -478,7 +495,8 @@ class SLAMonitor {
     for (const job of jobs) {
       if (job.completedAt && job.acceptedAt) {
         const completionHours =
-          (job.completedAt.getTime() - job.acceptedAt.getTime()) / (1000 * 60 * 60);
+          (job.completedAt.getTime() - job.acceptedAt.getTime()) /
+          (1000 * 60 * 60);
         totalCompletionTime += completionHours;
 
         // Check if completed before SLA
@@ -494,7 +512,8 @@ class SLAMonitor {
       totalJobs,
       onTimeCompletion: totalJobs > 0 ? (onTimeCount / totalJobs) * 100 : 100,
       avgCompletionTime: totalJobs > 0 ? totalCompletionTime / totalJobs : 0,
-      breachRate: totalJobs > 0 ? ((totalJobs - onTimeCount) / totalJobs) * 100 : 0,
+      breachRate:
+        totalJobs > 0 ? ((totalJobs - onTimeCount) / totalJobs) * 100 : 0,
     };
   }
 }
