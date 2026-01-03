@@ -17,11 +17,39 @@ import {
   processQueuedAppraisals,
 } from "@/server/services/appraisal-processor";
 import { calculateAppraisalPrice } from "@/server/services/pricing-engine";
+import {
+  getUsageStatus,
+  checkUsageForPayment,
+} from "@/server/services/usage-limiter";
 import * as stripe from "@/shared/lib/stripe";
-import { sendPaymentConfirmation, sendAppraisalOrderConfirmation } from "@/shared/lib/resend";
-import { dispatchEngine } from "@/server/services/dispatch-engine";
+// Note: Email sending and job dispatch are now handled by the Stripe webhook
+// to prevent race conditions between webhook and confirmPayment
 
 export const appraisalRouter = createTRPCRouter({
+  /**
+   * Get usage status - free reports remaining this month
+   */
+  usageStatus: clientProcedure.query(async ({ ctx }) => {
+    const status = await getUsageStatus(ctx.organization!.id);
+    return status;
+  }),
+
+  /**
+   * Check if payment is required for a new AI report
+   */
+  checkPaymentRequired: clientProcedure.query(async ({ ctx }) => {
+    const { requiresPayment, usageStatus } = await checkUsageForPayment(
+      ctx.organization!.id,
+    );
+    return {
+      requiresPayment,
+      freeRemaining: usageStatus.remaining,
+      used: usageStatus.used,
+      limit: usageStatus.limit,
+      unlimited: usageStatus.unlimited,
+    };
+  }),
+
   /**
    * Create a new appraisal request
    */
@@ -33,15 +61,17 @@ export const appraisalRouter = createTRPCRouter({
         propertyCity: z.string().optional(),
         propertyState: z.string().default("TX"),
         propertyZipCode: z.string().optional(),
-        propertyType: z.enum([
-          "SINGLE_FAMILY",
-          "MULTI_FAMILY",
-          "CONDO",
-          "TOWNHOUSE",
-          "COMMERCIAL",
-          "LAND",
-          "MIXED_USE",
-        ]).default("SINGLE_FAMILY"),
+        propertyType: z
+          .enum([
+            "SINGLE_FAMILY",
+            "MULTI_FAMILY",
+            "CONDO",
+            "TOWNHOUSE",
+            "COMMERCIAL",
+            "LAND",
+            "MIXED_USE",
+          ])
+          .default("SINGLE_FAMILY"),
         purpose: z.string(),
         requestedType: z.enum([
           "AI_REPORT",
@@ -49,7 +79,7 @@ export const appraisalRouter = createTRPCRouter({
           "CERTIFIED_APPRAISAL",
         ]),
         notes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       let propertyId = input.propertyId;
@@ -177,7 +207,7 @@ export const appraisalRouter = createTRPCRouter({
           .optional(),
         limit: z.number().min(1).max(100).default(20),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { status, limit, cursor } = input;
@@ -225,15 +255,17 @@ export const appraisalRouter = createTRPCRouter({
         propertyCity: z.string().optional(),
         propertyState: z.string().default("TX"),
         propertyZipCode: z.string().optional(),
-        propertyType: z.enum([
-          "SINGLE_FAMILY",
-          "MULTI_FAMILY",
-          "CONDO",
-          "TOWNHOUSE",
-          "COMMERCIAL",
-          "LAND",
-          "MIXED_USE",
-        ]).default("SINGLE_FAMILY"),
+        propertyType: z
+          .enum([
+            "SINGLE_FAMILY",
+            "MULTI_FAMILY",
+            "CONDO",
+            "TOWNHOUSE",
+            "COMMERCIAL",
+            "LAND",
+            "MIXED_USE",
+          ])
+          .default("SINGLE_FAMILY"),
         purpose: z.string(),
         requestedType: z.enum([
           "AI_REPORT",
@@ -241,7 +273,7 @@ export const appraisalRouter = createTRPCRouter({
           "CERTIFIED_APPRAISAL",
         ]),
         notes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Create property
@@ -290,7 +322,8 @@ export const appraisalRouter = createTRPCRouter({
       };
 
       // Create Stripe checkout session
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       const checkoutSession = await stripe.createCheckoutSession({
         organizationId: ctx.organization!.id,
         appraisalRequestId: appraisal.id,
@@ -305,7 +338,9 @@ export const appraisalRouter = createTRPCRouter({
       await ctx.prisma.appraisalRequest.update({
         where: { id: appraisal.id },
         data: {
-          notes: input.notes ? `${input.notes}\n\nCheckout Session: ${checkoutSession.id}` : `Checkout Session: ${checkoutSession.id}`,
+          notes: input.notes
+            ? `${input.notes}\n\nCheckout Session: ${checkoutSession.id}`
+            : `Checkout Session: ${checkoutSession.id}`,
         },
       });
 
@@ -317,15 +352,274 @@ export const appraisalRouter = createTRPCRouter({
     }),
 
   /**
-   * Confirm payment and start processing
-   * Called after successful Stripe redirect
+   * Quick AI Report - Uses free monthly allowance or requires payment
+   * This is the main endpoint for creating AI reports from the map
+   */
+  quickAIReport: clientProcedure
+    .input(
+      z.object({
+        propertyAddress: z.string(),
+        propertyCity: z.string().optional(),
+        propertyState: z.string().default("TX"),
+        propertyZipCode: z.string().optional(),
+        propertyType: z
+          .enum([
+            "SINGLE_FAMILY",
+            "MULTI_FAMILY",
+            "CONDO",
+            "TOWNHOUSE",
+            "COMMERCIAL",
+            "LAND",
+            "MIXED_USE",
+          ])
+          .default("SINGLE_FAMILY"),
+        propertyCounty: z.string().optional(),
+        purpose: z.string().default("Property Analysis"),
+        notes: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check usage limits
+      const { requiresPayment, usageStatus } = await checkUsageForPayment(
+        ctx.organization!.id,
+      );
+
+      // In production, if payment required and Stripe not configured, throw error
+      if (requiresPayment && process.env.NODE_ENV === "production") {
+        throw new TRPCError({
+          code: "PAYMENT_REQUIRED",
+          message: `Monthly free report limit (${usageStatus.limit}) exceeded. Payment required.`,
+        });
+      }
+
+      // Create property
+      const property = await ctx.prisma.property.create({
+        data: {
+          addressLine1: input.propertyAddress,
+          city: input.propertyCity || "",
+          county: input.propertyCounty || "",
+          state: input.propertyState,
+          zipCode: input.propertyZipCode || "",
+          addressFull: `${input.propertyAddress}, ${input.propertyCity || ""}, ${input.propertyState} ${input.propertyZipCode || ""}`,
+          latitude: 0,
+          longitude: 0,
+          propertyType: input.propertyType,
+        },
+      });
+
+      // Determine if this is a free report or paid
+      const isFreeReport = !requiresPayment;
+      const price = isFreeReport ? 0 : 29; // $29 for AI Report when paid
+
+      // Generate reference code
+      const refCode = `APR-${Date.now().toString(36).toUpperCase()}`;
+
+      // Create appraisal directly in QUEUED status
+      const appraisal = await ctx.prisma.appraisalRequest.create({
+        data: {
+          referenceCode: refCode,
+          organizationId: ctx.organization!.id,
+          requestedById: ctx.user.id,
+          propertyId: property.id,
+          purpose: input.purpose,
+          requestedType: "AI_REPORT",
+          notes: input.notes
+            ? `${input.notes}\n\n[${isFreeReport ? "FREE REPORT" : "PAID REPORT"}]`
+            : `[${isFreeReport ? "FREE REPORT" : "PAID REPORT"}]`,
+          status: "QUEUED",
+          statusMessage: isFreeReport
+            ? `Free report (${usageStatus.used + 1}/${usageStatus.limit} this month)`
+            : "Processing paid report",
+          price,
+        },
+      });
+
+      // Create payment record (even for free, to track usage)
+      await ctx.prisma.payment.create({
+        data: {
+          organizationId: ctx.organization!.id,
+          userId: ctx.user.id,
+          type: "CHARGE",
+          amount: price,
+          currency: "USD",
+          description: isFreeReport
+            ? `[FREE] AI Report - ${property.addressFull}`
+            : `AI Report - ${property.addressFull}`,
+          relatedAppraisalId: appraisal.id,
+          status: "COMPLETED",
+          statusMessage: isFreeReport
+            ? "Free monthly allowance"
+            : "Paid report",
+        },
+      });
+
+      // Trigger processing (fire and forget)
+      processAppraisal(appraisal.id).catch((error) => {
+        console.error(
+          `[QuickAIReport] Failed to process appraisal ${appraisal.id}:`,
+          error,
+        );
+      });
+
+      return {
+        appraisalId: appraisal.id,
+        referenceCode: refCode,
+        price,
+        isFreeReport,
+        usageAfter: {
+          used: usageStatus.used + 1,
+          limit: usageStatus.limit,
+          remaining:
+            usageStatus.remaining !== null ? usageStatus.remaining - 1 : null,
+        },
+      };
+    }),
+
+  /**
+   * Development-only checkout bypass (legacy - use quickAIReport instead)
+   * Simulates successful payment without Stripe
+   */
+  devCheckout: clientProcedure
+    .input(
+      z.object({
+        propertyAddress: z.string(),
+        propertyCity: z.string().optional(),
+        propertyState: z.string().default("TX"),
+        propertyZipCode: z.string().optional(),
+        propertyType: z
+          .enum([
+            "SINGLE_FAMILY",
+            "MULTI_FAMILY",
+            "CONDO",
+            "TOWNHOUSE",
+            "COMMERCIAL",
+            "LAND",
+            "MIXED_USE",
+          ])
+          .default("SINGLE_FAMILY"),
+        propertyCounty: z.string().optional(),
+        purpose: z.string(),
+        requestedType: z.enum([
+          "AI_REPORT",
+          "AI_REPORT_WITH_ONSITE",
+          "CERTIFIED_APPRAISAL",
+        ]),
+        notes: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Only allow in development
+      if (process.env.NODE_ENV === "production") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Development checkout is not available in production",
+        });
+      }
+
+      // Check usage limits for AI_REPORT
+      const { requiresPayment, usageStatus } =
+        input.requestedType === "AI_REPORT"
+          ? await checkUsageForPayment(ctx.organization!.id)
+          : {
+              requiresPayment: true,
+              usageStatus: { used: 0, limit: 0, remaining: 0 },
+            };
+
+      // Create property
+      const property = await ctx.prisma.property.create({
+        data: {
+          addressLine1: input.propertyAddress,
+          city: input.propertyCity || "",
+          county: input.propertyCounty || "",
+          state: input.propertyState,
+          zipCode: input.propertyZipCode || "",
+          addressFull: `${input.propertyAddress}, ${input.propertyCity || ""}, ${input.propertyState} ${input.propertyZipCode || ""}`,
+          latitude: 0,
+          longitude: 0,
+          propertyType: input.propertyType,
+        },
+      });
+
+      // Calculate price - FREE if within limit for AI_REPORT
+      const isFreeReport =
+        input.requestedType === "AI_REPORT" && !requiresPayment;
+      const pricingResult = await calculateAppraisalPrice({
+        propertyType: property.propertyType,
+        county: property.county,
+        state: property.state,
+        requestedType: input.requestedType,
+      });
+      const price = isFreeReport ? 0 : pricingResult.finalPrice;
+
+      // Generate reference code
+      const refCode = `APR-${Date.now().toString(36).toUpperCase()}`;
+
+      // Create appraisal directly in QUEUED status
+      const appraisal = await ctx.prisma.appraisalRequest.create({
+        data: {
+          referenceCode: refCode,
+          organizationId: ctx.organization!.id,
+          requestedById: ctx.user.id,
+          propertyId: property.id,
+          purpose: input.purpose,
+          requestedType: input.requestedType,
+          notes: input.notes
+            ? `${input.notes}\n\n[${isFreeReport ? "FREE REPORT" : "DEV MODE"}]`
+            : `[${isFreeReport ? "FREE REPORT" : "DEV MODE"}]`,
+          status: "QUEUED",
+          statusMessage: isFreeReport
+            ? `Free report (${usageStatus.used + 1}/${usageStatus.limit} this month)`
+            : "Development mode - payment bypassed",
+          price,
+        },
+      });
+
+      // Create payment record
+      await ctx.prisma.payment.create({
+        data: {
+          organizationId: ctx.organization!.id,
+          userId: ctx.user.id,
+          type: "CHARGE",
+          amount: price,
+          currency: "USD",
+          description: isFreeReport
+            ? `[FREE] ${input.requestedType.replace(/_/g, " ")} - ${property.addressFull}`
+            : `[DEV] ${input.requestedType.replace(/_/g, " ")} - ${property.addressFull}`,
+          relatedAppraisalId: appraisal.id,
+          status: "COMPLETED",
+          statusMessage: isFreeReport
+            ? "Free monthly allowance"
+            : "Development mode",
+        },
+      });
+
+      // Trigger processing (fire and forget)
+      processAppraisal(appraisal.id).catch((error) => {
+        console.error(
+          `[DevCheckout] Failed to process appraisal ${appraisal.id}:`,
+          error,
+        );
+      });
+
+      return {
+        appraisalId: appraisal.id,
+        referenceCode: refCode,
+        price,
+        isFreeReport,
+      };
+    }),
+
+  /**
+   * Verify payment status after Stripe redirect
+   * Note: All processing is handled by the Stripe webhook to avoid race conditions
+   * This endpoint just returns the current state for the UI
    */
   confirmPayment: clientProcedure
     .input(z.object({ appraisalId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const appraisal = await ctx.prisma.appraisalRequest.findUnique({
         where: { id: input.appraisalId },
-        include: { property: true },
+        include: { property: true, report: true },
       });
 
       if (!appraisal) {
@@ -336,112 +630,9 @@ export const appraisalRouter = createTRPCRouter({
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
-      // Only process if still in DRAFT status (not yet processed)
-      if (appraisal.status !== "DRAFT") {
-        return appraisal;
-      }
-
-      // Update to QUEUED status
-      const updatedAppraisal = await ctx.prisma.appraisalRequest.update({
-        where: { id: input.appraisalId },
-        data: { status: "QUEUED" },
-        include: { property: true, report: true },
-      });
-
-      // Create payment record
-      await ctx.prisma.payment.create({
-        data: {
-          organizationId: ctx.organization!.id,
-          userId: ctx.user.id,
-          type: "CHARGE",
-          amount: appraisal.price,
-          description: `Appraisal for ${appraisal.property?.addressFull || "property"}`,
-          status: "COMPLETED",
-          processedAt: new Date(),
-        },
-      });
-
-      // Send payment confirmation and order confirmation emails
-      if (ctx.user.email) {
-        // Payment confirmation
-        sendPaymentConfirmation({
-          email: ctx.user.email,
-          userName: ctx.user.firstName || "Customer",
-          amount: Number(appraisal.price),
-          description: `Appraisal for ${appraisal.property?.addressFull || "property"}`,
-        }).catch((error) => {
-          console.error("Failed to send payment confirmation email:", error);
-        });
-
-        // Order confirmation with details
-        const estimatedDays = appraisal.requestedType === "AI_REPORT" ? 1 : 3;
-        const estimatedDelivery = new Date(Date.now() + estimatedDays * 24 * 60 * 60 * 1000)
-          .toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
-
-        sendAppraisalOrderConfirmation({
-          email: ctx.user.email,
-          userName: ctx.user.firstName || "Customer",
-          propertyAddress: appraisal.property?.addressFull || "property",
-          appraisalId: appraisal.id,
-          reportType: appraisal.requestedType === "AI_REPORT" ? "AI Valuation Report" : "Certified Appraisal",
-          estimatedDelivery,
-          amount: Number(appraisal.price),
-        }).catch((error) => {
-          console.error("Failed to send order confirmation email:", error);
-        });
-      }
-
-      // Process AI appraisals immediately
-      if (appraisal.requestedType === "AI_REPORT") {
-        processAppraisal(input.appraisalId).catch((error) => {
-          console.error(`Failed to process appraisal ${input.appraisalId}:`, error);
-        });
-      }
-
-      // For on-site appraisals, auto-create and dispatch a Job
-      if (appraisal.requestedType === "AI_REPORT_WITH_ONSITE" ||
-          appraisal.requestedType === "CERTIFIED_APPRAISAL") {
-
-        // Configuration based on appraisal type
-        const jobConfig = appraisal.requestedType === "AI_REPORT_WITH_ONSITE"
-          ? { slaHours: 48, payout: 99, scope: "EXTERIOR_ONLY", jobType: "ONSITE_PHOTOS" as const }
-          : { slaHours: 72, payout: 199, scope: "INTERIOR_EXTERIOR", jobType: "ONSITE_PHOTOS" as const };
-
-        const slaDueAt = new Date(Date.now() + jobConfig.slaHours * 60 * 60 * 1000);
-
-        // Create the job linked to this appraisal
-        const job = await ctx.prisma.job.create({
-          data: {
-            organizationId: ctx.organization!.id,
-            propertyId: appraisal.propertyId,
-            appraisalRequestId: appraisal.id,
-            jobType: jobConfig.jobType,
-            scope: jobConfig.scope,
-            payoutAmount: jobConfig.payout,
-            slaDueAt,
-            schedulingWindow: { flexible: true },
-            status: "DISPATCHED",
-            dispatchedAt: new Date(),
-            statusHistory: [
-              {
-                status: "DISPATCHED",
-                timestamp: new Date().toISOString(),
-                userId: ctx.user.id,
-                note: "Auto-created from appraisal order",
-              },
-            ],
-          },
-        });
-
-        // Dispatch to available appraisers
-        dispatchEngine.dispatch(job.id).catch((error) => {
-          console.error(`Failed to dispatch job ${job.id}:`, error);
-        });
-
-        console.log(`Auto-created job ${job.id} for appraisal ${appraisal.id}`);
-      }
-
-      return updatedAppraisal;
+      // If still DRAFT after redirect, webhook hasn't processed yet
+      // The UI should poll until status changes
+      return appraisal;
     }),
 
   /**

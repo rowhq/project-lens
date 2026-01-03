@@ -37,17 +37,17 @@ const statusConfig: Record<
 > = {
   DRAFT: {
     label: "Draft",
-    color: "bg-[var(--muted)] text-[var(--muted-foreground)]",
+    color: "bg-gray-500/20 text-gray-400",
     icon: FileText,
   },
   QUEUED: {
     label: "Queued",
-    color: "bg-blue-500/20 text-blue-400",
+    color: "bg-yellow-500/20 text-yellow-400",
     icon: Clock,
   },
   RUNNING: {
     label: "Processing",
-    color: "bg-yellow-500/20 text-yellow-400",
+    color: "bg-blue-500/20 text-blue-400",
     icon: Clock,
   },
   READY: {
@@ -62,7 +62,7 @@ const statusConfig: Record<
   },
   EXPIRED: {
     label: "Expired",
-    color: "bg-[var(--muted)] text-[var(--muted-foreground)]",
+    color: "bg-gray-500/20 text-gray-400",
     icon: AlertCircle,
   },
 };
@@ -316,7 +316,9 @@ export default function AppraisalsPage() {
                         <div className="flex items-center gap-2">
                           {appraisal.report && appraisal.status === "READY" && (
                             <button
-                              onClick={() => handleDownload(appraisal.report!.id)}
+                              onClick={() =>
+                                handleDownload(appraisal.report!.id)
+                              }
                               disabled={downloadingId === appraisal.report.id}
                               className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
                               title="Download PDF"

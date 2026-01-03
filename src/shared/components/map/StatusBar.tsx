@@ -34,7 +34,7 @@ export function StatusBar({ lat, lng, zoom, parcelCount }: StatusBarProps) {
       <div className="flex items-center justify-between text-xs font-mono">
         {/* Coordinates */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-gray-400">
+          <div className="flex items-center gap-1.5 text-gray-300">
             <MapPin className="w-3.5 h-3.5 text-lime-400" />
             <span>
               <span className="text-white">{lat.toFixed(4)}</span>
@@ -44,7 +44,7 @@ export function StatusBar({ lat, lng, zoom, parcelCount }: StatusBarProps) {
           </div>
 
           {/* Zoom Level */}
-          <div className="flex items-center gap-1.5 text-gray-400">
+          <div className="flex items-center gap-1.5 text-gray-300">
             <ZoomIn className="w-3.5 h-3.5 text-blue-400" />
             <span>
               Zoom <span className="text-white">{Math.round(zoom)}</span>
@@ -52,14 +52,14 @@ export function StatusBar({ lat, lng, zoom, parcelCount }: StatusBarProps) {
           </div>
 
           {/* Scale */}
-          <div className="flex items-center gap-1.5 text-gray-400">
+          <div className="flex items-center gap-1.5 text-gray-300">
             <Ruler className="w-3.5 h-3.5 text-purple-400" />
             <span className="text-white">{scale}</span>
           </div>
         </div>
 
         {/* Parcel Count */}
-        <div className="flex items-center gap-1.5 text-gray-400">
+        <div className="flex items-center gap-1.5 text-gray-300">
           <Layers className="w-3.5 h-3.5 text-green-400" />
           <span>
             <span className="text-white">{parcelCount}</span> parcels visible

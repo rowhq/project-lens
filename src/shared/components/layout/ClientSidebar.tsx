@@ -1,6 +1,7 @@
 /**
  * Client Sidebar Navigation
  * Ledger-Inspired Design with L-bracket corners
+ * Hybrid approach: Team link only shows when organization has >1 members
  */
 
 "use client";
@@ -14,7 +15,6 @@ import {
   CreditCard,
   Settings,
   HelpCircle,
-  Plus,
   X,
   Map,
 } from "lucide-react";
@@ -24,8 +24,10 @@ import {
   LedgerCorners,
   StatusSquare,
 } from "@/shared/components/ui/Decorations";
+import { trpc } from "@/shared/lib/trpc";
 
-const navigation = [
+// Base navigation items (always shown)
+const baseNavigation = [
   {
     name: "Dashboard",
     href: "/dashboard",
@@ -42,16 +44,18 @@ const navigation = [
     icon: FileText,
   },
   {
-    name: "Team",
-    href: "/team",
-    icon: Users,
-  },
-  {
     name: "Billing",
     href: "/billing",
     icon: CreditCard,
   },
 ];
+
+// Team navigation item (conditionally shown)
+const teamNavItem = {
+  name: "Team",
+  href: "/team",
+  icon: Users,
+};
 
 const secondaryNavigation = [
   {
@@ -73,6 +77,20 @@ interface ClientSidebarProps {
 
 export function ClientSidebar({ isMobileOpen, onClose }: ClientSidebarProps) {
   const pathname = usePathname();
+
+  // Fetch team status to conditionally show Team link
+  const { data: teamStatus } = trpc.organization.teamStatus.useQuery(
+    undefined,
+    {
+      staleTime: 60000, // Cache for 1 minute
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  // Build navigation array based on team status
+  const navigation = teamStatus?.showTeamPage
+    ? [...baseNavigation.slice(0, 3), teamNavItem, baseNavigation[3]] // Insert Team before Billing
+    : baseNavigation;
 
   const NavItem = ({
     href,
@@ -125,27 +143,6 @@ export function ClientSidebar({ isMobileOpen, onClose }: ClientSidebarProps) {
             <X className="h-5 w-5" />
           </button>
         )}
-      </div>
-
-      {/* Primary CTA */}
-      <div className="p-4">
-        <Link
-          href="/appraisals/new"
-          onClick={onClose}
-          className={cn(
-            "relative flex w-full items-center justify-center gap-2",
-            "px-4 py-3",
-            "bg-lime-400 text-black",
-            "font-mono text-label uppercase tracking-wider",
-            "hover:bg-lime-300",
-            "transition-colors duration-300",
-            "focus:outline-none focus:ring-2 focus:ring-lime-400/50",
-          )}
-          style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
-        >
-          <Plus className="h-4 w-4" />
-          Run Appraisal
-        </Link>
       </div>
 
       {/* Menu container with L-brackets */}

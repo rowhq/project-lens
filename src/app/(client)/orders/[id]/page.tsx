@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
-  MapPin,
   Clock,
   User,
   Phone,
@@ -32,7 +31,14 @@ import { MapView } from "@/shared/components/common/MapView";
 import { useToast } from "@/shared/components/ui/Toast";
 import { Skeleton } from "@/shared/components/ui/Skeleton";
 
-type JobStatus = "PENDING_DISPATCH" | "DISPATCHED" | "ACCEPTED" | "IN_PROGRESS" | "SUBMITTED" | "COMPLETED" | "CANCELLED";
+type JobStatus =
+  | "PENDING_DISPATCH"
+  | "DISPATCHED"
+  | "ACCEPTED"
+  | "IN_PROGRESS"
+  | "SUBMITTED"
+  | "COMPLETED"
+  | "CANCELLED";
 
 // Type for order with included relations
 type OrderWithRelations = {
@@ -67,18 +73,54 @@ type OrderWithRelations = {
   }>;
 };
 
-const statusConfig: Record<JobStatus, { label: string; color: string; bgColor: string }> = {
-  PENDING_DISPATCH: { label: "Pending", color: "text-[var(--muted-foreground)]", bgColor: "bg-[var(--muted)]" },
-  DISPATCHED: { label: "Awaiting Appraiser", color: "text-yellow-400", bgColor: "bg-yellow-500/20" },
-  ACCEPTED: { label: "Appraiser Assigned", color: "text-blue-400", bgColor: "bg-blue-500/20" },
-  IN_PROGRESS: { label: "Inspection In Progress", color: "text-purple-400", bgColor: "bg-purple-500/20" },
-  SUBMITTED: { label: "Pending Review", color: "text-orange-400", bgColor: "bg-orange-500/20" },
-  COMPLETED: { label: "Completed", color: "text-green-400", bgColor: "bg-green-500/20" },
-  CANCELLED: { label: "Cancelled", color: "text-[var(--muted-foreground)]", bgColor: "bg-[var(--muted)]" },
+const statusConfig: Record<
+  JobStatus,
+  { label: string; color: string; bgColor: string }
+> = {
+  PENDING_DISPATCH: {
+    label: "Pending",
+    color: "text-[var(--muted-foreground)]",
+    bgColor: "bg-[var(--muted)]",
+  },
+  DISPATCHED: {
+    label: "Awaiting Appraiser",
+    color: "text-yellow-400",
+    bgColor: "bg-yellow-500/20",
+  },
+  ACCEPTED: {
+    label: "Appraiser Assigned",
+    color: "text-blue-400",
+    bgColor: "bg-blue-500/20",
+  },
+  IN_PROGRESS: {
+    label: "Inspection In Progress",
+    color: "text-purple-400",
+    bgColor: "bg-purple-500/20",
+  },
+  SUBMITTED: {
+    label: "Pending Review",
+    color: "text-orange-400",
+    bgColor: "bg-orange-500/20",
+  },
+  COMPLETED: {
+    label: "Completed",
+    color: "text-green-400",
+    bgColor: "bg-green-500/20",
+  },
+  CANCELLED: {
+    label: "Cancelled",
+    color: "text-[var(--muted-foreground)]",
+    bgColor: "bg-[var(--muted)]",
+  },
 };
 
 // Helper functions for SLA
-function getTimeRemaining(dueDate: Date): { days: number; hours: number; isOverdue: boolean; isUrgent: boolean } {
+function getTimeRemaining(dueDate: Date): {
+  days: number;
+  hours: number;
+  isOverdue: boolean;
+  isUrgent: boolean;
+} {
   const now = new Date();
   const due = new Date(dueDate);
   const diff = due.getTime() - now.getTime();
@@ -111,7 +153,11 @@ export default function OrderDetailPage() {
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
 
-  const { data: orderData, isLoading, refetch } = trpc.job.getForClient.useQuery({ id: orderId });
+  const {
+    data: orderData,
+    isLoading,
+    refetch,
+  } = trpc.job.getForClient.useQuery({ id: orderId });
 
   // Get download URL mutation for evidence
   const getDownloadUrl = trpc.evidence.getDownloadUrl.useMutation();
@@ -133,17 +179,24 @@ export default function OrderDetailPage() {
   const order = orderData as unknown as OrderWithRelations | undefined;
 
   // Keyboard navigation for gallery
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (!showGalleryModal || !order?.evidence) return;
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!showGalleryModal || !order?.evidence) return;
 
-    if (e.key === "ArrowLeft") {
-      setSelectedPhotoIndex((prev) => (prev > 0 ? prev - 1 : order.evidence.length - 1));
-    } else if (e.key === "ArrowRight") {
-      setSelectedPhotoIndex((prev) => (prev < order.evidence.length - 1 ? prev + 1 : 0));
-    } else if (e.key === "Escape") {
-      setShowGalleryModal(false);
-    }
-  }, [showGalleryModal, order?.evidence]);
+      if (e.key === "ArrowLeft") {
+        setSelectedPhotoIndex((prev) =>
+          prev > 0 ? prev - 1 : order.evidence.length - 1,
+        );
+      } else if (e.key === "ArrowRight") {
+        setSelectedPhotoIndex((prev) =>
+          prev < order.evidence.length - 1 ? prev + 1 : 0,
+        );
+      } else if (e.key === "Escape") {
+        setShowGalleryModal(false);
+      }
+    },
+    [showGalleryModal, order],
+  );
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -217,16 +270,25 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-xl font-semibold text-[var(--foreground)]">Order not found</h2>
-        <Link href="/orders" className="text-[var(--primary)] hover:underline mt-2 inline-block">
+        <h2 className="text-xl font-semibold text-[var(--foreground)]">
+          Order not found
+        </h2>
+        <Link
+          href="/orders"
+          className="text-[var(--primary)] hover:underline mt-2 inline-block"
+        >
           Back to orders
         </Link>
       </div>
     );
   }
 
-  const status = statusConfig[order.status as JobStatus] || statusConfig.PENDING_DISPATCH;
-  const accessContact = order.accessContact as { name?: string; phone?: string } | null;
+  const status =
+    statusConfig[order.status as JobStatus] || statusConfig.PENDING_DISPATCH;
+  const accessContact = order.accessContact as {
+    name?: string;
+    phone?: string;
+  } | null;
   const slaInfo = order.slaDueAt ? getTimeRemaining(order.slaDueAt) : null;
 
   // Handler to download a single evidence file
@@ -260,7 +322,9 @@ export default function OrderDetailPage() {
 
     for (const evidence of order.evidence) {
       try {
-        const result = await getDownloadUrl.mutateAsync({ evidenceId: evidence.id });
+        const result = await getDownloadUrl.mutateAsync({
+          evidenceId: evidence.id,
+        });
         const link = document.createElement("a");
         link.href = result.url;
         link.download = evidence.category || `photo-${evidence.id}`;
@@ -322,23 +386,31 @@ export default function OrderDetailPage() {
   };
 
   // Prepare map marker if coordinates exist
-  const mapMarkers = order.property?.latitude && order.property?.longitude
-    ? [{
-        id: order.id,
-        latitude: order.property.latitude,
-        longitude: order.property.longitude,
-        label: order.property.addressLine1,
-        popup: `<strong>${order.property.addressLine1}</strong><br/>${order.property.city}, ${order.property.state} ${order.property.zipCode}`,
-      }]
-    : [];
+  const mapMarkers =
+    order.property?.latitude && order.property?.longitude
+      ? [
+          {
+            id: order.id,
+            latitude: order.property.latitude,
+            longitude: order.property.longitude,
+            label: order.property.addressLine1,
+            popup: `<strong>${order.property.addressLine1}</strong><br/>${order.property.city}, ${order.property.state} ${order.property.zipCode}`,
+          },
+        ]
+      : [];
 
-  const canCancel = ["PENDING_DISPATCH", "DISPATCHED", "ACCEPTED"].includes(order.status);
+  const canCancel = ["PENDING_DISPATCH", "DISPATCHED", "ACCEPTED"].includes(
+    order.status,
+  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 print:space-y-4">
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] print:hidden">
-        <Link href="/orders" className="hover:text-[var(--foreground)] transition-colors">
+        <Link
+          href="/orders"
+          className="hover:text-[var(--foreground)] transition-colors"
+        >
           Orders
         </Link>
         <ChevronRight className="w-4 h-4" />
@@ -362,25 +434,32 @@ export default function OrderDetailPage() {
               {order.property?.addressLine1}
             </h1>
             <p className="text-[var(--muted-foreground)]">
-              {order.property?.city}, {order.property?.state} {order.property?.zipCode}
+              {order.property?.city}, {order.property?.state}{" "}
+              {order.property?.zipCode}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {/* Status Badge */}
-          <span className={`px-4 py-2 rounded-full text-sm font-medium ${status.bgColor} ${status.color}`}>
+          <span
+            className={`px-4 py-2 rounded-full text-sm font-medium ${status.bgColor} ${status.color}`}
+          >
             {status.label}
           </span>
 
           {/* SLA Indicator */}
           {slaInfo && (slaInfo.isUrgent || slaInfo.isOverdue) && (
-            <span className={`px-3 py-2 rounded-full text-sm font-medium flex items-center gap-1 ${
-              slaInfo.isOverdue
-                ? "bg-red-500/20 text-red-400"
-                : "bg-orange-500/20 text-orange-400"
-            }`}>
+            <span
+              className={`px-3 py-2 rounded-full text-sm font-medium flex items-center gap-1 ${
+                slaInfo.isOverdue
+                  ? "bg-red-500/20 text-red-400"
+                  : "bg-orange-500/20 text-orange-400"
+              }`}
+            >
               <AlertTriangle className="w-4 h-4" />
-              <span className="hidden sm:inline">{formatTimeRemaining(order.slaDueAt!)}</span>
+              <span className="hidden sm:inline">
+                {formatTimeRemaining(order.slaDueAt!)}
+              </span>
             </span>
           )}
 
@@ -442,7 +521,10 @@ export default function OrderDetailPage() {
               />
             </div>
           ) : (
-            <div className="bg-[var(--muted)] flex items-center justify-center print:hidden" style={{ height: 300 }}>
+            <div
+              className="bg-[var(--muted)] flex items-center justify-center print:hidden"
+              style={{ height: 300 }}
+            >
               <div className="text-center text-[var(--muted-foreground)]">
                 <Map className="w-12 h-12 mx-auto mb-2 opacity-50" />
                 <p>Location not available</p>
@@ -457,29 +539,38 @@ export default function OrderDetailPage() {
                 <Home className="w-5 h-5 text-[var(--primary)]" />
               </div>
               <div>
-                <h2 className="font-semibold text-[var(--foreground)]">Property Details</h2>
+                <h2 className="font-semibold text-[var(--foreground)]">
+                  Property Details
+                </h2>
                 <p className="text-sm text-[var(--muted-foreground)]">
-                  {order.property?.propertyType?.replace(/_/g, " ") || "Property"}
+                  {order.property?.propertyType?.replace(/_/g, " ") ||
+                    "Property"}
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">Scope</p>
+                <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">
+                  Scope
+                </p>
                 <p className="font-medium text-[var(--foreground)]">
                   {order.scope?.replace(/_/g, " ")}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">Order Total</p>
+                <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">
+                  Order Total
+                </p>
                 <p className="font-semibold text-[var(--foreground)] flex items-center gap-1">
                   <DollarSign className="w-4 h-4" />
                   {Number(order.payoutAmount).toFixed(2)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">Order Date</p>
+                <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">
+                  Order Date
+                </p>
                 <p className="text-[var(--foreground)] flex items-center gap-1">
                   <Calendar className="w-4 h-4 text-[var(--muted-foreground)]" />
                   {new Date(order.createdAt).toLocaleDateString()}
@@ -487,10 +578,18 @@ export default function OrderDetailPage() {
               </div>
               {order.slaDueAt && (
                 <div>
-                  <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">Due Date</p>
-                  <p className={`flex items-center gap-1 ${
-                    slaInfo?.isOverdue ? "text-red-400" : slaInfo?.isUrgent ? "text-orange-400" : "text-[var(--foreground)]"
-                  }`}>
+                  <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wide">
+                    Due Date
+                  </p>
+                  <p
+                    className={`flex items-center gap-1 ${
+                      slaInfo?.isOverdue
+                        ? "text-red-400"
+                        : slaInfo?.isUrgent
+                          ? "text-orange-400"
+                          : "text-[var(--foreground)]"
+                    }`}
+                  >
                     <Clock className="w-4 h-4" />
                     {new Date(order.slaDueAt).toLocaleDateString()}
                   </p>
@@ -503,45 +602,55 @@ export default function OrderDetailPage() {
 
       {/* Status Timeline */}
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 sm:p-6">
-        <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">Order Progress</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+          Order Progress
+        </h2>
         <div className="flex items-center">
-          {["Created", "Assigned", "Inspection", "Complete"].map((step, index) => {
-            const isCompleted = getProgressStep(order.status) > index;
-            const isCurrent = getProgressStep(order.status) === index;
+          {["Created", "Assigned", "Inspection", "Complete"].map(
+            (step, index) => {
+              const isCompleted = getProgressStep(order.status) > index;
+              const isCurrent = getProgressStep(order.status) === index;
 
-            return (
-              <div key={step} className="flex-1 flex items-center">
-                <div className="flex flex-col items-center flex-shrink-0">
-                  <div
-                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors ${
-                      isCompleted
-                        ? "bg-green-500 text-white"
-                        : isCurrent
-                        ? "bg-[var(--primary)] text-black font-medium"
-                        : "bg-[var(--muted)] text-[var(--muted-foreground)]"
-                    }`}
-                  >
-                    {isCompleted ? (
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                    ) : (
-                      <span className="text-sm">{index + 1}</span>
-                    )}
+              return (
+                <div key={step} className="flex-1 flex items-center">
+                  <div className="flex flex-col items-center flex-shrink-0">
+                    <div
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors ${
+                        isCompleted
+                          ? "bg-green-500 text-white"
+                          : isCurrent
+                            ? "bg-[var(--primary)] text-black font-medium"
+                            : "bg-[var(--muted)] text-[var(--muted-foreground)]"
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                      ) : (
+                        <span className="text-sm">{index + 1}</span>
+                      )}
+                    </div>
+                    <span
+                      className={`text-xs sm:text-sm mt-2 text-center ${
+                        isCurrent
+                          ? "font-medium text-[var(--foreground)]"
+                          : "text-[var(--muted-foreground)]"
+                      }`}
+                    >
+                      <span className="hidden sm:inline">{step}</span>
+                      <span className="sm:hidden">{index + 1}</span>
+                    </span>
                   </div>
-                  <span className={`text-xs sm:text-sm mt-2 text-center ${
-                    isCurrent ? "font-medium text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
-                  }`}>
-                    <span className="hidden sm:inline">{step}</span>
-                    <span className="sm:hidden">{index + 1}</span>
-                  </span>
+                  {index < 3 && (
+                    <div
+                      className={`flex-1 h-1 mx-1 sm:mx-2 rounded-full transition-colors ${
+                        isCompleted ? "bg-green-500" : "bg-[var(--muted)]"
+                      }`}
+                    />
+                  )}
                 </div>
-                {index < 3 && (
-                  <div className={`flex-1 h-1 mx-1 sm:mx-2 rounded-full transition-colors ${
-                    isCompleted ? "bg-green-500" : "bg-[var(--muted)]"
-                  }`} />
-                )}
-              </div>
-            );
-          })}
+              );
+            },
+          )}
         </div>
       </div>
 
@@ -559,9 +668,12 @@ export default function OrderDetailPage() {
               </div>
               <div>
                 <p className="font-medium text-[var(--foreground)]">
-                  {order.assignedAppraiser.firstName} {order.assignedAppraiser.lastName}
+                  {order.assignedAppraiser.firstName}{" "}
+                  {order.assignedAppraiser.lastName}
                 </p>
-                <p className="text-sm text-[var(--muted-foreground)]">Licensed Appraiser</p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Licensed Appraiser
+                </p>
                 {order.acceptedAt && (
                   <p className="text-xs text-[var(--muted-foreground)] mt-1">
                     Accepted {new Date(order.acceptedAt).toLocaleDateString()}
@@ -573,7 +685,9 @@ export default function OrderDetailPage() {
         )}
 
         {/* Contact Info */}
-        {(accessContact?.name || accessContact?.phone || order.specialInstructions) && (
+        {(accessContact?.name ||
+          accessContact?.phone ||
+          order.specialInstructions) && (
           <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
             <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide mb-3">
               Property Contact
@@ -582,7 +696,9 @@ export default function OrderDetailPage() {
               {accessContact?.name && (
                 <div className="flex items-center gap-3">
                   <User className="w-4 h-4 text-[var(--muted-foreground)]" />
-                  <span className="text-[var(--foreground)]">{accessContact.name}</span>
+                  <span className="text-[var(--foreground)]">
+                    {accessContact.name}
+                  </span>
                 </div>
               )}
               {accessContact?.phone && (
@@ -596,8 +712,12 @@ export default function OrderDetailPage() {
               )}
               {order.specialInstructions && (
                 <div className="p-3 bg-[var(--secondary)] rounded-lg mt-2">
-                  <p className="text-xs text-[var(--muted-foreground)] mb-1">Access Notes</p>
-                  <p className="text-sm text-[var(--foreground)]">{order.specialInstructions}</p>
+                  <p className="text-xs text-[var(--muted-foreground)] mb-1">
+                    Access Notes
+                  </p>
+                  <p className="text-sm text-[var(--foreground)]">
+                    {order.specialInstructions}
+                  </p>
                 </div>
               )}
             </div>
@@ -606,7 +726,7 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Evidence Gallery */}
-      {order.evidence && order.evidence.length > 0 && (
+      {Array.isArray(order.evidence) && order.evidence.length > 0 && (
         <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 print:break-inside-avoid">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[var(--foreground)]">
@@ -642,7 +762,9 @@ export default function OrderDetailPage() {
                 </div>
                 {item.category && (
                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70">
-                    <p className="text-xs text-white truncate">{item.category}</p>
+                    <p className="text-xs text-white truncate">
+                      {item.category}
+                    </p>
                   </div>
                 )}
               </button>
@@ -653,8 +775,12 @@ export default function OrderDetailPage() {
                 className="aspect-square bg-[var(--muted)] rounded-lg overflow-hidden relative flex items-center justify-center"
               >
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-[var(--foreground)]">+{order.evidence.length - 8}</p>
-                  <p className="text-sm text-[var(--muted-foreground)]">more photos</p>
+                  <p className="text-2xl font-bold text-[var(--foreground)]">
+                    +{order.evidence.length - 8}
+                  </p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    more photos
+                  </p>
                 </div>
               </button>
             )}
@@ -688,7 +814,9 @@ export default function OrderDetailPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--card)] rounded-xl w-full max-w-md p-6 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-[var(--foreground)]">Cancel Order</h2>
+              <h2 className="text-xl font-semibold text-[var(--foreground)]">
+                Cancel Order
+              </h2>
               <button
                 onClick={() => setShowCancelModal(false)}
                 className="p-2 hover:bg-[var(--secondary)] rounded-lg transition-colors"
@@ -697,7 +825,8 @@ export default function OrderDetailPage() {
               </button>
             </div>
             <p className="text-[var(--muted-foreground)] mb-4">
-              Are you sure you want to cancel this order? This action cannot be undone.
+              Are you sure you want to cancel this order? This action cannot be
+              undone.
             </p>
             <div className="mb-4">
               <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
@@ -739,93 +868,111 @@ export default function OrderDetailPage() {
       )}
 
       {/* Photo Gallery Modal */}
-      {showGalleryModal && order.evidence && (
-        <div
-          className="fixed inset-0 bg-black/95 flex items-center justify-center z-50"
-          role="dialog"
-          aria-label="Photo gallery"
-        >
-          <button
-            onClick={() => setShowGalleryModal(false)}
-            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors z-10"
-            aria-label="Close gallery"
+      {showGalleryModal &&
+        Array.isArray(order.evidence) &&
+        order.evidence.length > 0 && (
+          <div
+            className="fixed inset-0 bg-black/95 flex items-center justify-center z-50"
+            role="dialog"
+            aria-label="Photo gallery"
           >
-            <X className="w-6 h-6 text-white" />
-          </button>
+            <button
+              onClick={() => setShowGalleryModal(false)}
+              className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors z-10"
+              aria-label="Close gallery"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
 
-          {/* Navigation arrows */}
-          <button
-            onClick={() => setSelectedPhotoIndex((prev) => (prev > 0 ? prev - 1 : order.evidence!.length - 1))}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-            aria-label="Previous photo"
-          >
-            <ChevronLeft className="w-6 h-6 text-white" />
-          </button>
-          <button
-            onClick={() => setSelectedPhotoIndex((prev) => (prev < order.evidence!.length - 1 ? prev + 1 : 0))}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-            aria-label="Next photo"
-          >
-            <ChevronRight className="w-6 h-6 text-white" />
-          </button>
+            {/* Navigation arrows */}
+            <button
+              onClick={() =>
+                setSelectedPhotoIndex((prev) =>
+                  prev > 0 ? prev - 1 : order.evidence!.length - 1,
+                )
+              }
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+              aria-label="Previous photo"
+            >
+              <ChevronLeft className="w-6 h-6 text-white" />
+            </button>
+            <button
+              onClick={() =>
+                setSelectedPhotoIndex((prev) =>
+                  prev < order.evidence!.length - 1 ? prev + 1 : 0,
+                )
+              }
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+              aria-label="Next photo"
+            >
+              <ChevronRight className="w-6 h-6 text-white" />
+            </button>
 
-          <div className="max-w-5xl w-full mx-4">
-            <div className="relative">
-              <img
-                src={order.evidence[selectedPhotoIndex]?.fileUrl}
-                alt={order.evidence[selectedPhotoIndex]?.category || `Photo ${selectedPhotoIndex + 1}`}
-                className="w-full max-h-[75vh] object-contain rounded-lg"
-              />
-              {order.evidence[selectedPhotoIndex]?.category && (
-                <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/70 rounded-lg">
-                  <p className="text-sm text-white">{order.evidence[selectedPhotoIndex].category}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Thumbnails */}
-            <div className="flex items-center justify-center gap-2 mt-4 overflow-x-auto py-2">
-              {order.evidence.map((item, index) => (
-                <button
-                  key={item.id}
-                  onClick={() => setSelectedPhotoIndex(index)}
-                  className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
-                    index === selectedPhotoIndex
-                      ? "ring-2 ring-white ring-offset-2 ring-offset-black"
-                      : "opacity-50 hover:opacity-100"
-                  }`}
-                >
-                  <img
-                    src={item.fileUrl}
-                    alt={item.category || `Thumbnail ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-
-            {/* Counter and download */}
-            <div className="flex items-center justify-between mt-4">
-              <span className="text-white/60 text-sm">
-                Use ← → keys to navigate, ESC to close
-              </span>
-              <span className="text-white" aria-live="polite">
-                {selectedPhotoIndex + 1} / {order.evidence.length}
-              </span>
-              <button
-                onClick={() => handleDownloadSingle(
-                  order.evidence![selectedPhotoIndex].id,
-                  order.evidence![selectedPhotoIndex].category || `photo-${selectedPhotoIndex + 1}`
+            <div className="max-w-5xl w-full mx-4">
+              <div className="relative">
+                <img
+                  src={order.evidence[selectedPhotoIndex]?.fileUrl}
+                  alt={
+                    order.evidence[selectedPhotoIndex]?.category ||
+                    `Photo ${selectedPhotoIndex + 1}`
+                  }
+                  className="w-full max-h-[75vh] object-contain rounded-lg"
+                />
+                {order.evidence[selectedPhotoIndex]?.category && (
+                  <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/70 rounded-lg">
+                    <p className="text-sm text-white">
+                      {order.evidence[selectedPhotoIndex].category}
+                    </p>
+                  </div>
                 )}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                Download
-              </button>
+              </div>
+
+              {/* Thumbnails */}
+              <div className="flex items-center justify-center gap-2 mt-4 overflow-x-auto py-2">
+                {order.evidence.map((item, index) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setSelectedPhotoIndex(index)}
+                    className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
+                      index === selectedPhotoIndex
+                        ? "ring-2 ring-white ring-offset-2 ring-offset-black"
+                        : "opacity-50 hover:opacity-100"
+                    }`}
+                  >
+                    <img
+                      src={item.fileUrl}
+                      alt={item.category || `Thumbnail ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+
+              {/* Counter and download */}
+              <div className="flex items-center justify-between mt-4">
+                <span className="text-white/60 text-sm">
+                  Use ← → keys to navigate, ESC to close
+                </span>
+                <span className="text-white" aria-live="polite">
+                  {selectedPhotoIndex + 1} / {order.evidence.length}
+                </span>
+                <button
+                  onClick={() =>
+                    handleDownloadSingle(
+                      order.evidence![selectedPhotoIndex].id,
+                      order.evidence![selectedPhotoIndex].category ||
+                        `photo-${selectedPhotoIndex + 1}`,
+                    )
+                  }
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Download
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
@@ -833,12 +980,18 @@ export default function OrderDetailPage() {
 function getProgressStep(status: string): number {
   switch (status) {
     case "PENDING_DISPATCH":
-    case "DISPATCHED": return 0;
-    case "ACCEPTED": return 1;
+    case "DISPATCHED":
+      return 0;
+    case "ACCEPTED":
+      return 1;
     case "IN_PROGRESS":
-    case "SUBMITTED": return 2;
-    case "COMPLETED": return 4;
-    case "CANCELLED": return -1;
-    default: return 0;
+    case "SUBMITTED":
+      return 2;
+    case "COMPLETED":
+      return 4;
+    case "CANCELLED":
+      return -1;
+    default:
+      return 0;
   }
 }

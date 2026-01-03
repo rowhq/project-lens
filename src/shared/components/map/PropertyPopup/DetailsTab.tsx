@@ -20,7 +20,7 @@ export function DetailsTab({ parcel }: DetailsTabProps) {
     <div className="space-y-6">
       {/* Zoning & Land Use */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-3">
           Zoning & Land Use
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -59,12 +59,12 @@ export function DetailsTab({ parcel }: DetailsTabProps) {
 
       {/* Building Characteristics */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-3">
           Building Characteristics
         </h3>
         <div className="space-y-2">
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Home className="w-4 h-4" /> Construction Type
             </span>
             <span className="text-white font-medium">
@@ -72,7 +72,7 @@ export function DetailsTab({ parcel }: DetailsTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Layers className="w-4 h-4" /> Roof Type
             </span>
             <span className="text-white font-medium">
@@ -80,7 +80,7 @@ export function DetailsTab({ parcel }: DetailsTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Home className="w-4 h-4" /> Foundation
             </span>
             <span className="text-white font-medium">
@@ -88,7 +88,7 @@ export function DetailsTab({ parcel }: DetailsTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Thermometer className="w-4 h-4" /> HVAC
             </span>
             <span className="text-white font-medium">
@@ -96,7 +96,7 @@ export function DetailsTab({ parcel }: DetailsTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Car className="w-4 h-4" /> Parking
             </span>
             <span className="text-white font-medium">
@@ -106,7 +106,7 @@ export function DetailsTab({ parcel }: DetailsTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <Building className="w-4 h-4" /> Stories
             </span>
             <span className="text-white font-medium">
@@ -118,12 +118,12 @@ export function DetailsTab({ parcel }: DetailsTabProps) {
 
       {/* Legal Description */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-3">
           Legal Description
         </h3>
         <div className="p-4 bg-gray-800 clip-notch-sm">
           <div className="flex items-start gap-2">
-            <FileText className="w-4 h-4 text-gray-400 mt-0.5" />
+            <FileText className="w-4 h-4 text-gray-300 mt-0.5" />
             <p className="text-sm text-gray-300 leading-relaxed">
               {parcel.legalDescription ||
                 `LOT ${parcel.lot || "1"}, BLOCK ${parcel.block || "A"}, ${parcel.subdivision || "WOODLANDS SECTION"}, according to the map or plat thereof recorded in Volume ${parcel.platVolume || "1"}, Page ${parcel.platPage || "1"} of the Map Records of ${parcel.county || "Montgomery"} County, Texas`}

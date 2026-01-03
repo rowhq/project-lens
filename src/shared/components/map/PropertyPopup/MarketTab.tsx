@@ -17,7 +17,8 @@ export function MarketTab({ parcel }: MarketTabProps) {
   const lastSalePrice = parcel.lastSalePrice || parcel.totalValue * 0.85;
   const lastSaleDate = parcel.lastSaleDate || "March 15, 2021";
   const comparablesCount = parcel.comparablesCount || 15;
-  const neighborhoodMedian = parcel.neighborhoodMedian || parcel.totalValue * 1.05;
+  const neighborhoodMedian =
+    parcel.neighborhoodMedian || parcel.totalValue * 1.05;
   const pricePerSqft =
     parcel.buildingArea || parcel.sqft
       ? parcel.totalValue / (parcel.buildingArea || parcel.sqft || 1)
@@ -35,7 +36,7 @@ export function MarketTab({ parcel }: MarketTabProps) {
             <p className="text-2xl md:text-3xl font-bold text-white">
               {formatCurrency(lastSalePrice)}
             </p>
-            <p className="text-sm text-gray-400 mt-1 flex items-center gap-1">
+            <p className="text-sm text-gray-300 mt-1 flex items-center gap-1">
               <Calendar className="w-3 h-3" />
               {lastSaleDate}
             </p>
@@ -47,13 +48,13 @@ export function MarketTab({ parcel }: MarketTabProps) {
       {/* Market Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
         <div className="p-4 bg-gray-800 clip-notch-sm">
-          <p className="text-xs text-gray-400 mb-1">Price per Sqft</p>
+          <p className="text-xs text-gray-300 mb-1">Price per Sqft</p>
           <p className="text-lg md:text-xl font-bold text-white font-mono">
             ${Math.round(pricePerSqft).toLocaleString()}
           </p>
         </div>
         <div className="p-4 bg-gray-800 clip-notch-sm">
-          <p className="text-xs text-gray-400 mb-1">Neighborhood Median</p>
+          <p className="text-xs text-gray-300 mb-1">Neighborhood Median</p>
           <p className="text-lg md:text-xl font-bold text-white font-mono">
             {formatCurrency(neighborhoodMedian)}
           </p>
@@ -62,12 +63,12 @@ export function MarketTab({ parcel }: MarketTabProps) {
 
       {/* Value vs Neighborhood */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-3">
           Value Comparison
         </h3>
         <div className="p-4 bg-gray-800 clip-notch-sm">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-gray-400">This Property</span>
+            <span className="text-gray-300">This Property</span>
             <span className="text-white font-mono font-bold">
               {formatCurrency(parcel.totalValue || 0)}
             </span>
@@ -94,7 +95,7 @@ export function MarketTab({ parcel }: MarketTabProps) {
 
       {/* Comparables */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-3">
           Comparable Sales
         </h3>
         <div className="p-4 bg-gray-800 clip-notch-sm flex items-center justify-between">
@@ -106,7 +107,7 @@ export function MarketTab({ parcel }: MarketTabProps) {
               <p className="text-white font-medium">
                 {comparablesCount} Comparable Properties
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-300">
                 Within 0.5 miles, sold in last 12 months
               </p>
             </div>
@@ -117,12 +118,12 @@ export function MarketTab({ parcel }: MarketTabProps) {
 
       {/* Sale Details */}
       <div>
-        <h3 className="text-sm font-mono text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-mono text-gray-300 uppercase tracking-wider mb-3">
           Sale Information
         </h3>
         <div className="space-y-2">
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <FileText className="w-4 h-4" /> Sale Type
             </span>
             <span className="text-white font-medium">
@@ -130,7 +131,7 @@ export function MarketTab({ parcel }: MarketTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <FileText className="w-4 h-4" /> Deed Type
             </span>
             <span className="text-white font-medium">
@@ -138,7 +139,7 @@ export function MarketTab({ parcel }: MarketTabProps) {
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-800">
-            <span className="flex items-center gap-2 text-gray-400">
+            <span className="flex items-center gap-2 text-gray-300">
               <FileText className="w-4 h-4" /> Recording Reference
             </span>
             <span className="text-white font-medium font-mono">

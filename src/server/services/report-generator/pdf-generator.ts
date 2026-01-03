@@ -1,9 +1,10 @@
 /**
  * PDF Generator
- * Converts HTML reports to PDF format using Puppeteer or Gotenberg
+ * Converts HTML reports to PDF format using Playwright, Puppeteer or Gotenberg
  */
 
 import * as storage from "@/shared/lib/storage";
+import { chromium } from "@playwright/test";
 
 export interface PDFOptions {
   reportId: string;
@@ -53,7 +54,7 @@ class PDFGenerator {
    */
   async generateWithDetails(
     htmlContent: string,
-    options: PDFOptions
+    options: PDFOptions,
   ): Promise<PDFResult> {
     // Generate unique key for storage
     const key = storage.generateReportKey({
@@ -103,7 +104,7 @@ class PDFGenerator {
    */
   private async generateWithGotenberg(
     htmlContent: string,
-    options: PDFOptions
+    options: PDFOptions,
   ): Promise<Buffer> {
     if (!this.gotenbergUrl) {
       throw new Error("Gotenberg URL not configured");
@@ -117,7 +118,7 @@ class PDFGenerator {
     formData.append(
       "files",
       new Blob([fullHtml], { type: "text/html" }),
-      "index.html"
+      "index.html",
     );
 
     // Set paper size
@@ -143,10 +144,13 @@ class PDFGenerator {
       formData.append("footerTemplate", options.footerTemplate);
     }
 
-    const response = await fetch(`${this.gotenbergUrl}/forms/chromium/convert/html`, {
-      method: "POST",
-      body: formData,
-    });
+    const response = await fetch(
+      `${this.gotenbergUrl}/forms/chromium/convert/html`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
 
     if (!response.ok) {
       throw new Error(`Gotenberg error: ${response.statusText}`);
@@ -157,18 +161,47 @@ class PDFGenerator {
   }
 
   /**
-   * Generate a simple PDF without external dependencies
-   * Uses basic PDF structure for fallback
+   * Generate PDF using Playwright (Chromium)
+   * Full HTML rendering without external services
    */
   private async generateSimplePDF(
     htmlContent: string,
-    options: PDFOptions
+    options: PDFOptions,
   ): Promise<Buffer> {
-    // Strip HTML and create a basic text-based PDF
-    const textContent = this.stripHtml(htmlContent);
-    const lines = this.wrapText(textContent, 80);
+    const browser = await chromium.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
 
-    return this.createTextPDF(lines, options);
+    try {
+      const page = await browser.newPage();
+
+      // Wrap HTML with proper structure
+      const fullHtml = this.wrapHtmlContent(htmlContent, options);
+
+      // Set content and wait for rendering
+      await page.setContent(fullHtml, { waitUntil: "networkidle" });
+
+      // Generate PDF
+      const pdfBuffer = await page.pdf({
+        format: options.format === "a4" ? "A4" : "Letter",
+        landscape: options.orientation === "landscape",
+        margin: {
+          top: options.margins?.top || "0.5in",
+          right: options.margins?.right || "0.5in",
+          bottom: options.margins?.bottom || "0.5in",
+          left: options.margins?.left || "0.5in",
+        },
+        printBackground: true,
+        displayHeaderFooter: options.displayHeaderFooter || false,
+        headerTemplate: options.headerTemplate || "",
+        footerTemplate: options.footerTemplate || "",
+      });
+
+      return Buffer.from(pdfBuffer);
+    } finally {
+      await browser.close();
+    }
   }
 
   /**
@@ -273,7 +306,7 @@ class PDFGenerator {
         "",
         "Please check back shortly or contact support.",
       ],
-      options
+      options,
     );
   }
 
@@ -372,12 +405,15 @@ class PDFGenerator {
    * Generate batch of PDFs
    */
   async generateBatch(
-    reports: Array<{ html: string; options: PDFOptions }>
+    reports: Array<{ html: string; options: PDFOptions }>,
   ): Promise<PDFResult[]> {
     const results: PDFResult[] = [];
 
     for (const report of reports) {
-      const result = await this.generateWithDetails(report.html, report.options);
+      const result = await this.generateWithDetails(
+        report.html,
+        report.options,
+      );
       results.push(result);
     }
 
@@ -403,7 +439,10 @@ class PDFGenerator {
   /**
    * Get signed download URL for a PDF
    */
-  async getSignedUrl(pdfUrl: string, expiresIn: number = 3600): Promise<string> {
+  async getSignedUrl(
+    pdfUrl: string,
+    expiresIn: number = 3600,
+  ): Promise<string> {
     try {
       const key = storage.getKeyFromUrl(pdfUrl);
       if (!key) {

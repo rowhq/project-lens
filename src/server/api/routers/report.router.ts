@@ -14,6 +14,7 @@ import { TRPCError } from "@trpc/server";
 import crypto from "crypto";
 import * as storage from "@/shared/lib/storage";
 import { sendReportEmail } from "@/shared/lib/resend";
+import { processAppraisal } from "@/server/services/appraisal-processor";
 
 export const reportRouter = createTRPCRouter({
   /**
@@ -170,7 +171,7 @@ export const reportRouter = createTRPCRouter({
         allowDownload: z.boolean().default(true),
         password: z.string().optional(),
         maxViews: z.number().min(1).max(1000).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const report = await ctx.prisma.report.findUnique({
@@ -237,7 +238,7 @@ export const reportRouter = createTRPCRouter({
       z.object({
         token: z.string(),
         password: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const shareLink = await ctx.prisma.shareLink.findUnique({
@@ -350,7 +351,7 @@ export const reportRouter = createTRPCRouter({
       z.object({
         token: z.string(),
         password: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const shareLink = await ctx.prisma.shareLink.findUnique({
@@ -557,7 +558,7 @@ export const reportRouter = createTRPCRouter({
         recipientEmail: z.string().email(),
         message: z.string().optional(),
         includeDownloadLink: z.boolean().default(true),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const report = await ctx.prisma.report.findUnique({
@@ -588,22 +589,41 @@ export const reportRouter = createTRPCRouter({
         });
       }
 
-      // Create a share link for the email (7 days, with download if requested)
-      const shareToken = generateShareToken();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7);
-
-      await ctx.prisma.shareLink.create({
-        data: {
-          token: shareToken,
+      // Check for existing valid share link before creating a new one
+      const existingShareLink = await ctx.prisma.shareLink.findFirst({
+        where: {
           resourceType: "report",
           resourceId: input.reportId,
-          createdById: ctx.user.id,
-          organizationId: ctx.organization!.id,
+          expiresAt: { gt: new Date() },
+          // Only reuse if download permission matches
           allowDownload: input.includeDownloadLink,
-          expiresAt,
         },
+        orderBy: { expiresAt: "desc" },
       });
+
+      let shareToken: string;
+
+      if (existingShareLink) {
+        // Reuse existing share link
+        shareToken = existingShareLink.token;
+      } else {
+        // Create a new share link (7 days, with download if requested)
+        shareToken = generateShareToken();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+
+        await ctx.prisma.shareLink.create({
+          data: {
+            token: shareToken,
+            resourceType: "report",
+            resourceId: input.reportId,
+            createdById: ctx.user.id,
+            organizationId: ctx.organization!.id,
+            allowDownload: input.includeDownloadLink,
+            expiresAt,
+          },
+        });
+      }
 
       const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL}/share/${shareToken}`;
 
@@ -612,7 +632,8 @@ export const reportRouter = createTRPCRouter({
         const result = await sendReportEmail({
           recipientEmail: input.recipientEmail,
           senderName: `${ctx.user.firstName} ${ctx.user.lastName}`,
-          organizationName: report.appraisalRequest?.organization?.name || "TruPlat",
+          organizationName:
+            report.appraisalRequest?.organization?.name || "TruPlat",
           propertyAddress: property.addressFull,
           reportType: report.type.replace("_", " "),
           valueEstimate: Number(report.valueEstimate),
@@ -675,10 +696,15 @@ export const reportRouter = createTRPCRouter({
         },
       });
 
-      // Note: In production, queue a job for regeneration
-      // await jobQueue.add('regenerate-report', { appraisalId: input.appraisalId });
+      // Trigger report regeneration (fire and forget)
+      processAppraisal(input.appraisalId).catch((error) => {
+        console.error(
+          `Failed to regenerate report for ${input.appraisalId}:`,
+          error,
+        );
+      });
 
-      return { success: true, message: "Report regeneration queued" };
+      return { success: true, message: "Report regeneration started" };
     }),
 });
 
