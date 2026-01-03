@@ -387,30 +387,51 @@ class PDFGenerator {
     // Convert Buffer to Uint8Array for fetch compatibility
     const uint8Array = new Uint8Array(buffer);
 
+    // Log upload attempt with partial URL for debugging
+    const urlPreview = uploadUrl.substring(0, 80) + "...";
     console.log(
       `[PDFGenerator] Uploading PDF (${buffer.length} bytes) to R2...`,
     );
+    console.log(`[PDFGenerator] Upload URL preview: ${urlPreview}`);
 
-    const response = await fetch(uploadUrl, {
-      method: "PUT",
-      body: uint8Array,
-      headers: {
-        "Content-Type": "application/pdf",
-      },
-    });
+    try {
+      const response = await fetch(uploadUrl, {
+        method: "PUT",
+        body: uint8Array,
+        headers: {
+          "Content-Type": "application/pdf",
+        },
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => "No error body");
+      console.log(
+        `[PDFGenerator] Upload response: ${response.status} ${response.statusText}`,
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "No error body");
+        console.error(
+          `[PDFGenerator] R2 upload failed: ${response.status} ${response.statusText}`,
+        );
+        console.error(`[PDFGenerator] Error body: ${errorText}`);
+
+        // Log headers for debugging
+        console.error(
+          `[PDFGenerator] Response headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()))}`,
+        );
+
+        throw new Error(
+          `Failed to upload PDF: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      console.log(`[PDFGenerator] PDF uploaded successfully`);
+    } catch (error) {
       console.error(
-        `[PDFGenerator] R2 upload failed: ${response.status} ${response.statusText}`,
-        errorText,
+        `[PDFGenerator] Upload error:`,
+        error instanceof Error ? error.message : error,
       );
-      throw new Error(
-        `Failed to upload PDF: ${response.status} ${response.statusText}`,
-      );
+      throw error;
     }
-
-    console.log(`[PDFGenerator] PDF uploaded successfully`);
   }
 
   /**
