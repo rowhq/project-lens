@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
 import {
@@ -30,6 +30,8 @@ import {
   Lock,
   Camera,
   Truck,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { Skeleton } from "@/shared/components/ui/Skeleton";
 
@@ -631,11 +633,13 @@ function EmailModal({
 export default function AppraisalDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { toast } = useToast();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const paymentToastShownRef = useRef(false);
 
   const {
@@ -643,6 +647,35 @@ export default function AppraisalDetailPage({ params }: PageProps) {
     isLoading,
     refetch,
   } = trpc.appraisal.getById.useQuery({ id });
+
+  const deleteMutation = trpc.appraisal.delete.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Appraisal deleted",
+        description: "The appraisal has been deleted successfully.",
+      });
+      router.push("/appraisals");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete appraisal",
+        variant: "destructive",
+      });
+      setIsDeleting(false);
+    },
+  });
+
+  const handleDelete = () => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete appraisal ${appraisal?.referenceCode}? This action cannot be undone.`,
+      )
+    ) {
+      setIsDeleting(true);
+      deleteMutation.mutate({ id });
+    }
+  };
 
   // Handle payment success callback from Stripe
   // Now uses polling to wait for webhook processing
@@ -927,6 +960,19 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               )}
             </>
           )}
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="flex items-center gap-2 px-4 py-2 border border-red-500/30 clip-notch hover:bg-red-500/10 text-red-400 font-mono text-sm uppercase tracking-wider disabled:opacity-50"
+            title="Delete appraisal"
+          >
+            {isDeleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+            Delete
+          </button>
         </div>
       </div>
 

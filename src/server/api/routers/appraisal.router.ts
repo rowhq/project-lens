@@ -22,6 +22,7 @@ import {
   checkUsageForPayment,
 } from "@/server/services/usage-limiter";
 import * as stripe from "@/shared/lib/stripe";
+import { deleteFile } from "@/shared/lib/storage";
 // Note: Email sending and job dispatch are now handled by the Stripe webhook
 // to prevent race conditions between webhook and confirmPayment
 
@@ -217,6 +218,7 @@ export const appraisalRouter = createTRPCRouter({
       const appraisals = await ctx.prisma.appraisalRequest.findMany({
         where: {
           organizationId: ctx.organization!.id,
+          deletedAt: null, // Exclude soft-deleted
           ...(status && { status }),
         },
         include: {
@@ -705,6 +707,70 @@ export const appraisalRouter = createTRPCRouter({
       return ctx.prisma.appraisalRequest.update({
         where: { id: input.id },
         data: { status: "EXPIRED" },
+      });
+    }),
+
+  /**
+   * Delete appraisal request
+   * - READY: Soft delete (set deletedAt) - preserves historical data
+   * - QUEUED/FAILED/DRAFT/EXPIRED: Hard delete with R2 cleanup
+   */
+  delete: clientProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const appraisal = await ctx.prisma.appraisalRequest.findUnique({
+        where: { id: input.id },
+        include: { report: true },
+      });
+
+      if (!appraisal) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Appraisal not found",
+        });
+      }
+
+      if (appraisal.organizationId !== ctx.organization!.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Access denied",
+        });
+      }
+
+      // READY appraisals: soft delete (preserve data)
+      if (appraisal.status === "READY") {
+        return ctx.prisma.appraisalRequest.update({
+          where: { id: input.id },
+          data: { deletedAt: new Date() },
+        });
+      }
+
+      // Other statuses: hard delete with R2 cleanup
+      // Delete PDF from R2 if exists
+      if (appraisal.report?.pdfUrl) {
+        try {
+          // Extract key from URL: https://pub-xxx.r2.dev/reports/xxx/report.pdf -> reports/xxx/report.pdf
+          const url = new URL(appraisal.report.pdfUrl);
+          const key = url.pathname.slice(1); // Remove leading /
+          await deleteFile(key);
+        } catch (error) {
+          console.error(
+            `[AppraisalDelete] Failed to delete R2 file for ${input.id}:`,
+            error,
+          );
+          // Continue with DB deletion even if R2 fails
+        }
+      }
+
+      // Delete report first (if exists), then appraisal
+      if (appraisal.reportId) {
+        await ctx.prisma.report.delete({
+          where: { id: appraisal.reportId },
+        });
+      }
+
+      return ctx.prisma.appraisalRequest.delete({
+        where: { id: input.id },
       });
     }),
 

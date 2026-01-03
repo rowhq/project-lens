@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Download,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import {
   Skeleton,
@@ -69,11 +70,13 @@ const statusConfig: Record<
 
 export default function AppraisalsPage() {
   const toast = useToast();
+  const utils = trpc.useUtils();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<AppraisalStatus | "ALL">(
     "ALL",
   );
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const { data: appraisals, isLoading } = trpc.appraisal.list.useQuery({
     limit: 50,
@@ -92,9 +95,32 @@ export default function AppraisalsPage() {
     },
   });
 
+  const deleteMutation = trpc.appraisal.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Appraisal deleted successfully");
+      utils.appraisal.list.invalidate();
+      setDeletingId(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete appraisal");
+      setDeletingId(null);
+    },
+  });
+
   const handleDownload = (reportId: string) => {
     setDownloadingId(reportId);
     downloadMutation.mutate({ reportId });
+  };
+
+  const handleDelete = (appraisalId: string, referenceCode: string) => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete appraisal ${referenceCode}? This action cannot be undone.`,
+      )
+    ) {
+      setDeletingId(appraisalId);
+      deleteMutation.mutate({ id: appraisalId });
+    }
   };
 
   const filteredAppraisals = appraisals?.items.filter(
@@ -330,6 +356,23 @@ export default function AppraisalsPage() {
                               )}
                             </button>
                           )}
+                          <button
+                            onClick={() =>
+                              handleDelete(
+                                appraisal.id,
+                                appraisal.referenceCode,
+                              )
+                            }
+                            disabled={deletingId === appraisal.id}
+                            className="p-2 text-[var(--muted-foreground)] hover:text-red-400 disabled:opacity-50"
+                            title="Delete appraisal"
+                          >
+                            {deletingId === appraisal.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
                           <Link
                             href={`/appraisals/${appraisal.id}`}
                             className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
