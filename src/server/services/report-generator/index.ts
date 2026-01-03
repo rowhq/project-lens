@@ -8,7 +8,12 @@ import { valuationEngine } from "@/server/services/valuation-engine";
 import { templateEngine } from "./template-engine";
 import { pdfGenerator } from "./pdf-generator";
 import { sendAppraisalReady } from "@/shared/lib/resend";
-import type { Report, Property, AppraisalRequest, Evidence } from "@prisma/client";
+import type {
+  Report,
+  Property,
+  AppraisalRequest,
+  Evidence,
+} from "@prisma/client";
 
 export interface ReportGenerationInput {
   appraisalRequestId: string;
@@ -42,7 +47,12 @@ class ReportGenerator {
    * Generate a complete appraisal report
    */
   async generate(input: ReportGenerationInput): Promise<GeneratedReport> {
+    console.log(
+      `[ReportGenerator] Starting generation for ${input.appraisalRequestId}`,
+    );
+
     // Get appraisal request with property
+    console.log(`[ReportGenerator] Step 1: Fetching appraisal request...`);
     const appraisalRequest = await prisma.appraisalRequest.findUnique({
       where: { id: input.appraisalRequestId },
       include: {
@@ -55,6 +65,9 @@ class ReportGenerator {
     if (!appraisalRequest) {
       throw new Error("Appraisal request not found");
     }
+    console.log(
+      `[ReportGenerator] Step 1: Found appraisal ${appraisalRequest.referenceCode}`,
+    );
 
     // Get evidence if on-site or certified
     let evidence: Evidence[] = [];
@@ -65,11 +78,18 @@ class ReportGenerator {
     }
 
     // Generate valuation
+    console.log(`[ReportGenerator] Step 2: Generating valuation...`);
     const valuation = await valuationEngine.generateValuation({
       property: appraisalRequest.property,
       purpose: appraisalRequest.purpose,
-      requestedType: appraisalRequest.requestedType as "AI_REPORT" | "AI_REPORT_WITH_ONSITE" | "CERTIFIED_APPRAISAL",
+      requestedType: appraisalRequest.requestedType as
+        | "AI_REPORT"
+        | "AI_REPORT_WITH_ONSITE"
+        | "CERTIFIED_APPRAISAL",
     });
+    console.log(
+      `[ReportGenerator] Step 2: Valuation complete - $${valuation.valueEstimate}`,
+    );
 
     // Create report data
     const reportData: ReportData = {
@@ -85,13 +105,19 @@ class ReportGenerator {
     };
 
     // Generate HTML report
+    console.log(`[ReportGenerator] Step 3: Generating HTML...`);
     const htmlContent = await templateEngine.render(reportData);
+    console.log(
+      `[ReportGenerator] Step 3: HTML generated (${htmlContent.length} chars)`,
+    );
 
     // Generate PDF
+    console.log(`[ReportGenerator] Step 4: Generating PDF via Gotenberg...`);
     const pdfUrl = await pdfGenerator.generate(htmlContent, {
       reportId: appraisalRequest.referenceCode,
       reportType: input.reportType,
     });
+    console.log(`[ReportGenerator] Step 4: PDF generated - ${pdfUrl}`);
 
     // Calculate risk score from risk flags
     const riskScore = valuation.riskFlags.reduce((score, flag) => {
@@ -184,10 +210,7 @@ class ReportGenerator {
   /**
    * Regenerate an existing report
    */
-  async regenerate(
-    reportId: string,
-    userId: string
-  ): Promise<GeneratedReport> {
+  async regenerate(reportId: string, userId: string): Promise<GeneratedReport> {
     const existingReport = await prisma.report.findUnique({
       where: { id: reportId },
       include: { appraisalRequest: true },
@@ -213,7 +236,10 @@ class ReportGenerator {
     // Generate new report
     return this.generate({
       appraisalRequestId: existingReport.appraisalRequest.id,
-      reportType: existingReport.type as "AI_REPORT" | "AI_REPORT_WITH_ONSITE" | "CERTIFIED_APPRAISAL",
+      reportType: existingReport.type as
+        | "AI_REPORT"
+        | "AI_REPORT_WITH_ONSITE"
+        | "CERTIFIED_APPRAISAL",
       generatedById: userId,
     });
   }
@@ -227,7 +253,7 @@ class ReportGenerator {
     signature: {
       licenseNumber: string;
       signedAt: Date;
-    }
+    },
   ): Promise<Report> {
     const report = await prisma.report.findUnique({
       where: { id: reportId },
@@ -331,7 +357,7 @@ class ReportGenerator {
    */
   async createShareableLink(
     reportId: string,
-    expiresIn: number = 24 // hours
+    expiresIn: number = 24, // hours
   ): Promise<{ shareableUrl: string; expiresAt: Date }> {
     const report = await prisma.report.findUnique({
       where: { id: reportId },
@@ -355,7 +381,8 @@ class ReportGenerator {
    * Generate random share token
    */
   private generateShareToken(): string {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let token = "";
     for (let i = 0; i < 32; i++) {
       token += chars.charAt(Math.floor(Math.random() * chars.length));

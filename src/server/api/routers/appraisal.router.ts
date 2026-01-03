@@ -457,12 +457,40 @@ export const appraisalRouter = createTRPCRouter({
 
       // Process synchronously (required for Vercel serverless)
       try {
-        await processAppraisal(appraisal.id);
+        console.log(
+          `[QuickAIReport] Starting processAppraisal for ${appraisal.id}`,
+        );
+        const result = await processAppraisal(appraisal.id);
+        console.log(
+          `[QuickAIReport] processAppraisal result:`,
+          JSON.stringify(result),
+        );
+
+        if (!result.success) {
+          console.error(
+            `[QuickAIReport] processAppraisal returned failure:`,
+            result.error,
+          );
+          // Update status with error message for visibility
+          await ctx.prisma.appraisalRequest.update({
+            where: { id: appraisal.id },
+            data: {
+              statusMessage: `Processing failed: ${result.error}`,
+            },
+          });
+        }
       } catch (error) {
         console.error(
-          `[QuickAIReport] Failed to process appraisal ${appraisal.id}:`,
+          `[QuickAIReport] Exception in processAppraisal ${appraisal.id}:`,
           error,
         );
+        // Update status with error for visibility
+        await ctx.prisma.appraisalRequest.update({
+          where: { id: appraisal.id },
+          data: {
+            statusMessage: `Exception: ${error instanceof Error ? error.message : "Unknown error"}`,
+          },
+        });
         // Don't throw - appraisal is created, cron will retry if needed
       }
 

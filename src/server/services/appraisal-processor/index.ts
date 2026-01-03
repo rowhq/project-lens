@@ -30,16 +30,20 @@ export interface ProcessingResult {
 export async function processAppraisal(
   appraisalId: string,
 ): Promise<ProcessingResult> {
-  console.log(`[AppraisalProcessor] Starting processing for ${appraisalId}`);
+  console.log(
+    `[AppraisalProcessor] ========== START Processing ${appraisalId} ==========`,
+  );
 
   try {
     // Get appraisal with property
+    console.log(`[AppraisalProcessor] Step 1: Fetching appraisal from DB...`);
     const appraisal = await prisma.appraisalRequest.findUnique({
       where: { id: appraisalId },
       include: { property: true },
     });
 
     if (!appraisal) {
+      console.error(`[AppraisalProcessor] FAILED: Appraisal not found in DB`);
       return {
         success: false,
         appraisalId,
@@ -47,7 +51,14 @@ export async function processAppraisal(
       };
     }
 
+    console.log(
+      `[AppraisalProcessor] Step 1: Found appraisal ${appraisal.referenceCode}`,
+    );
+
     if (!appraisal.property) {
+      console.error(
+        `[AppraisalProcessor] FAILED: Property not found for appraisal`,
+      );
       return {
         success: false,
         appraisalId,
@@ -55,7 +66,12 @@ export async function processAppraisal(
       };
     }
 
+    console.log(
+      `[AppraisalProcessor] Step 1: Property: ${appraisal.property.addressFull}`,
+    );
+
     // Update status to RUNNING and record attempt
+    console.log(`[AppraisalProcessor] Step 2: Updating status to RUNNING...`);
     await prisma.appraisalRequest.update({
       where: { id: appraisalId },
       data: {
@@ -67,12 +83,10 @@ export async function processAppraisal(
             : "Processing...",
       },
     });
-
-    console.log(
-      `[AppraisalProcessor] Generating report for ${appraisal.property.addressFull}`,
-    );
+    console.log(`[AppraisalProcessor] Step 2: Status updated to RUNNING`);
 
     // Generate complete report (includes valuation, HTML, PDF, and email notification)
+    console.log(`[AppraisalProcessor] Step 3: Starting report generation...`);
     const result = await reportGenerator.generate({
       appraisalRequestId: appraisalId,
       reportType: appraisal.requestedType as
@@ -83,10 +97,13 @@ export async function processAppraisal(
     });
 
     console.log(
-      `[AppraisalProcessor] Report created: ${result.reportId} (PDF: ${result.pdfUrl ? "yes" : "no"})`,
+      `[AppraisalProcessor] Step 3: Report created: ${result.reportId}`,
     );
     console.log(
-      `[AppraisalProcessor] Valuation: $${result.summary.valueEstimate.toLocaleString()}`,
+      `[AppraisalProcessor] Step 3: PDF URL: ${result.pdfUrl || "none"}`,
+    );
+    console.log(
+      `[AppraisalProcessor] Step 3: Valuation: $${result.summary.valueEstimate.toLocaleString()}`,
     );
 
     return {
@@ -97,10 +114,10 @@ export async function processAppraisal(
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    console.error(
-      `[AppraisalProcessor] Error processing ${appraisalId}:`,
-      error,
-    );
+    const errorStack = error instanceof Error ? error.stack : "";
+    console.error(`[AppraisalProcessor] ========== EXCEPTION ==========`);
+    console.error(`[AppraisalProcessor] Error: ${errorMessage}`);
+    console.error(`[AppraisalProcessor] Stack: ${errorStack}`);
 
     // Get current appraisal to check retry count
     const currentAppraisal = await prisma.appraisalRequest.findUnique({
