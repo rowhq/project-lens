@@ -95,6 +95,10 @@ export async function getUploadUrl(params: {
   const config = getConfig();
   const expiresIn = params.expiresIn || 3600;
 
+  console.log(`[Storage] Generating presigned URL for key: ${params.key}`);
+  console.log(`[Storage] Bucket: ${config.bucketName}`);
+  console.log(`[Storage] ContentType: ${params.contentType}`);
+
   const command = new PutObjectCommand({
     Bucket: config.bucketName,
     Key: params.key,
@@ -104,6 +108,8 @@ export async function getUploadUrl(params: {
   const uploadUrl = await getSignedUrl(client, command, { expiresIn });
   const publicUrl = `${config.publicUrl}/${params.key}`;
   const expiresAt = new Date(Date.now() + expiresIn * 1000);
+
+  console.log(`[Storage] Generated presigned URL, expires in ${expiresIn}s`);
 
   return {
     uploadUrl,
