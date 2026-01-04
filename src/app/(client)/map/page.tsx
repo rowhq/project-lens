@@ -264,7 +264,10 @@ export default function MapPage() {
 
   // Handle layer changes
   const handleLayerChange = useCallback(
-    (layerId: keyof LayersConfig, state: Partial<LayersConfig[keyof LayersConfig]>) => {
+    (
+      layerId: keyof LayersConfig,
+      state: Partial<LayersConfig[keyof LayersConfig]>,
+    ) => {
       setLayers((prev) => ({
         ...prev,
         [layerId]: { ...prev[layerId], ...state },
@@ -592,7 +595,7 @@ export default function MapPage() {
   }, [activeTab]);
 
   return (
-    <div className="fixed inset-0 top-16 left-0 lg:left-64 bg-black z-10">
+    <div className="fixed inset-0 top-16 left-0 lg:left-64 bg-[var(--background)] z-10">
       {/* Main Map Area */}
       <div className="w-full h-full relative">
         {/* Map Container */}

@@ -178,7 +178,7 @@ export default function AnalyticsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-black p-6">
+    <div className="min-h-screen bg-[var(--background)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>

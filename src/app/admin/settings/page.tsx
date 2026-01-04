@@ -86,7 +86,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-black p-6">
+    <div className="min-h-screen bg-[var(--background)] p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

@@ -106,7 +106,7 @@ export function AppraiserBottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-10 bg-black safe-area-inset-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-10 bg-[var(--background)] safe-area-inset-bottom">
       {/* Top border with SVG */}
       <div className="absolute top-0 left-0 right-0 h-px">
         <svg
