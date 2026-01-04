@@ -239,7 +239,7 @@ export function AppraiserSidebar({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden w-64 flex-shrink-0 border-r border-gray-800 bg-black lg:flex lg:flex-col">
+      <aside className="hidden w-56 xl:w-64 flex-shrink-0 border-r border-gray-800 bg-black lg:flex lg:flex-col">
         {sidebarContent}
       </aside>
 

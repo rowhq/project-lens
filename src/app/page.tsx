@@ -66,7 +66,7 @@ export default function LandingPage() {
           </div>
 
           <div className="mx-auto max-w-4xl">
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               <StepCard
                 number={1}
                 title="Enter the Address"
@@ -116,7 +116,7 @@ export default function LandingPage() {
 
           {/* Pricing Cards - Popular elevated */}
           <div className="mx-auto max-w-6xl">
-            <div className="grid gap-6 lg:grid-cols-4 lg:items-center pt-6">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:items-center pt-6">
               {/* Free tier */}
               <PricingCard
                 icon={Gift}
@@ -245,7 +245,7 @@ export default function LandingPage() {
       {/* 10. Footer - Ledger Style */}
       <footer className="border-t border-gray-800 py-16 bg-black">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8 mb-12">
             {/* Product */}
             <div>
               <h4 className="font-mono text-xs uppercase tracking-wider text-gray-500 mb-4">

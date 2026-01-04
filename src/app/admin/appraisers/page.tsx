@@ -19,7 +19,12 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/shared/components/common/EmptyState";
 
-type VerificationStatus = "PENDING" | "VERIFIED" | "EXPIRED" | "REVOKED" | "ALL";
+type VerificationStatus =
+  | "PENDING"
+  | "VERIFIED"
+  | "EXPIRED"
+  | "REVOKED"
+  | "ALL";
 
 export default function AppraisersPage() {
   const { toast } = useToast();
@@ -28,9 +33,16 @@ export default function AppraisersPage() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   // Fixed: Use nested router path - admin.appraisers.list
-  const { data: appraisersData, isLoading, refetch } = trpc.admin.appraisers.list.useQuery({
+  const {
+    data: appraisersData,
+    isLoading,
+    refetch,
+  } = trpc.admin.appraisers.list.useQuery({
     limit: 50,
-    status: statusFilter === "ALL" ? undefined : (statusFilter as "PENDING" | "VERIFIED" | "EXPIRED" | "REVOKED"),
+    status:
+      statusFilter === "ALL"
+        ? undefined
+        : (statusFilter as "PENDING" | "VERIFIED" | "EXPIRED" | "REVOKED"),
   });
   const appraisers = appraisersData?.items;
 
@@ -90,10 +102,26 @@ export default function AppraisersPage() {
   });
 
   const statusConfig = {
-    PENDING: { color: "bg-yellow-500/20 text-yellow-400", icon: Clock, label: "Pending" },
-    VERIFIED: { color: "bg-green-500/20 text-green-400", icon: UserCheck, label: "Verified" },
-    EXPIRED: { color: "bg-orange-500/20 text-orange-400", icon: Clock, label: "Expired" },
-    REVOKED: { color: "bg-red-500/20 text-red-400", icon: AlertCircle, label: "Revoked" },
+    PENDING: {
+      color: "bg-yellow-500/20 text-yellow-400",
+      icon: Clock,
+      label: "Pending",
+    },
+    VERIFIED: {
+      color: "bg-green-500/20 text-green-400",
+      icon: UserCheck,
+      label: "Verified",
+    },
+    EXPIRED: {
+      color: "bg-orange-500/20 text-orange-400",
+      icon: Clock,
+      label: "Expired",
+    },
+    REVOKED: {
+      color: "bg-red-500/20 text-red-400",
+      icon: AlertCircle,
+      label: "Revoked",
+    },
   };
 
   const filteredAppraisers = appraisers?.filter(
@@ -101,7 +129,7 @@ export default function AppraisersPage() {
       a.user?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.user?.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.licenseNumber?.toLowerCase().includes(searchQuery.toLowerCase())
+      a.licenseNumber?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -109,8 +137,12 @@ export default function AppraisersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Appraisers</h1>
-          <p className="text-[var(--muted-foreground)]">Manage appraiser profiles and verification</p>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">
+            Appraisers
+          </h1>
+          <p className="text-[var(--muted-foreground)]">
+            Manage appraiser profiles and verification
+          </p>
         </div>
         <div className="flex gap-2">
           <button
@@ -124,16 +156,26 @@ export default function AppraisersPage() {
                 return;
               }
               const csvContent = [
-                ["Name", "Email", "License Number", "License State", "Status", "Rating", "Jobs"].join(","),
-                ...appraisers.map(a => [
-                  `"${a.user?.firstName || ""} ${a.user?.lastName || ""}"`,
-                  `"${a.user?.email || ""}"`,
-                  `"${a.licenseNumber || ""}"`,
-                  a.licenseState || "",
-                  a.verificationStatus,
-                  a.rating?.toFixed(1) || "N/A",
-                  a.completedJobs || 0,
-                ].join(","))
+                [
+                  "Name",
+                  "Email",
+                  "License Number",
+                  "License State",
+                  "Status",
+                  "Rating",
+                  "Jobs",
+                ].join(","),
+                ...appraisers.map((a) =>
+                  [
+                    `"${a.user?.firstName || ""} ${a.user?.lastName || ""}"`,
+                    `"${a.user?.email || ""}"`,
+                    `"${a.licenseNumber || ""}"`,
+                    a.licenseState || "",
+                    a.verificationStatus,
+                    a.rating?.toFixed(1) || "N/A",
+                    a.completedJobs || 0,
+                  ].join(","),
+                ),
               ].join("\n");
               const blob = new Blob([csvContent], { type: "text/csv" });
               const url = URL.createObjectURL(blob);
@@ -156,7 +198,8 @@ export default function AppraisersPage() {
             onClick={() => {
               toast({
                 title: "Feature in development",
-                description: "Adding appraisers manually is coming soon. Appraisers are currently created through the signup flow.",
+                description:
+                  "Adding appraisers manually is coming soon. Appraisers are currently created through the signup flow.",
               });
             }}
             className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90"
@@ -170,25 +213,38 @@ export default function AppraisersPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
-          <p className="text-sm text-[var(--muted-foreground)]">Total Appraisers</p>
-          <p className="text-2xl font-bold text-[var(--foreground)]">{appraisers?.length || 0}</p>
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Total Appraisers
+          </p>
+          <p className="text-2xl font-bold text-[var(--foreground)]">
+            {appraisers?.length || 0}
+          </p>
         </div>
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
           <p className="text-sm text-[var(--muted-foreground)]">Verified</p>
           <p className="text-2xl font-bold text-green-400">
-            {appraisers?.filter((a) => a.verificationStatus === "VERIFIED").length || 0}
+            {appraisers?.filter((a) => a.verificationStatus === "VERIFIED")
+              .length || 0}
           </p>
         </div>
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
-          <p className="text-sm text-[var(--muted-foreground)]">Pending Review</p>
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Pending Review
+          </p>
           <p className="text-2xl font-bold text-yellow-400">
-            {appraisers?.filter((a) => a.verificationStatus === "PENDING").length || 0}
+            {appraisers?.filter((a) => a.verificationStatus === "PENDING")
+              .length || 0}
           </p>
         </div>
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
           <p className="text-sm text-[var(--muted-foreground)]">Avg Rating</p>
           <p className="text-2xl font-bold text-[var(--primary)]">
-            {appraisers?.length ? (appraisers.reduce((sum, a) => sum + (a.rating || 0), 0) / appraisers.length).toFixed(1) : "0.0"}
+            {appraisers?.length
+              ? (
+                  appraisers.reduce((sum, a) => sum + (a.rating || 0), 0) /
+                  appraisers.length
+                ).toFixed(1)
+              : "0.0"}
           </p>
         </div>
       </div>
@@ -209,7 +265,9 @@ export default function AppraisersPage() {
           <Filter className="w-5 h-5 text-[var(--muted-foreground)]" />
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as VerificationStatus)}
+            onChange={(e) =>
+              setStatusFilter(e.target.value as VerificationStatus)
+            }
             className="border border-[var(--border)] rounded-lg px-3 py-2 bg-[var(--background)] text-[var(--foreground)]"
           >
             <option value="ALL">All Status</option>
@@ -223,21 +281,34 @@ export default function AppraisersPage() {
 
       {/* Appraisers Table */}
       <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden overflow-x-auto">
-        <table className="w-full min-w-[800px]">
+        <table className="w-full min-w-[600px]">
           <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Appraiser</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">License</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Location</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Stats</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                Appraiser
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                License
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                Location
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                Stats
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                Status
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-[var(--muted-foreground)]">
+                <td
+                  colSpan={6}
+                  className="px-6 py-12 text-center text-[var(--muted-foreground)]"
+                >
                   Loading appraisers...
                 </td>
               </tr>
@@ -247,16 +318,26 @@ export default function AppraisersPage() {
                   <EmptyState
                     icon={UserCheck}
                     title="No appraisers found"
-                    description={searchQuery ? "Try adjusting your search or filters" : "Appraisers will appear here once they complete onboarding"}
+                    description={
+                      searchQuery
+                        ? "Try adjusting your search or filters"
+                        : "Appraisers will appear here once they complete onboarding"
+                    }
                   />
                 </td>
               </tr>
             ) : (
               filteredAppraisers?.map((appraiser) => {
-                const status = statusConfig[appraiser.verificationStatus as keyof typeof statusConfig];
+                const status =
+                  statusConfig[
+                    appraiser.verificationStatus as keyof typeof statusConfig
+                  ];
                 const StatusIcon = status?.icon || Clock;
                 return (
-                  <tr key={appraiser.userId} className="hover:bg-[var(--secondary)]">
+                  <tr
+                    key={appraiser.userId}
+                    className="hover:bg-[var(--secondary)]"
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-[var(--muted)] rounded-full flex items-center justify-center">
@@ -267,16 +348,22 @@ export default function AppraisersPage() {
                         </div>
                         <div>
                           <p className="font-medium text-[var(--foreground)]">
-                            {appraiser.user?.firstName} {appraiser.user?.lastName}
+                            {appraiser.user?.firstName}{" "}
+                            {appraiser.user?.lastName}
                           </p>
-                          <p className="text-sm text-[var(--muted-foreground)]">{appraiser.user?.email}</p>
+                          <p className="text-sm text-[var(--muted-foreground)]">
+                            {appraiser.user?.email}
+                          </p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-mono text-sm text-[var(--foreground)]">{appraiser.licenseNumber || "-"}</p>
+                      <p className="font-mono text-sm text-[var(--foreground)]">
+                        {appraiser.licenseNumber || "-"}
+                      </p>
                       <p className="text-xs text-[var(--muted-foreground)]">
-                        {appraiser.licenseType?.replace("_", " ")} • {appraiser.licenseState}
+                        {appraiser.licenseType?.replace("_", " ")} •{" "}
+                        {appraiser.licenseState}
                       </p>
                     </td>
                     <td className="px-6 py-4">
@@ -297,7 +384,9 @@ export default function AppraisersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${status?.color}`}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${status?.color}`}
+                      >
                         <StatusIcon className="w-3 h-3" />
                         {status?.label}
                       </span>
@@ -305,7 +394,13 @@ export default function AppraisersPage() {
                     <td className="px-6 py-4">
                       <div className="relative">
                         <button
-                          onClick={() => setActiveMenu(activeMenu === appraiser.userId ? null : appraiser.userId)}
+                          onClick={() =>
+                            setActiveMenu(
+                              activeMenu === appraiser.userId
+                                ? null
+                                : appraiser.userId,
+                            )
+                          }
                           className="p-2 hover:bg-[var(--muted)] rounded-lg"
                         >
                           <MoreVertical className="w-4 h-4 text-[var(--muted-foreground)]" />
@@ -355,7 +450,9 @@ export default function AppraisersPage() {
                                 disabled={suspendAppraiser.isPending}
                                 className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50"
                               >
-                                {suspendAppraiser.isPending ? "Suspending..." : "Suspend"}
+                                {suspendAppraiser.isPending
+                                  ? "Suspending..."
+                                  : "Suspend"}
                               </button>
                             ) : (
                               <button
@@ -367,7 +464,9 @@ export default function AppraisersPage() {
                                 disabled={reactivateAppraiser.isPending}
                                 className="w-full px-4 py-2 text-left text-sm text-green-400 hover:bg-green-500/10 disabled:opacity-50"
                               >
-                                {reactivateAppraiser.isPending ? "Reactivating..." : "Reactivate"}
+                                {reactivateAppraiser.isPending
+                                  ? "Reactivating..."
+                                  : "Reactivate"}
                               </button>
                             )}
                           </div>

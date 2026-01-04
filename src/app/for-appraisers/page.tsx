@@ -52,7 +52,7 @@ export default function ForAppraisersPage() {
       {/* Hero Section */}
       <section className="py-20 relative overflow-hidden bg-black">
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             {/* Left - Value Prop */}
             <div>
               <span className="inline-block px-4 py-1.5 font-mono text-xs uppercase tracking-wider bg-transparent border border-lime-400/50 text-lime-400 mb-6">
@@ -203,7 +203,7 @@ export default function ForAppraisersPage() {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <StepCard
               number={1}
               title="Apply Online"

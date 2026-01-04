@@ -69,7 +69,7 @@ function TableHead({ className, children, ...props }: TableHeadProps) {
   return (
     <th
       className={cn(
-        "px-6 py-3 text-left",
+        "px-4 lg:px-6 py-2 lg:py-3 text-left",
         "text-label font-mono uppercase tracking-widest",
         "text-gray-500",
         className,
@@ -86,7 +86,10 @@ type TableCellProps = React.TdHTMLAttributes<HTMLTableCellElement>;
 function TableCell({ className, children, ...props }: TableCellProps) {
   return (
     <td
-      className={cn("px-6 py-4 text-body-sm text-gray-300", className)}
+      className={cn(
+        "px-4 lg:px-6 py-3 lg:py-4 text-body-sm text-gray-300",
+        className,
+      )}
       {...props}
     >
       {children}

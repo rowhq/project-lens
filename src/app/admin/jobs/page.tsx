@@ -265,7 +265,7 @@ export default function AdminJobsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
           <p className="text-sm text-[var(--muted-foreground)]">Total Jobs</p>
           <p className="text-2xl font-bold text-[var(--foreground)]">
@@ -389,7 +389,7 @@ export default function AdminJobsPage() {
 
       {/* Jobs Table */}
       <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden overflow-x-auto">
-        <table className="w-full min-w-[900px]">
+        <table className="w-full min-w-[700px]">
           <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
             <tr>
               <th className="px-4 py-3 text-left">

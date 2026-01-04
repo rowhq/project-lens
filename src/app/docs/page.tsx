@@ -210,7 +210,7 @@ export default function DocsPage() {
   return (
     <div className="flex">
       {/* Sidebar Navigation */}
-      <nav className="fixed left-0 top-16 bottom-0 w-72 border-r border-gray-800 bg-gray-950 overflow-y-auto">
+      <nav className="fixed left-0 top-16 bottom-0 w-56 lg:w-64 xl:w-72 border-r border-gray-800 bg-gray-950 overflow-y-auto">
         <div className="p-4">
           {/* Business Sections */}
           <h2 className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-3 mt-2">
@@ -296,7 +296,7 @@ export default function DocsPage() {
       </nav>
 
       {/* Main Content */}
-      <div className="ml-72 flex-1 max-w-5xl mx-auto px-8 py-12">
+      <div className="ml-56 lg:ml-64 xl:ml-72 flex-1 max-w-4xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12">
         {/* Hero */}
         <div className="mb-16">
           <div className="flex items-center gap-2 text-gray-500 text-sm mb-4">
@@ -369,7 +369,7 @@ export default function DocsPage() {
           </div>
 
           {/* Value Proposition */}
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <div className="w-10 h-10 bg-lime-400/10 rounded-lg flex items-center justify-center mb-4">
                 <Clock className="w-5 h-5 text-lime-400" />
@@ -407,7 +407,7 @@ export default function DocsPage() {
           </div>
 
           {/* Problem / Solution */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-6">
               <h4 className="text-lg font-semibold text-red-400 mb-4 flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5" />
@@ -484,7 +484,7 @@ export default function DocsPage() {
               licensed Texas appraisers to serve real estate investors, mortgage
               professionals, and property owners.
             </p>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-4xl font-bold text-cyan-400 mb-2">3</div>
                 <div className="text-gray-400 text-sm">Product Tiers</div>
@@ -513,7 +513,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             How It Works
           </h3>
-          <div className="grid md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 relative">
               <div className="absolute -top-3 -left-3 w-8 h-8 bg-cyan-400 rounded-full flex items-center justify-center text-black font-bold">
                 1
@@ -564,7 +564,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             What&apos;s in a TruPlat Report?
           </h3>
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <h4 className="text-cyan-400 font-mono text-sm mb-4">
                 VALUATION ANALYSIS
@@ -711,7 +711,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Why TruPlat?
           </h3>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-gradient-to-b from-cyan-400/10 to-transparent border border-cyan-400/20 rounded-lg p-6">
               <Zap className="w-8 h-8 text-cyan-400 mb-4" />
               <h4 className="text-white font-semibold mb-2">Speed</h4>
@@ -752,7 +752,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Revenue Streams
           </h3>
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
                 <Zap className="w-5 h-5 text-cyan-400" />
@@ -925,7 +925,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Cost Structure (COGS)
           </h3>
-          <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
               <h5 className="text-sm text-gray-500 mb-2">AI Report Costs</h5>
               <ul className="space-y-2 text-sm">
@@ -1009,7 +1009,7 @@ export default function DocsPage() {
               appraisers licenciados con dispatch automático basado en
               ubicación, disponibilidad y rating.
             </p>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-white">
                   {PAYOUT_RATES.ON_SITE.percentage}%
@@ -1041,7 +1041,7 @@ export default function DocsPage() {
 
           {/* TAM SAM SOM */}
           <h3 className="text-xl font-semibold text-white mb-4">Market Size</h3>
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 text-center">
               <div className="text-3xl font-bold text-white mb-1">$15B</div>
               <div className="text-lime-400 font-mono text-sm mb-3">TAM</div>
@@ -1069,7 +1069,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Market Drivers
           </h3>
-          <div className="grid md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             <div className="flex items-start gap-3 bg-gray-900 border border-gray-800 rounded-lg p-4">
               <ArrowUpRight className="w-5 h-5 text-lime-400 mt-1" />
               <div>
@@ -1267,7 +1267,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Target Customer Segments
           </h3>
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-lime-400/10 rounded-lg flex items-center justify-center">
@@ -1662,7 +1662,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Revenue Mix (Year 2 Target)
           </h3>
-          <div className="grid md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-cyan-400 mb-1">45%</div>
               <div className="text-gray-400 text-sm">AI Reports</div>
@@ -1695,7 +1695,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Key Business Metrics
           </h3>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <h5 className="text-gray-500 text-sm mb-4">Customer Metrics</h5>
               <div className="space-y-3">
@@ -1835,7 +1835,7 @@ export default function DocsPage() {
           </div>
 
           {/* Feature Categories */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Core Platform */}
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <h4 className="text-cyan-400 font-mono text-sm uppercase tracking-wider mb-4">
@@ -1889,7 +1889,7 @@ export default function DocsPage() {
             color="cyan"
           />
 
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <ProductCard
               icon={Zap}
               name="AI Report"
@@ -1942,7 +1942,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Key Platform Features
           </h3>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FeatureCard
               icon={Map}
               title="Interactive Property Map"
@@ -1988,7 +1988,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Planes Mensuales
           </h3>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <h4 className="text-white font-semibold mb-2">
                 {SUBSCRIPTION_PLANS.STARTER.name}
@@ -2069,7 +2069,7 @@ export default function DocsPage() {
             On-Site y Certified siempre se pagan adicional, sin importar tu
             plan.
           </p>
-          <div className="grid md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             <div className="bg-gray-900 border border-lime-400/30 rounded-lg p-6 flex justify-between items-center">
               <div>
                 <h4 className="text-lime-400 font-semibold">
@@ -2122,7 +2122,7 @@ export default function DocsPage() {
             color="cyan"
           />
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <FeatureCard
               icon={Zap}
               title="Instant AI Valuations"
@@ -2265,7 +2265,7 @@ export default function DocsPage() {
             color="cyan"
           />
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <RoleCard
               title="Client"
               description="Real estate investors, agents, and mortgage professionals who order valuations."
@@ -2330,7 +2330,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Technology Stack
           </h3>
-          <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <TechCard
               category="Frontend"
               items={[
@@ -2416,7 +2416,7 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Application Routes
           </h3>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
               <h5 className="text-cyan-400 font-mono text-sm mb-3">
                 Client Routes
@@ -2468,7 +2468,7 @@ export default function DocsPage() {
             color="amber"
           />
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <IntegrationCard
               name="RapidCanvas"
               purpose="AI Valuation Engine"
@@ -2663,7 +2663,7 @@ export default function DocsPage() {
             color="amber"
           />
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
                 <Lock className="w-5 h-5 text-amber-400" />

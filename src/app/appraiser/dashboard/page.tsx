@@ -353,7 +353,7 @@ export default function AppraiserDashboardPage() {
       />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <StatCard
             key={stat.label}
@@ -366,7 +366,7 @@ export default function AppraiserDashboardPage() {
       </div>
 
       {/* Daily Goal & Level Progress */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <DailyGoalWidget
           completedToday={earnings?.completedJobsToday || 0}
           dailyGoal={3}
@@ -514,7 +514,7 @@ export default function AppraiserDashboardPage() {
       </div>
 
       {/* Weekly Performance - Ledger Style */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <WeeklyStatCard
           title="This Week"
           icon={Calendar}

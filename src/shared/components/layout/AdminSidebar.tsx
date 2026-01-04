@@ -159,7 +159,7 @@ export function AdminSidebar({ isMobileOpen, onClose }: AdminSidebarProps) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden w-64 flex-shrink-0 flex-col border-r border-gray-800 bg-black lg:flex">
+      <aside className="hidden w-56 xl:w-64 flex-shrink-0 flex-col border-r border-gray-800 bg-black lg:flex">
         {sidebarContent}
       </aside>
 
