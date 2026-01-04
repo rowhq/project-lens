@@ -831,7 +831,7 @@ export default function DocsPage() {
                     Instant - 7 days
                   </td>
                   <td className="py-4 text-center text-lime-400">
-                    ${PRICING.AI_REPORT}-${PRICING.CERTIFIED}
+                    Free-${PRICING.CERTIFIED}
                   </td>
                   <td className="py-4 text-center">
                     <CheckCircle className="w-5 h-5 text-lime-400 mx-auto" />
