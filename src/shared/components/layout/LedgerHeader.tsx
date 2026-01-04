@@ -7,6 +7,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/components/ui/Button";
 
@@ -84,7 +85,11 @@ export function LedgerHeader({
 
         {/* Right: Action button */}
         <Link href={actionButtonHref} className="hidden lg:block">
-          <Button variant="outline" size="sm" withBrackets>
+          <Button
+            variant="lime"
+            size="sm"
+            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+          >
             {actionButtonText}
           </Button>
         </Link>
