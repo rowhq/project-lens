@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { SessionProvider } from "@/shared/components/providers/SessionProvider";
 import { TRPCProvider } from "@/shared/components/providers/TRPCProvider";
+import { ThemeProvider } from "@/shared/components/providers/ThemeProvider";
 import { ToastProvider } from "@/shared/components/ui/Toast";
 import "./globals.css";
 
@@ -49,11 +50,13 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        <SessionProvider>
-          <TRPCProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </TRPCProvider>
-        </SessionProvider>
+        <ThemeProvider>
+          <SessionProvider>
+            <TRPCProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </TRPCProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

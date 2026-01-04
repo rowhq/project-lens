@@ -92,7 +92,7 @@ export function AdminSidebar({ isMobileOpen, onClose }: AdminSidebarProps) {
         "transition-all duration-fast",
         isActive
           ? "text-lime-400 bg-lime-400/5"
-          : "text-gray-400 hover:text-white hover:bg-gray-800/50",
+          : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50",
       )}
     >
       {/* Active indicator */}
@@ -111,7 +111,7 @@ export function AdminSidebar({ isMobileOpen, onClose }: AdminSidebarProps) {
   const sidebarContent = (
     <>
       {/* Logo with Admin badge */}
-      <div className="flex h-16 items-center justify-between border-b border-gray-800 px-6">
+      <div className="flex h-16 items-center justify-between border-b border-[var(--border)] px-6">
         <div className="flex items-center gap-2">
           <Logo href="/admin/dashboard" />
           <span className="text-label font-mono px-1.5 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 clip-notch-sm">
@@ -122,7 +122,7 @@ export function AdminSidebar({ isMobileOpen, onClose }: AdminSidebarProps) {
         {isMobileOpen && (
           <button
             onClick={onClose}
-            className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
+            className="lg:hidden p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
@@ -144,8 +144,8 @@ export function AdminSidebar({ isMobileOpen, onClose }: AdminSidebarProps) {
       </nav>
 
       {/* System Status */}
-      <div className="border-t border-gray-800 p-4">
-        <div className="flex items-center gap-2 text-caption text-gray-500 font-mono">
+      <div className="border-t border-[var(--border)] p-4">
+        <div className="flex items-center gap-2 text-caption text-[var(--muted-foreground)] font-mono">
           <span
             className="w-2 h-2 bg-lime-400"
             style={{ clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)" }}
@@ -159,7 +159,7 @@ export function AdminSidebar({ isMobileOpen, onClose }: AdminSidebarProps) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden w-56 xl:w-64 flex-shrink-0 flex-col border-r border-gray-800 bg-black lg:flex">
+      <aside className="hidden w-56 xl:w-64 flex-shrink-0 flex-col border-r border-[var(--border)] bg-[var(--background)] lg:flex">
         {sidebarContent}
       </aside>
 
@@ -174,7 +174,7 @@ export function AdminSidebar({ isMobileOpen, onClose }: AdminSidebarProps) {
           />
 
           {/* Mobile Sidebar */}
-          <aside className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-gray-800 bg-black lg:hidden animate-slide-in-left">
+          <aside className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-[var(--border)] bg-[var(--background)] lg:hidden animate-slide-in-left">
             {sidebarContent}
           </aside>
         </>

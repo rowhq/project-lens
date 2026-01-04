@@ -112,7 +112,7 @@ export function ClientSidebar({ isMobileOpen, onClose }: ClientSidebarProps) {
         "transition-all duration-fast",
         isActive
           ? "text-lime-400 bg-lime-400/5"
-          : "text-gray-400 hover:text-white hover:bg-gray-800/50",
+          : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50",
       )}
     >
       {/* Active indicator */}
@@ -131,13 +131,13 @@ export function ClientSidebar({ isMobileOpen, onClose }: ClientSidebarProps) {
   const sidebarContent = (
     <>
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b border-gray-800 px-6">
+      <div className="flex h-16 items-center justify-between border-b border-[var(--border)] px-6">
         <Logo href="/dashboard" />
         {/* Mobile close button */}
         {isMobileOpen && (
           <button
             onClick={onClose}
-            className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
+            className="lg:hidden p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
@@ -153,7 +153,7 @@ export function ClientSidebar({ isMobileOpen, onClose }: ClientSidebarProps) {
         {/* Menu header */}
         <div className="flex items-center gap-2 px-2 py-2 mb-2">
           <StatusSquare color="lime" />
-          <span className="font-mono text-xs uppercase tracking-wider text-gray-400">
+          <span className="font-mono text-xs uppercase tracking-wider text-[var(--muted-foreground)]">
             Menu
           </span>
         </div>
@@ -173,7 +173,7 @@ export function ClientSidebar({ isMobileOpen, onClose }: ClientSidebarProps) {
       </div>
 
       {/* Secondary Navigation */}
-      <div className="border-t border-gray-800 p-3">
+      <div className="border-t border-[var(--border)] p-3">
         {secondaryNavigation.map((item) => (
           <NavItem
             key={item.name}
@@ -186,14 +186,16 @@ export function ClientSidebar({ isMobileOpen, onClose }: ClientSidebarProps) {
       </div>
 
       {/* Version indicator */}
-      <div className="px-6 py-4 border-t border-gray-800">
+      <div className="px-6 py-4 border-t border-[var(--border)]">
         <div className="flex items-center gap-2">
           <StatusSquare color="lime" pulse />
-          <span className="font-mono text-xs uppercase tracking-wider text-gray-600">
+          <span className="font-mono text-xs uppercase tracking-wider text-[var(--muted-foreground)]">
             Online
           </span>
         </div>
-        <p className="font-mono text-xs text-gray-700 mt-1">TRUPLAT V1.0</p>
+        <p className="font-mono text-xs text-[var(--muted-foreground)] mt-1">
+          TRUPLAT V1.0
+        </p>
       </div>
     </>
   );
@@ -201,7 +203,7 @@ export function ClientSidebar({ isMobileOpen, onClose }: ClientSidebarProps) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden w-56 xl:w-64 flex-shrink-0 border-r border-gray-800 bg-black lg:flex lg:flex-col">
+      <aside className="hidden w-56 xl:w-64 flex-shrink-0 border-r border-[var(--border)] bg-[var(--background)] lg:flex lg:flex-col">
         {sidebarContent}
       </aside>
 
@@ -216,7 +218,7 @@ export function ClientSidebar({ isMobileOpen, onClose }: ClientSidebarProps) {
           />
 
           {/* Mobile Sidebar */}
-          <aside className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-gray-800 bg-black lg:hidden animate-slide-in-left">
+          <aside className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-[var(--border)] bg-[var(--background)] lg:hidden animate-slide-in-left">
             {sidebarContent}
           </aside>
         </>

@@ -10,6 +10,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/components/ui/Button";
+import { ThemeToggle } from "@/shared/components/ui/ThemeToggle";
 
 interface NavItem {
   label: string;
@@ -52,7 +53,7 @@ export function LedgerHeader({
   className,
 }: LedgerHeaderProps) {
   return (
-    <header className={cn("relative w-full bg-black", className)}>
+    <header className={cn("relative w-full bg-[var(--background)]", className)}>
       {/* Main header row */}
       <div className="flex items-center justify-between h-16 px-6">
         {/* Left: Logo */}
@@ -70,8 +71,8 @@ export function LedgerHeader({
                   "font-mono text-xs uppercase tracking-widest",
                   "transition-colors duration-300",
                   item.isActive
-                    ? "text-white"
-                    : "text-gray-400 hover:text-white",
+                    ? "text-[var(--foreground)]"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
                 )}
                 style={{
                   transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
@@ -83,16 +84,19 @@ export function LedgerHeader({
           ))}
         </nav>
 
-        {/* Right: Action button */}
-        <Link href={actionButtonHref} className="hidden lg:block">
-          <Button
-            variant="outline"
-            size="sm"
-            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-          >
-            {actionButtonText}
-          </Button>
-        </Link>
+        {/* Right: Theme toggle + Action button */}
+        <div className="hidden lg:flex items-center gap-4">
+          <ThemeToggle />
+          <Link href={actionButtonHref}>
+            <Button
+              variant="outline"
+              size="sm"
+              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+            >
+              {actionButtonText}
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Sub-navigation row (optional) */}
@@ -102,7 +106,7 @@ export function LedgerHeader({
             href={backLinkHref}
             className={cn(
               "font-mono text-xs uppercase tracking-widest",
-              "text-gray-500 hover:text-white",
+              "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
               "transition-colors duration-300",
             )}
             style={{
@@ -115,7 +119,7 @@ export function LedgerHeader({
       )}
 
       {/* Bottom border line */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-800" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-[var(--border)]" />
     </header>
   );
 }
@@ -133,20 +137,20 @@ export function LedgerDashboardHeader({
   className?: string;
 }) {
   return (
-    <header className={cn("relative w-full bg-black", className)}>
+    <header className={cn("relative w-full bg-[var(--background)]", className)}>
       <div className="flex items-center justify-between h-16 px-6">
         {/* Left: Logo */}
         <div className="flex items-center gap-6">
           <TruPlatLogo />
           {title && (
             <>
-              <span className="w-px h-6 bg-gray-800" />
+              <span className="w-px h-6 bg-[var(--border)]" />
               <div>
-                <h1 className="font-mono text-sm uppercase tracking-wider text-white">
+                <h1 className="font-mono text-sm uppercase tracking-wider text-[var(--foreground)]">
                   {title}
                 </h1>
                 {subtitle && (
-                  <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+                  <p className="font-mono text-xs uppercase tracking-wider text-[var(--muted-foreground)]">
                     {subtitle}
                   </p>
                 )}
@@ -162,7 +166,7 @@ export function LedgerDashboardHeader({
       </div>
 
       {/* Bottom border */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-800" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-[var(--border)]" />
     </header>
   );
 }

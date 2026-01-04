@@ -31,6 +31,7 @@ export default function LandingPage() {
     { label: "Pricing", href: "#pricing" },
     { label: "How It Works", href: "#how-it-works" },
     { label: "For Appraisers", href: "/for-appraisers" },
+    { label: "Docs", href: "/docs" },
   ];
 
   return (

@@ -33,6 +33,7 @@ export default function ForAppraisersPage() {
   const navItems = [
     { label: "How It Works", href: "#how-it-works" },
     { label: "For Clients", href: "/" },
+    { label: "Docs", href: "/docs" },
   ];
 
   return (

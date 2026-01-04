@@ -107,7 +107,7 @@ export function AppraiserSidebar({
         "transition-all duration-fast",
         isActive
           ? "text-lime-400 bg-lime-400/5"
-          : "text-gray-400 hover:text-white hover:bg-gray-800/50",
+          : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50",
       )}
     >
       {/* Active indicator */}
@@ -131,7 +131,7 @@ export function AppraiserSidebar({
   const sidebarContent = (
     <>
       {/* Logo with Appraiser badge */}
-      <div className="flex h-16 items-center justify-between border-b border-gray-800 px-6">
+      <div className="flex h-16 items-center justify-between border-b border-[var(--border)] px-6">
         <div className="flex items-center gap-2">
           <Logo href="/appraiser/dashboard" />
           <span className="text-label font-mono px-1.5 py-0.5 bg-lime-400/20 text-lime-400 border border-lime-400/30 clip-notch-sm">
@@ -142,7 +142,7 @@ export function AppraiserSidebar({
         {isMobileOpen && (
           <button
             onClick={onClose}
-            className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
+            className="lg:hidden p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
@@ -151,14 +151,14 @@ export function AppraiserSidebar({
       </div>
 
       {/* Quick Stats */}
-      <div className="p-4 border-b border-gray-800">
+      <div className="p-4 border-b border-[var(--border)]">
         <div className="grid grid-cols-2 gap-3">
           <Link
             href="/appraiser/jobs"
             onClick={onClose}
             className={cn(
               "flex flex-col items-center p-3",
-              "bg-gray-900 border border-gray-800",
+              "bg-[var(--card)] border border-[var(--border)]",
               "hover:border-lime-400/50",
               "clip-notch-sm",
               "transition-colors duration-fast",
@@ -167,7 +167,7 @@ export function AppraiserSidebar({
             <span className="text-2xl font-bold text-lime-400">
               {availableCount}
             </span>
-            <span className="text-label text-gray-500 font-mono">
+            <span className="text-label text-[var(--muted-foreground)] font-mono">
               AVAILABLE
             </span>
           </Link>
@@ -176,7 +176,7 @@ export function AppraiserSidebar({
             onClick={onClose}
             className={cn(
               "flex flex-col items-center p-3",
-              "bg-gray-900 border border-gray-800",
+              "bg-[var(--card)] border border-[var(--border)]",
               "hover:border-yellow-400/50",
               "clip-notch-sm",
               "transition-colors duration-fast",
@@ -185,7 +185,9 @@ export function AppraiserSidebar({
             <span className="text-2xl font-bold text-yellow-400">
               {activeCount}
             </span>
-            <span className="text-label text-gray-500 font-mono">ACTIVE</span>
+            <span className="text-label text-[var(--muted-foreground)] font-mono">
+              ACTIVE
+            </span>
           </Link>
         </div>
       </div>
@@ -219,7 +221,7 @@ export function AppraiserSidebar({
       </nav>
 
       {/* Secondary Navigation */}
-      <div className="border-t border-gray-800 p-3">
+      <div className="border-t border-[var(--border)] p-3">
         {secondaryNavigation.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
@@ -239,7 +241,7 @@ export function AppraiserSidebar({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden w-56 xl:w-64 flex-shrink-0 border-r border-gray-800 bg-black lg:flex lg:flex-col">
+      <aside className="hidden w-56 xl:w-64 flex-shrink-0 border-r border-[var(--border)] bg-[var(--background)] lg:flex lg:flex-col">
         {sidebarContent}
       </aside>
 
@@ -254,7 +256,7 @@ export function AppraiserSidebar({
           />
 
           {/* Mobile Sidebar */}
-          <aside className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-gray-800 bg-black lg:hidden animate-slide-in-left">
+          <aside className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-[var(--border)] bg-[var(--background)] lg:hidden animate-slide-in-left">
             {sidebarContent}
           </aside>
         </>

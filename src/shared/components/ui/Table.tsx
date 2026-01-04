@@ -19,7 +19,10 @@ type TableHeaderProps = React.HTMLAttributes<HTMLTableSectionElement>;
 function TableHeader({ className, children, ...props }: TableHeaderProps) {
   return (
     <thead
-      className={cn("bg-gray-900 border-b border-gray-800", className)}
+      className={cn(
+        "bg-[var(--card)] border-b border-[var(--border)]",
+        className,
+      )}
       {...props}
     >
       {children}
@@ -31,7 +34,10 @@ type TableBodyProps = React.HTMLAttributes<HTMLTableSectionElement>;
 
 function TableBody({ className, children, ...props }: TableBodyProps) {
   return (
-    <tbody className={cn("divide-y divide-gray-800/50", className)} {...props}>
+    <tbody
+      className={cn("divide-y divide-[var(--border)]/50", className)}
+      {...props}
+    >
       {children}
     </tbody>
   );
@@ -50,7 +56,8 @@ function TableRow({
   return (
     <tr
       className={cn(
-        hoverable && "hover:bg-gray-800/50 transition-colors duration-300",
+        hoverable &&
+          "hover:bg-[var(--muted)]/50 transition-colors duration-300",
         className,
       )}
       style={{
@@ -71,7 +78,7 @@ function TableHead({ className, children, ...props }: TableHeadProps) {
       className={cn(
         "px-4 lg:px-6 py-2 lg:py-3 text-left",
         "text-label font-mono uppercase tracking-widest",
-        "text-gray-500",
+        "text-[var(--muted-foreground)]",
         className,
       )}
       {...props}
@@ -87,7 +94,7 @@ function TableCell({ className, children, ...props }: TableCellProps) {
   return (
     <td
       className={cn(
-        "px-4 lg:px-6 py-3 lg:py-4 text-body-sm text-gray-300",
+        "px-4 lg:px-6 py-3 lg:py-4 text-body-sm text-[var(--foreground)]",
         className,
       )}
       {...props}
@@ -116,11 +123,15 @@ function TableEmpty({
     <tr>
       <td colSpan={colSpan} className="px-6 py-16 text-center">
         {icon && (
-          <div className="mx-auto mb-4 text-gray-600 w-12 h-12">{icon}</div>
+          <div className="mx-auto mb-4 text-[var(--muted-foreground)] w-12 h-12">
+            {icon}
+          </div>
         )}
-        <p className="font-medium text-white">{title}</p>
+        <p className="font-medium text-[var(--foreground)]">{title}</p>
         {description && (
-          <p className="mt-2 text-body-sm text-gray-500">{description}</p>
+          <p className="mt-2 text-body-sm text-[var(--muted-foreground)]">
+            {description}
+          </p>
         )}
         {action && <div className="mt-4">{action}</div>}
       </td>
