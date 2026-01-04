@@ -51,6 +51,12 @@ const sections = [
     category: "business",
   },
   {
+    id: "what-is-truplat",
+    label: "What is TruPlat?",
+    icon: Building2,
+    category: "business",
+  },
+  {
     id: "business-model",
     label: "Business Model",
     icon: DollarSign,
@@ -416,6 +422,286 @@ export default function DocsPage() {
                   Marketplace de appraisers con dispatch automático
                 </li>
               </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* ==================== WHAT IS TRUPLAT ==================== */}
+        <section id="what-is-truplat" className="mb-20 scroll-mt-20">
+          <SectionHeader
+            icon={Building2}
+            title="What is TruPlat?"
+            subtitle="Complete product overview and how it works"
+            color="lime"
+          />
+
+          {/* Product Definition */}
+          <div className="bg-gradient-to-r from-cyan-400/10 to-lime-400/10 border border-cyan-400/20 rounded-lg p-8 mb-8">
+            <h3 className="text-2xl font-bold text-white mb-4">
+              The AI-Powered Property Valuation Platform
+            </h3>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              TruPlat is a{" "}
+              <span className="text-lime-400 font-semibold">
+                hybrid AI + human
+              </span>{" "}
+              property valuation platform that delivers professional-grade
+              appraisals at a fraction of the traditional cost and time. We
+              combine cutting-edge machine learning models with a network of
+              licensed Texas appraisers to serve real estate investors, mortgage
+              professionals, and property owners.
+            </p>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="text-4xl font-bold text-cyan-400 mb-2">3</div>
+                <div className="text-gray-400 text-sm">Product Tiers</div>
+                <div className="text-gray-500 text-xs">
+                  AI → Verified → Certified
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-lime-400 mb-2">254</div>
+                <div className="text-gray-400 text-sm">Texas Counties</div>
+                <div className="text-gray-500 text-xs">Full state coverage</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-amber-400 mb-2">
+                  USPAP
+                </div>
+                <div className="text-gray-400 text-sm">Compliant</div>
+                <div className="text-gray-500 text-xs">
+                  Lender & court ready
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* How It Works - User Journey */}
+          <h3 className="text-xl font-semibold text-white mb-4">
+            How It Works
+          </h3>
+          <div className="grid md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 relative">
+              <div className="absolute -top-3 -left-3 w-8 h-8 bg-cyan-400 rounded-full flex items-center justify-center text-black font-bold">
+                1
+              </div>
+              <h4 className="text-white font-semibold mb-2 mt-2">
+                Enter Address
+              </h4>
+              <p className="text-gray-400 text-sm">
+                Search any Texas property by address or use our interactive map
+                to select a parcel.
+              </p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 relative">
+              <div className="absolute -top-3 -left-3 w-8 h-8 bg-lime-400 rounded-full flex items-center justify-center text-black font-bold">
+                2
+              </div>
+              <h4 className="text-white font-semibold mb-2 mt-2">
+                Choose Report Type
+              </h4>
+              <p className="text-gray-400 text-sm">
+                Select AI Report (instant), Verified (48hr with photos), or
+                Certified (USPAP compliant).
+              </p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 relative">
+              <div className="absolute -top-3 -left-3 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center text-black font-bold">
+                3
+              </div>
+              <h4 className="text-white font-semibold mb-2 mt-2">We Process</h4>
+              <p className="text-gray-400 text-sm">
+                Our AI analyzes data, finds comps, and (if needed) dispatches a
+                licensed appraiser.
+              </p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 relative">
+              <div className="absolute -top-3 -left-3 w-8 h-8 bg-purple-400 rounded-full flex items-center justify-center text-black font-bold">
+                4
+              </div>
+              <h4 className="text-white font-semibold mb-2 mt-2">Get Report</h4>
+              <p className="text-gray-400 text-sm">
+                Download your professional PDF report with valuation, comps, and
+                analysis.
+              </p>
+            </div>
+          </div>
+
+          {/* What's in a Report */}
+          <h3 className="text-xl font-semibold text-white mb-4">
+            What&apos;s in a TruPlat Report?
+          </h3>
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h4 className="text-cyan-400 font-mono text-sm mb-4">
+                VALUATION ANALYSIS
+              </h4>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Estimated Market Value</span>
+                    <span className="text-gray-500 block text-xs">
+                      AI-powered valuation with confidence score
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Value Range</span>
+                    <span className="text-gray-500 block text-xs">
+                      Low-to-high estimate with statistical basis
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Price per Sq Ft Analysis</span>
+                    <span className="text-gray-500 block text-xs">
+                      Compared to neighborhood averages
+                    </span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h4 className="text-lime-400 font-mono text-sm mb-4">
+                COMPARABLE SALES
+              </h4>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-lime-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">
+                      5-10 Comparable Properties
+                    </span>
+                    <span className="text-gray-500 block text-xs">
+                      Recent sales with similarity scores
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-lime-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Adjustment Grid</span>
+                    <span className="text-gray-500 block text-xs">
+                      Size, age, condition, location factors
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-lime-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Map Visualization</span>
+                    <span className="text-gray-500 block text-xs">
+                      Geographic context of comps
+                    </span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h4 className="text-amber-400 font-mono text-sm mb-4">
+                PROPERTY DETAILS
+              </h4>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Property Characteristics</span>
+                    <span className="text-gray-500 block text-xs">
+                      Beds, baths, sqft, lot size, year built
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Tax & Legal Info</span>
+                    <span className="text-gray-500 block text-xs">
+                      Parcel ID, zoning, tax assessment
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">
+                      Photos (Verified/Certified)
+                    </span>
+                    <span className="text-gray-500 block text-xs">
+                      Geotagged interior/exterior images
+                    </span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h4 className="text-purple-400 font-mono text-sm mb-4">
+                MARKET INTELLIGENCE
+              </h4>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Market Trends</span>
+                    <span className="text-gray-500 block text-xs">
+                      1/3/5 year appreciation rates
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Risk Assessment</span>
+                    <span className="text-gray-500 block text-xs">
+                      Flood zone, market volatility flags
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">AI Narrative Summary</span>
+                    <span className="text-gray-500 block text-xs">
+                      Investment potential analysis
+                    </span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Key Differentiators */}
+          <h3 className="text-xl font-semibold text-white mb-4">
+            Why TruPlat?
+          </h3>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="bg-gradient-to-b from-cyan-400/10 to-transparent border border-cyan-400/20 rounded-lg p-6">
+              <Zap className="w-8 h-8 text-cyan-400 mb-4" />
+              <h4 className="text-white font-semibold mb-2">Speed</h4>
+              <p className="text-gray-400 text-sm">
+                AI Reports in &lt;1 minute. Verified in 48 hours. 10x faster
+                than traditional 2-4 week appraisals.
+              </p>
+            </div>
+            <div className="bg-gradient-to-b from-lime-400/10 to-transparent border border-lime-400/20 rounded-lg p-6">
+              <DollarSign className="w-8 h-8 text-lime-400 mb-4" />
+              <h4 className="text-white font-semibold mb-2">Cost</h4>
+              <p className="text-gray-400 text-sm">
+                Starting at ${PRICING.AI_REPORT} vs $400-600 traditional. Free
+                tier with 5 reports/month for new users.
+              </p>
+            </div>
+            <div className="bg-gradient-to-b from-amber-400/10 to-transparent border border-amber-400/20 rounded-lg p-6">
+              <Award className="w-8 h-8 text-amber-400 mb-4" />
+              <h4 className="text-white font-semibold mb-2">Quality</h4>
+              <p className="text-gray-400 text-sm">
+                USPAP-compliant certified appraisals accepted by lenders and
+                courts. Licensed Texas appraisers.
+              </p>
             </div>
           </div>
         </section>
