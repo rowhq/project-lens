@@ -51,7 +51,7 @@ export default function ForAppraisersPage() {
       <div className="h-16" />
 
       {/* Hero Section */}
-      <section className="py-20 relative overflow-hidden bg-black">
+      <section className="py-20 relative overflow-hidden bg-[var(--background)]">
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             {/* Left - Value Prop */}
@@ -159,7 +159,7 @@ export default function ForAppraisersPage() {
       </div>
 
       {/* Benefits Grid */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-[var(--background)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="font-mono text-2xl uppercase tracking-wider text-white">
@@ -230,7 +230,7 @@ export default function ForAppraisersPage() {
       </section>
 
       {/* Requirements */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-[var(--background)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="relative bg-gray-900 border border-gray-800 p-8 md:p-12">
             {/* L-bracket corners */}
@@ -281,7 +281,7 @@ export default function ForAppraisersPage() {
       <TestimonialCarousel />
 
       {/* FAQ */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-[var(--background)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="font-mono text-2xl uppercase tracking-wider text-white">
@@ -318,7 +318,7 @@ export default function ForAppraisersPage() {
       <CTASection />
 
       {/* Footer - Ledger Style */}
-      <footer className="border-t border-gray-800 py-12 bg-black">
+      <footer className="border-t border-gray-800 py-12 bg-[var(--background)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">

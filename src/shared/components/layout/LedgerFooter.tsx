@@ -40,7 +40,7 @@ export function LedgerFooter({
     <footer
       className={cn(
         "relative w-full",
-        isDark ? "bg-black" : "bg-white",
+        isDark ? "bg-[var(--background)]" : "bg-white",
         className,
       )}
     >
@@ -184,7 +184,7 @@ export function LedgerFooterSimple({ className }: { className?: string }) {
   return (
     <footer
       className={cn(
-        "relative px-6 py-4 border-t border-gray-800 bg-black",
+        "relative px-6 py-4 border-t border-gray-800 bg-[var(--background)]",
         className,
       )}
     >

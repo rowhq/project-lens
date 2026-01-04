@@ -6,7 +6,7 @@ import { Button } from "@/shared/components/ui/Button";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-black">
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[var(--background)]">
       {/* Grid pattern overlay */}
       <div
         className="absolute inset-0 opacity-[0.03]"

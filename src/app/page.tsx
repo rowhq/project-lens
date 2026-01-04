@@ -244,7 +244,7 @@ export default function LandingPage() {
       <CTASection />
 
       {/* 10. Footer - Ledger Style */}
-      <footer className="border-t border-gray-800 py-16 bg-black">
+      <footer className="border-t border-gray-800 py-16 bg-[var(--background)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8 mb-12">
             {/* Product */}

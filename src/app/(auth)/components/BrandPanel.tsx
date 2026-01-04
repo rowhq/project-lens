@@ -29,7 +29,7 @@ export function BrandPanel() {
   return (
     <div className="relative flex flex-col justify-center h-full p-12 xl:p-16 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-black" />
+      <div className="absolute inset-0 bg-[var(--background)]" />
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{

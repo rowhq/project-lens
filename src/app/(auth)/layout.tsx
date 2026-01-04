@@ -14,7 +14,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-black">
+    <div className="flex min-h-screen bg-[var(--background)]">
       {/* Brand Panel - Desktop only */}
       <div className="hidden lg:flex lg:w-1/2 xl:w-[45%] border-r border-gray-800">
         <BrandPanel />
