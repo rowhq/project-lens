@@ -323,7 +323,7 @@ export default function DocsPage() {
             />
             <MetricCard
               label="LTV:CAC"
-              value="8:1"
+              value="20:1"
               sublabel="Target ratio"
               positive
             />
@@ -1251,7 +1251,12 @@ export default function DocsPage() {
               </thead>
               <tbody className="divide-y divide-gray-800">
                 <tr>
-                  <td className="py-4 text-white">Monthly Reports</td>
+                  <td className="py-4 text-white">
+                    Monthly Reports
+                    <span className="text-gray-600 text-xs ml-1">
+                      (free + paid)
+                    </span>
+                  </td>
                   <td className="py-4 text-right text-gray-300 font-mono">
                     2,500
                   </td>
@@ -1260,6 +1265,21 @@ export default function DocsPage() {
                   </td>
                   <td className="py-4 text-right text-gray-300 font-mono">
                     35,000
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-4 text-white">
+                    Paid Reports
+                    <span className="text-gray-600 text-xs ml-1">(~15%)</span>
+                  </td>
+                  <td className="py-4 text-right text-gray-300 font-mono">
+                    375
+                  </td>
+                  <td className="py-4 text-right text-gray-300 font-mono">
+                    1,800
+                  </td>
+                  <td className="py-4 text-right text-gray-300 font-mono">
+                    5,250
                   </td>
                 </tr>
                 <tr>
@@ -1275,15 +1295,20 @@ export default function DocsPage() {
                   </td>
                 </tr>
                 <tr>
-                  <td className="py-4 text-white">Gross Margin</td>
-                  <td className="py-4 text-right text-gray-300 font-mono">
-                    65%
+                  <td className="py-4 text-white">
+                    Gross Margin
+                    <span className="text-gray-600 text-xs ml-1">
+                      (blended)
+                    </span>
                   </td>
                   <td className="py-4 text-right text-gray-300 font-mono">
-                    70%
+                    75%
                   </td>
                   <td className="py-4 text-right text-gray-300 font-mono">
-                    72%
+                    78%
+                  </td>
+                  <td className="py-4 text-right text-gray-300 font-mono">
+                    80%
                   </td>
                 </tr>
                 <tr>
@@ -1356,20 +1381,24 @@ export default function DocsPage() {
               <h5 className="text-gray-500 text-sm mb-4">Customer Metrics</h5>
               <div className="space-y-3">
                 <div className="flex justify-between">
+                  <span className="text-gray-400">ARPU</span>
+                  <span className="text-white font-mono">$75/mo</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-gray-400">CAC</span>
                   <span className="text-white font-mono">$45</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">LTV</span>
-                  <span className="text-white font-mono">$360</span>
+                  <span className="text-white font-mono">$900</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">LTV:CAC</span>
-                  <span className="text-lime-400 font-mono">8:1</span>
+                  <span className="text-lime-400 font-mono">20:1</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Payback Period</span>
-                  <span className="text-white font-mono">2 months</span>
+                  <span className="text-gray-400">Payback</span>
+                  <span className="text-white font-mono">&lt; 1 month</span>
                 </div>
               </div>
             </div>
