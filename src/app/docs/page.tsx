@@ -301,7 +301,7 @@ export default function DocsPage() {
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <MetricCard
-              label="TAM (Texas)"
+              label="SAM (Texas)"
               value="$2.1B"
               change="+8% YoY"
               positive
