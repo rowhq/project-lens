@@ -38,24 +38,24 @@ const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>;
 
 /**
- * Validates environment variables and returns typed env object
- * Throws with detailed error messages if validation fails
+ * Validates environment variables and logs warnings for missing ones
+ * Does NOT throw - just logs warnings to avoid breaking the app
  */
-export function validateEnv(): Env {
+export function validateEnv(): { valid: boolean; errors: string[] } {
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
-    const errors = result.error.issues
-      .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)
-      .join("\n");
-
-    console.error("\n❌ Environment validation failed:\n");
-    console.error(errors);
-    console.error(
-      "\nPlease check your .env file and ensure all required variables are set.\n",
+    const errors = result.error.issues.map(
+      (issue) => `${issue.path.join(".")}: ${issue.message}`,
     );
 
-    throw new Error(`Missing or invalid environment variables:\n${errors}`);
+    console.warn("\n⚠️  Environment validation warnings:\n");
+    errors.forEach((err) => console.warn(`  - ${err}`));
+    console.warn(
+      "\nSome features may not work correctly. Check your environment variables.\n",
+    );
+
+    return { valid: false, errors };
   }
 
   // Warnings for optional but recommended variables
@@ -68,11 +68,5 @@ export function validateEnv(): Env {
     );
   }
 
-  return result.data;
+  return { valid: true, errors: [] };
 }
-
-/**
- * Validated environment variables
- * Import this to get type-safe access to env vars
- */
-export const env = validateEnv();

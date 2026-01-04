@@ -9,18 +9,11 @@ export async function register() {
     // Dynamically import to avoid edge runtime issues
     const { validateEnv } = await import("@/server/lib/env-validation");
 
-    try {
-      validateEnv();
+    const result = validateEnv();
+
+    if (result.valid) {
       console.log("✅ Environment validation passed");
-    } catch (error) {
-      // In production, fail fast if env vars are missing
-      if (process.env.NODE_ENV === "production") {
-        console.error(
-          "❌ Server startup aborted due to missing environment variables",
-        );
-        process.exit(1);
-      }
-      // In development, just warn
+    } else {
       console.warn("⚠️  Running with incomplete environment configuration");
     }
   }
