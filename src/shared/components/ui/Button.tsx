@@ -32,27 +32,27 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const variants = {
       primary: cn(
-        "bg-white text-gray-900",
-        "hover:bg-lime-400 hover:text-gray-900",
-        "border border-white hover:border-lime-400",
-        "focus:ring-white/30",
+        "bg-[var(--foreground)] text-[var(--background)]",
+        "hover:bg-lime-500 hover:text-gray-900",
+        "border border-[var(--foreground)] hover:border-lime-500",
+        "focus:ring-[var(--foreground)]/30",
       ),
       secondary: cn(
-        "bg-gray-900 text-white",
-        "hover:bg-gray-800",
-        "border border-gray-700 hover:border-gray-600",
-        "focus:ring-gray-600/30",
+        "bg-[var(--secondary)] text-[var(--secondary-foreground)]",
+        "hover:bg-[var(--muted)]",
+        "border border-[var(--border)] hover:border-[var(--muted-foreground)]",
+        "focus:ring-[var(--muted-foreground)]/30",
       ),
       outline: cn(
-        "bg-transparent text-white",
-        "hover:bg-lime-400/10 hover:text-lime-400",
-        "border border-gray-600 hover:border-lime-400",
-        "focus:ring-lime-400/30",
+        "bg-transparent text-[var(--foreground)]",
+        "hover:bg-lime-500/10 hover:text-lime-500",
+        "border border-[var(--border)] hover:border-lime-500",
+        "focus:ring-lime-500/30",
       ),
       ghost: cn(
-        "bg-transparent text-gray-300",
-        "hover:text-white hover:bg-gray-800/50",
-        "focus:ring-gray-600/30",
+        "bg-transparent text-[var(--muted-foreground)]",
+        "hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50",
+        "focus:ring-[var(--muted-foreground)]/30",
       ),
       danger: cn(
         "bg-red-600 text-white",
@@ -61,10 +61,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         "focus:ring-red-500/30",
       ),
       lime: cn(
-        "bg-lime-400 text-gray-900",
-        "hover:bg-lime-300",
-        "border border-lime-400 hover:border-lime-300",
-        "focus:ring-lime-400/30",
+        "bg-lime-500 text-gray-900",
+        "hover:bg-lime-400",
+        "border border-lime-500 hover:border-lime-400",
+        "focus:ring-lime-500/30",
       ),
     };
 
@@ -87,7 +87,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           // Transitions with Ledger easing
           "transition-all duration-300",
           // Focus state
-          "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-950",
+          "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--background)]",
           // Disabled state
           "disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none",
           // Variant and size
