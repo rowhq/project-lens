@@ -16,7 +16,15 @@ import {
 import { LedgerHeader } from "@/shared/components/layout/LedgerHeader";
 import { Button } from "@/shared/components/ui/Button";
 import { PRICING } from "@/shared/config/constants";
-import { Zap, Camera, Award, Check, Clock, ArrowRight } from "lucide-react";
+import {
+  Zap,
+  Camera,
+  Award,
+  Check,
+  Clock,
+  ArrowRight,
+  Gift,
+} from "lucide-react";
 
 export default function LandingPage() {
   const navItems = [
@@ -67,7 +75,7 @@ export default function LandingPage() {
               <StepCard
                 number={2}
                 title="Pick Your Report"
-                description={`AI-only ($${PRICING.AI_REPORT}), Verified ($${PRICING.ON_SITE}), or Certified ($${PRICING.CERTIFIED}). Pick what fits.`}
+                description={`Free (5/mo), AI ($${PRICING.AI_REPORT}), Verified ($${PRICING.ON_SITE}), or Certified ($${PRICING.CERTIFIED}). Pick what fits.`}
               />
               <StepCard
                 number={3}
@@ -107,8 +115,24 @@ export default function LandingPage() {
           </div>
 
           {/* Pricing Cards - Popular elevated */}
-          <div className="mx-auto max-w-5xl">
-            <div className="grid gap-6 lg:grid-cols-3 lg:items-center pt-6">
+          <div className="mx-auto max-w-6xl">
+            <div className="grid gap-6 lg:grid-cols-4 lg:items-center pt-6">
+              {/* Free tier */}
+              <PricingCard
+                icon={Gift}
+                tier="free"
+                name="Starter"
+                price={0}
+                turnaround="5 min"
+                useCase="Try before you buy"
+                features={[
+                  "5 AI Reports/month",
+                  "Comparable analysis",
+                  "Risk flags",
+                  "PDF download",
+                ]}
+              />
+
               {/* AI Report - Basic tier */}
               <PricingCard
                 icon={Zap}
@@ -118,7 +142,7 @@ export default function LandingPage() {
                 turnaround="5 min"
                 useCase="Quick decisions & deal screening"
                 features={[
-                  "AI-powered valuation",
+                  "Unlimited AI Reports",
                   "Comparable analysis",
                   "Risk flags",
                   "PDF download",
@@ -254,14 +278,14 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <Link
-                    href="#"
+                    href="/docs"
                     className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
                     style={{
                       transitionTimingFunction:
                         "cubic-bezier(0.85, 0, 0.15, 1)",
                     }}
                   >
-                    API Docs
+                    Documentation
                   </Link>
                 </li>
               </ul>
@@ -482,7 +506,7 @@ function PricingCard({
   popular,
 }: {
   icon: React.ElementType;
-  tier: "fastest" | "popular" | "premium";
+  tier: "free" | "fastest" | "popular" | "premium";
   name: string;
   price: number;
   turnaround: string;
@@ -491,12 +515,14 @@ function PricingCard({
   popular?: boolean;
 }) {
   const tierColors = {
+    free: "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
     fastest: "text-cyan-400 bg-cyan-400/10 border-cyan-400/30",
     popular: "text-lime-400 bg-lime-400/10 border-lime-400/30",
     premium: "text-amber-400 bg-amber-400/10 border-amber-400/30",
   };
 
   const tierLabels = {
+    free: "Free",
     fastest: "Fastest",
     popular: "Best Value",
     premium: "Premium",
@@ -572,8 +598,26 @@ function PricingCard({
           {/* Price + Turnaround hero */}
           <div className="flex items-end justify-between mb-6 pb-6 border-b border-gray-800">
             <div>
-              <span className="text-4xl font-bold text-white">${price}</span>
-              <span className="text-gray-500 font-mono text-sm">/report</span>
+              {price === 0 ? (
+                <>
+                  <span className="text-4xl font-bold text-emerald-400">
+                    Free
+                  </span>
+                  <span className="text-gray-500 font-mono text-sm">
+                    {" "}
+                    · 5/month
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-4xl font-bold text-white">
+                    ${price}
+                  </span>
+                  <span className="text-gray-500 font-mono text-sm">
+                    /report
+                  </span>
+                </>
+              )}
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 clip-notch-sm">
               <Clock className="w-3.5 h-3.5 text-lime-400" />
