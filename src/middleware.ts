@@ -26,6 +26,7 @@ export default auth(async (req) => {
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/for-appraisers") ||
+    pathname.startsWith("/docs") ||
     pathname.startsWith("/api/webhooks") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/cron") ||
