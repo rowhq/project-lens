@@ -126,8 +126,13 @@ const sections = [
 export default function DocsPage() {
   const [activeSection, setActiveSection] = useState("executive-summary");
 
-  // Unit Economics calculations
-  const aiReportCost = 8; // API costs (RapidCanvas + OpenAI + ATTOM)
+  // Unit Economics calculations (real costs based on API research)
+  // RapidCanvas: ~$0.50 (flat monthly fee ÷ volume)
+  // OpenAI GPT-4o: ~$0.03 (800 input + 2000 output tokens)
+  // ATTOM Data: ~$0.30 (~10 API reports × $0.03)
+  // PDF/Infra: ~$0.02
+  // Total: ~$0.85, using $1 as conservative buffer
+  const aiReportCost = 1;
   const aiReportPrice = PRICING.AI_REPORT;
   const aiReportMargin = (
     ((aiReportPrice - aiReportCost) / aiReportPrice) *
@@ -607,24 +612,24 @@ export default function DocsPage() {
               <ul className="space-y-2 text-sm">
                 <li className="flex justify-between">
                   <span className="text-gray-400">RapidCanvas API</span>
-                  <span className="text-white font-mono">$3.00</span>
+                  <span className="text-white font-mono">$0.50</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-gray-400">OpenAI (narrative)</span>
-                  <span className="text-white font-mono">$2.00</span>
+                  <span className="text-gray-400">OpenAI GPT-4o</span>
+                  <span className="text-white font-mono">$0.03</span>
                 </li>
                 <li className="flex justify-between">
                   <span className="text-gray-400">ATTOM Data</span>
-                  <span className="text-white font-mono">$2.00</span>
+                  <span className="text-white font-mono">$0.30</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-gray-400">PDF Generation</span>
-                  <span className="text-white font-mono">$1.00</span>
+                  <span className="text-gray-400">PDF/Infrastructure</span>
+                  <span className="text-white font-mono">$0.02</span>
                 </li>
                 <li className="flex justify-between border-t border-gray-800 pt-2 mt-2">
                   <span className="text-gray-300 font-medium">Total</span>
                   <span className="text-lime-400 font-mono font-medium">
-                    $8.00
+                    ~$1.00
                   </span>
                 </li>
               </ul>
@@ -634,7 +639,7 @@ export default function DocsPage() {
               <ul className="space-y-2 text-sm">
                 <li className="flex justify-between">
                   <span className="text-gray-400">AI Report costs</span>
-                  <span className="text-white font-mono">$8.00</span>
+                  <span className="text-white font-mono">$1.00</span>
                 </li>
                 <li className="flex justify-between">
                   <span className="text-gray-400">Appraiser payout</span>
@@ -657,7 +662,7 @@ export default function DocsPage() {
               <ul className="space-y-2 text-sm">
                 <li className="flex justify-between">
                   <span className="text-gray-400">AI Report costs</span>
-                  <span className="text-white font-mono">$8.00</span>
+                  <span className="text-white font-mono">$1.00</span>
                 </li>
                 <li className="flex justify-between">
                   <span className="text-gray-400">Appraiser payout</span>
