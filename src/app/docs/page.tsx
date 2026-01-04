@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   PRICING,
   SUBSCRIPTION_PLANS,
@@ -131,6 +131,54 @@ const sections = [
 
 export default function DocsPage() {
   const [activeSection, setActiveSection] = useState("executive-summary");
+  const isClickScrolling = useRef(false);
+
+  // Scroll spy - detect which section is visible
+  useEffect(() => {
+    const sectionIds = sections.map((s) => s.id);
+    const observers: IntersectionObserver[] = [];
+
+    sectionIds.forEach((id) => {
+      const element = document.getElementById(id);
+      if (!element) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            // Only update if not currently click-scrolling and section is intersecting
+            if (entry.isIntersecting && !isClickScrolling.current) {
+              setActiveSection(id);
+            }
+          });
+        },
+        {
+          rootMargin: "-20% 0px -70% 0px", // Trigger when section is in top 30% of viewport
+          threshold: 0,
+        },
+      );
+
+      observer.observe(element);
+      observers.push(observer);
+    });
+
+    return () => {
+      observers.forEach((obs) => obs.disconnect());
+    };
+  }, []);
+
+  // Handle sidebar click with smooth scroll
+  const handleSectionClick = (sectionId: string) => {
+    isClickScrolling.current = true;
+    setActiveSection(sectionId);
+
+    const element = document.getElementById(sectionId);
+    element?.scrollIntoView({ behavior: "smooth" });
+
+    // Re-enable scroll spy after animation completes
+    setTimeout(() => {
+      isClickScrolling.current = false;
+    }, 1000);
+  };
 
   // Unit Economics calculations (real costs based on API research)
   // RapidCanvas: ~$0.50 (flat monthly fee ÷ volume)
@@ -176,12 +224,7 @@ export default function DocsPage() {
                 return (
                   <li key={section.id}>
                     <button
-                      onClick={() => {
-                        setActiveSection(section.id);
-                        document
-                          .getElementById(section.id)
-                          ?.scrollIntoView({ behavior: "smooth" });
-                      }}
+                      onClick={() => handleSectionClick(section.id)}
                       className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors rounded ${
                         activeSection === section.id
                           ? "text-lime-400 bg-lime-400/10"
@@ -208,12 +251,7 @@ export default function DocsPage() {
                 return (
                   <li key={section.id}>
                     <button
-                      onClick={() => {
-                        setActiveSection(section.id);
-                        document
-                          .getElementById(section.id)
-                          ?.scrollIntoView({ behavior: "smooth" });
-                      }}
+                      onClick={() => handleSectionClick(section.id)}
                       className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors rounded ${
                         activeSection === section.id
                           ? "text-cyan-400 bg-cyan-400/10"
@@ -240,12 +278,7 @@ export default function DocsPage() {
                 return (
                   <li key={section.id}>
                     <button
-                      onClick={() => {
-                        setActiveSection(section.id);
-                        document
-                          .getElementById(section.id)
-                          ?.scrollIntoView({ behavior: "smooth" });
-                      }}
+                      onClick={() => handleSectionClick(section.id)}
                       className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors rounded ${
                         activeSection === section.id
                           ? "text-amber-400 bg-amber-400/10"
