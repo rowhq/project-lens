@@ -60,7 +60,9 @@ export function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps) {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-[var(--background)]">
-          <div className="p-6">{children}</div>
+          <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] 2xl:mx-auto">
+            {children}
+          </div>
           <LedgerFooterSimple />
         </main>
       </div>
