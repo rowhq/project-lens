@@ -334,8 +334,8 @@ export default function DocsPage() {
                 Velocidad
               </h4>
               <p className="text-gray-400 text-sm">
-                AI Reports en 5 minutos vs 2-3 semanas del proceso tradicional.
-                On-Site en 48 horas.
+                AI Reports instantáneos (~30 seg) vs 2-3 semanas del proceso
+                tradicional. On-Site en 48 horas.
               </p>
             </div>
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
@@ -396,7 +396,7 @@ export default function DocsPage() {
               <ul className="space-y-3 text-gray-300 text-sm">
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
-                  AI Reports instantáneos (5 min) desde ${PRICING.AI_REPORT}
+                  AI Reports instantáneos (~30 seg) desde ${PRICING.AI_REPORT}
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
@@ -828,7 +828,7 @@ export default function DocsPage() {
                   <td className="py-4 text-lime-400 font-medium">TruPlat</td>
                   <td className="py-4 text-gray-400">Hybrid AI + Human</td>
                   <td className="py-4 text-center text-lime-400">
-                    5min - 48hr
+                    Instant - 7 days
                   </td>
                   <td className="py-4 text-center text-lime-400">
                     ${PRICING.AI_REPORT}-${PRICING.CERTIFIED}
@@ -1396,7 +1396,7 @@ export default function DocsPage() {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-400">AI Report SLA</span>
-                  <span className="text-white font-mono">5 min</span>
+                  <span className="text-white font-mono">&lt; 1 min</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">On-Site SLA</span>
@@ -1625,7 +1625,7 @@ export default function DocsPage() {
               icon={Zap}
               name="AI Report"
               price={PRICING.AI_REPORT}
-              time="5 minutes"
+              time="< 1 minute"
               color="cyan"
               features={[
                 "Automated valuation model (AVM)",
@@ -1859,7 +1859,7 @@ export default function DocsPage() {
             <FeatureCard
               icon={Zap}
               title="Instant AI Valuations"
-              description="Get property valuations in under 5 minutes using advanced machine learning models trained on millions of Texas transactions."
+              description="Get property valuations in under 1 minute using advanced machine learning models trained on millions of Texas transactions."
             />
             <FeatureCard
               icon={Camera}
