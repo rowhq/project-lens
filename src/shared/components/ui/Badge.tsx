@@ -15,7 +15,8 @@ function Badge({
   ...props
 }: BadgeProps) {
   const variants = {
-    default: "bg-gray-800 text-gray-300 border-gray-700",
+    default:
+      "bg-[var(--muted)] text-[var(--muted-foreground)] border-[var(--border)]",
     success: "bg-green-500/10 text-green-400 border-green-500/30",
     warning: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
     error: "bg-red-500/10 text-red-400 border-red-500/30",

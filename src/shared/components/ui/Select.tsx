@@ -22,7 +22,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-mono text-gray-400 mb-2 uppercase">
+          <label className="block text-mono text-[var(--muted-foreground)] mb-2 uppercase">
             {label}
           </label>
         )}
@@ -32,8 +32,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             className={cn(
               // Base styles
               "w-full px-4 py-3 pr-10",
-              "bg-gray-900 text-white",
-              "border border-gray-700",
+              "bg-[var(--input)] text-[var(--foreground)]",
+              "border border-[var(--border)]",
               "appearance-none cursor-pointer",
               // Angular design
               "clip-notch-sm",
@@ -50,7 +50,11 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {...props}
           >
             {placeholder && (
-              <option value="" disabled className="text-gray-500">
+              <option
+                value=""
+                disabled
+                className="text-[var(--muted-foreground)]"
+              >
                 {placeholder}
               </option>
             )}
@@ -59,13 +63,13 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 key={option.value}
                 value={option.value}
                 disabled={option.disabled}
-                className="bg-gray-900 text-white"
+                className="bg-[var(--input)] text-[var(--foreground)]"
               >
                 {option.label}
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-lime-400 pointer-events-none transition-colors" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] group-focus-within:text-lime-400 pointer-events-none transition-colors" />
         </div>
         {error && (
           <p className="mt-2 text-caption text-red-500 font-mono">{error}</p>

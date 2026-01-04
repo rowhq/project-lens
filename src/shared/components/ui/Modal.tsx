@@ -115,7 +115,7 @@ function Modal({
           className={cn(
             // Base styles
             "relative w-full",
-            "bg-gray-900 border border-gray-800",
+            "bg-[var(--card)] border border-[var(--border)]",
             // Animation
             "animate-scale-in",
             // Focus outline
@@ -130,13 +130,13 @@ function Modal({
 
           {/* Header */}
           {(title || description) && (
-            <div className="px-6 py-4 border-b border-gray-800">
+            <div className="px-6 py-4 border-b border-[var(--border)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   {title && (
                     <h2
                       id={titleId}
-                      className="text-heading-md font-semibold text-white"
+                      className="text-heading-md font-semibold text-[var(--foreground)]"
                     >
                       {title}
                     </h2>
@@ -144,7 +144,7 @@ function Modal({
                   {description && (
                     <p
                       id={descriptionId}
-                      className="mt-1 text-body-sm text-gray-300"
+                      className="mt-1 text-body-sm text-[var(--muted-foreground)]"
                     >
                       {description}
                     </p>
@@ -155,8 +155,8 @@ function Modal({
                   aria-label="Close modal"
                   className={cn(
                     "p-2 -mr-2 -mt-1",
-                    "text-gray-400 hover:text-white",
-                    "hover:bg-gray-800",
+                    "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
+                    "hover:bg-[var(--muted)]",
                     "transition-colors duration-300 ease-ledger",
                   )}
                 >
@@ -171,7 +171,7 @@ function Modal({
 
           {/* Footer */}
           {footer && (
-            <div className="px-6 py-4 border-t border-gray-800 flex items-center justify-end gap-3">
+            <div className="px-6 py-4 border-t border-[var(--border)] flex items-center justify-end gap-3">
               {footer}
             </div>
           )}

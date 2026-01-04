@@ -20,10 +20,10 @@ function Card({
   ...props
 }: CardProps) {
   const variants = {
-    default: "bg-gray-900",
+    default: "bg-[var(--card)]",
     bordered:
-      "bg-gray-900 border border-gray-800 hover:border-gray-700 transition-colors",
-    elevated: "bg-gray-900 border border-gray-800 shadow-lg",
+      "bg-[var(--card)] border border-[var(--border)] hover:border-[var(--muted-foreground)] transition-colors",
+    elevated: "bg-[var(--card)] border border-[var(--border)] shadow-lg",
     glass: "glass",
   };
 
@@ -64,7 +64,7 @@ function CardHeader({ className, children, ...props }: CardHeaderProps) {
     <div
       className={cn(
         "flex items-center justify-between pb-4",
-        "border-b border-gray-800",
+        "border-b border-[var(--border)]",
         className,
       )}
       {...props}
@@ -87,7 +87,7 @@ function CardTitle({
   return (
     <Component
       className={cn(
-        "text-heading-md font-semibold text-white tracking-tight",
+        "text-heading-md font-semibold text-[var(--foreground)] tracking-tight",
         className,
       )}
       {...props}
@@ -105,7 +105,13 @@ function CardDescription({
   ...props
 }: CardDescriptionProps) {
   return (
-    <p className={cn("text-body-sm text-gray-400 mt-1", className)} {...props}>
+    <p
+      className={cn(
+        "text-body-sm text-[var(--muted-foreground)] mt-1",
+        className,
+      )}
+      {...props}
+    >
       {children}
     </p>
   );
@@ -128,7 +134,7 @@ function CardFooter({ className, children, ...props }: CardFooterProps) {
     <div
       className={cn(
         "flex items-center gap-3 pt-4 mt-4",
-        "border-t border-gray-800",
+        "border-t border-[var(--border)]",
         className,
       )}
       {...props}
@@ -166,8 +172,10 @@ function StatCard({
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-mono text-gray-500 mb-2">{label}</p>
-          <p className="text-display-sm text-white font-bold tracking-tight">
+          <p className="text-mono text-[var(--muted-foreground)] mb-2">
+            {label}
+          </p>
+          <p className="text-display-sm text-[var(--foreground)] font-bold tracking-tight">
             {value}
           </p>
           {change && (

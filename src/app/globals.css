@@ -803,6 +803,297 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   LIGHT MODE - GRAY SCALE OVERRIDES
+   Override dark theme grays for proper light mode adaptation
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Background colors - map dark grays to light equivalents */
+.light .bg-gray-950 {
+  background-color: var(--background) !important;
+}
+
+.light .bg-gray-900 {
+  background-color: var(--card) !important;
+}
+
+.light .bg-gray-800 {
+  background-color: var(--muted) !important;
+}
+
+.light .bg-gray-700 {
+  background-color: #E4E4E7 !important;
+}
+
+/* Border colors */
+.light .border-gray-950 {
+  border-color: var(--border) !important;
+}
+
+.light .border-gray-900 {
+  border-color: var(--border) !important;
+}
+
+.light .border-gray-800 {
+  border-color: var(--border) !important;
+}
+
+.light .border-gray-700 {
+  border-color: #D4D4D8 !important;
+}
+
+.light .border-gray-600 {
+  border-color: #A1A1AA !important;
+}
+
+/* Text colors - ensure readability on light backgrounds */
+.light .text-white {
+  color: var(--foreground) !important;
+}
+
+.light .text-gray-300 {
+  color: #52525B !important;
+}
+
+.light .text-gray-400 {
+  color: var(--muted-foreground) !important;
+}
+
+.light .text-gray-500 {
+  color: #52525B !important;
+}
+
+.light .text-gray-600 {
+  color: #3F3F46 !important;
+}
+
+/* Hover states - backgrounds */
+.light .hover\:bg-gray-950:hover {
+  background-color: #F4F4F5 !important;
+}
+
+.light .hover\:bg-gray-900:hover {
+  background-color: #F4F4F5 !important;
+}
+
+.light .hover\:bg-gray-800:hover {
+  background-color: #E4E4E7 !important;
+}
+
+.light .hover\:bg-gray-700:hover {
+  background-color: #D4D4D8 !important;
+}
+
+/* Hover states - text */
+.light .hover\:text-white:hover {
+  color: var(--foreground) !important;
+}
+
+.light .hover\:text-gray-300:hover {
+  color: #3F3F46 !important;
+}
+
+/* Hover states - borders */
+.light .hover\:border-gray-700:hover {
+  border-color: #A1A1AA !important;
+}
+
+.light .hover\:border-gray-600:hover {
+  border-color: #71717A !important;
+}
+
+.light .hover\:border-gray-500:hover {
+  border-color: #52525B !important;
+}
+
+/* Ring and focus states */
+.light .ring-offset-gray-950 {
+  --tw-ring-offset-color: var(--background) !important;
+}
+
+.light .ring-offset-gray-900 {
+  --tw-ring-offset-color: var(--background) !important;
+}
+
+.light .ring-gray-900 {
+  --tw-ring-color: var(--border) !important;
+}
+
+.light .ring-gray-800 {
+  --tw-ring-color: var(--border) !important;
+}
+
+.light .focus\:ring-offset-gray-950:focus {
+  --tw-ring-offset-color: var(--background) !important;
+}
+
+/* Divide colors */
+.light .divide-gray-800 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border) !important;
+}
+
+.light .divide-gray-700 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #D4D4D8 !important;
+}
+
+.light .divide-gray-900 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border) !important;
+}
+
+/* Gradient colors */
+.light .from-black {
+  --tw-gradient-from: var(--background) !important;
+}
+
+.light .from-gray-950 {
+  --tw-gradient-from: var(--background) !important;
+}
+
+.light .from-gray-900 {
+  --tw-gradient-from: var(--card) !important;
+}
+
+.light .to-gray-950 {
+  --tw-gradient-to: var(--background) !important;
+}
+
+.light .to-gray-900 {
+  --tw-gradient-to: var(--card) !important;
+}
+
+/* Placeholder colors */
+.light .placeholder-gray-500::placeholder,
+.light .placeholder\:text-gray-500::placeholder {
+  color: #71717A !important;
+}
+
+.light .placeholder-gray-400::placeholder,
+.light .placeholder\:text-gray-400::placeholder {
+  color: #A1A1AA !important;
+}
+
+/* Green/Success colors - darker for light mode */
+.light .text-green-400,
+.light .text-green-500 {
+  color: #16A34A !important;
+}
+
+.light .bg-green-500\/10,
+.light .bg-green-500\/20,
+.light .bg-green-400\/20 {
+  background-color: rgba(22, 163, 74, 0.12) !important;
+}
+
+.light .border-green-500\/30,
+.light .border-green-400\/30 {
+  border-color: rgba(22, 163, 74, 0.4) !important;
+}
+
+/* Blue/Info colors - darker for light mode */
+.light .text-blue-400,
+.light .text-blue-500 {
+  color: #2563EB !important;
+}
+
+.light .bg-blue-500\/10,
+.light .bg-blue-500\/20,
+.light .bg-blue-400\/20 {
+  background-color: rgba(37, 99, 235, 0.12) !important;
+}
+
+/* Cyan colors */
+.light .text-cyan-400,
+.light .text-cyan-500 {
+  color: #0891B2 !important;
+}
+
+.light .bg-cyan-500\/20,
+.light .bg-cyan-400\/20 {
+  background-color: rgba(8, 145, 178, 0.12) !important;
+}
+
+/* Purple colors */
+.light .text-purple-400,
+.light .text-purple-500 {
+  color: #7C3AED !important;
+}
+
+.light .bg-purple-500\/10,
+.light .bg-purple-500\/20,
+.light .bg-purple-400\/20 {
+  background-color: rgba(124, 58, 237, 0.12) !important;
+}
+
+/* Orange colors */
+.light .text-orange-400,
+.light .text-orange-500 {
+  color: #EA580C !important;
+}
+
+.light .bg-orange-500\/20,
+.light .bg-orange-400\/20 {
+  background-color: rgba(234, 88, 12, 0.12) !important;
+}
+
+/* Opacity variants for backgrounds */
+.light .bg-gray-900\/50 {
+  background-color: rgba(244, 244, 245, 0.5) !important;
+}
+
+.light .bg-gray-800\/50 {
+  background-color: rgba(228, 228, 231, 0.5) !important;
+}
+
+.light .bg-gray-950\/50 {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Scrollbar for light mode */
+.light ::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #A1A1AA;
+}
+
+.light * {
+  scrollbar-color: #D4D4D8 transparent;
+}
+
+/* Line separators for light mode */
+.light .line-separator {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #D4D4D8 20%,
+    #D4D4D8 80%,
+    transparent 100%
+  );
+}
+
+.light .line-separator-notch {
+  background: #E4E4E7;
+}
+
+/* Ledger brackets for light mode */
+.light .ledger-brackets::before,
+.light .ledger-brackets::after {
+  border-color: #A1A1AA;
+}
+
+.light .ledger-corner--tl,
+.light .ledger-corner--tr,
+.light .ledger-corner--bl,
+.light .ledger-corner--br {
+  border-color: #A1A1AA;
+}
+
+/* Border subtle for light mode */
+.light .border-subtle {
+  border-color: var(--border);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    TEXT EFFECTS
    ═══════════════════════════════════════════════════════════════════════════ */
 

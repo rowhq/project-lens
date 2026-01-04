@@ -19,7 +19,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label
             htmlFor={textareaId}
-            className="block text-mono text-gray-400 mb-2 uppercase"
+            className="block text-mono text-[var(--muted-foreground)] mb-2 uppercase"
           >
             {label}
           </label>
@@ -30,9 +30,9 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           className={cn(
             // Base styles
             "w-full px-4 py-3",
-            "bg-gray-900 text-white",
-            "border border-gray-700",
-            "placeholder-gray-500",
+            "bg-[var(--input)] text-[var(--foreground)]",
+            "border border-[var(--border)]",
+            "placeholder-[var(--muted-foreground)]",
             // Angular design
             "clip-notch-sm",
             // Focus state
@@ -43,7 +43,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             // Resize
             "resize-y min-h-[120px]",
             // Disabled
-            "disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed",
+            "disabled:bg-[var(--muted)] disabled:text-[var(--muted-foreground)] disabled:cursor-not-allowed",
             // Error state
             error &&
               "border-red-500 focus:border-red-500 focus:ring-red-500/20",
@@ -62,7 +62,9 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           </p>
         )}
         {hint && !error && (
-          <p className="mt-2 text-caption text-gray-500">{hint}</p>
+          <p className="mt-2 text-caption text-[var(--muted-foreground)]">
+            {hint}
+          </p>
         )}
       </div>
     );
