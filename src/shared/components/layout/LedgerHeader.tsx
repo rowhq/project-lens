@@ -86,7 +86,7 @@ export function LedgerHeader({
         {/* Right: Action button */}
         <Link href={actionButtonHref} className="hidden lg:block">
           <Button
-            variant="lime"
+            variant="outline"
             size="sm"
             rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
           >
