@@ -191,6 +191,131 @@ export const adminRouter = createTRPCRouter({
 
       return { recentAppraisals, recentJobs, recentDisputes };
     }),
+
+    /**
+     * Top performing appraisers
+     */
+    topAppraisers: adminProcedure
+      .input(z.object({ limit: z.number().min(1).max(20).default(5) }))
+      .query(async ({ ctx, input }) => {
+        const appraisers = await ctx.prisma.appraiserProfile.findMany({
+          where: { verificationStatus: "VERIFIED" },
+          orderBy: [{ completedJobs: "desc" }, { rating: "desc" }],
+          take: input.limit,
+          include: {
+            user: { select: { firstName: true, lastName: true } },
+          },
+        });
+
+        // Get revenue for each appraiser from completed job payouts
+        const appraisersWithRevenue = await Promise.all(
+          appraisers.map(async (appraiser) => {
+            const revenue = await ctx.prisma.payment.aggregate({
+              where: {
+                userId: appraiser.userId,
+                type: "JOB_PAYOUT",
+                status: "COMPLETED",
+              },
+              _sum: { amount: true },
+            });
+
+            return {
+              id: appraiser.userId,
+              name: `${appraiser.user.firstName} ${appraiser.user.lastName}`,
+              completedJobs: appraiser.completedJobs,
+              rating: appraiser.rating,
+              revenue: Number(revenue._sum.amount || 0),
+            };
+          }),
+        );
+
+        return appraisersWithRevenue;
+      }),
+
+    /**
+     * Top organizations by job volume
+     */
+    topOrganizations: adminProcedure
+      .input(z.object({ limit: z.number().min(1).max(20).default(5) }))
+      .query(async ({ ctx, input }) => {
+        const orgs = await ctx.prisma.organization.findMany({
+          orderBy: { appraisalRequests: { _count: "desc" } },
+          take: input.limit,
+          include: {
+            _count: { select: { appraisalRequests: true } },
+          },
+        });
+
+        return orgs.map((org) => ({
+          id: org.id,
+          name: org.name,
+          plan: org.plan,
+          jobCount: org._count.appraisalRequests,
+        }));
+      }),
+
+    /**
+     * Top counties by job volume
+     */
+    topCounties: adminProcedure
+      .input(z.object({ limit: z.number().min(1).max(20).default(5) }))
+      .query(async ({ ctx, input }) => {
+        // Use raw SQL for proper grouping and ordering
+        const counties = await ctx.prisma.$queryRaw<
+          Array<{ county: string | null; count: bigint }>
+        >`
+          SELECT county, COUNT(*) as count
+          FROM "Property"
+          WHERE county IS NOT NULL
+          GROUP BY county
+          ORDER BY count DESC
+          LIMIT ${input.limit}
+        `;
+
+        const total = counties.reduce((sum, c) => sum + Number(c.count), 0);
+
+        return counties.map((c) => ({
+          county: c.county || "Unknown",
+          count: Number(c.count),
+          percentage:
+            total > 0 ? Math.round((Number(c.count) / total) * 100) : 0,
+        }));
+      }),
+
+    /**
+     * Average job turnaround time in days
+     */
+    averageTurnaround: adminProcedure.query(async ({ ctx }) => {
+      const jobs = await ctx.prisma.job.findMany({
+        where: {
+          status: "COMPLETED",
+          completedAt: { not: null },
+        },
+        select: { createdAt: true, completedAt: true },
+      });
+
+      if (jobs.length === 0) return 0;
+
+      const totalDays = jobs.reduce((sum, job) => {
+        const days =
+          (job.completedAt!.getTime() - job.createdAt.getTime()) / 86400000;
+        return sum + days;
+      }, 0);
+
+      return Math.round((totalDays / jobs.length) * 10) / 10;
+    }),
+
+    /**
+     * Average satisfaction score from appraiser ratings
+     */
+    satisfactionScore: adminProcedure.query(async ({ ctx }) => {
+      const result = await ctx.prisma.appraiserProfile.aggregate({
+        where: { rating: { gt: 0 } },
+        _avg: { rating: true },
+      });
+
+      return Math.round((result._avg.rating || 0) * 10) / 10;
+    }),
   }),
 
   /**

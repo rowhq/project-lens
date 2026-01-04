@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { prisma } from "@/server/db/prisma";
 import { z } from "zod";
+import {
+  authRateLimiter,
+  checkRateLimit,
+  getClientIP,
+} from "@/server/lib/ratelimit";
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -13,6 +18,11 @@ const registerSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const ip = getClientIP(request);
+  const rateLimitResponse = await checkRateLimit(authRateLimiter, ip);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const body = await request.json();
     const validated = registerSchema.parse(body);
@@ -25,7 +35,7 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       return NextResponse.json(
         { error: "An account with this email already exists" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -38,10 +48,13 @@ export async function POST(request: NextRequest) {
       const org = await prisma.organization.create({
         data: {
           name: validated.organizationName,
-          slug: validated.organizationName
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-|-$/g, "") + "-" + Date.now(),
+          slug:
+            validated.organizationName
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-|-$/g, "") +
+            "-" +
+            Date.now(),
         },
       });
       organizationId = org.id;
@@ -72,19 +85,19 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { message: "Account created successfully", user },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
     console.error("Registration error:", error);
     return NextResponse.json(
       { error: "Failed to create account" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

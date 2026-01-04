@@ -159,6 +159,10 @@ model User {
   // Notification preferences
   notificationPreferences NotificationPreferences?
 
+  // Password reset
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
+
   // Timestamps
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

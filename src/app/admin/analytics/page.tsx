@@ -89,12 +89,23 @@ export default function AnalyticsPage() {
   const { data: weeklyTrend } = trpc.admin.dashboard.weeklyTrend.useQuery();
   const { data: jobTypeDistribution } =
     trpc.admin.dashboard.jobTypeDistribution.useQuery();
+  const { data: topAppraisersData } =
+    trpc.admin.dashboard.topAppraisers.useQuery({ limit: 3 });
+  const { data: topOrganizationsData } =
+    trpc.admin.dashboard.topOrganizations.useQuery({ limit: 3 });
+  const { data: topCountiesData } = trpc.admin.dashboard.topCounties.useQuery({
+    limit: 5,
+  });
+  const { data: avgTurnaroundData } =
+    trpc.admin.dashboard.averageTurnaround.useQuery();
+  const { data: satisfactionScoreData } =
+    trpc.admin.dashboard.satisfactionScore.useQuery();
 
   // Calculate metrics
   const totalRevenue = stats?.revenue?.thisMonth || 0;
   const totalJobs = stats?.jobs?.active || 0;
-  const avgTurnaround = 2.4; // Mock - would come from actual data
-  const satisfactionScore = 4.7; // Mock - would come from actual data
+  const avgTurnaround = avgTurnaroundData ?? 0;
+  const satisfactionScore = satisfactionScoreData ?? 0;
 
   // Prepare chart data
   const trendChartData = useMemo(() => {
@@ -123,26 +134,41 @@ export default function AnalyticsPage() {
     return jobTypeDistribution;
   }, [jobTypeDistribution]);
 
-  // Mock data for top performers
-  const topAppraisers = [
-    { name: "James Brown", jobs: 512, rating: 4.9, revenue: "$25,600" },
-    { name: "Mike Williams", jobs: 342, rating: 4.8, revenue: "$17,100" },
-    { name: "Sarah Davis", jobs: 198, rating: 4.6, revenue: "$9,900" },
-  ];
+  // Transform query data for display
+  const topAppraisers = useMemo(() => {
+    if (!topAppraisersData) return [];
+    return topAppraisersData.map((a) => ({
+      name: a.name,
+      jobs: a.completedJobs,
+      rating: a.rating,
+      revenue: `$${a.revenue.toLocaleString()}`,
+    }));
+  }, [topAppraisersData]);
 
-  const topOrganizations = [
-    { name: "Texas Lending Corp", jobs: 245, plan: "Professional" },
-    { name: "Houston Capital Group", jobs: 189, plan: "Enterprise" },
-    { name: "Lone Star Mortgage", jobs: 156, plan: "Starter" },
-  ];
+  const topOrganizations = useMemo(() => {
+    if (!topOrganizationsData) return [];
+    return topOrganizationsData.map((o) => ({
+      name: o.name,
+      jobs: o.jobCount,
+      plan:
+        o.plan === "PROFESSIONAL"
+          ? "Professional"
+          : o.plan === "ENTERPRISE"
+            ? "Enterprise"
+            : o.plan === "STARTER"
+              ? "Starter"
+              : "Free Trial",
+    }));
+  }, [topOrganizationsData]);
 
-  const topCounties = [
-    { name: "Travis", jobs: 342, percentage: 28 },
-    { name: "Harris", jobs: 287, percentage: 23 },
-    { name: "Dallas", jobs: 234, percentage: 19 },
-    { name: "Bexar", jobs: 178, percentage: 14 },
-    { name: "Tarrant", jobs: 156, percentage: 13 },
-  ];
+  const topCounties = useMemo(() => {
+    if (!topCountiesData) return [];
+    return topCountiesData.map((c) => ({
+      name: c.county,
+      jobs: c.count,
+      percentage: c.percentage,
+    }));
+  }, [topCountiesData]);
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
     { value: "7d", label: "7 Days" },
