@@ -2022,75 +2022,22 @@ export default function DocsPage() {
           <SectionHeader
             icon={DollarSign}
             title="Pricing & Plans"
-            subtitle="Transactional and subscription pricing"
+            subtitle="Simple subscription pricing with AI reports included"
             color="cyan"
           />
 
-          {/* Per-Report Pricing */}
-          <h3 className="text-xl font-semibold text-white mb-4">
-            Per-Report Pricing
-          </h3>
-          <div className="grid md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-gray-900 border border-emerald-400/30 rounded-lg p-6 text-center">
-              <h4 className="text-emerald-400 font-mono text-sm mb-2">FREE</h4>
-              <div className="text-3xl font-bold text-white mb-1">$0</div>
-              <div className="text-gray-500 text-sm mb-4">5 reports/month</div>
-              <ul className="text-sm text-gray-400 space-y-2 text-left">
-                <li>• AI Reports only</li>
-                <li>• Basic features</li>
-                <li>• Email support</li>
-              </ul>
-            </div>
-            <div className="bg-gray-900 border border-cyan-400/30 rounded-lg p-6 text-center">
-              <h4 className="text-cyan-400 font-mono text-sm mb-2">
-                AI REPORT
-              </h4>
-              <div className="text-3xl font-bold text-white mb-1">
-                ${PRICING.AI_REPORT}
-              </div>
-              <div className="text-gray-500 text-sm mb-4">per report</div>
-              <ul className="text-sm text-gray-400 space-y-2 text-left">
-                <li>• Instant delivery</li>
-                <li>• AVM + comps</li>
-                <li>• PDF download</li>
-              </ul>
-            </div>
-            <div className="bg-gray-900 border border-lime-400/30 rounded-lg p-6 text-center relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="px-2 py-1 bg-lime-400 text-black text-xs font-mono rounded">
-                  POPULAR
-                </span>
-              </div>
-              <h4 className="text-lime-400 font-mono text-sm mb-2">ON-SITE</h4>
-              <div className="text-3xl font-bold text-white mb-1">
-                ${PRICING.ON_SITE}
-              </div>
-              <div className="text-gray-500 text-sm mb-4">per report</div>
-              <ul className="text-sm text-gray-400 space-y-2 text-left">
-                <li>• 48hr SLA</li>
-                <li>• Photo inspection</li>
-                <li>• Condition report</li>
-              </ul>
-            </div>
-            <div className="bg-gray-900 border border-amber-400/30 rounded-lg p-6 text-center">
-              <h4 className="text-amber-400 font-mono text-sm mb-2">
-                CERTIFIED
-              </h4>
-              <div className="text-3xl font-bold text-white mb-1">
-                ${PRICING.CERTIFIED}
-              </div>
-              <div className="text-gray-500 text-sm mb-4">per report</div>
-              <ul className="text-sm text-gray-400 space-y-2 text-left">
-                <li>• USPAP compliant</li>
-                <li>• Court admissible</li>
-                <li>• Licensed appraiser</li>
-              </ul>
-            </div>
+          {/* How it works */}
+          <div className="bg-gradient-to-r from-cyan-400/10 to-transparent border-l-4 border-cyan-400 p-6 mb-8">
+            <p className="text-gray-300">
+              <span className="text-white font-semibold">Modelo simple:</span>{" "}
+              Elige un plan mensual que incluye AI Reports. On-Site y Certified
+              siempre se pagan adicional por reporte.
+            </p>
           </div>
 
           {/* Subscription Plans */}
           <h3 className="text-xl font-semibold text-white mb-4">
-            Subscription Plans
+            Planes Mensuales
           </h3>
           <div className="grid md:grid-cols-3 gap-4">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
@@ -2163,6 +2110,57 @@ export default function DocsPage() {
                 ))}
               </ul>
             </div>
+          </div>
+
+          {/* Additional Report Types */}
+          <h3 className="text-xl font-semibold text-white mb-4 mt-8">
+            Reportes Adicionales (Pay per Report)
+          </h3>
+          <p className="text-gray-400 text-sm mb-4">
+            On-Site y Certified siempre se pagan adicional, sin importar tu
+            plan.
+          </p>
+          <div className="grid md:grid-cols-2 gap-4 mb-8">
+            <div className="bg-gray-900 border border-lime-400/30 rounded-lg p-6 flex justify-between items-center">
+              <div>
+                <h4 className="text-lime-400 font-semibold">
+                  On-Site Verification
+                </h4>
+                <p className="text-gray-400 text-sm">
+                  Inspección con fotos • 48hr SLA
+                </p>
+              </div>
+              <div className="text-2xl font-bold text-white">
+                ${PRICING.ON_SITE}
+              </div>
+            </div>
+            <div className="bg-gray-900 border border-amber-400/30 rounded-lg p-6 flex justify-between items-center">
+              <div>
+                <h4 className="text-amber-400 font-semibold">
+                  Certified Appraisal
+                </h4>
+                <p className="text-gray-400 text-sm">
+                  USPAP compliant • 5-7 días
+                </p>
+              </div>
+              <div className="text-2xl font-bold text-white">
+                ${PRICING.CERTIFIED}
+              </div>
+            </div>
+          </div>
+
+          {/* Overage Pricing */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
+            <h4 className="text-white font-semibold mb-2">
+              ¿Qué pasa si excedo mi límite de AI Reports?
+            </h4>
+            <p className="text-gray-400 text-sm">
+              Cada AI Report adicional después de tu límite mensual cuesta{" "}
+              <span className="text-cyan-400 font-mono font-semibold">
+                ${PRICING.AI_REPORT}
+              </span>
+              . Enterprise tiene reportes ilimitados.
+            </p>
           </div>
         </section>
 
