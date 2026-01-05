@@ -378,7 +378,7 @@ export default function LandingPage() {
               <ul className="space-y-3">
                 <li>
                   <Link
-                    href="/docs#data-security"
+                    href="/docs#security"
                     className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
                     style={{
                       transitionTimingFunction:
@@ -390,7 +390,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <Link
-                    href="/docs#regulatory-compliance"
+                    href="/docs#risks"
                     className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
                     style={{
                       transitionTimingFunction:
@@ -402,7 +402,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <Link
-                    href="/docs#data-security"
+                    href="/docs#security"
                     className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
                     style={{
                       transitionTimingFunction:

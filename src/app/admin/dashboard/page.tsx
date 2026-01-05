@@ -458,7 +458,7 @@ export default function AdminDashboardPage() {
             Recent Activity
           </h2>
           <Link
-            href="/admin/activity"
+            href="/admin/analytics"
             className="flex items-center gap-1 text-lime-400 text-sm font-mono uppercase tracking-wider hover:text-lime-300 transition-colors"
           >
             View All
