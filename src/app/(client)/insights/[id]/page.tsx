@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo } from "react";
+import { use, useMemo, useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { trpc } from "@/shared/lib/trpc";
@@ -129,6 +129,8 @@ export default function InsightDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = use(params);
+  const mapSectionRef = useRef<HTMLDivElement>(null);
+
   const {
     data: insight,
     isLoading,
@@ -446,7 +448,7 @@ export default function InsightDetailPage({
 
           {/* Quick Actions */}
           <div className="flex gap-2 flex-wrap">
-            {/* Primary CTA */}
+            {/* Primary CTA - Go to full map page */}
             <Link
               href={`/map?lat=${insight.latitude}&lng=${insight.longitude}&zoom=13`}
               className="px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch flex items-center gap-2 hover:bg-lime-300 transition-colors"
@@ -454,15 +456,21 @@ export default function InsightDetailPage({
               <Target className="w-4 h-4" />
               Explore Zone
             </Link>
-            {/* Secondary Actions */}
-            <Link
-              href={`/map?lat=${insight.latitude}&lng=${insight.longitude}&zoom=14`}
+            {/* Secondary - Scroll to local map on this page */}
+            <button
+              onClick={() => {
+                mapSectionRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                });
+              }}
               className="px-4 py-2 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2"
             >
               <MapPin className="w-4 h-4" />
-              View on Map
-            </Link>
-            {insight.sourceUrl && (
+              View Location
+            </button>
+            {/* Source - only show if valid URL */}
+            {insight.sourceUrl && insight.sourceUrl.startsWith("http") && (
               <a
                 href={insight.sourceUrl}
                 target="_blank"
@@ -970,7 +978,10 @@ export default function InsightDetailPage({
 
       {/* Location Map */}
       {insight.latitude && insight.longitude && (
-        <div className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden">
+        <div
+          ref={mapSectionRef}
+          className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden"
+        >
           <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700 z-10" />
           <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700 z-10" />
 
