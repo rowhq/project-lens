@@ -56,11 +56,26 @@ export const insightsRouter = createTRPCRouter({
         // Value filters
         minValue: z.number().optional(),
         maxValue: z.number().optional(),
+        // Appreciation range filter
+        minAppreciation: z.number().optional(),
+        maxAppreciation: z.number().optional(),
+        // Year filter
+        minYear: z.number().optional(),
+        maxYear: z.number().optional(),
+        // Correlation filter
+        minCorrelation: z.number().min(0).max(1).optional(),
         // Search
         search: z.string().optional(),
         // Sorting
         sortBy: z
-          .enum(["newest", "value_desc", "distance", "expected_roi"])
+          .enum([
+            "newest",
+            "value_desc",
+            "distance",
+            "expected_roi",
+            "correlation",
+            "appreciation",
+          ])
           .default("newest"),
       }),
     )
@@ -76,6 +91,11 @@ export const insightsRouter = createTRPCRouter({
         county,
         minValue,
         maxValue,
+        minAppreciation,
+        maxAppreciation,
+        minYear,
+        maxYear,
+        minCorrelation,
         search,
         sortBy,
       } = input;
@@ -103,6 +123,28 @@ export const insightsRouter = createTRPCRouter({
               },
             }
           : {}),
+        // Appreciation range filter
+        ...(minAppreciation !== undefined || maxAppreciation !== undefined
+          ? {
+              avgValueChange: {
+                ...(minAppreciation !== undefined && { gte: minAppreciation }),
+                ...(maxAppreciation !== undefined && { lte: maxAppreciation }),
+              },
+            }
+          : {}),
+        // Year filter
+        ...(minYear !== undefined || maxYear !== undefined
+          ? {
+              projectYear: {
+                ...(minYear !== undefined && { gte: minYear }),
+                ...(maxYear !== undefined && { lte: maxYear }),
+              },
+            }
+          : {}),
+        // Correlation filter
+        ...(minCorrelation !== undefined && {
+          correlation: { gte: minCorrelation },
+        }),
         ...(search && {
           OR: [
             { title: { contains: search, mode: "insensitive" as const } },
@@ -116,6 +158,8 @@ export const insightsRouter = createTRPCRouter({
         value_desc: { estimatedValue: "desc" as const },
         expected_roi: { expectedROI: "desc" as const },
         distance: { createdAt: "desc" as const }, // Will be sorted client-side
+        correlation: { correlation: "desc" as const },
+        appreciation: { avgValueChange: "desc" as const },
       }[sortBy];
 
       const insights = await ctx.prisma.investmentInsight.findMany({

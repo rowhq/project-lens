@@ -25,6 +25,9 @@ import {
   ArrowDownRight,
   Info,
   FileText,
+  Home,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 
 // Dynamic import for MapView
@@ -211,16 +214,27 @@ export default function InsightDetailPage({
 
   return (
     <div className="space-y-6">
-      {/* Back Navigation */}
-      <Link
-        href="/insights"
-        className="inline-flex items-center gap-2 text-gray-400 hover:text-lime-400 transition-colors group"
-      >
-        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        <span className="font-mono text-sm uppercase tracking-wider">
-          Back to Insights
+      {/* Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm">
+        <Link
+          href="/dashboard"
+          className="text-gray-500 hover:text-white transition-colors flex items-center gap-1"
+        >
+          <Home className="w-4 h-4" />
+          <span className="sr-only md:not-sr-only">Dashboard</span>
+        </Link>
+        <ChevronRight className="w-4 h-4 text-gray-600" />
+        <Link
+          href="/insights"
+          className="text-gray-500 hover:text-white transition-colors"
+        >
+          Insights
+        </Link>
+        <ChevronRight className="w-4 h-4 text-gray-600" />
+        <span className="text-lime-400 font-medium truncate max-w-[200px]">
+          {insight.title}
         </span>
-      </Link>
+      </nav>
 
       {/* Header */}
       <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
@@ -538,33 +552,18 @@ export default function InsightDetailPage({
         </div>
       )}
 
-      {/* Footer Actions */}
-      <div className="flex flex-wrap gap-4 pt-4 border-t border-gray-800">
+      {/* Footer Navigation */}
+      <div className="flex items-center justify-between pt-4 border-t border-gray-800">
         <Link
           href="/insights"
-          className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2"
+          className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2 group"
         >
-          <ArrowLeft className="w-4 h-4" />
-          All Insights
+          <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to All Insights
         </Link>
-        <Link
-          href={`/map?lat=${insight.latitude}&lng=${insight.longitude}&zoom=14`}
-          className="px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch flex items-center gap-2 hover:bg-lime-300 transition-colors"
-        >
-          <MapPin className="w-4 h-4" />
-          View on Map
-        </Link>
-        {insight.sourceUrl && (
-          <a
-            href={insight.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2"
-          >
-            <ExternalLink className="w-4 h-4" />
-            View Source Document
-          </a>
-        )}
+        <p className="text-xs text-gray-600 hidden md:block">
+          Use the buttons above to view on map or access source documents
+        </p>
       </div>
     </div>
   );
