@@ -71,8 +71,9 @@ export default function AdminInsightsPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
-          className="px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 flex items-center gap-2"
+          disabled
+          className="px-4 py-2 bg-lime-400/50 text-black/50 font-mono text-sm uppercase tracking-wider clip-notch cursor-not-allowed flex items-center gap-2"
+          title="Coming soon"
         >
           <Plus className="w-4 h-4" />
           Add New
