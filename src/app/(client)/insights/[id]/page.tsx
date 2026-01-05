@@ -18,7 +18,6 @@ import {
   Target,
   Clock,
   BarChart3,
-  ExternalLink,
   Layers,
   Activity,
   ArrowUpRight,
@@ -469,18 +468,6 @@ export default function InsightDetailPage({
               <MapPin className="w-4 h-4" />
               View Location
             </button>
-            {/* Source - only show if valid URL */}
-            {insight.sourceUrl && insight.sourceUrl.startsWith("http") && (
-              <a
-                href={insight.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Source
-              </a>
-            )}
           </div>
         </div>
       </div>
