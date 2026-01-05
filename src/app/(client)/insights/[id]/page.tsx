@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { trpc } from "@/shared/lib/trpc";
@@ -29,6 +29,11 @@ import {
   ChevronRight,
   ChevronLeft,
   Sparkles,
+  Lightbulb,
+  AlertTriangle,
+  CheckCircle,
+  Download,
+  Users,
 } from "lucide-react";
 
 // Dynamic import for MapView
@@ -144,6 +149,13 @@ export default function InsightDetailPage({
     { enabled: !!resolvedParams.id },
   );
 
+  // Get affected properties
+  const { data: affectedProperties } =
+    trpc.insights.getAffectedProperties.useQuery(
+      { insightId: resolvedParams.id, limit: 5 },
+      { enabled: !!resolvedParams.id },
+    );
+
   const formatCurrency = (value: unknown) => {
     if (!value) return null;
     // Handle Prisma Decimal, number, or string
@@ -181,6 +193,153 @@ export default function InsightDetailPage({
       year: "numeric",
     });
   };
+
+  // Generate investment analysis based on data
+  const investmentAnalysis = useMemo(() => {
+    if (!insight) return null;
+
+    // Signal strength based on correlation
+    const correlation = insight.correlation ?? 0;
+    let signalStrength: "STRONG" | "MODERATE" | "WEAK" = "WEAK";
+    let signalColor = "text-gray-400";
+    let signalBars = 3;
+
+    if (correlation >= 0.7) {
+      signalStrength = "STRONG";
+      signalColor = "text-lime-400";
+      signalBars = 10;
+    } else if (correlation >= 0.5) {
+      signalStrength = "MODERATE";
+      signalColor = "text-yellow-400";
+      signalBars = 7;
+    } else if (correlation >= 0.3) {
+      signalStrength = "WEAK";
+      signalColor = "text-orange-400";
+      signalBars = 4;
+    }
+
+    // Risk factors
+    const riskFactors: string[] = [];
+    if (insight.status === "PENDING") {
+      riskFactors.push("Project still in pending status - timeline uncertain");
+    }
+    if (insight.status === "CANCELLED") {
+      riskFactors.push("Project has been cancelled");
+    }
+    if (insight.lagPeriodYears && insight.lagPeriodYears > 3) {
+      riskFactors.push(
+        `Long appreciation lag of ${insight.lagPeriodYears.toFixed(1)} years`,
+      );
+    }
+    if (correlation < 0.5) {
+      riskFactors.push("Lower correlation with historical appreciation data");
+    }
+
+    // Positive factors
+    const positiveFactors: string[] = [];
+    if (insight.avgValueChange && insight.avgValueChange > 15) {
+      positiveFactors.push(
+        `Strong historical appreciation of +${insight.avgValueChange.toFixed(1)}%`,
+      );
+    } else if (insight.avgValueChange && insight.avgValueChange > 0) {
+      positiveFactors.push(
+        `Positive value impact of +${insight.avgValueChange.toFixed(1)}%`,
+      );
+    }
+    if (insight.status === "COMPLETED") {
+      positiveFactors.push(
+        "Project completed - appreciation may be materializing",
+      );
+    }
+    if (insight.status === "ACTIVE") {
+      positiveFactors.push("Project actively in progress");
+    }
+    if (correlation >= 0.7) {
+      positiveFactors.push(
+        "Strong correlation with historical property appreciation",
+      );
+    }
+    if (insight.parcelsAffected && insight.parcelsAffected > 500) {
+      positiveFactors.push(
+        `Large impact zone with ${insight.parcelsAffected.toLocaleString()} properties`,
+      );
+    }
+
+    return {
+      signalStrength,
+      signalColor,
+      signalBars,
+      riskFactors,
+      positiveFactors,
+      correlation,
+    };
+  }, [insight]);
+
+  // Calculate comparison with similar projects
+  const comparisonAnalysis = useMemo(() => {
+    if (!insight || !similarInsights || similarInsights.length === 0)
+      return null;
+
+    const avgValueChange =
+      similarInsights
+        .filter((s) => s.avgValueChange !== null)
+        .reduce((sum, s) => sum + (s.avgValueChange || 0), 0) /
+      Math.max(
+        similarInsights.filter((s) => s.avgValueChange !== null).length,
+        1,
+      );
+
+    const avgCorrelation =
+      similarInsights
+        .filter((s) => s.correlation !== null)
+        .reduce((sum, s) => sum + (s.correlation || 0), 0) /
+      Math.max(similarInsights.filter((s) => s.correlation !== null).length, 1);
+
+    const avgLag =
+      similarInsights
+        .filter((s) => s.lagPeriodYears !== null)
+        .reduce((sum, s) => sum + (s.lagPeriodYears || 0), 0) /
+      Math.max(
+        similarInsights.filter((s) => s.lagPeriodYears !== null).length,
+        1,
+      );
+
+    const avgParcels =
+      similarInsights
+        .filter((s) => s.parcelsAffected !== null)
+        .reduce((sum, s) => sum + (s.parcelsAffected || 0), 0) /
+      Math.max(
+        similarInsights.filter((s) => s.parcelsAffected !== null).length,
+        1,
+      );
+
+    return {
+      valueChange: {
+        this: insight.avgValueChange,
+        avg: avgValueChange,
+        diff: (insight.avgValueChange || 0) - avgValueChange,
+        better: (insight.avgValueChange || 0) > avgValueChange,
+      },
+      correlation: {
+        this: insight.correlation,
+        avg: avgCorrelation,
+        diff: (insight.correlation || 0) - avgCorrelation,
+        better: (insight.correlation || 0) > avgCorrelation,
+      },
+      lag: {
+        this: insight.lagPeriodYears,
+        avg: avgLag,
+        diff: (insight.lagPeriodYears || 0) - avgLag,
+        better: (insight.lagPeriodYears || 0) < avgLag, // Lower lag is better
+      },
+      parcels: {
+        this: insight.parcelsAffected,
+        avg: avgParcels,
+        diff: (insight.parcelsAffected || 0) - avgParcels,
+        better: (insight.parcelsAffected || 0) > avgParcels,
+      },
+    };
+  }, [insight, similarInsights]);
 
   if (isLoading) {
     return (
@@ -286,7 +445,16 @@ export default function InsightDetailPage({
           </div>
 
           {/* Quick Actions */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {/* Primary CTA */}
+            <Link
+              href={`/map?lat=${insight.latitude}&lng=${insight.longitude}&zoom=13`}
+              className="px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch flex items-center gap-2 hover:bg-lime-300 transition-colors"
+            >
+              <Target className="w-4 h-4" />
+              Explore Zone
+            </Link>
+            {/* Secondary Actions */}
             <Link
               href={`/map?lat=${insight.latitude}&lng=${insight.longitude}&zoom=14`}
               className="px-4 py-2 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2"
@@ -392,6 +560,266 @@ export default function InsightDetailPage({
           </div>
         </div>
       </div>
+
+      {/* Investment Analysis Section */}
+      {investmentAnalysis && (
+        <div className="relative bg-gradient-to-r from-gray-900 to-gray-900/80 border border-gray-800 clip-notch p-6">
+          {/* L-Bracket Corners */}
+          <div className="absolute -top-px -left-px w-4 h-4 border-l-2 border-t-2 border-lime-400/50" />
+          <div className="absolute -bottom-px -right-px w-4 h-4 border-r-2 border-b-2 border-lime-400/50" />
+
+          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 text-lime-400" />
+            Investment Analysis
+          </h2>
+
+          {/* Signal Strength */}
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-sm text-gray-400">Signal Strength:</span>
+              <div className="flex gap-0.5">
+                {[...Array(10)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2 h-4 rounded-sm ${
+                      i < investmentAnalysis.signalBars
+                        ? investmentAnalysis.signalStrength === "STRONG"
+                          ? "bg-lime-400"
+                          : investmentAnalysis.signalStrength === "MODERATE"
+                            ? "bg-yellow-400"
+                            : "bg-orange-400"
+                        : "bg-gray-700"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span
+                className={`font-mono text-sm font-bold ${investmentAnalysis.signalColor}`}
+              >
+                {investmentAnalysis.signalStrength}
+              </span>
+              <span className="text-xs text-gray-500">
+                ({investmentAnalysis.correlation.toFixed(2)} correlation)
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Positive Factors */}
+            {investmentAnalysis.positiveFactors.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-lime-400 flex items-center gap-2 mb-3">
+                  <CheckCircle className="w-4 h-4" />
+                  Positive Indicators
+                </h3>
+                <ul className="space-y-2">
+                  {investmentAnalysis.positiveFactors.map((factor, index) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-2 text-sm text-gray-300"
+                    >
+                      <span className="text-lime-400 mt-0.5">•</span>
+                      <span>{factor}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Risk Factors */}
+            {investmentAnalysis.riskFactors.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-yellow-400 flex items-center gap-2 mb-3">
+                  <AlertTriangle className="w-4 h-4" />
+                  Risk Factors
+                </h3>
+                <ul className="space-y-2">
+                  {investmentAnalysis.riskFactors.map((factor, index) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-2 text-sm text-gray-300"
+                    >
+                      <span className="text-yellow-400 mt-0.5">•</span>
+                      <span>{factor}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Key Takeaway */}
+          <div className="mt-6 pt-4 border-t border-gray-800">
+            <p className="text-sm text-gray-400">
+              {insight.avgValueChange && insight.lagPeriodYears ? (
+                <>
+                  Based on historical data, properties near this{" "}
+                  {typeConfig.label.toLowerCase()} typically see{" "}
+                  <span className="text-lime-400 font-mono">
+                    +{insight.avgValueChange.toFixed(1)}%
+                  </span>{" "}
+                  appreciation within{" "}
+                  <span className="text-white font-mono">
+                    {insight.lagPeriodYears.toFixed(1)} years
+                  </span>{" "}
+                  of project completion.
+                </>
+              ) : (
+                <>
+                  This project is being tracked for potential property value
+                  impact. Check back for updated analysis as more data becomes
+                  available.
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* How This Project Compares */}
+      {comparisonAnalysis && (
+        <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+
+          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            How This Project Compares
+          </h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Compared to {similarInsights?.length || 0} similar{" "}
+            {typeConfig.label.toLowerCase()} projects
+          </p>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-800">
+                  <th className="py-2 px-3 text-left text-xs font-mono uppercase text-gray-500">
+                    Metric
+                  </th>
+                  <th className="py-2 px-3 text-right text-xs font-mono uppercase text-gray-500">
+                    This Project
+                  </th>
+                  <th className="py-2 px-3 text-right text-xs font-mono uppercase text-gray-500">
+                    Similar Avg
+                  </th>
+                  <th className="py-2 px-3 text-right text-xs font-mono uppercase text-gray-500">
+                    Difference
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800/50">
+                <tr>
+                  <td className="py-2 px-3 text-gray-400">Value Change</td>
+                  <td className="py-2 px-3 text-right font-mono text-white">
+                    {comparisonAnalysis.valueChange.this !== null
+                      ? `${comparisonAnalysis.valueChange.this > 0 ? "+" : ""}${comparisonAnalysis.valueChange.this.toFixed(1)}%`
+                      : "—"}
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono text-gray-400">
+                    {comparisonAnalysis.valueChange.avg > 0 ? "+" : ""}
+                    {comparisonAnalysis.valueChange.avg.toFixed(1)}%
+                  </td>
+                  <td
+                    className={`py-2 px-3 text-right font-mono flex items-center justify-end gap-1 ${
+                      comparisonAnalysis.valueChange.better
+                        ? "text-lime-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {comparisonAnalysis.valueChange.diff > 0 ? "+" : ""}
+                    {comparisonAnalysis.valueChange.diff.toFixed(1)}%
+                    {comparisonAnalysis.valueChange.better ? (
+                      <ArrowUpRight className="w-3 h-3" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3" />
+                    )}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3 text-gray-400">Correlation</td>
+                  <td className="py-2 px-3 text-right font-mono text-white">
+                    {comparisonAnalysis.correlation.this?.toFixed(2) ?? "—"}
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono text-gray-400">
+                    {comparisonAnalysis.correlation.avg.toFixed(2)}
+                  </td>
+                  <td
+                    className={`py-2 px-3 text-right font-mono flex items-center justify-end gap-1 ${
+                      comparisonAnalysis.correlation.better
+                        ? "text-lime-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {comparisonAnalysis.correlation.diff > 0 ? "+" : ""}
+                    {comparisonAnalysis.correlation.diff.toFixed(2)}
+                    {comparisonAnalysis.correlation.better ? (
+                      <ArrowUpRight className="w-3 h-3" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3" />
+                    )}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3 text-gray-400">Lag Period</td>
+                  <td className="py-2 px-3 text-right font-mono text-white">
+                    {comparisonAnalysis.lag.this !== null
+                      ? `${comparisonAnalysis.lag.this.toFixed(1)} yrs`
+                      : "—"}
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono text-gray-400">
+                    {comparisonAnalysis.lag.avg.toFixed(1)} yrs
+                  </td>
+                  <td
+                    className={`py-2 px-3 text-right font-mono flex items-center justify-end gap-1 ${
+                      comparisonAnalysis.lag.better
+                        ? "text-lime-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {comparisonAnalysis.lag.diff > 0 ? "+" : ""}
+                    {comparisonAnalysis.lag.diff.toFixed(1)} yrs
+                    {comparisonAnalysis.lag.better ? (
+                      <ArrowUpRight className="w-3 h-3" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3" />
+                    )}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3 text-gray-400">Parcels Affected</td>
+                  <td className="py-2 px-3 text-right font-mono text-white">
+                    {comparisonAnalysis.parcels.this?.toLocaleString() ?? "—"}
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono text-gray-400">
+                    {Math.round(
+                      comparisonAnalysis.parcels.avg,
+                    ).toLocaleString()}
+                  </td>
+                  <td
+                    className={`py-2 px-3 text-right font-mono flex items-center justify-end gap-1 ${
+                      comparisonAnalysis.parcels.better
+                        ? "text-lime-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {comparisonAnalysis.parcels.diff > 0 ? "+" : ""}
+                    {Math.round(
+                      comparisonAnalysis.parcels.diff,
+                    ).toLocaleString()}
+                    {comparisonAnalysis.parcels.better ? (
+                      <ArrowUpRight className="w-3 h-3" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3" />
+                    )}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Project Details Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -561,6 +989,138 @@ export default function InsightDetailPage({
           />
           <div className="p-3 bg-gray-800/50 text-xs text-gray-500 font-mono">
             {insight.latitude.toFixed(6)}, {insight.longitude.toFixed(6)}
+          </div>
+        </div>
+      )}
+
+      {/* Affected Properties */}
+      {affectedProperties && affectedProperties.stats.totalCount > 0 && (
+        <div className="relative bg-gray-900 border border-gray-800 p-6 clip-notch">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+
+          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Affected Properties (
+            {affectedProperties.stats.totalCount.toLocaleString()} parcels)
+          </h2>
+
+          <p className="text-sm text-gray-500 mb-4">
+            Properties within {insight.impactRadiusMiles || 5} miles of this
+            project
+          </p>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="p-3 bg-gray-800/50 rounded">
+              <p className="text-2xl font-bold text-lime-400 font-mono">
+                {formatCurrency(affectedProperties.stats.totalAssessedValue)}
+              </p>
+              <p className="text-xs text-gray-500">Total Assessed Value</p>
+            </div>
+            <div className="p-3 bg-gray-800/50 rounded">
+              <p className="text-2xl font-bold text-white font-mono">
+                {affectedProperties.stats.totalCount.toLocaleString()}
+              </p>
+              <p className="text-xs text-gray-500">Total Parcels</p>
+            </div>
+            <div className="p-3 bg-gray-800/50 rounded">
+              <p className="text-2xl font-bold text-white font-mono">
+                {affectedProperties.stats.avgLotSizeSqft > 0
+                  ? `${(affectedProperties.stats.avgLotSizeSqft / 43560).toFixed(2)} ac`
+                  : "—"}
+              </p>
+              <p className="text-xs text-gray-500">Avg Lot Size</p>
+            </div>
+            <div className="p-3 bg-gray-800/50 rounded">
+              <p className="text-lg font-bold text-white font-mono truncate">
+                {affectedProperties.stats.zoningBreakdown[0]?.zoning || "—"}
+              </p>
+              <p className="text-xs text-gray-500">
+                Top Zoning (
+                {affectedProperties.stats.zoningBreakdown[0]?.percentage.toFixed(
+                  0,
+                )}
+                %)
+              </p>
+            </div>
+          </div>
+
+          {/* Sample Properties */}
+          {affectedProperties.properties.length > 0 && (
+            <div className="space-y-2 mb-4">
+              <h3 className="text-xs font-mono uppercase text-gray-500">
+                Sample Properties
+              </h3>
+              <div className="space-y-2">
+                {affectedProperties.properties.map((property) => (
+                  <div
+                    key={property.parcelId}
+                    className="flex items-center justify-between p-3 bg-gray-800/30 rounded text-sm"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <MapPin className="w-4 h-4 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-white truncate">
+                          {property.addressLine1 || property.parcelId}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {property.city}, {property.state} {property.zipCode}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0 ml-4">
+                      <p className="text-lime-400 font-mono">
+                        {formatCurrency(property.assessedValue)}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {property.zoning || "—"}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* CTAs */}
+          <div className="flex gap-3 pt-4 border-t border-gray-800">
+            <Link
+              href={`/map?lat=${insight.latitude}&lng=${insight.longitude}&zoom=13`}
+              className="flex-1 px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch flex items-center justify-center gap-2 hover:bg-lime-300 transition-colors"
+            >
+              <MapPin className="w-4 h-4" />
+              Explore on Map
+            </Link>
+            <button
+              onClick={() => {
+                // Export properties as CSV
+                const csv = [
+                  "Address,City,State,Zip,Assessed Value,Zoning",
+                  ...affectedProperties.properties.map((p) =>
+                    [
+                      p.addressLine1 || p.parcelId,
+                      p.city,
+                      p.state,
+                      p.zipCode,
+                      p.assessedValue,
+                      p.zoning,
+                    ].join(","),
+                  ),
+                ].join("\n");
+                const blob = new Blob([csv], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `affected-properties-${insight.id}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-gray-800 hover:border-lime-400/50 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </button>
           </div>
         </div>
       )}

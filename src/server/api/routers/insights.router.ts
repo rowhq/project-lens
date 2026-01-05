@@ -1201,6 +1201,8 @@ export const insightsRouter = createTRPCRouter({
           projectYear: true,
           avgValueChange: true,
           correlation: true,
+          lagPeriodYears: true,
+          parcelsAffected: true,
         },
         orderBy: { createdAt: "desc" },
         take: input.limit * 2, // Get more to filter
@@ -1275,5 +1277,124 @@ export const insightsRouter = createTRPCRouter({
       });
 
       return { prev, next };
+    }),
+
+  /**
+   * Get affected properties within the impact radius of an insight
+   */
+  getAffectedProperties: clientProcedure
+    .input(
+      z.object({
+        insightId: z.string(),
+        limit: z.number().min(1).max(100).default(5),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Get the insight with location and impact radius
+      const insight = await ctx.prisma.investmentInsight.findUnique({
+        where: { id: input.insightId },
+        select: {
+          latitude: true,
+          longitude: true,
+          impactRadiusMiles: true,
+          county: true,
+        },
+      });
+
+      if (!insight || !insight.latitude || !insight.longitude) {
+        return {
+          properties: [],
+          stats: {
+            totalCount: 0,
+            totalAssessedValue: 0,
+            avgLotSizeSqft: 0,
+            zoningBreakdown: [] as {
+              zoning: string;
+              count: number;
+              percentage: number;
+            }[],
+          },
+        };
+      }
+
+      const radiusMiles = insight.impactRadiusMiles || 5;
+      // Convert miles to approximate degrees (1 degree ≈ 69 miles at equator)
+      const radiusDegrees = radiusMiles / 69;
+
+      // Find properties within the radius using bounding box
+      const properties = await ctx.prisma.propertyOwner.findMany({
+        where: {
+          latitude: {
+            gte: insight.latitude - radiusDegrees,
+            lte: insight.latitude + radiusDegrees,
+          },
+          longitude: {
+            gte: insight.longitude - radiusDegrees,
+            lte: insight.longitude + radiusDegrees,
+          },
+          // Optionally filter by county for performance
+          ...(insight.county && { county: insight.county }),
+        },
+        select: {
+          parcelId: true,
+          addressLine1: true,
+          city: true,
+          state: true,
+          zipCode: true,
+          assessedValue: true,
+          lotSizeSqft: true,
+          zoning: true,
+          latitude: true,
+          longitude: true,
+        },
+        take: 1000, // Limit for performance
+      });
+
+      // Calculate stats
+      const totalAssessedValue = properties.reduce((sum, p) => {
+        const val = p.assessedValue
+          ? typeof p.assessedValue === "object" && "toNumber" in p.assessedValue
+            ? (p.assessedValue as { toNumber: () => number }).toNumber()
+            : Number(p.assessedValue)
+          : 0;
+        return sum + val;
+      }, 0);
+
+      const totalLotSize = properties.reduce(
+        (sum, p) => sum + (p.lotSizeSqft || 0),
+        0,
+      );
+      const avgLotSizeSqft =
+        properties.length > 0 ? totalLotSize / properties.length : 0;
+
+      // Zoning breakdown
+      const zoningCounts = properties.reduce(
+        (acc, p) => {
+          const zoning = p.zoning || "Unknown";
+          acc[zoning] = (acc[zoning] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+
+      const zoningBreakdown = Object.entries(zoningCounts)
+        .map(([zoning, count]) => ({
+          zoning,
+          count,
+          percentage:
+            properties.length > 0 ? (count / properties.length) * 100 : 0,
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
+      return {
+        properties: properties.slice(0, input.limit),
+        stats: {
+          totalCount: properties.length,
+          totalAssessedValue,
+          avgLotSizeSqft,
+          zoningBreakdown,
+        },
+      };
     }),
 });
