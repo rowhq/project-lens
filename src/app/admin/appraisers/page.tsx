@@ -13,9 +13,7 @@ import {
   AlertCircle,
   Star,
   MapPin,
-  ChevronRight,
   Download,
-  Plus,
 } from "lucide-react";
 import { EmptyState } from "@/shared/components/common/EmptyState";
 
@@ -194,19 +192,7 @@ export default function AppraisersPage() {
             <Download className="w-4 h-4" />
             Export
           </button>
-          <button
-            onClick={() => {
-              toast({
-                title: "Feature in development",
-                description:
-                  "Adding appraisers manually is coming soon. Appraisers are currently created through the signup flow.",
-              });
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90"
-          >
-            <Plus className="w-4 h-4" />
-            Add Appraiser
-          </button>
+          {/* Appraisers are created via signup flow at /for-appraisers */}
         </div>
       </div>
 

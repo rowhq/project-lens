@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { trpc } from "@/shared/lib/trpc";
+import { useToast } from "@/shared/hooks/use-toast";
 import {
   MapPin,
   TrendingUp,
@@ -62,6 +63,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 ];
 
 export default function InsightsPage() {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>("insights");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedTypes, setSelectedTypes] = useState<InsightType[]>([]);
@@ -90,7 +92,11 @@ export default function InsightsPage() {
   // Get user's location
   const getUserLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      toast({
+        title: "Error",
+        description: "Geolocation is not supported by your browser",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -107,7 +113,11 @@ export default function InsightsPage() {
       (error) => {
         console.error("Error getting location:", error);
         setLoadingLocation(false);
-        alert("Could not get your location. Please check permissions.");
+        toast({
+          title: "Error",
+          description: "Could not get your location. Please check permissions.",
+          variant: "destructive",
+        });
       },
     );
   };
@@ -697,7 +707,7 @@ export default function InsightsPage() {
 
       {/* Map View */}
       {viewMode === "map" && (
-        <div className="bg-[var(--card)] border border-[var(--border)] clip-notch overflow-hidden">
+        <div className="bg-[var(--card)] border border-[var(--border)] clip-notch overflow-hidden relative">
           <MapView
             markers={currentMarkers}
             showBaseLayerSwitcher
@@ -706,13 +716,20 @@ export default function InsightsPage() {
               userLocation ? [userLocation.lng, userLocation.lat] : undefined
             }
             zoom={userLocation ? 10 : undefined}
+            heatmapData={activeTab === "insights" ? heatmapPoints : undefined}
+            showHeatmap={showHeatmap && activeTab === "insights"}
+            heatmapRadius={25}
+            heatmapIntensity={1.5}
+            heatmapOpacity={0.7}
           />
-          {showHeatmap && heatmapPoints.length > 0 && (
-            <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-2 rounded text-sm">
-              <Flame className="w-4 h-4 inline mr-2 text-orange-400" />
-              Heatmap: {heatmapPoints.length} data points
-            </div>
-          )}
+          {showHeatmap &&
+            heatmapPoints.length > 0 &&
+            activeTab === "insights" && (
+              <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-2 rounded text-sm z-10">
+                <Flame className="w-4 h-4 inline mr-2 text-orange-400" />
+                Heatmap: {heatmapPoints.length} data points
+              </div>
+            )}
         </div>
       )}
 

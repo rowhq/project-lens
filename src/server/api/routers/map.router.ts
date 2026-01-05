@@ -4,7 +4,9 @@
  */
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, clientProcedure } from "../trpc";
+import { processAppraisal } from "@/server/services/appraisal-processor";
+import { PRICING } from "@/shared/config/constants";
 
 const boundsSchema = z.object({
   north: z.number(),
@@ -22,7 +24,7 @@ export const mapRouter = createTRPCRouter({
       z.object({
         bounds: boundsSchema,
         status: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { bounds, status } = input;
@@ -107,7 +109,7 @@ export const mapRouter = createTRPCRouter({
     .input(
       z.object({
         bounds: boundsSchema.optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const boundsFilter = input.bounds
@@ -163,23 +165,88 @@ export const mapRouter = createTRPCRouter({
   /**
    * Create a new valuation request from map selection
    */
-  requestValuation: protectedProcedure
+  requestValuation: clientProcedure
     .input(
       z.object({
         parcelId: z.string(),
         address: z.string(),
         latitude: z.number(),
         longitude: z.number(),
+        city: z.string().optional(),
+        county: z.string().optional(),
+        state: z.string().default("TX"),
+        zipCode: z.string().optional(),
+        propertyType: z
+          .enum([
+            "SINGLE_FAMILY",
+            "MULTI_FAMILY",
+            "CONDO",
+            "TOWNHOUSE",
+            "COMMERCIAL",
+            "LAND",
+            "MIXED_USE",
+          ])
+          .default("SINGLE_FAMILY"),
         propertyData: z.record(z.string(), z.unknown()).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
-      // For now, just return a placeholder
-      // In the future, this would create an AI valuation request
+      // Create or find property
+      let property = await ctx.prisma.property.findFirst({
+        where: {
+          OR: [
+            { parcelId: input.parcelId },
+            {
+              latitude: input.latitude,
+              longitude: input.longitude,
+            },
+          ],
+        },
+      });
+
+      if (!property) {
+        property = await ctx.prisma.property.create({
+          data: {
+            parcelId: input.parcelId,
+            addressLine1: input.address,
+            city: input.city || "",
+            county: input.county || "",
+            state: input.state,
+            zipCode: input.zipCode || "",
+            addressFull: input.address,
+            latitude: input.latitude,
+            longitude: input.longitude,
+            propertyType: input.propertyType,
+          },
+        });
+      }
+
+      // Create appraisal request with base price
+      const price = PRICING.AI_REPORT;
+      const appraisal = await ctx.prisma.appraisalRequest.create({
+        data: {
+          organizationId: ctx.organization!.id,
+          requestedById: ctx.user.id,
+          propertyId: property.id,
+          requestedType: "AI_REPORT",
+          purpose: "Investment Analysis",
+          status: "QUEUED",
+          price,
+          notes: `Quick valuation from map for ${input.address}`,
+        },
+      });
+
+      // Process immediately in background
+      processAppraisal(appraisal.id).catch((err) => {
+        console.error("Error processing map valuation:", err);
+      });
+
       return {
         success: true,
-        message: "Valuation request received. AI valuation coming soon!",
-        parcelId: input.parcelId,
+        message:
+          "AI valuation started! Check your appraisals page for results.",
+        appraisalId: appraisal.id,
+        propertyId: property.id,
         address: input.address,
       };
     }),

@@ -20,12 +20,23 @@ export interface MapMarker {
   onClick?: () => void;
 }
 
+export interface HeatmapPoint {
+  lat: number;
+  lng: number;
+  intensity?: number; // 0-1 value, defaults to 0.5
+}
+
 export type BaseLayerStyle = "streets" | "satellite" | "hybrid";
 
 export interface MapViewProps {
   center?: [number, number]; // [longitude, latitude]
   zoom?: number;
   markers?: MapMarker[];
+  heatmapData?: HeatmapPoint[];
+  showHeatmap?: boolean;
+  heatmapRadius?: number;
+  heatmapIntensity?: number;
+  heatmapOpacity?: number;
   className?: string;
   style?: React.CSSProperties;
   interactive?: boolean;
@@ -76,8 +87,7 @@ const BASE_STYLES: Record<BaseLayerStyle, maplibregl.StyleSpecification> = {
           "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         ],
         tileSize: 256,
-        attribution:
-          "&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
+        attribution: "&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
       },
     },
     layers: [
@@ -106,8 +116,7 @@ const BASE_STYLES: Record<BaseLayerStyle, maplibregl.StyleSpecification> = {
           "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
         ],
         tileSize: 256,
-        attribution:
-          "&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
+        attribution: "&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
       },
     },
     layers: [
@@ -133,6 +142,11 @@ export function MapView({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
   markers = [],
+  heatmapData = [],
+  showHeatmap = false,
+  heatmapRadius = 20,
+  heatmapIntensity = 1,
+  heatmapOpacity = 0.8,
   className = "",
   style,
   interactive = true,
@@ -152,6 +166,22 @@ export function MapView({
   const [isLoaded, setIsLoaded] = useState(false);
   const [baseLayer, setBaseLayer] = useState<BaseLayerStyle>(defaultBaseLayer);
 
+  // Convert heatmap data to GeoJSON
+  const heatmapGeoJSON: GeoJSON.FeatureCollection = {
+    type: "FeatureCollection",
+    features: heatmapData.map((point, index) => ({
+      type: "Feature" as const,
+      properties: {
+        intensity: point.intensity ?? 0.5,
+      },
+      geometry: {
+        type: "Point" as const,
+        coordinates: [point.lng, point.lat],
+      },
+      id: index,
+    })),
+  };
+
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -167,23 +197,20 @@ export function MapView({
 
     // Add controls
     if (showNavigation && interactive) {
-      map.current.addControl(
-        new maplibregl.NavigationControl(),
-        "top-right"
-      );
+      map.current.addControl(new maplibregl.NavigationControl(), "top-right");
     }
 
     if (showScale) {
       map.current.addControl(
         new maplibregl.ScaleControl({ maxWidth: 100 }),
-        "bottom-left"
+        "bottom-left",
       );
     }
 
     // Attribution
     map.current.addControl(
       new maplibregl.AttributionControl({ compact: true }),
-      "bottom-right"
+      "bottom-right",
     );
 
     // Handle load
@@ -195,14 +222,14 @@ export function MapView({
 
     // Multiple resize calls to handle CSS layout settling at different stages
     const resizeDelays = [50, 100, 200, 500];
-    const timeouts = resizeDelays.map(delay =>
+    const timeouts = resizeDelays.map((delay) =>
       setTimeout(() => {
         map.current?.resize();
-      }, delay)
+      }, delay),
     );
 
     // Also resize on idle callback for smoother handling
-    if (typeof requestIdleCallback !== 'undefined') {
+    if (typeof requestIdleCallback !== "undefined") {
       requestIdleCallback(() => {
         map.current?.resize();
       });
@@ -225,7 +252,7 @@ export function MapView({
 
     return () => {
       // Clean up timeouts
-      timeouts.forEach(t => clearTimeout(t));
+      timeouts.forEach((t) => clearTimeout(t));
 
       // Clean up resize observer
       resizeObserver.disconnect();
@@ -333,6 +360,97 @@ export function MapView({
     });
   }, [markers, isLoaded, onMarkerClick]);
 
+  // Manage heatmap layer
+  useEffect(() => {
+    if (!map.current || !isLoaded) return;
+
+    const HEATMAP_SOURCE_ID = "heatmap-source";
+    const HEATMAP_LAYER_ID = "heatmap-layer";
+
+    // Remove existing heatmap layer and source if they exist
+    if (map.current.getLayer(HEATMAP_LAYER_ID)) {
+      map.current.removeLayer(HEATMAP_LAYER_ID);
+    }
+    if (map.current.getSource(HEATMAP_SOURCE_ID)) {
+      map.current.removeSource(HEATMAP_SOURCE_ID);
+    }
+
+    // Only add heatmap if we have data and it should be shown
+    if (showHeatmap && heatmapGeoJSON.features.length > 0) {
+      // Add source
+      map.current.addSource(HEATMAP_SOURCE_ID, {
+        type: "geojson",
+        data: heatmapGeoJSON,
+      });
+
+      // Add heatmap layer
+      map.current.addLayer({
+        id: HEATMAP_LAYER_ID,
+        type: "heatmap",
+        source: HEATMAP_SOURCE_ID,
+        paint: {
+          // Increase weight based on intensity property
+          "heatmap-weight": [
+            "interpolate",
+            ["linear"],
+            ["get", "intensity"],
+            0,
+            0,
+            1,
+            1,
+          ],
+          // Increase intensity as zoom level increases
+          "heatmap-intensity": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            0,
+            heatmapIntensity * 0.5,
+            9,
+            heatmapIntensity * 2,
+          ],
+          // Color ramp for heatmap - from transparent to red
+          "heatmap-color": [
+            "interpolate",
+            ["linear"],
+            ["heatmap-density"],
+            0,
+            "rgba(0, 0, 0, 0)",
+            0.1,
+            "rgba(163, 230, 53, 0.4)", // lime-400
+            0.3,
+            "rgba(250, 204, 21, 0.6)", // yellow-400
+            0.5,
+            "rgba(251, 146, 60, 0.7)", // orange-400
+            0.7,
+            "rgba(239, 68, 68, 0.8)", // red-500
+            1,
+            "rgba(185, 28, 28, 0.9)", // red-700
+          ],
+          // Adjust heatmap radius by zoom level
+          "heatmap-radius": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            0,
+            heatmapRadius * 0.5,
+            9,
+            heatmapRadius * 2,
+          ],
+          // Transition from heatmap to circle layer by zoom level
+          "heatmap-opacity": heatmapOpacity,
+        },
+      });
+    }
+  }, [
+    showHeatmap,
+    heatmapGeoJSON,
+    heatmapRadius,
+    heatmapIntensity,
+    heatmapOpacity,
+    isLoaded,
+  ]);
+
   // Fit bounds to markers
   const fitToMarkers = useCallback(() => {
     if (!map.current || markers.length === 0) return;
@@ -359,8 +477,9 @@ export function MapView({
       <div
         ref={mapContainer}
         style={{
-          width: '100%',
-          height: typeof containerHeight === 'number' ? containerHeight : '100%'
+          width: "100%",
+          height:
+            typeof containerHeight === "number" ? containerHeight : "100%",
         }}
         className="rounded-lg"
       />
@@ -461,9 +580,23 @@ export function MapView({
               Layers
             </span>
           </div>
-          <p className="text-xs text-[var(--muted-foreground)]">
-            Layer controls coming soon
-          </p>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm text-[var(--foreground)] cursor-pointer">
+              <input type="checkbox" checked disabled className="rounded" />
+              <span>Markers</span>
+            </label>
+            {showHeatmap !== undefined && (
+              <label className="flex items-center gap-2 text-sm text-[var(--foreground)] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showHeatmap}
+                  disabled
+                  className="rounded"
+                />
+                <span>Heatmap</span>
+              </label>
+            )}
+          </div>
         </div>
       )}
     </div>

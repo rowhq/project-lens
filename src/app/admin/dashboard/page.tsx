@@ -1,7 +1,6 @@
 "use client";
 
 import { trpc } from "@/shared/lib/trpc";
-import { useToast } from "@/shared/hooks/use-toast";
 import {
   FileText,
   DollarSign,
@@ -159,7 +158,6 @@ function QuickActionCard({
 }
 
 export default function AdminDashboardPage() {
-  const { toast } = useToast();
   const { data: stats } = trpc.admin.dashboard.stats.useQuery();
   const { data: activity } = trpc.admin.dashboard.recentActivity.useQuery();
   const { data: weeklyTrend } = trpc.admin.dashboard.weeklyTrend.useQuery();
@@ -242,27 +240,9 @@ export default function AdminDashboardPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <select
-            onChange={() => {
-              toast({
-                title: "Feature in development",
-                description: "Date range filtering is coming soon.",
-              });
-            }}
-            className={cn(
-              "px-4 py-2",
-              "bg-gray-950 border border-gray-800 text-gray-300",
-              "font-mono text-sm uppercase tracking-wider",
-              "clip-notch-sm",
-              "focus:outline-none focus:border-lime-400/50",
-              "transition-colors duration-fast",
-            )}
-          >
-            <option>Last 7 days</option>
-            <option>Last 30 days</option>
-            <option>Last 90 days</option>
-            <option>This year</option>
-          </select>
+          <div className="px-4 py-2 bg-gray-950 border border-gray-800 text-gray-300 font-mono text-sm uppercase tracking-wider clip-notch-sm">
+            Last 7 days
+          </div>
         </div>
       </div>
 

@@ -18,6 +18,11 @@ import {
   Search,
   Home,
   Loader2,
+  X,
+  MapPin,
+  DollarSign,
+  Calendar,
+  ExternalLink,
 } from "lucide-react";
 import { trpc } from "@/shared/lib/trpc";
 import {
@@ -173,6 +178,8 @@ export default function MapPage() {
     payoutAmount: number;
     address: string;
     city: string;
+    slaDueAt?: Date | null;
+    assignedAppraiser?: string | null;
   } | null>(null);
 
   // Loading states
@@ -483,7 +490,6 @@ export default function MapPage() {
 
       el.addEventListener("click", () => {
         setSelectedJob(job);
-        // TODO: Show job details popup or navigate to job page
       });
 
       markersRef.current.set(job.id, marker);
@@ -768,6 +774,74 @@ export default function MapPage() {
             handleRequestCertified();
           }}
         />
+      )}
+
+      {/* Job Details Panel */}
+      {selectedJob && (
+        <div className="absolute bottom-20 left-4 z-20 w-80 bg-gray-900 border border-gray-800 clip-notch shadow-xl">
+          <div className="p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <span
+                  className={`inline-block px-2 py-0.5 text-xs font-mono uppercase tracking-wider clip-notch-sm ${
+                    selectedJob.status === "COMPLETED"
+                      ? "bg-lime-400/20 text-lime-400"
+                      : selectedJob.status === "IN_PROGRESS"
+                        ? "bg-blue-400/20 text-blue-400"
+                        : "bg-yellow-400/20 text-yellow-400"
+                  }`}
+                >
+                  {selectedJob.status.replace(/_/g, " ")}
+                </span>
+              </div>
+              <button
+                onClick={() => setSelectedJob(null)}
+                className="p-1 text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex items-start gap-2 mb-3">
+              <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-white">
+                  {selectedJob.address}
+                </h3>
+                <p className="text-sm text-gray-400">{selectedJob.city}</p>
+              </div>
+            </div>
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500 flex items-center gap-1">
+                  <Briefcase className="w-3.5 h-3.5" />
+                  {selectedJob.jobType.replace(/_/g, " ")}
+                </span>
+                <span className="font-mono text-lime-400 flex items-center gap-1">
+                  <DollarSign className="w-3.5 h-3.5" />
+                  {selectedJob.payoutAmount}
+                </span>
+              </div>
+              {selectedJob.slaDueAt && (
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <Calendar className="w-3.5 h-3.5" />
+                  Due: {new Date(selectedJob.slaDueAt).toLocaleDateString()}
+                </div>
+              )}
+              {selectedJob.assignedAppraiser && (
+                <div className="text-xs text-gray-400">
+                  Assigned: {selectedJob.assignedAppraiser}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => router.push(`/jobs/${selectedJob.id}`)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-lime-400 text-black font-medium text-sm rounded hover:bg-lime-300 transition-colors"
+            >
+              View Details
+              <ExternalLink className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
 import {
@@ -9,34 +9,43 @@ import {
   MapPin,
   FileText,
   Star,
-  Camera,
   Edit,
   Check,
   AlertCircle,
   Clock,
   Save,
-  Plus,
-  X,
   Info,
   Bell,
   BellOff,
   Loader2,
 } from "lucide-react";
 import { usePushNotifications } from "@/shared/hooks/use-push-notifications";
+import { MapView } from "@/shared/components/common/MapView";
 
 export default function AppraiserProfilePage() {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"profile" | "license" | "service" | "notifications">("profile");
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "license" | "service" | "notifications"
+  >("profile");
   const pushNotifications = usePushNotifications();
 
-  // Form state for editable fields
-  const [coverageRadiusMiles, setCoverageRadiusMiles] = useState<number>(50);
+  // Form state for editable fields - null means use profile value
+  const [editedCoverageRadius, setEditedCoverageRadius] = useState<
+    number | null
+  >(null);
 
   const { data: profile, refetch } = trpc.appraiser.profile.get.useQuery();
+
+  // Use edited value if set, otherwise use profile value
+  const coverageRadiusMiles =
+    editedCoverageRadius ?? profile?.coverageRadiusMiles ?? 50;
+  const setCoverageRadiusMiles = setEditedCoverageRadius;
+
   const updateProfile = trpc.appraiser.profile.update.useMutation({
     onSuccess: () => {
       setIsEditing(false);
+      setEditedCoverageRadius(null); // Reset to use profile value
       refetch();
       toast({
         title: "Profile updated",
@@ -52,18 +61,26 @@ export default function AppraiserProfilePage() {
     },
   });
 
-  // Sync form state with fetched data
-  useEffect(() => {
-    if (profile) {
-      setCoverageRadiusMiles(profile.coverageRadiusMiles || 50);
-    }
-  }, [profile]);
-
   const verificationStatus = profile?.verificationStatus || "PENDING";
-  const statusConfig: Record<string, { color: string; icon: typeof Check; label: string }> = {
-    VERIFIED: { color: "bg-green-500/20 text-green-400", icon: Check, label: "Verified" },
-    PENDING: { color: "bg-yellow-500/20 text-yellow-400", icon: Clock, label: "Pending Review" },
-    REJECTED: { color: "bg-red-500/20 text-red-400", icon: AlertCircle, label: "Needs Attention" },
+  const statusConfig: Record<
+    string,
+    { color: string; icon: typeof Check; label: string }
+  > = {
+    VERIFIED: {
+      color: "bg-green-500/20 text-green-400",
+      icon: Check,
+      label: "Verified",
+    },
+    PENDING: {
+      color: "bg-yellow-500/20 text-yellow-400",
+      icon: Clock,
+      label: "Pending Review",
+    },
+    REJECTED: {
+      color: "bg-red-500/20 text-red-400",
+      icon: AlertCircle,
+      label: "Needs Attention",
+    },
   };
 
   const status = statusConfig[verificationStatus] || statusConfig.PENDING;
@@ -74,8 +91,12 @@ export default function AppraiserProfilePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Profile</h1>
-          <p className="text-[var(--muted-foreground)]">Manage your appraiser profile and credentials</p>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">
+            Profile
+          </h1>
+          <p className="text-[var(--muted-foreground)]">
+            Manage your appraiser profile and credentials
+          </p>
         </div>
         <button
           onClick={() => setIsEditing(!isEditing)}
@@ -98,26 +119,16 @@ export default function AppraiserProfilePage() {
               <div className="w-24 h-24 bg-[var(--muted)] rounded-full border-4 border-[var(--card)] flex items-center justify-center">
                 <User className="w-10 h-10 text-[var(--muted-foreground)]" />
               </div>
-              {isEditing && (
-                <button
-                  onClick={() => {
-                    toast({
-                      title: "Feature in development",
-                      description: "Profile photo upload is being developed. For now, your profile uses a default avatar.",
-                    });
-                  }}
-                  className="absolute bottom-0 right-0 p-2 bg-[var(--primary)] text-black font-medium rounded-full hover:bg-[var(--primary)]/90"
-                >
-                  <Camera className="w-4 h-4" />
-                </button>
-              )}
+              {/* Profile photo upload coming in a future update */}
             </div>
             <div className="flex-1 pb-2">
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold text-[var(--foreground)]">
                   {profile?.user?.firstName} {profile?.user?.lastName}
                 </h2>
-                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${status.color}`}
+                >
                   <StatusIcon className="w-3 h-3" />
                   {status.label}
                 </span>
@@ -169,13 +180,17 @@ export default function AppraiserProfilePage() {
           <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3">
             <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-blue-300">
-              Profile information is managed through your account settings. To update your name, email, or phone, please visit your account settings page.
+              Profile information is managed through your account settings. To
+              update your name, email, or phone, please visit your account
+              settings page.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">First Name</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                First Name
+              </label>
               <input
                 type="text"
                 value={profile?.user?.firstName || ""}
@@ -184,7 +199,9 @@ export default function AppraiserProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Last Name</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Last Name
+              </label>
               <input
                 type="text"
                 value={profile?.user?.lastName || ""}
@@ -193,7 +210,9 @@ export default function AppraiserProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Email</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Email
+              </label>
               <input
                 type="email"
                 value={profile?.user?.email || ""}
@@ -202,7 +221,9 @@ export default function AppraiserProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Phone</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Phone
+              </label>
               <input
                 type="tel"
                 value={profile?.user?.phone || ""}
@@ -222,7 +243,8 @@ export default function AppraiserProfilePage() {
             <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-start gap-3">
               <Info className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-yellow-300">
-                License information is verified by our admin team. To update your license details, please contact support.
+                License information is verified by our admin team. To update
+                your license details, please contact support.
               </p>
             </div>
 
@@ -233,7 +255,9 @@ export default function AppraiserProfilePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">License Number</label>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  License Number
+                </label>
                 <input
                   type="text"
                   value={profile?.licenseNumber || ""}
@@ -242,7 +266,9 @@ export default function AppraiserProfilePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">License State</label>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  License State
+                </label>
                 <input
                   type="text"
                   value="TX"
@@ -251,25 +277,37 @@ export default function AppraiserProfilePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">License Level</label>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  License Level
+                </label>
                 <input
                   type="text"
                   value={
-                    profile?.licenseType === "TRAINEE" ? "Trainee" :
-                    profile?.licenseType === "LICENSED" ? "Licensed" :
-                    profile?.licenseType === "CERTIFIED_RESIDENTIAL" ? "Certified Residential" :
-                    profile?.licenseType === "CERTIFIED_GENERAL" ? "Certified General" :
-                    profile?.licenseType || "N/A"
+                    profile?.licenseType === "TRAINEE"
+                      ? "Trainee"
+                      : profile?.licenseType === "LICENSED"
+                        ? "Licensed"
+                        : profile?.licenseType === "CERTIFIED_RESIDENTIAL"
+                          ? "Certified Residential"
+                          : profile?.licenseType === "CERTIFIED_GENERAL"
+                            ? "Certified General"
+                            : profile?.licenseType || "N/A"
                   }
                   disabled
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--secondary)] text-[var(--foreground)] cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Expiration Date</label>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  Expiration Date
+                </label>
                 <input
                   type="text"
-                  value={profile?.licenseExpiry ? new Date(profile.licenseExpiry).toLocaleDateString() : "N/A"}
+                  value={
+                    profile?.licenseExpiry
+                      ? new Date(profile.licenseExpiry).toLocaleDateString()
+                      : "N/A"
+                  }
                   disabled
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--secondary)] text-[var(--foreground)] cursor-not-allowed"
                 />
@@ -280,7 +318,8 @@ export default function AppraiserProfilePage() {
               <div className="mt-6 p-4 bg-green-500/20 rounded-lg flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-400" />
                 <p className="text-sm text-green-400">
-                  <strong>Verified:</strong> Your license has been verified by our admin team.
+                  <strong>Verified:</strong> Your license has been verified by
+                  our admin team.
                 </p>
               </div>
             )}
@@ -288,7 +327,8 @@ export default function AppraiserProfilePage() {
               <div className="mt-6 p-4 bg-yellow-500/20 rounded-lg flex items-center gap-2">
                 <Clock className="w-5 h-5 text-yellow-400" />
                 <p className="text-sm text-yellow-400">
-                  <strong>Pending Review:</strong> Your license is being verified by our admin team.
+                  <strong>Pending Review:</strong> Your license is being
+                  verified by our admin team.
                 </p>
               </div>
             )}
@@ -301,7 +341,8 @@ export default function AppraiserProfilePage() {
             </h3>
 
             <p className="text-sm text-[var(--muted-foreground)] mb-4">
-              Bank panel memberships will be displayed here once the feature is available.
+              Bank panel memberships will be displayed here once the feature is
+              available.
             </p>
           </div>
         </div>
@@ -317,7 +358,9 @@ export default function AppraiserProfilePage() {
 
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Base Location</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Base Location
+              </label>
               <input
                 type="text"
                 value={
@@ -334,7 +377,9 @@ export default function AppraiserProfilePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Service Radius</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Service Radius
+              </label>
               <select
                 value={coverageRadiusMiles}
                 onChange={(e) => setCoverageRadiusMiles(Number(e.target.value))}
@@ -350,10 +395,34 @@ export default function AppraiserProfilePage() {
               </select>
             </div>
 
-            {/* Map placeholder */}
-            <div className="h-64 bg-[var(--muted)] rounded-lg flex items-center justify-center">
-              <p className="text-[var(--muted-foreground)]">Map showing service area would appear here</p>
-            </div>
+            {/* Service Area Map */}
+            {profile?.homeBaseLat && profile?.homeBaseLng ? (
+              <div className="h-64 rounded-lg overflow-hidden border border-[var(--border)]">
+                <MapView
+                  center={[profile.homeBaseLng, profile.homeBaseLat]}
+                  zoom={9}
+                  markers={[
+                    {
+                      id: "home-base",
+                      longitude: profile.homeBaseLng,
+                      latitude: profile.homeBaseLat,
+                      label: "Home Base",
+                      color: "#22c55e",
+                      popup: `Coverage: ${coverageRadiusMiles} miles`,
+                    },
+                  ]}
+                  interactive={false}
+                  showNavigation={false}
+                  showScale={true}
+                />
+              </div>
+            ) : (
+              <div className="h-64 bg-[var(--muted)] rounded-lg flex items-center justify-center">
+                <p className="text-[var(--muted-foreground)]">
+                  Set your location to view service area
+                </p>
+              </div>
+            )}
           </div>
 
           {isEditing && (
@@ -385,9 +454,12 @@ export default function AppraiserProfilePage() {
               <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-yellow-300 font-medium">Browser Not Supported</p>
+                  <p className="text-sm text-yellow-300 font-medium">
+                    Browser Not Supported
+                  </p>
                   <p className="text-sm text-yellow-300/80 mt-1">
-                    Your browser doesn&apos;t support push notifications. Try using Chrome, Firefox, or Edge for the best experience.
+                    Your browser doesn&apos;t support push notifications. Try
+                    using Chrome, Firefox, or Edge for the best experience.
                   </p>
                 </div>
               </div>
@@ -410,7 +482,9 @@ export default function AppraiserProfilePage() {
                       )}
                       <div>
                         <p className="font-medium text-[var(--foreground)]">
-                          {pushNotifications.isSubscribed ? "Notifications Enabled" : "Notifications Disabled"}
+                          {pushNotifications.isSubscribed
+                            ? "Notifications Enabled"
+                            : "Notifications Disabled"}
                         </p>
                         <p className="text-sm text-[var(--muted-foreground)]">
                           {pushNotifications.isSubscribed
@@ -459,9 +533,13 @@ export default function AppraiserProfilePage() {
                   <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm text-red-300 font-medium">Notifications Blocked</p>
+                      <p className="text-sm text-red-300 font-medium">
+                        Notifications Blocked
+                      </p>
                       <p className="text-sm text-red-300/80 mt-1">
-                        You&apos;ve blocked notifications in your browser. To enable them, click the lock icon in your address bar and allow notifications for this site.
+                        You&apos;ve blocked notifications in your browser. To
+                        enable them, click the lock icon in your address bar and
+                        allow notifications for this site.
                       </p>
                     </div>
                   </div>
@@ -473,7 +551,9 @@ export default function AppraiserProfilePage() {
                     <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm text-red-300 font-medium">Error</p>
-                      <p className="text-sm text-red-300/80 mt-1">{pushNotifications.error}</p>
+                      <p className="text-sm text-red-300/80 mt-1">
+                        {pushNotifications.error}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -482,7 +562,9 @@ export default function AppraiserProfilePage() {
                 <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3">
                   <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-blue-300">
-                    <p className="font-medium mb-2">What you&apos;ll be notified about:</p>
+                    <p className="font-medium mb-2">
+                      What you&apos;ll be notified about:
+                    </p>
                     <ul className="list-disc list-inside space-y-1 text-blue-300/80">
                       <li>New appraisal jobs available in your service area</li>
                       <li>Job assignment confirmations</li>

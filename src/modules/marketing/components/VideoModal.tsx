@@ -96,12 +96,17 @@ export function VideoModal({ videoUrl }: VideoModalProps) {
                     <Play className="w-12 h-12 text-[var(--primary)]" />
                   </div>
                   <p className="text-xl font-semibold text-[var(--foreground)]">
-                    Demo Video Coming Soon
+                    Product Demo
                   </p>
                   <p className="text-[var(--muted-foreground)] mt-2">
-                    We&apos;re putting the finishing touches on our product
-                    walkthrough
+                    Schedule a personalized demo with our team
                   </p>
+                  <a
+                    href="mailto:demo@truplat.com?subject=TruPlat Demo Request"
+                    className="mt-4 px-6 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90"
+                  >
+                    Request Demo
+                  </a>
                 </div>
               )}
             </motion.div>

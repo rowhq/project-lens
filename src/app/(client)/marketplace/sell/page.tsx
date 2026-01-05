@@ -69,9 +69,15 @@ export default function SellReportPage() {
       fileName: string;
       fileUrl: string;
       fileSize: number;
+      mimeType: string;
     }[]
   >([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
+
+  // Get upload URL mutation
+  const getUploadUrlMutation =
+    trpc.marketplace.getDocumentUploadUrl.useMutation();
 
   // Get completed appraisals that can be listed
   const { data: appraisals, isLoading: loadingAppraisals } =
@@ -116,6 +122,17 @@ export default function SellReportPage() {
       county: listingMode === "standalone" ? county : undefined,
       state: listingMode === "standalone" ? state : undefined,
       zipCode: listingMode === "standalone" ? zipCode : undefined,
+      // Include uploaded documents for standalone studies
+      documents:
+        listingMode === "standalone" && uploadedDocs.length > 0
+          ? uploadedDocs.map((doc) => ({
+              title: doc.title,
+              fileName: doc.fileName,
+              fileUrl: doc.fileUrl,
+              fileSize: doc.fileSize,
+              mimeType: doc.mimeType,
+            }))
+          : undefined,
     });
   };
 
@@ -124,24 +141,53 @@ export default function SellReportPage() {
     if (!files || files.length === 0) return;
 
     setUploading(true);
+    const fileArray = Array.from(files);
 
-    // For now, just simulate upload - in production this would upload to S3/Cloudflare
-    for (const file of Array.from(files)) {
-      // Simulate upload delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
+      setUploadProgress(`Uploading ${i + 1}/${fileArray.length}: ${file.name}`);
 
-      setUploadedDocs((prev) => [
-        ...prev,
-        {
-          title: file.name.replace(/\.[^/.]+$/, ""),
-          fileName: file.name,
-          fileUrl: URL.createObjectURL(file), // In production: actual S3 URL
-          fileSize: file.size,
-        },
-      ]);
+      try {
+        // Get presigned URL from server
+        const { uploadUrl, publicUrl } = await getUploadUrlMutation.mutateAsync(
+          {
+            fileName: file.name,
+            contentType: file.type || "application/octet-stream",
+          },
+        );
+
+        // Upload directly to R2
+        const uploadResponse = await fetch(uploadUrl, {
+          method: "PUT",
+          body: file,
+          headers: {
+            "Content-Type": file.type || "application/octet-stream",
+          },
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        }
+
+        // Add to uploaded docs
+        setUploadedDocs((prev) => [
+          ...prev,
+          {
+            title: file.name.replace(/\.[^/.]+$/, ""),
+            fileName: file.name,
+            fileUrl: publicUrl,
+            fileSize: file.size,
+            mimeType: file.type || "application/octet-stream",
+          },
+        ]);
+      } catch (error) {
+        console.error("Failed to upload file:", file.name, error);
+        // Continue with other files
+      }
     }
 
     setUploading(false);
+    setUploadProgress("");
   };
 
   const removeDoc = (index: number) => {
@@ -403,16 +449,23 @@ export default function SellReportPage() {
                 />
                 <label htmlFor="file-upload" className="cursor-pointer">
                   {uploading ? (
-                    <Loader2 className="w-8 h-8 mx-auto text-lime-400 animate-spin" />
+                    <>
+                      <Loader2 className="w-8 h-8 mx-auto text-lime-400 animate-spin" />
+                      <p className="mt-2 text-sm text-lime-400">
+                        {uploadProgress}
+                      </p>
+                    </>
                   ) : (
-                    <Upload className="w-8 h-8 mx-auto text-gray-400" />
+                    <>
+                      <Upload className="w-8 h-8 mx-auto text-gray-400" />
+                      <p className="mt-2 text-sm text-gray-400">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        PDF, DOC, DOCX, XLS, XLSX (max 50MB each)
+                      </p>
+                    </>
                   )}
-                  <p className="mt-2 text-sm text-gray-400">
-                    Click to upload or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    PDF, DOC, DOCX, XLS, XLSX (max 50MB each)
-                  </p>
                 </label>
               </div>
 

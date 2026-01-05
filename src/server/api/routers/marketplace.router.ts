@@ -8,6 +8,7 @@ import { createTRPCRouter, publicProcedure, clientProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import * as stripe from "@/shared/lib/stripe";
 import { getBoundingBox, calculateDistanceMiles } from "@/shared/lib/geo";
+import * as storage from "@/shared/lib/storage";
 
 // Study categories enum values
 const STUDY_CATEGORY_VALUES = [
@@ -321,6 +322,19 @@ export const marketplaceRouter = createTRPCRouter({
         county: z.string().optional(),
         state: z.string().default("TX"),
         zipCode: z.string().optional(),
+        // Pre-uploaded documents
+        documents: z
+          .array(
+            z.object({
+              title: z.string(),
+              fileName: z.string(),
+              fileUrl: z.string().url(),
+              fileSize: z.number(),
+              mimeType: z.string(),
+              documentType: z.string().optional(),
+            }),
+          )
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -415,25 +429,45 @@ export const marketplaceRouter = createTRPCRouter({
         }
       }
 
-      // Create the listing
-      const listing = await ctx.prisma.marketplaceListing.create({
-        data: {
-          reportId: input.reportId,
-          sellerId: ctx.organization!.id,
-          title: input.title,
-          description: input.description,
-          category: input.category,
-          studyCategory: input.studyCategory,
-          price: input.price,
-          ...locationData,
-        },
-        include: {
-          report: {
-            select: {
-              type: true,
+      // Create the listing with documents in a transaction
+      const listing = await ctx.prisma.$transaction(async (tx) => {
+        const newListing = await tx.marketplaceListing.create({
+          data: {
+            reportId: input.reportId,
+            sellerId: ctx.organization!.id,
+            title: input.title,
+            description: input.description,
+            category: input.category,
+            studyCategory: input.studyCategory,
+            price: input.price,
+            ...locationData,
+          },
+          include: {
+            report: {
+              select: {
+                type: true,
+              },
             },
           },
-        },
+        });
+
+        // Create documents if provided
+        if (input.documents && input.documents.length > 0) {
+          await tx.marketplaceDocument.createMany({
+            data: input.documents.map((doc) => ({
+              listingId: newListing.id,
+              title: doc.title,
+              fileName: doc.fileName,
+              fileUrl: doc.fileUrl,
+              fileSize: doc.fileSize,
+              mimeType: doc.mimeType,
+              documentType: doc.documentType || input.studyCategory,
+              uploadedById: ctx.user.id,
+            })),
+          });
+        }
+
+        return newListing;
       });
 
       return listing;
@@ -542,6 +576,31 @@ export const marketplaceRouter = createTRPCRouter({
       });
 
       return documents;
+    }),
+
+  /**
+   * Get presigned URL for document upload
+   */
+  getDocumentUploadUrl: clientProcedure
+    .input(
+      z.object({
+        fileName: z.string(),
+        contentType: z.string(),
+        listingId: z.string().optional(), // Optional - can upload before listing is created
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const timestamp = Date.now();
+      const sanitizedFilename = input.fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
+      const key = `marketplace/documents/${ctx.organization!.id}/${timestamp}-${sanitizedFilename}`;
+
+      const result = await storage.getUploadUrl({
+        key,
+        contentType: input.contentType,
+        expiresIn: 3600, // 1 hour
+      });
+
+      return result;
     }),
 
   /**

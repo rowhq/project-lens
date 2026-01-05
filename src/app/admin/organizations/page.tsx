@@ -2,27 +2,20 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
 import {
   Search,
   Building,
   Users,
-  CreditCard,
   MoreVertical,
-  ChevronRight,
-  Plus,
   Download,
-  TrendingUp,
-  TrendingDown,
   X,
   AlertTriangle,
 } from "lucide-react";
 import { EmptyState } from "@/shared/components/common/EmptyState";
 
 export default function OrganizationsPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -33,7 +26,11 @@ export default function OrganizationsPage() {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Fixed: Use nested router path - admin.organizations.list
-  const { data: organizationsData, isLoading, refetch } = trpc.admin.organizations.list.useQuery({ limit: 50 });
+  const {
+    data: organizationsData,
+    isLoading,
+    refetch,
+  } = trpc.admin.organizations.list.useQuery({ limit: 50 });
   const organizations = organizationsData?.items;
 
   const updatePlan = trpc.admin.organizations.updatePlan.useMutation({
@@ -86,7 +83,7 @@ export default function OrganizationsPage() {
   const filteredOrgs = organizations?.filter(
     (org) =>
       org.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      org.billingEmail?.toLowerCase().includes(searchQuery.toLowerCase())
+      org.billingEmail?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const subscriptionColors: Record<string, string> = {
@@ -105,21 +102,33 @@ export default function OrganizationsPage() {
 
   // Calculate real stats
   const totalOrgs = organizations?.length || 0;
-  const enterpriseCount = organizations?.filter((o) => o.plan === "ENTERPRISE").length || 0;
-  const professionalCount = organizations?.filter((o) => o.plan === "PROFESSIONAL").length || 0;
-  const monthlyRevenue = organizations?.reduce((sum, org) => {
-    return sum + (planPrices[org.plan] || 0);
-  }, 0) || 0;
-  const totalUsers = organizations?.reduce((sum, org) => sum + (org._count?.users || 0), 0) || 0;
-  const totalRequests = organizations?.reduce((sum, org) => sum + (org._count?.appraisalRequests || 0), 0) || 0;
+  const enterpriseCount =
+    organizations?.filter((o) => o.plan === "ENTERPRISE").length || 0;
+  const professionalCount =
+    organizations?.filter((o) => o.plan === "PROFESSIONAL").length || 0;
+  const monthlyRevenue =
+    organizations?.reduce((sum, org) => {
+      return sum + (planPrices[org.plan] || 0);
+    }, 0) || 0;
+  const totalUsers =
+    organizations?.reduce((sum, org) => sum + (org._count?.users || 0), 0) || 0;
+  const totalRequests =
+    organizations?.reduce(
+      (sum, org) => sum + (org._count?.appraisalRequests || 0),
+      0,
+    ) || 0;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Organizations</h1>
-          <p className="text-[var(--muted-foreground)]">Manage client organizations and subscriptions</p>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">
+            Organizations
+          </h1>
+          <p className="text-[var(--muted-foreground)]">
+            Manage client organizations and subscriptions
+          </p>
         </div>
         <div className="flex gap-2">
           <button
@@ -133,15 +142,24 @@ export default function OrganizationsPage() {
                 return;
               }
               const csvContent = [
-                ["Name", "Email", "Plan", "Members", "Requests", "Created"].join(","),
-                ...organizations.map(org => [
-                  `"${org.name || ""}"`,
-                  `"${org.billingEmail || ""}"`,
-                  org.plan,
-                  org._count?.users || 0,
-                  org._count?.appraisalRequests || 0,
-                  new Date(org.createdAt).toLocaleDateString(),
-                ].join(","))
+                [
+                  "Name",
+                  "Email",
+                  "Plan",
+                  "Members",
+                  "Requests",
+                  "Created",
+                ].join(","),
+                ...organizations.map((org) =>
+                  [
+                    `"${org.name || ""}"`,
+                    `"${org.billingEmail || ""}"`,
+                    org.plan,
+                    org._count?.users || 0,
+                    org._count?.appraisalRequests || 0,
+                    new Date(org.createdAt).toLocaleDateString(),
+                  ].join(","),
+                ),
               ].join("\n");
               const blob = new Blob([csvContent], { type: "text/csv" });
               const url = URL.createObjectURL(blob);
@@ -160,42 +178,51 @@ export default function OrganizationsPage() {
             <Download className="w-4 h-4" />
             Export
           </button>
-          <button
-            onClick={() => {
-              toast({
-                title: "Feature in development",
-                description: "Adding organizations manually is coming soon. Organizations are currently created through the signup flow.",
-              });
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90"
-          >
-            <Plus className="w-4 h-4" />
-            Add Organization
-          </button>
+          {/* Organizations are created via signup flow */}
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
-          <p className="text-sm text-[var(--muted-foreground)]">Total Organizations</p>
-          <p className="text-2xl font-bold text-[var(--foreground)]">{totalOrgs}</p>
-          <p className="text-xs text-[var(--muted-foreground)]">{totalRequests} total requests</p>
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Total Organizations
+          </p>
+          <p className="text-2xl font-bold text-[var(--foreground)]">
+            {totalOrgs}
+          </p>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            {totalRequests} total requests
+          </p>
         </div>
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
           <p className="text-sm text-[var(--muted-foreground)]">Paid Plans</p>
-          <p className="text-2xl font-bold text-purple-400">{enterpriseCount + professionalCount}</p>
-          <p className="text-xs text-[var(--muted-foreground)]">{enterpriseCount} Enterprise, {professionalCount} Pro</p>
+          <p className="text-2xl font-bold text-purple-400">
+            {enterpriseCount + professionalCount}
+          </p>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            {enterpriseCount} Enterprise, {professionalCount} Pro
+          </p>
         </div>
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
-          <p className="text-sm text-[var(--muted-foreground)]">Monthly Revenue</p>
-          <p className="text-2xl font-bold text-green-400">${monthlyRevenue.toLocaleString()}</p>
-          <p className="text-xs text-[var(--muted-foreground)]">from subscriptions</p>
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Monthly Revenue
+          </p>
+          <p className="text-2xl font-bold text-green-400">
+            ${monthlyRevenue.toLocaleString()}
+          </p>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            from subscriptions
+          </p>
         </div>
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
           <p className="text-sm text-[var(--muted-foreground)]">Total Users</p>
-          <p className="text-2xl font-bold text-[var(--primary)]">{totalUsers}</p>
-          <p className="text-xs text-[var(--muted-foreground)]">across all orgs</p>
+          <p className="text-2xl font-bold text-[var(--primary)]">
+            {totalUsers}
+          </p>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            across all orgs
+          </p>
         </div>
       </div>
 
@@ -218,18 +245,31 @@ export default function OrganizationsPage() {
         <table className="w-full min-w-[700px]">
           <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Organization</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Members</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Subscription</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Requests</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">Joined</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                Organization
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                Members
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                Subscription
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                Requests
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                Joined
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-[var(--muted-foreground)]">
+                <td
+                  colSpan={6}
+                  className="px-6 py-12 text-center text-[var(--muted-foreground)]"
+                >
                   Loading organizations...
                 </td>
               </tr>
@@ -239,7 +279,11 @@ export default function OrganizationsPage() {
                   <EmptyState
                     icon={Building}
                     title="No organizations found"
-                    description={searchQuery ? "Try adjusting your search query" : "Organizations will appear here when they sign up"}
+                    description={
+                      searchQuery
+                        ? "Try adjusting your search query"
+                        : "Organizations will appear here when they sign up"
+                    }
                   />
                 </td>
               </tr>
@@ -252,8 +296,12 @@ export default function OrganizationsPage() {
                         <Building className="w-5 h-5 text-blue-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-[var(--foreground)]">{org.name}</p>
-                        <p className="text-sm text-[var(--muted-foreground)]">{org.billingEmail || "-"}</p>
+                        <p className="font-medium text-[var(--foreground)]">
+                          {org.name}
+                        </p>
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                          {org.billingEmail || "-"}
+                        </p>
                       </div>
                     </div>
                   </td>
@@ -281,9 +329,14 @@ export default function OrganizationsPage() {
                     {new Date(org.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="relative" ref={activeMenu === org.id ? menuRef : null}>
+                    <div
+                      className="relative"
+                      ref={activeMenu === org.id ? menuRef : null}
+                    >
                       <button
-                        onClick={() => setActiveMenu(activeMenu === org.id ? null : org.id)}
+                        onClick={() =>
+                          setActiveMenu(activeMenu === org.id ? null : org.id)
+                        }
                         className="p-2 hover:bg-[var(--muted)] rounded-lg"
                       >
                         <MoreVertical className="w-4 h-4 text-[var(--muted-foreground)]" />
@@ -337,7 +390,9 @@ export default function OrganizationsPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[var(--card)] rounded-lg w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">Change Subscription Plan</h2>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">
+                Change Subscription Plan
+              </h2>
               <button
                 onClick={() => setShowPlanModal(null)}
                 className="p-2 hover:bg-[var(--muted)] rounded-lg"
@@ -346,7 +401,9 @@ export default function OrganizationsPage() {
               </button>
             </div>
             <div className="space-y-3 mb-6">
-              {(["FREE_TRIAL", "STARTER", "PROFESSIONAL", "ENTERPRISE"] as const).map((plan) => (
+              {(
+                ["FREE_TRIAL", "STARTER", "PROFESSIONAL", "ENTERPRISE"] as const
+              ).map((plan) => (
                 <button
                   key={plan}
                   onClick={() => setSelectedPlan(plan)}
@@ -379,7 +436,11 @@ export default function OrganizationsPage() {
                   if (showPlanModal) {
                     updatePlan.mutate({
                       id: showPlanModal,
-                      plan: selectedPlan as "FREE_TRIAL" | "STARTER" | "PROFESSIONAL" | "ENTERPRISE"
+                      plan: selectedPlan as
+                        | "FREE_TRIAL"
+                        | "STARTER"
+                        | "PROFESSIONAL"
+                        | "ENTERPRISE",
                     });
                   }
                 }}
@@ -402,15 +463,17 @@ export default function OrganizationsPage() {
                 <AlertTriangle className="w-5 h-5 text-red-400" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-[var(--foreground)]">Suspend Organization</h2>
+                <h2 className="text-lg font-semibold text-[var(--foreground)]">
+                  Suspend Organization
+                </h2>
                 <p className="text-sm text-[var(--muted-foreground)]">
-                  {organizations?.find(o => o.id === showSuspendModal)?.name}
+                  {organizations?.find((o) => o.id === showSuspendModal)?.name}
                 </p>
               </div>
             </div>
             <p className="text-sm text-[var(--muted-foreground)] mb-4">
-              This will suspend all users and cancel active jobs. The organization will not be able to
-              access the platform.
+              This will suspend all users and cancel active jobs. The
+              organization will not be able to access the platform.
             </p>
             <div className="mb-4">
               <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
@@ -437,7 +500,10 @@ export default function OrganizationsPage() {
               <button
                 onClick={() => {
                   if (showSuspendModal) {
-                    suspend.mutate({ id: showSuspendModal, reason: suspendReason });
+                    suspend.mutate({
+                      id: showSuspendModal,
+                      reason: suspendReason,
+                    });
                   }
                 }}
                 disabled={!suspendReason.trim() || suspend.isPending}

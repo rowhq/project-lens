@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
+import { useToast } from "@/shared/hooks/use-toast";
 import { useCartStore } from "@/shared/lib/cart-store";
 import {
   Search,
@@ -72,6 +73,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function MarketplacePage() {
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [studyCategory, setStudyCategory] = useState<"" | StudyCategory>("");
@@ -93,7 +95,11 @@ export default function MarketplacePage() {
   // Get user's location
   const getUserLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      toast({
+        title: "Error",
+        description: "Geolocation is not supported by your browser",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -110,7 +116,11 @@ export default function MarketplacePage() {
       (error) => {
         console.error("Error getting location:", error);
         setLoadingLocation(false);
-        alert("Could not get your location. Please check permissions.");
+        toast({
+          title: "Error",
+          description: "Could not get your location. Please check permissions.",
+          variant: "destructive",
+        });
       },
     );
   };

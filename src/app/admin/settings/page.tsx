@@ -13,7 +13,6 @@ import {
   User,
   Clock,
   Filter,
-  ChevronRight,
   AlertTriangle,
   Loader2,
   RefreshCw,
@@ -315,14 +314,6 @@ export default function SettingsPage() {
               )}
             </div>
           </div>
-
-          {auditLogs?.nextCursor && (
-            <div className="text-center pt-4">
-              <button className="px-4 py-2 text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 clip-notch-sm font-mono text-sm transition-colors">
-                Load More
-              </button>
-            </div>
-          )}
         </div>
       )}
 
@@ -435,27 +426,7 @@ export default function SettingsPage() {
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-gray-900 border border-gray-800 clip-notch-sm">
-                <div>
-                  <p className="text-white font-medium">Maintenance Mode</p>
-                  <p className="text-gray-500 text-sm">
-                    Enable maintenance mode to prevent user access during
-                    updates.
-                  </p>
-                </div>
-                <button
-                  onClick={() =>
-                    toast({
-                      title: "Coming soon",
-                      description:
-                        "Maintenance mode toggle will be available soon.",
-                    })
-                  }
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white font-mono text-sm uppercase clip-notch-sm transition-colors"
-                >
-                  Enable
-                </button>
-              </div>
+              {/* Maintenance mode is controlled via environment variables */}
             </div>
           </div>
         </div>

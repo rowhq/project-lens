@@ -11,7 +11,6 @@ import {
   Clock,
   Star,
   Download,
-  Calendar,
   MapPin,
   Users,
   Building,
@@ -177,6 +176,45 @@ export default function AnalyticsPage() {
     { value: "ytd", label: "YTD" },
   ];
 
+  // Export analytics data as CSV
+  const handleExport = () => {
+    const rows = [
+      ["TruPlat Analytics Report", ""],
+      ["Date Range", dateRange],
+      ["Generated", new Date().toISOString()],
+      ["", ""],
+      ["KPI Metrics", ""],
+      ["Total Revenue", `$${totalRevenue.toLocaleString()}`],
+      ["Total Jobs", totalJobs.toString()],
+      ["Avg Turnaround", `${avgTurnaround} hours`],
+      ["Satisfaction Score", `${satisfactionScore}%`],
+      ["", ""],
+      ["Job Type Distribution", ""],
+      ...jobTypeData.map((j) => [j.name, j.value.toString()]),
+      ["", ""],
+      ["Top Counties", "Jobs"],
+      ...topCounties.map((c) => [c.name, c.jobs.toString()]),
+      ["", ""],
+      ["Top Appraisers", "Jobs,Rating,Revenue"],
+      ...topAppraisers.map((a) => [
+        a.name,
+        `${a.jobs},${a.rating},${a.revenue}`,
+      ]),
+      ["", ""],
+      ["Top Organizations", "Jobs,Plan"],
+      ...topOrganizations.map((o) => [o.name, `${o.jobs},${o.plan}`]),
+    ];
+
+    const csvContent = rows.map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `truplat-analytics-${dateRange}-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-[var(--background)] p-6">
       {/* Header */}
@@ -213,7 +251,10 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Export Button */}
-          <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-400 hover:text-white clip-notch-sm transition-colors">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-400 hover:text-white clip-notch-sm transition-colors"
+          >
             <Download className="w-4 h-4" />
             <span className="font-mono text-xs uppercase">Export</span>
           </button>

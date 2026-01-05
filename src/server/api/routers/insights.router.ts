@@ -10,12 +10,7 @@
  */
 
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  publicProcedure,
-  clientProcedure,
-  adminProcedure,
-} from "../trpc";
+import { createTRPCRouter, clientProcedure, adminProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { getBoundingBox, calculateDistanceMiles } from "@/shared/lib/geo";
 
@@ -388,6 +383,19 @@ export const insightsRouter = createTRPCRouter({
       return insight;
     }),
 
+  /**
+   * Delete an insight (admin only)
+   */
+  deleteInsight: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.investmentInsight.delete({
+        where: { id: input.id },
+      });
+
+      return { success: true };
+    }),
+
   // ============================================
   // PROPERTY OWNERS
   // ============================================
@@ -550,6 +558,87 @@ export const insightsRouter = createTRPCRouter({
       }
 
       return owner;
+    }),
+
+  /**
+   * Create property owner (admin only)
+   */
+  createOwner: adminProcedure
+    .input(
+      z.object({
+        parcelId: z.string(),
+        county: z.string(),
+        addressLine1: z.string(),
+        city: z.string(),
+        state: z.string().default("TX"),
+        zipCode: z.string(),
+        ownerName: z.string(),
+        ownerType: z.string(),
+        mailingAddress: z.string().optional(),
+        phone: z.string().optional(),
+        email: z.string().email().optional(),
+        latitude: z.number().optional(),
+        longitude: z.number().optional(),
+        lotSizeSqft: z.number().optional(),
+        zoning: z.string().optional(),
+        landUse: z.string().optional(),
+        assessedValue: z.number().optional(),
+        taxAmount: z.number().optional(),
+        lastSaleDate: z.date().optional(),
+        lastSalePrice: z.number().optional(),
+        dataSource: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const owner = await ctx.prisma.propertyOwner.create({
+        data: input,
+      });
+
+      return owner;
+    }),
+
+  /**
+   * Update property owner (admin only)
+   */
+  updateOwner: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        ownerName: z.string().optional(),
+        ownerType: z.string().optional(),
+        mailingAddress: z.string().optional(),
+        phone: z.string().optional(),
+        email: z.string().email().optional(),
+        assessedValue: z.number().optional(),
+        zoning: z.string().optional(),
+        landUse: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input;
+
+      const owner = await ctx.prisma.propertyOwner.update({
+        where: { id },
+        data: {
+          ...data,
+          lastUpdated: new Date(),
+        },
+      });
+
+      return owner;
+    }),
+
+  /**
+   * Delete property owner (admin only)
+   */
+  deleteOwner: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.propertyOwner.delete({
+        where: { id: input.id },
+      });
+
+      return { success: true };
     }),
 
   /**
@@ -894,6 +983,19 @@ export const insightsRouter = createTRPCRouter({
       });
 
       return engineer;
+    }),
+
+  /**
+   * Delete engineer (admin only)
+   */
+  deleteEngineer: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.engineerDirectory.delete({
+        where: { id: input.id },
+      });
+
+      return { success: true };
     }),
 
   /**

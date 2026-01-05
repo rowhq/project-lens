@@ -230,7 +230,7 @@ export default function LandingPage() {
             />
             <FAQItem
               question="What properties can you appraise?"
-              answer="Single-family homes, condos, townhouses, and small multi-family (2-4 units) across Texas. Commercial coming soon."
+              answer="Single-family homes, condos, townhouses, small multi-family (2-4 units), commercial properties, and land across Texas."
             />
             <FAQItem
               question="What if I'm not satisfied?"
@@ -300,7 +300,7 @@ export default function LandingPage() {
               <ul className="space-y-3">
                 <li>
                   <Link
-                    href="#"
+                    href="/docs#executive-summary"
                     className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
                     style={{
                       transitionTimingFunction:
@@ -312,7 +312,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <Link
-                    href="#"
+                    href="mailto:careers@truplat.com"
                     className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
                     style={{
                       transitionTimingFunction:
@@ -324,7 +324,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <Link
-                    href="#"
+                    href="mailto:contact@truplat.com"
                     className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
                     style={{
                       transitionTimingFunction:
@@ -345,7 +345,7 @@ export default function LandingPage() {
               <ul className="space-y-3">
                 <li>
                   <Link
-                    href="#"
+                    href="/docs"
                     className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
                     style={{
                       transitionTimingFunction:
@@ -378,7 +378,7 @@ export default function LandingPage() {
               <ul className="space-y-3">
                 <li>
                   <Link
-                    href="#"
+                    href="/docs#data-security"
                     className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
                     style={{
                       transitionTimingFunction:
@@ -390,7 +390,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <Link
-                    href="#"
+                    href="/docs#regulatory-compliance"
                     className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
                     style={{
                       transitionTimingFunction:
@@ -402,7 +402,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <Link
-                    href="#"
+                    href="/docs#data-security"
                     className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
                     style={{
                       transitionTimingFunction:
@@ -428,13 +428,15 @@ export default function LandingPage() {
             {/* Social links */}
             <div className="flex items-center gap-6">
               <Link
-                href="#"
+                href="https://x.com/truplat"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-gray-500 hover:text-white transition-colors duration-300"
                 style={{
                   transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
                 }}
               >
-                <span className="sr-only">Twitter</span>
+                <span className="sr-only">X (Twitter)</span>
                 <svg
                   className="w-4 h-4"
                   fill="currentColor"
@@ -444,7 +446,9 @@ export default function LandingPage() {
                 </svg>
               </Link>
               <Link
-                href="#"
+                href="https://linkedin.com/company/truplat"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-gray-500 hover:text-white transition-colors duration-300"
                 style={{
                   transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
