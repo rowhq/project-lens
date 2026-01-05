@@ -16,6 +16,7 @@ import {
   DollarSign,
   Settings,
   BarChart3,
+  TrendingUp,
   X,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
@@ -46,6 +47,11 @@ const navigation = [
     name: "Disputes",
     href: "/admin/disputes",
     icon: AlertTriangle,
+  },
+  {
+    name: "Insights",
+    href: "/admin/insights",
+    icon: TrendingUp,
   },
   {
     name: "Pricing",

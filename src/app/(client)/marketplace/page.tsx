@@ -6,26 +6,61 @@ import { trpc } from "@/shared/lib/trpc";
 import { useCartStore } from "@/shared/lib/cart-store";
 import {
   Search,
-  Filter,
   FileText,
   MapPin,
   DollarSign,
   TrendingUp,
   ShoppingCart,
-  Star,
   ChevronDown,
   Loader2,
   Building2,
   Home,
   Warehouse,
+  Navigation,
+  Layers,
+  Droplets,
+  Mountain,
+  Compass,
+  ScrollText,
 } from "lucide-react";
+import { STUDY_CATEGORIES } from "@/shared/config/constants";
 
-const CATEGORIES = [
-  { value: "", label: "All Categories", icon: FileText },
+const PROPERTY_CATEGORIES = [
+  { value: "", label: "All Property Types", icon: FileText },
   { value: "residential", label: "Residential", icon: Home },
   { value: "commercial", label: "Commercial", icon: Building2 },
   { value: "land", label: "Land", icon: MapPin },
   { value: "industrial", label: "Industrial", icon: Warehouse },
+];
+
+type StudyCategory =
+  | "APPRAISAL_REPORT"
+  | "SOIL_STUDY"
+  | "DRAINAGE_STUDY"
+  | "CIVIL_ENGINEERING"
+  | "ENVIRONMENTAL"
+  | "GEOTECHNICAL"
+  | "STRUCTURAL"
+  | "FLOOD_RISK"
+  | "ZONING_ANALYSIS"
+  | "SURVEY"
+  | "TITLE_REPORT"
+  | "OTHER";
+
+const STUDY_CATEGORY_OPTIONS: { value: "" | StudyCategory; label: string }[] = [
+  { value: "", label: "All Study Types" },
+  { value: "APPRAISAL_REPORT", label: "Appraisal Report" },
+  { value: "SOIL_STUDY", label: "Soil Study" },
+  { value: "DRAINAGE_STUDY", label: "Drainage Study" },
+  { value: "CIVIL_ENGINEERING", label: "Civil Engineering" },
+  { value: "ENVIRONMENTAL", label: "Environmental" },
+  { value: "GEOTECHNICAL", label: "Geotechnical" },
+  { value: "STRUCTURAL", label: "Structural" },
+  { value: "FLOOD_RISK", label: "Flood Risk" },
+  { value: "ZONING_ANALYSIS", label: "Zoning Analysis" },
+  { value: "SURVEY", label: "Survey" },
+  { value: "TITLE_REPORT", label: "Title Report" },
+  { value: "OTHER", label: "Other" },
 ];
 
 const SORT_OPTIONS = [
@@ -33,25 +68,83 @@ const SORT_OPTIONS = [
   { value: "price_asc", label: "Price: Low to High" },
   { value: "price_desc", label: "Price: High to Low" },
   { value: "popular", label: "Most Popular" },
+  { value: "distance", label: "Nearest" },
 ];
 
 export default function MarketplacePage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [studyCategory, setStudyCategory] = useState<"" | StudyCategory>("");
   const [sortBy, setSortBy] = useState<
-    "newest" | "price_asc" | "price_desc" | "popular"
+    "newest" | "price_asc" | "price_desc" | "popular" | "distance"
   >("newest");
-  const [showFilters, setShowFilters] = useState(false);
+  const [county, setCounty] = useState("");
   const cartItemCount = useCartStore((state) => state.getItemCount());
+
+  // Location filter state
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [radiusMiles, setRadiusMiles] = useState(50);
+  const [useLocationFilter, setUseLocationFilter] = useState(false);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+
+  // Get user's location
+  const getUserLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setLoadingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setUseLocationFilter(true);
+        setLoadingLocation(false);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        setLoadingLocation(false);
+        alert("Could not get your location. Please check permissions.");
+      },
+    );
+  };
 
   const { data: listings, isLoading } = trpc.marketplace.list.useQuery({
     limit: 20,
     category: category || undefined,
+    studyCategory: studyCategory || undefined,
     sortBy,
     search: search || undefined,
+    county: county || undefined,
+    latitude: useLocationFilter && userLocation ? userLocation.lat : undefined,
+    longitude: useLocationFilter && userLocation ? userLocation.lng : undefined,
+    radiusMiles: useLocationFilter ? radiusMiles : undefined,
   });
 
   const { data: stats } = trpc.marketplace.stats.useQuery();
+
+  const getStudyCategoryIcon = (cat: string) => {
+    switch (cat) {
+      case "SOIL_STUDY":
+        return <Layers className="w-3 h-3" />;
+      case "DRAINAGE_STUDY":
+        return <Droplets className="w-3 h-3" />;
+      case "GEOTECHNICAL":
+        return <Mountain className="w-3 h-3" />;
+      case "SURVEY":
+        return <Compass className="w-3 h-3" />;
+      case "TITLE_REPORT":
+        return <ScrollText className="w-3 h-3" />;
+      default:
+        return <FileText className="w-3 h-3" />;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -135,7 +228,7 @@ export default function MarketplacePage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-gray-900 clip-notch border border-gray-800 p-4">
+      <div className="bg-gray-900 clip-notch border border-gray-800 p-4 space-y-4">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
@@ -149,14 +242,32 @@ export default function MarketplacePage() {
             />
           </div>
 
-          {/* Category */}
+          {/* Property Category */}
           <div className="relative">
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="appearance-none px-4 py-2 pr-10 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
             >
-              {CATEGORIES.map((cat) => (
+              {PROPERTY_CATEGORIES.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+
+          {/* Study Category */}
+          <div className="relative">
+            <select
+              value={studyCategory}
+              onChange={(e) =>
+                setStudyCategory(e.target.value as "" | StudyCategory)
+              }
+              className="appearance-none px-4 py-2 pr-10 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+            >
+              {STUDY_CATEGORY_OPTIONS.map((cat) => (
                 <option key={cat.value} value={cat.value}>
                   {cat.label}
                 </option>
@@ -180,6 +291,67 @@ export default function MarketplacePage() {
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
+        </div>
+
+        {/* Second Row: Location Filters */}
+        <div className="flex flex-wrap gap-4 items-center">
+          {/* County */}
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="County"
+              value={county}
+              onChange={(e) => setCounty(e.target.value)}
+              className="w-40 pl-10 pr-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
+            />
+          </div>
+
+          {/* Location Filter Button */}
+          <button
+            onClick={getUserLocation}
+            disabled={loadingLocation}
+            className={`px-4 py-2 flex items-center gap-2 border clip-notch-sm transition-colors ${
+              useLocationFilter
+                ? "bg-lime-400/20 text-lime-400 border-lime-400/50"
+                : "bg-gray-900 border-gray-700 text-gray-400 hover:border-lime-400/50"
+            }`}
+          >
+            {loadingLocation ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Navigation className="w-4 h-4" />
+            )}
+            {useLocationFilter ? "Near Me" : "Use My Location"}
+          </button>
+
+          {/* Radius Slider (shows when location is active) */}
+          {useLocationFilter && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-400">Radius:</span>
+              <input
+                type="range"
+                min="5"
+                max="200"
+                step="5"
+                value={radiusMiles}
+                onChange={(e) => setRadiusMiles(parseInt(e.target.value))}
+                className="w-32 accent-lime-400"
+              />
+              <span className="text-sm text-lime-400 font-mono w-16">
+                {radiusMiles} mi
+              </span>
+              <button
+                onClick={() => {
+                  setUseLocationFilter(false);
+                  setUserLocation(null);
+                }}
+                className="text-sm text-red-400 hover:text-red-300"
+              >
+                Clear
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -206,7 +378,18 @@ export default function MarketplacePage() {
             >
               {/* Thumbnail placeholder */}
               <div className="h-40 bg-gray-800 flex items-center justify-center">
-                <FileText className="w-12 h-12 text-gray-600" />
+                {listing.studyCategory && !listing.report ? (
+                  <div className="text-center">
+                    {getStudyCategoryIcon(listing.studyCategory)}
+                    <p className="text-xs text-gray-500 mt-1">
+                      {STUDY_CATEGORIES[
+                        listing.studyCategory as keyof typeof STUDY_CATEGORIES
+                      ]?.label || listing.studyCategory}
+                    </p>
+                  </div>
+                ) : (
+                  <FileText className="w-12 h-12 text-gray-600" />
+                )}
               </div>
 
               <div className="p-4">
@@ -214,9 +397,19 @@ export default function MarketplacePage() {
                   <h3 className="font-semibold text-white group-hover:text-lime-400 transition-colors line-clamp-2">
                     {listing.title}
                   </h3>
-                  <span className="px-2 py-0.5 bg-lime-400/10 text-lime-400 text-xs font-mono uppercase tracking-wider clip-notch-sm">
-                    {listing.category}
-                  </span>
+                  <div className="flex flex-col gap-1">
+                    <span className="px-2 py-0.5 bg-lime-400/10 text-lime-400 text-xs font-mono uppercase tracking-wider clip-notch-sm">
+                      {listing.category}
+                    </span>
+                    {listing.studyCategory && (
+                      <span className="px-2 py-0.5 bg-blue-400/10 text-blue-400 text-xs font-mono uppercase tracking-wider clip-notch-sm flex items-center gap-1">
+                        {getStudyCategoryIcon(listing.studyCategory)}
+                        {listing.studyCategory
+                          .replace(/_/g, " ")
+                          .substring(0, 10)}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-2 flex items-center gap-2 text-sm text-gray-400">
@@ -229,6 +422,12 @@ export default function MarketplacePage() {
                       listing.report?.appraisalRequest?.property?.state}
                   </span>
                 </div>
+
+                {listing.county && (
+                  <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                    <span>{listing.county} County</span>
+                  </div>
+                )}
 
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-1">
@@ -252,7 +451,7 @@ export default function MarketplacePage() {
                   )}
                   <span>
                     {listing.report?.type?.replace("_", " ") ||
-                      listing.studyCategory?.replace("_", " ")}
+                      listing.studyCategory?.replace(/_/g, " ")}
                   </span>
                 </div>
               </div>

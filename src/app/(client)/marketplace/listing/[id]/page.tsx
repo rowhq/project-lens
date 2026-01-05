@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
@@ -9,7 +8,6 @@ import {
   ArrowLeft,
   FileText,
   MapPin,
-  DollarSign,
   Calendar,
   Building2,
   Ruler,
@@ -18,11 +16,12 @@ import {
   ShoppingCart,
   Download,
   Shield,
-  TrendingUp,
   CheckCircle,
   Loader2,
   Eye,
-  Check,
+  Layers,
+  File,
+  ExternalLink,
 } from "lucide-react";
 import { useToast } from "@/shared/components/ui/Toast";
 
@@ -261,7 +260,8 @@ export default function ListingDetailPage() {
           {/* Study Category - Show if no report */}
           {!listing.report && listing.studyCategory && (
             <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
-              <h2 className="font-semibold text-white mb-4">
+              <h2 className="font-semibold text-white mb-4 flex items-center gap-2">
+                <Layers className="w-5 h-5 text-lime-400" />
                 Study Information
               </h2>
               <div className="space-y-4">
@@ -284,6 +284,55 @@ export default function ListingDetailPage() {
                   </span>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Documents Section */}
+          {listing.documents && listing.documents.length > 0 && (
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <h2 className="font-semibold text-white mb-4 flex items-center gap-2">
+                <File className="w-5 h-5 text-lime-400" />
+                Included Documents ({listing.documents.length})
+              </h2>
+              <div className="space-y-3">
+                {listing.documents.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-4 bg-gray-800 clip-notch-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-lime-400/10 clip-notch-sm">
+                        <FileText className="w-5 h-5 text-lime-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-white">
+                          {doc.title || doc.fileName}
+                        </p>
+                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
+                          <span>
+                            {doc.documentType?.replace(/_/g, " ") || "Document"}
+                          </span>
+                          <span>
+                            {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <a
+                      href={doc.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-1.5 bg-lime-400/10 text-lime-400 hover:bg-lime-400/20 clip-notch-sm transition-colors text-sm"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      View
+                    </a>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-sm text-gray-400">
+                Documents will be available for download after purchase.
+              </p>
             </div>
           )}
         </div>

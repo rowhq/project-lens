@@ -9,9 +9,6 @@ import { TRPCError } from "@trpc/server";
 import * as stripe from "@/shared/lib/stripe";
 import { getBoundingBox, calculateDistanceMiles } from "@/shared/lib/geo";
 
-// Platform fee is 20%
-const PLATFORM_FEE_PERCENTAGE = 0.2;
-
 // Study categories enum values
 const STUDY_CATEGORY_VALUES = [
   "APPRAISAL_REPORT",
@@ -266,6 +263,16 @@ export const marketplaceRouter = createTRPCRouter({
             select: {
               id: true,
               name: true,
+            },
+          },
+          documents: {
+            select: {
+              id: true,
+              title: true,
+              fileName: true,
+              fileSize: true,
+              documentType: true,
+              fileUrl: true,
             },
           },
           _count: {
