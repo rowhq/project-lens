@@ -514,27 +514,29 @@ export default function InsightDetailPage({
       )}
 
       {/* Location Map */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden">
-        <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700 z-10" />
-        <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700 z-10" />
+      {insight.latitude && insight.longitude && (
+        <div className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700 z-10" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700 z-10" />
 
-        <div className="p-4 border-b border-gray-800">
-          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
-            Location
-          </h2>
+          <div className="p-4 border-b border-gray-800">
+            <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Location
+            </h2>
+          </div>
+          <MapView
+            markers={markers}
+            center={[insight.longitude, insight.latitude]}
+            zoom={13}
+            style={{ height: 300 }}
+            showBaseLayerSwitcher
+          />
+          <div className="p-3 bg-gray-800/50 text-xs text-gray-500 font-mono">
+            {insight.latitude.toFixed(6)}, {insight.longitude.toFixed(6)}
+          </div>
         </div>
-        <MapView
-          markers={markers}
-          center={[insight.latitude, insight.longitude]}
-          zoom={13}
-          style={{ height: 300 }}
-          showBaseLayerSwitcher
-        />
-        <div className="p-3 bg-gray-800/50 text-xs text-gray-500 font-mono">
-          {insight.latitude.toFixed(6)}, {insight.longitude.toFixed(6)}
-        </div>
-      </div>
+      )}
 
       {/* Footer Actions */}
       <div className="flex flex-wrap gap-4 pt-4 border-t border-gray-800">
