@@ -35,6 +35,33 @@ export async function processAppraisal(
   );
 
   try {
+    // IMMEDIATELY update status to RUNNING to prevent stuck QUEUED
+    // This is done BEFORE any other operations to handle Vercel timeouts
+    console.log(
+      `[AppraisalProcessor] Step 0: Marking as RUNNING immediately...`,
+    );
+    try {
+      await prisma.appraisalRequest.update({
+        where: { id: appraisalId },
+        data: {
+          status: "RUNNING",
+          lastAttemptAt: new Date(),
+          statusMessage: "Starting processing...",
+        },
+      });
+    } catch (updateError) {
+      // If we can't update, the appraisal might not exist
+      console.error(
+        `[AppraisalProcessor] Failed to mark as RUNNING:`,
+        updateError,
+      );
+      return {
+        success: false,
+        appraisalId,
+        error: "Failed to update appraisal status",
+      };
+    }
+
     // Get appraisal with property
     console.log(`[AppraisalProcessor] Step 1: Fetching appraisal from DB...`);
     const appraisal = await prisma.appraisalRequest.findUnique({
@@ -44,6 +71,16 @@ export async function processAppraisal(
 
     if (!appraisal) {
       console.error(`[AppraisalProcessor] FAILED: Appraisal not found in DB`);
+      // Already marked as RUNNING, now mark as FAILED
+      await prisma.appraisalRequest
+        .update({
+          where: { id: appraisalId },
+          data: {
+            status: "FAILED",
+            statusMessage: "Appraisal record not found",
+          },
+        })
+        .catch(() => {}); // Ignore if fails
       return {
         success: false,
         appraisalId,
@@ -59,6 +96,14 @@ export async function processAppraisal(
       console.error(
         `[AppraisalProcessor] FAILED: Property not found for appraisal`,
       );
+      // Mark as FAILED since property is missing
+      await prisma.appraisalRequest.update({
+        where: { id: appraisalId },
+        data: {
+          status: "FAILED",
+          statusMessage: "Property not found for appraisal",
+        },
+      });
       return {
         success: false,
         appraisalId,
@@ -70,20 +115,18 @@ export async function processAppraisal(
       `[AppraisalProcessor] Step 1: Property: ${appraisal.property.addressFull}`,
     );
 
-    // Update status to RUNNING and record attempt
-    console.log(`[AppraisalProcessor] Step 2: Updating status to RUNNING...`);
+    // Update status message with retry info
+    console.log(`[AppraisalProcessor] Step 2: Updating status message...`);
     await prisma.appraisalRequest.update({
       where: { id: appraisalId },
       data: {
-        status: "RUNNING",
-        lastAttemptAt: new Date(),
         statusMessage:
           appraisal.retryCount > 0
             ? `Processing (attempt ${appraisal.retryCount + 1}/${MAX_RETRIES + 1})`
-            : "Processing...",
+            : "Processing valuation...",
       },
     });
-    console.log(`[AppraisalProcessor] Step 2: Status updated to RUNNING`);
+    console.log(`[AppraisalProcessor] Step 2: Status message updated`);
 
     // Generate complete report (includes valuation, HTML, PDF, and email notification)
     console.log(`[AppraisalProcessor] Step 3: Starting report generation...`);
@@ -184,22 +227,30 @@ export async function processAppraisal(
  */
 export async function processQueuedAppraisals(): Promise<ProcessingResult[]> {
   const now = new Date();
-  // Appraisals stuck in RUNNING for more than 1 hour should be re-processed
-  const stuckThreshold = new Date(Date.now() - 60 * 60 * 1000);
+  // Appraisals stuck in RUNNING for more than 10 minutes should be re-processed
+  // (Vercel serverless has max 60s timeout on Pro, so 10min is plenty)
+  const runningStuckThreshold = new Date(Date.now() - 10 * 60 * 1000);
+  // Appraisals stuck in QUEUED (no nextRetryAt) for more than 2 minutes
+  // (Should have been processed immediately, so something went wrong)
+  const queuedStuckThreshold = new Date(Date.now() - 2 * 60 * 1000);
 
   // Find appraisals that are either:
-  // 1. QUEUED with no retry scheduled (new appraisals)
+  // 1. QUEUED with no retry scheduled AND older than 2 min (stuck new appraisals)
   // 2. QUEUED with nextRetryAt <= now (retries that are due)
-  // 3. RUNNING with lastAttemptAt > 1 hour ago (stuck appraisals)
+  // 3. RUNNING with lastAttemptAt > 10 min ago (stuck appraisals - likely timeout)
   const queued = await prisma.appraisalRequest.findMany({
     where: {
       OR: [
-        // New appraisals in QUEUED
-        { status: "QUEUED", nextRetryAt: null },
+        // New appraisals in QUEUED that are stuck (should have processed immediately)
+        {
+          status: "QUEUED",
+          nextRetryAt: null,
+          createdAt: { lt: queuedStuckThreshold },
+        },
         // Retries that are due
         { status: "QUEUED", nextRetryAt: { lte: now } },
-        // Stuck in RUNNING for more than 1 hour
-        { status: "RUNNING", lastAttemptAt: { lt: stuckThreshold } },
+        // Stuck in RUNNING for more than 10 minutes (likely Vercel timeout)
+        { status: "RUNNING", lastAttemptAt: { lt: runningStuckThreshold } },
       ],
     },
     orderBy: { createdAt: "asc" },

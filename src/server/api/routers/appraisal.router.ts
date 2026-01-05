@@ -474,26 +474,64 @@ export const appraisalRouter = createTRPCRouter({
             `[QuickAIReport] processAppraisal returned failure:`,
             result.error,
           );
-          // Update status with error message for visibility
-          await ctx.prisma.appraisalRequest.update({
-            where: { id: appraisal.id },
-            data: {
-              statusMessage: `Processing failed: ${result.error}`,
+          // Check current status - if still QUEUED somehow, schedule a retry
+          const currentAppraisal = await ctx.prisma.appraisalRequest.findUnique(
+            {
+              where: { id: appraisal.id },
+              select: { status: true, retryCount: true },
             },
-          });
+          );
+
+          if (currentAppraisal?.status === "QUEUED") {
+            // Still QUEUED means processAppraisal didn't update status properly
+            // Schedule a retry via cron
+            await ctx.prisma.appraisalRequest.update({
+              where: { id: appraisal.id },
+              data: {
+                nextRetryAt: new Date(Date.now() + 60000), // Retry in 1 minute
+                retryCount: (currentAppraisal.retryCount || 0) + 1,
+                statusMessage: `Processing failed: ${result.error}. Retry scheduled.`,
+              },
+            });
+          }
         }
       } catch (error) {
         console.error(
           `[QuickAIReport] Exception in processAppraisal ${appraisal.id}:`,
           error,
         );
-        // Update status with error for visibility
-        await ctx.prisma.appraisalRequest.update({
-          where: { id: appraisal.id },
-          data: {
-            statusMessage: `Exception: ${error instanceof Error ? error.message : "Unknown error"}`,
-          },
-        });
+        // On exception, ensure appraisal is properly set for retry
+        // processAppraisal should have set status to RUNNING, but let's make sure
+        // we have a proper retry scheduled
+        try {
+          const currentAppraisal = await ctx.prisma.appraisalRequest.findUnique(
+            {
+              where: { id: appraisal.id },
+              select: { status: true, retryCount: true },
+            },
+          );
+
+          // If status is QUEUED or RUNNING (stuck), schedule retry
+          if (
+            currentAppraisal &&
+            ["QUEUED", "RUNNING"].includes(currentAppraisal.status)
+          ) {
+            await ctx.prisma.appraisalRequest.update({
+              where: { id: appraisal.id },
+              data: {
+                status: "QUEUED",
+                nextRetryAt: new Date(Date.now() + 60000), // Retry in 1 minute
+                retryCount: (currentAppraisal.retryCount || 0) + 1,
+                statusMessage: `Exception: ${error instanceof Error ? error.message : "Unknown"}. Retry scheduled.`,
+              },
+            });
+          }
+        } catch (updateError) {
+          console.error(
+            `[QuickAIReport] Failed to schedule retry for ${appraisal.id}:`,
+            updateError,
+          );
+        }
         // Don't throw - appraisal is created, cron will retry if needed
       }
 
