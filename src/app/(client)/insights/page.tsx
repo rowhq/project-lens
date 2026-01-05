@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -129,6 +129,18 @@ export default function InsightsPage() {
 
   // Initialize state from URL params
   const [viewMode, setViewMode] = useState<ViewMode>("table");
+  const mapViewRef = useRef<HTMLDivElement>(null);
+
+  // Handler for "View on Map" - switches view and scrolls to map
+  const handleViewOnMap = () => {
+    setViewMode("map");
+    setTimeout(() => {
+      mapViewRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  };
   const [selectedType, setSelectedType] = useState<InsightType | "ALL">(
     (searchParams.get("type") as InsightType | "ALL") || DEFAULT_FILTERS.type,
   );
@@ -508,21 +520,13 @@ export default function InsightsPage() {
       }
     }
 
-    // Fallback insights if data is sparse
-    if (insights.length === 0) {
-      insights.push(
-        "Infrastructure projects typically correlate with 10-25% property appreciation",
-      );
-      insights.push(
-        "Road improvements show highest correlation with residential value growth",
-      );
-      insights.push(
-        "School construction projects show 17-24% faster appreciation within 3 years",
-      );
-    }
-
+    // Return empty if no data - we don't want to show generic fallbacks
     return insights.slice(0, 4);
   }, [analysisMetrics, insightsData]);
+
+  // Check if we have enough data to show Key Insights section
+  const hasRealInsights =
+    analysisMetrics.projectsAnalyzed > 0 && narrativeInsights.length > 0;
 
   return (
     <div className="space-y-6">
@@ -610,18 +614,28 @@ export default function InsightsPage() {
           </button>
           {/* Compare Toggle */}
           <button
-            onClick={() => {
-              setCompareMode(!compareMode);
-              if (compareMode) setSelectedForCompare([]);
-            }}
-            className={`p-2.5 border clip-notch transition-colors ${
+            onClick={() => setCompareMode(!compareMode)}
+            className={`relative p-2.5 border clip-notch transition-colors ${
               compareMode
                 ? "bg-lime-400/10 text-lime-400 border-lime-400/30"
-                : "bg-gray-900 text-gray-400 border-gray-700 hover:text-lime-400 hover:border-lime-400/50"
+                : selectedForCompare.length > 0
+                  ? "bg-blue-400/10 text-blue-400 border-blue-400/30"
+                  : "bg-gray-900 text-gray-400 border-gray-700 hover:text-lime-400 hover:border-lime-400/50"
             }`}
-            title={compareMode ? "Exit compare mode" : "Compare projects"}
+            title={
+              compareMode
+                ? "Exit compare mode"
+                : selectedForCompare.length > 0
+                  ? `Compare ${selectedForCompare.length} projects`
+                  : "Compare projects"
+            }
           >
             <GitCompare className="w-4 h-4" />
+            {selectedForCompare.length > 0 && !compareMode && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-400 text-black text-[10px] rounded-full flex items-center justify-center font-mono">
+                {selectedForCompare.length}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -1004,7 +1018,7 @@ export default function InsightsPage() {
         </div>
       )}
 
-      {/* Growth Opportunities Section */}
+      {/* Parcels Near Infrastructure Section */}
       <div className="relative bg-lime-400/10 border border-lime-400/30 clip-notch p-6">
         {/* L-Bracket Corners */}
         <div className="absolute -top-px -left-px w-4 h-4 border-l-2 border-t-2 border-lime-400/50" />
@@ -1017,19 +1031,21 @@ export default function InsightsPage() {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white font-mono">
-                {growthOpportunities.toLocaleString()} Growth Opportunities
+                {growthOpportunities.toLocaleString()} Parcels Affected
               </h2>
               <p className="text-gray-400">
-                Properties near infrastructure projects in {county} County
+                Properties within {bufferMiles} miles of{" "}
+                {insightsData?.items?.length || 0} infrastructure projects in{" "}
+                {county} County
               </p>
             </div>
           </div>
           <button
-            onClick={() => setViewMode("map")}
+            onClick={handleViewOnMap}
             className="px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch flex items-center gap-2 hover:bg-lime-300 transition-colors"
           >
             <Map className="w-4 h-4" />
-            View on Map
+            View {insightsData?.items?.length || 0} Projects on Map
           </button>
         </div>
       </div>
@@ -1126,37 +1142,57 @@ export default function InsightsPage() {
         </div>
       </div>
 
-      {/* Key Insights - Narrative Summary (moved above filters for visibility) */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
-        {/* L-Bracket Corners */}
-        <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-        <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+      {/* Key Insights - Narrative Summary (only shown when we have real data) */}
+      {hasRealInsights ? (
+        <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+          {/* L-Bracket Corners */}
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
 
-        <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-          <Lightbulb className="w-5 h-5 text-lime-400" />
-          Key Insights
-        </h3>
-        <div className="space-y-3">
-          <p className="text-gray-300">
-            Based on analysis of {analysisMetrics.projectsAnalyzed}{" "}
-            infrastructure projects in {county} County:
-          </p>
-          <ul className="space-y-2">
-            {narrativeInsights.map((insight, index) => (
-              <li key={index} className="flex items-start gap-2 text-gray-300">
-                <span className="text-lime-400 mt-1">•</span>
-                <span>{insight}</span>
-              </li>
-            ))}
-          </ul>
+          <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
+            <Lightbulb className="w-5 h-5 text-lime-400" />
+            Key Insights
+          </h3>
+          <div className="space-y-3">
+            <p className="text-gray-300">
+              Based on analysis of {analysisMetrics.projectsAnalyzed}{" "}
+              infrastructure projects in {county} County:
+            </p>
+            <ul className="space-y-2">
+              {narrativeInsights.map((insight, index) => (
+                <li
+                  key={index}
+                  className="flex items-start gap-2 text-gray-300"
+                >
+                  <span className="text-lime-400 mt-1">•</span>
+                  <span>{insight}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-800">
+            <p className="text-xs text-gray-500">
+              Data sourced from public infrastructure records, property tax
+              assessments, and municipal bond filings (2017-2024)
+            </p>
+          </div>
         </div>
-        <div className="mt-4 pt-4 border-t border-gray-800">
-          <p className="text-xs text-gray-500">
-            Data sourced from public infrastructure records, property tax
-            assessments, and municipal bond filings (2017-2024)
+      ) : !insightsLoading && analysisMetrics.projectsAnalyzed === 0 ? (
+        <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+
+          <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
+            <Lightbulb className="w-5 h-5 text-gray-500" />
+            Key Insights
+          </h3>
+          <p className="text-gray-400">
+            No infrastructure projects found for the current filters. Try
+            adjusting your search criteria or expanding the buffer radius to see
+            insights.
           </p>
         </div>
-      </div>
+      ) : null}
 
       {/* Filters Row */}
       <div
@@ -1196,7 +1232,21 @@ export default function InsightsPage() {
           role="group"
           aria-label="Buffer distance selection"
         >
-          <span id="buffer-label">Buffer:</span>
+          <span
+            id="buffer-label"
+            className="flex items-center gap-1 group relative cursor-help"
+          >
+            Buffer:
+            <HelpCircle className="w-3.5 h-3.5 text-gray-600 group-hover:text-gray-400" />
+            <span
+              role="tooltip"
+              className="absolute left-0 top-full mt-2 w-56 p-2 bg-gray-800 border border-gray-700 rounded text-xs text-gray-300 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-20 font-normal"
+            >
+              Search radius around each infrastructure project. Properties
+              within this distance are considered &quot;affected&quot; by the
+              project.
+            </span>
+          </span>
           <div
             className="flex gap-1"
             role="radiogroup"
@@ -1654,7 +1704,10 @@ export default function InsightsPage() {
 
       {/* Map View */}
       {viewMode === "map" && (
-        <div className="bg-gray-900 border border-gray-800 clip-notch overflow-hidden relative">
+        <div
+          ref={mapViewRef}
+          className="bg-gray-900 border border-gray-800 clip-notch overflow-hidden relative"
+        >
           <MapView
             markers={insightMarkers}
             showBaseLayerSwitcher

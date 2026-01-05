@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
@@ -140,9 +140,35 @@ const DEFAULT_ZOOM = 14;
 
 export default function MapPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
+
+  // Read initial position from URL params (from insights page "View on Map" links)
+  const initialCenter = useMemo((): [number, number] => {
+    const lat = searchParams.get("lat");
+    const lng = searchParams.get("lng");
+    if (lat && lng) {
+      const parsedLat = parseFloat(lat);
+      const parsedLng = parseFloat(lng);
+      if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+        return [parsedLng, parsedLat];
+      }
+    }
+    return DEFAULT_CENTER;
+  }, [searchParams]);
+
+  const initialZoom = useMemo((): number => {
+    const zoom = searchParams.get("zoom");
+    if (zoom) {
+      const parsedZoom = parseFloat(zoom);
+      if (!isNaN(parsedZoom) && parsedZoom >= 0 && parsedZoom <= 22) {
+        return parsedZoom;
+      }
+    }
+    return DEFAULT_ZOOM;
+  }, [searchParams]);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<ViewTab>("parcels");
@@ -152,11 +178,11 @@ export default function MapPage() {
   const [bounds, setBounds] = useState<Bounds | null>(null);
   const [showPropertyPopup, setShowPropertyPopup] = useState(false);
 
-  // Map info for StatusBar
+  // Map info for StatusBar (initialized with URL params or defaults)
   const [mapInfo, setMapInfo] = useState({
-    lat: DEFAULT_CENTER[1],
-    lng: DEFAULT_CENTER[0],
-    zoom: DEFAULT_ZOOM,
+    lat: initialCenter[1],
+    lng: initialCenter[0],
+    zoom: initialZoom,
   });
 
   // Layer controls state
@@ -300,8 +326,8 @@ export default function MapPage() {
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: BASE_STYLES[baseLayer],
-      center: DEFAULT_CENTER,
-      zoom: DEFAULT_ZOOM,
+      center: initialCenter,
+      zoom: initialZoom,
       attributionControl: false,
     });
 
