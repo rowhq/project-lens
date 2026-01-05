@@ -28,6 +28,7 @@ import {
   Home,
   ChevronRight,
   ChevronLeft,
+  Sparkles,
 } from "lucide-react";
 
 // Dynamic import for MapView
@@ -130,6 +131,18 @@ export default function InsightDetailPage({
   } = trpc.insights.getInsightById.useQuery({
     id: resolvedParams.id,
   });
+
+  // Get similar insights
+  const { data: similarInsights } = trpc.insights.getSimilarInsights.useQuery(
+    { id: resolvedParams.id, limit: 3 },
+    { enabled: !!resolvedParams.id },
+  );
+
+  // Get adjacent insights for navigation
+  const { data: adjacentInsights } = trpc.insights.getAdjacentInsights.useQuery(
+    { id: resolvedParams.id },
+    { enabled: !!resolvedParams.id },
+  );
 
   const formatCurrency = (value: unknown) => {
     if (!value) return null;
@@ -552,18 +565,117 @@ export default function InsightDetailPage({
         </div>
       )}
 
+      {/* Similar Projects */}
+      {similarInsights && similarInsights.length > 0 && (
+        <div className="relative bg-gray-900 border border-gray-800 p-6 clip-notch">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+
+          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            Similar Projects
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {similarInsights.map((similar) => {
+              const similarTypeConfig =
+                TYPE_CONFIG[similar.type as InsightType] ||
+                TYPE_CONFIG.INFRASTRUCTURE;
+              return (
+                <Link
+                  key={similar.id}
+                  href={`/insights/${similar.id}`}
+                  className="p-4 bg-gray-800/50 border border-gray-700 clip-notch hover:border-lime-400/50 transition-colors group"
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`p-2 ${similarTypeConfig.bgColor} clip-notch shrink-0`}
+                    >
+                      <span className={similarTypeConfig.color}>
+                        {similarTypeConfig.icon}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-white truncate group-hover:text-lime-400 transition-colors">
+                        {similar.title}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {similar.city || similar.county}, {similar.state}
+                      </p>
+                      <div className="flex items-center gap-3 mt-2">
+                        {similar.avgValueChange !== null && (
+                          <span
+                            className={`text-xs font-mono ${
+                              similar.avgValueChange > 0
+                                ? "text-lime-400"
+                                : "text-red-400"
+                            }`}
+                          >
+                            {similar.avgValueChange > 0 ? "+" : ""}
+                            {similar.avgValueChange.toFixed(1)}%
+                          </span>
+                        )}
+                        {similar.projectYear && (
+                          <span className="text-xs text-gray-500 font-mono">
+                            {similar.projectYear}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Footer Navigation */}
       <div className="flex items-center justify-between pt-4 border-t border-gray-800">
+        {/* Previous Button */}
+        {adjacentInsights?.prev ? (
+          <Link
+            href={`/insights/${adjacentInsights.prev.id}`}
+            className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2 group max-w-[40%]"
+          >
+            <ChevronLeft className="w-4 h-4 shrink-0 group-hover:-translate-x-1 transition-transform" />
+            <span className="truncate hidden sm:inline">
+              {adjacentInsights.prev.title}
+            </span>
+            <span className="sm:hidden">Previous</span>
+          </Link>
+        ) : (
+          <Link
+            href="/insights"
+            className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2 group"
+          >
+            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            All Insights
+          </Link>
+        )}
+
+        {/* Center - Back to list */}
         <Link
           href="/insights"
-          className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2 group"
+          className="text-xs text-gray-500 hover:text-lime-400 transition-colors hidden md:block"
         >
-          <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back to All Insights
+          View all insights
         </Link>
-        <p className="text-xs text-gray-600 hidden md:block">
-          Use the buttons above to view on map or access source documents
-        </p>
+
+        {/* Next Button */}
+        {adjacentInsights?.next ? (
+          <Link
+            href={`/insights/${adjacentInsights.next.id}`}
+            className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2 group max-w-[40%]"
+          >
+            <span className="truncate hidden sm:inline">
+              {adjacentInsights.next.title}
+            </span>
+            <span className="sm:hidden">Next</span>
+            <ChevronRight className="w-4 h-4 shrink-0 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        ) : (
+          <div className="w-24" /> /* Spacer when no next */
+        )}
       </div>
     </div>
   );

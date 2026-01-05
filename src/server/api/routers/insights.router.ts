@@ -1149,4 +1149,131 @@ export const insightsRouter = createTRPCRouter({
         totalEngineers: engineerCount,
       };
     }),
+
+  // ============================================
+  // SIMILAR INSIGHTS
+  // ============================================
+
+  /**
+   * Get similar insights based on type, county, or proximity
+   */
+  getSimilarInsights: clientProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        limit: z.number().min(1).max(10).default(3),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // First get the current insight
+      const currentInsight = await ctx.prisma.investmentInsight.findUnique({
+        where: { id: input.id },
+        select: {
+          id: true,
+          type: true,
+          county: true,
+          state: true,
+          latitude: true,
+          longitude: true,
+        },
+      });
+
+      if (!currentInsight) {
+        return [];
+      }
+
+      // Find similar insights: same type or same county, excluding current
+      const similarInsights = await ctx.prisma.investmentInsight.findMany({
+        where: {
+          id: { not: input.id },
+          OR: [
+            { type: currentInsight.type },
+            { county: currentInsight.county, state: currentInsight.state },
+          ],
+        },
+        select: {
+          id: true,
+          title: true,
+          type: true,
+          city: true,
+          county: true,
+          state: true,
+          projectYear: true,
+          avgValueChange: true,
+          correlation: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: input.limit * 2, // Get more to filter
+      });
+
+      // Prioritize same type, then same county
+      const sameType = similarInsights.filter(
+        (i) => i.type === currentInsight.type,
+      );
+      const sameCounty = similarInsights.filter(
+        (i) =>
+          i.type !== currentInsight.type && i.county === currentInsight.county,
+      );
+
+      return [...sameType, ...sameCounty].slice(0, input.limit);
+    }),
+
+  /**
+   * Get previous and next insights for navigation
+   */
+  getAdjacentInsights: clientProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        county: z.string().optional(),
+        type: z.enum(INSIGHT_TYPE_VALUES).optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Get the current insight to find its position
+      const currentInsight = await ctx.prisma.investmentInsight.findUnique({
+        where: { id: input.id },
+        select: { createdAt: true, county: true, type: true },
+      });
+
+      if (!currentInsight) {
+        return { prev: null, next: null };
+      }
+
+      // Build filter based on context
+      const where = {
+        ...(input.county && { county: input.county }),
+        ...(input.type && { type: input.type }),
+      };
+
+      // Get previous insight (older)
+      const prev = await ctx.prisma.investmentInsight.findFirst({
+        where: {
+          ...where,
+          createdAt: { lt: currentInsight.createdAt },
+        },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          title: true,
+          type: true,
+        },
+      });
+
+      // Get next insight (newer)
+      const next = await ctx.prisma.investmentInsight.findFirst({
+        where: {
+          ...where,
+          createdAt: { gt: currentInsight.createdAt },
+        },
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          title: true,
+          type: true,
+        },
+      });
+
+      return { prev, next };
+    }),
 });
