@@ -976,6 +976,13 @@ model InvestmentInsight {
   fundingAmount    Decimal? @db.Decimal(14, 2)
   expectedROI      Float?   // Percentage
 
+  // Infrastructure Impact Analysis (like Russell's RTAV)
+  projectYear     Int?     // Year of project completion
+  parcelsAffected Int?     // Number of parcels in impact area
+  avgValueChange  Float?   // Average property value change (%)
+  lagPeriodYears  Float?   // Years between project and appreciation
+  correlation     Float?   // Correlation coefficient (0-1)
+
   // Timeline
   announcedAt   DateTime?
   expectedStart DateTime?

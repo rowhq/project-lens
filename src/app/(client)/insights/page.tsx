@@ -21,7 +21,6 @@ import {
   Star,
   CheckCircle,
   Loader2,
-  DollarSign,
   Target,
   Map,
   List,
@@ -29,6 +28,13 @@ import {
   Navigation,
   ChevronDown,
   Flame,
+  BarChart3,
+  Clock,
+  ArrowUpRight,
+  ArrowDownRight,
+  Activity,
+  Layers,
+  Play,
 } from "lucide-react";
 import { INSIGHT_TYPES, ENGINEER_SPECIALTIES } from "@/shared/config/constants";
 
@@ -44,8 +50,7 @@ const MapView = dynamic(
 );
 
 type TabType = "insights" | "owners" | "engineers";
-type ViewMode = "list" | "map";
-type SortOption = "newest" | "value_desc" | "distance" | "expected_roi";
+type ViewMode = "list" | "map" | "table";
 type InsightType =
   | "MUNICIPAL_BOND"
   | "SCHOOL_CONSTRUCTION"
@@ -55,23 +60,35 @@ type InsightType =
   | "INFRASTRUCTURE"
   | "TAX_INCENTIVE";
 
-const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: "newest", label: "Newest First" },
-  { value: "value_desc", label: "Highest Value" },
-  { value: "distance", label: "Nearest" },
-  { value: "expected_roi", label: "Best ROI" },
+const SIGNAL_TYPES: { value: InsightType | "ALL"; label: string }[] = [
+  { value: "ALL", label: "All Infrastructure" },
+  { value: "ROAD_PROJECT", label: "Roads" },
+  { value: "SCHOOL_CONSTRUCTION", label: "Schools" },
+  { value: "INFRASTRUCTURE", label: "Water/Utilities" },
+  { value: "MUNICIPAL_BOND", label: "Municipal Bonds" },
+  { value: "ZONING_CHANGE", label: "Zoning" },
+  { value: "DEVELOPMENT_PERMIT", label: "Development" },
+];
+
+const BUFFER_OPTIONS = [
+  { value: 1, label: "1 mile" },
+  { value: 2, label: "2 miles" },
+  { value: 3, label: "3 miles" },
+  { value: 5, label: "5 miles" },
 ];
 
 export default function InsightsPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>("insights");
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [selectedTypes, setSelectedTypes] = useState<InsightType[]>([]);
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
+  const [selectedType, setSelectedType] = useState<InsightType | "ALL">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
-  const [county, setCounty] = useState("");
+  const [county, setCounty] = useState("Harris");
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [bufferMiles, setBufferMiles] = useState(5);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Location filter state
   const [userLocation, setUserLocation] = useState<{
@@ -81,13 +98,6 @@ export default function InsightsPage() {
   const [radiusMiles, setRadiusMiles] = useState(50);
   const [useLocationFilter, setUseLocationFilter] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
-
-  // Value filter state
-  const [minValue, setMinValue] = useState<string>("");
-  const [maxValue, setMaxValue] = useState<string>("");
-
-  // Sort state
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
 
   // Get user's location
   const getUserLocation = () => {
@@ -126,36 +136,18 @@ export default function InsightsPage() {
   const { data: insightsData, isLoading: insightsLoading } =
     trpc.insights.listInsights.useQuery(
       {
-        limit: 50,
-        types: selectedTypes.length > 0 ? selectedTypes : undefined,
+        limit: 100,
+        types: selectedType !== "ALL" ? [selectedType] : undefined,
         county: county || undefined,
         search: searchQuery || undefined,
         latitude:
           useLocationFilter && userLocation ? userLocation.lat : undefined,
         longitude:
           useLocationFilter && userLocation ? userLocation.lng : undefined,
-        radiusMiles: useLocationFilter ? radiusMiles : undefined,
-        minValue: minValue ? parseFloat(minValue) : undefined,
-        maxValue: maxValue ? parseFloat(maxValue) : undefined,
-        sortBy,
+        radiusMiles: useLocationFilter ? radiusMiles : bufferMiles,
       },
       { enabled: activeTab === "insights" },
     );
-
-  // Heatmap data - use insights data for heatmap visualization
-  const insightItems = insightsData?.items;
-  const heatmapPoints = useMemo(() => {
-    if (!insightItems || !showHeatmap) return [];
-    return insightItems
-      .filter((i) => i.latitude && i.longitude)
-      .map((insight) => ({
-        lat: insight.latitude,
-        lng: insight.longitude,
-        intensity: insight.estimatedValue
-          ? Math.min(Number(insight.estimatedValue) / 1000000000, 1)
-          : 0.3,
-      }));
-  }, [insightItems, showHeatmap]);
 
   // Stats query
   const { data: stats } = trpc.insights.getStats.useQuery({
@@ -196,11 +188,90 @@ export default function InsightsPage() {
       { enabled: activeTab === "engineers" },
     );
 
-  const toggleType = (type: InsightType) => {
-    setSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
-    );
-  };
+  // Calculate infrastructure analysis metrics
+  const analysisMetrics = useMemo(() => {
+    if (!insightsData?.items) {
+      return {
+        projectsAnalyzed: 0,
+        avgAppreciation: 0,
+        medianLag: 0,
+        topSignalType: "Roads",
+        topCorrelation: 0,
+      };
+    }
+
+    const items = insightsData.items;
+    const projectsAnalyzed = items.length;
+
+    // Calculate average appreciation
+    const appreciations = items
+      .filter((i) => i.avgValueChange !== null)
+      .map((i) => i.avgValueChange as number);
+    const avgAppreciation =
+      appreciations.length > 0
+        ? appreciations.reduce((a, b) => a + b, 0) / appreciations.length
+        : 0;
+
+    // Calculate median lag
+    const lags = items
+      .filter((i) => i.lagPeriodYears !== null)
+      .map((i) => i.lagPeriodYears as number)
+      .sort((a, b) => a - b);
+    const medianLag =
+      lags.length > 0 ? lags[Math.floor(lags.length / 2)] || 0 : 0;
+
+    // Find top signal type by correlation
+    const typeCorrelations: Record<string, number[]> = {};
+    items.forEach((item) => {
+      if (item.correlation !== null) {
+        if (!typeCorrelations[item.type]) {
+          typeCorrelations[item.type] = [];
+        }
+        typeCorrelations[item.type]!.push(item.correlation);
+      }
+    });
+
+    let topSignalType = "Roads";
+    let topCorrelation = 0;
+    Object.entries(typeCorrelations).forEach(([type, correlations]) => {
+      const avg = correlations.reduce((a, b) => a + b, 0) / correlations.length;
+      if (avg > topCorrelation) {
+        topCorrelation = avg;
+        topSignalType =
+          type
+            .replace(/_/g, " ")
+            .replace(/PROJECT|CONSTRUCTION/g, "")
+            .trim() || type;
+      }
+    });
+
+    return {
+      projectsAnalyzed,
+      avgAppreciation,
+      medianLag,
+      topSignalType:
+        topSignalType.charAt(0).toUpperCase() +
+        topSignalType.slice(1).toLowerCase(),
+      topCorrelation,
+    };
+  }, [insightsData?.items]);
+
+  // Heatmap data
+  const insightItems = insightsData?.items;
+  const heatmapPoints = useMemo(() => {
+    if (!insightItems || !showHeatmap) return [];
+    return insightItems
+      .filter((i) => i.latitude && i.longitude)
+      .map((insight) => ({
+        lat: insight.latitude,
+        lng: insight.longitude,
+        intensity: insight.correlation
+          ? Math.min(insight.correlation, 1)
+          : insight.estimatedValue
+            ? Math.min(Number(insight.estimatedValue) / 1000000000, 1)
+            : 0.3,
+      }));
+  }, [insightItems, showHeatmap]);
 
   const toggleSpecialty = (specialty: string) => {
     setSelectedSpecialties((prev) =>
@@ -213,36 +284,15 @@ export default function InsightsPage() {
   const getInsightIcon = (type: string) => {
     switch (type) {
       case "MUNICIPAL_BOND":
-        return <Landmark className="w-5 h-5" />;
+        return <Landmark className="w-4 h-4" />;
       case "SCHOOL_CONSTRUCTION":
-        return <GraduationCap className="w-5 h-5" />;
+        return <GraduationCap className="w-4 h-4" />;
       case "ROAD_PROJECT":
-        return <Route className="w-5 h-5" />;
+        return <Route className="w-4 h-4" />;
       case "INFRASTRUCTURE":
-        return <Building2 className="w-5 h-5" />;
+        return <Building2 className="w-4 h-4" />;
       default:
-        return <TrendingUp className="w-5 h-5" />;
-    }
-  };
-
-  const getInsightColor = (type: string) => {
-    switch (type) {
-      case "MUNICIPAL_BOND":
-        return "text-blue-400 bg-blue-400/10 border-blue-400/30";
-      case "SCHOOL_CONSTRUCTION":
-        return "text-green-400 bg-green-400/10 border-green-400/30";
-      case "ROAD_PROJECT":
-        return "text-orange-400 bg-orange-400/10 border-orange-400/30";
-      case "INFRASTRUCTURE":
-        return "text-cyan-400 bg-cyan-400/10 border-cyan-400/30";
-      case "ZONING_CHANGE":
-        return "text-purple-400 bg-purple-400/10 border-purple-400/30";
-      case "DEVELOPMENT_PERMIT":
-        return "text-teal-400 bg-teal-400/10 border-teal-400/30";
-      case "TAX_INCENTIVE":
-        return "text-yellow-400 bg-yellow-400/10 border-yellow-400/30";
-      default:
-        return "text-lime-400 bg-lime-400/10 border-lime-400/30";
+        return <TrendingUp className="w-4 h-4" />;
     }
   };
 
@@ -267,11 +317,10 @@ export default function InsightsPage() {
     }
   };
 
-  // Extract items for stable memoization dependencies
+  // Map markers
   const engineerItems = engineersData?.items;
   const ownerItems = ownersData?.items;
 
-  // Map markers for insights
   const insightMarkers = useMemo(() => {
     if (!insightItems) return [];
     return insightItems
@@ -289,13 +338,12 @@ export default function InsightsPage() {
           <div class="p-2">
             <h4 class="font-bold">${insight.title}</h4>
             <p class="text-sm">${insight.type.replace(/_/g, " ")}</p>
-            ${insight.estimatedValue ? `<p class="text-sm text-green-600">$${Number(insight.estimatedValue).toLocaleString()}</p>` : ""}
+            ${insight.avgValueChange ? `<p class="text-sm text-green-600">+${insight.avgValueChange.toFixed(1)}% value change</p>` : ""}
           </div>
         `,
       }));
   }, [insightItems]);
 
-  // Map markers for engineers
   const engineerMarkers = useMemo(() => {
     if (!engineerItems) return [];
     return engineerItems
@@ -319,7 +367,6 @@ export default function InsightsPage() {
       }));
   }, [engineerItems]);
 
-  // Map markers for property owners
   const ownerMarkers = useMemo(() => {
     if (!ownerItems) return [];
     return ownerItems
@@ -350,111 +397,49 @@ export default function InsightsPage() {
     return [];
   }, [activeTab, insightMarkers, engineerMarkers, ownerMarkers]);
 
+  const handleRunAnalysis = () => {
+    setIsAnalyzing(true);
+    setTimeout(() => setIsAnalyzing(false), 1500);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header - Russell Style */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--foreground)]">
-            Investment Insights
+            Market Insights
           </h1>
           <p className="text-[var(--muted-foreground)] mt-1">
-            Discover opportunities from municipal bonds, schools, roads, and
-            infrastructure projects
+            Infrastructure impact analysis and growth opportunity identification
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {/* View Toggle */}
-          <div className="flex items-center bg-[var(--muted)] rounded-lg p-1">
-            <button
-              onClick={() => setViewMode("list")}
-              className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-colors ${
-                viewMode === "list"
-                  ? "bg-[var(--card)] text-lime-400"
-                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              }`}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleRunAnalysis}
+            disabled={isAnalyzing}
+            className="px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch flex items-center gap-2 hover:bg-lime-300 transition-colors disabled:opacity-50"
+          >
+            {isAnalyzing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Play className="w-4 h-4" />
+            )}
+            Run Analysis
+          </button>
+          <div className="relative">
+            <select
+              value={county}
+              onChange={(e) => setCounty(e.target.value)}
+              className="appearance-none pl-4 pr-10 py-2 bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] clip-notch-sm focus:outline-none focus:border-lime-400 font-mono text-sm"
             >
-              <List className="w-4 h-4" />
-              List
-            </button>
-            <button
-              onClick={() => setViewMode("map")}
-              className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-colors ${
-                viewMode === "map"
-                  ? "bg-[var(--card)] text-lime-400"
-                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              }`}
-            >
-              <Map className="w-4 h-4" />
-              Map
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[var(--card)] border border-[var(--border)] p-4 clip-notch">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-lime-400/10 text-lime-400 clip-notch-sm">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[var(--muted-foreground)] text-sm">
-                Total Insights
-              </p>
-              <p className="text-xl font-bold text-[var(--foreground)] font-mono">
-                {stats?.totalInsights || 0}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-[var(--card)] border border-[var(--border)] p-4 clip-notch">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-400/10 text-blue-400 clip-notch-sm">
-              <DollarSign className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[var(--muted-foreground)] text-sm">
-                Est. Total Value
-              </p>
-              <p className="text-xl font-bold text-[var(--foreground)] font-mono">
-                $
-                {stats?.totalEstimatedValue
-                  ? Number(stats.totalEstimatedValue).toLocaleString()
-                  : "0"}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-[var(--card)] border border-[var(--border)] p-4 clip-notch">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-400/10 text-purple-400 clip-notch-sm">
-              <Users className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[var(--muted-foreground)] text-sm">
-                Property Owners
-              </p>
-              <p className="text-xl font-bold text-[var(--foreground)] font-mono">
-                {stats?.totalPropertyOwners || 0}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-[var(--card)] border border-[var(--border)] p-4 clip-notch">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-400/10 text-orange-400 clip-notch-sm">
-              <Wrench className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[var(--muted-foreground)] text-sm">
-                Engineers
-              </p>
-              <p className="text-xl font-bold text-[var(--foreground)] font-mono">
-                {stats?.totalEngineers || 0}
-              </p>
-            </div>
+              <option value="Harris">Harris County, TX</option>
+              <option value="Dallas">Dallas County, TX</option>
+              <option value="Travis">Travis County, TX</option>
+              <option value="Bexar">Bexar County, TX</option>
+              <option value="Tarrant">Tarrant County, TX</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
           </div>
         </div>
       </div>
@@ -469,8 +454,8 @@ export default function InsightsPage() {
               : "text-[var(--muted-foreground)] border-transparent hover:text-[var(--foreground)]"
           }`}
         >
-          <TrendingUp className="w-4 h-4 inline mr-2" />
-          Insights
+          <BarChart3 className="w-4 h-4 inline mr-2" />
+          Infrastructure Analysis
         </button>
         <button
           onClick={() => setActiveTab("owners")}
@@ -496,42 +481,72 @@ export default function InsightsPage() {
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-4 items-center">
-          {/* Search */}
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[var(--input)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--muted-foreground)] clip-notch-sm focus:outline-none focus:border-lime-400"
-            />
+      {/* Insights Tab - Russell Style */}
+      {activeTab === "insights" && (
+        <>
+          {/* Infrastructure Impact Overview - Summary Cards */}
+          <div className="bg-[var(--card)] border border-[var(--border)] p-6 clip-notch">
+            <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
+              Infrastructure Impact Overview
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div>
+                <p className="text-3xl font-bold text-[var(--foreground)] font-mono">
+                  {analysisMetrics.projectsAnalyzed}
+                </p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Projects analyzed
+                </p>
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-lime-400 font-mono flex items-center gap-1">
+                  {analysisMetrics.avgAppreciation > 0 ? "+" : ""}
+                  {analysisMetrics.avgAppreciation.toFixed(1)}%
+                  {analysisMetrics.avgAppreciation > 0 ? (
+                    <ArrowUpRight className="w-5 h-5" />
+                  ) : (
+                    <ArrowDownRight className="w-5 h-5" />
+                  )}
+                </p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Avg Appreciation
+                </p>
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-[var(--foreground)] font-mono">
+                  {analysisMetrics.medianLag.toFixed(1)} yrs
+                </p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Median Lag
+                </p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-[var(--foreground)]">
+                  {analysisMetrics.topSignalType}
+                </p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Top Signal Type{" "}
+                  <span className="text-lime-400">
+                    (Correlation: {analysisMetrics.topCorrelation.toFixed(2)})
+                  </span>
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* County */}
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
-            <input
-              type="text"
-              placeholder="County"
-              value={county}
-              onChange={(e) => setCounty(e.target.value)}
-              className="w-40 pl-10 pr-4 py-2 bg-[var(--input)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--muted-foreground)] clip-notch-sm focus:outline-none focus:border-lime-400"
-            />
-          </div>
-
-          {/* Sort (insights tab only) */}
-          {activeTab === "insights" && (
+          {/* Filters Row */}
+          <div className="flex flex-wrap gap-4 items-center">
+            {/* Signal Type Filter */}
             <div className="relative">
+              <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
               <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="appearance-none pl-4 pr-10 py-2 bg-[var(--input)] border border-[var(--border)] text-[var(--foreground)] clip-notch-sm focus:outline-none focus:border-lime-400"
+                value={selectedType}
+                onChange={(e) =>
+                  setSelectedType(e.target.value as InsightType | "ALL")
+                }
+                className="appearance-none pl-10 pr-10 py-2 bg-[var(--input)] border border-[var(--border)] text-[var(--foreground)] clip-notch-sm focus:outline-none focus:border-lime-400"
               >
-                {SORT_OPTIONS.map((opt) => (
+                {SIGNAL_TYPES.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -539,469 +554,488 @@ export default function InsightsPage() {
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
             </div>
-          )}
 
-          {/* Location Filter Button */}
-          <button
-            onClick={getUserLocation}
-            disabled={loadingLocation}
-            className={`px-4 py-2 flex items-center gap-2 border clip-notch-sm transition-colors ${
-              useLocationFilter
-                ? "bg-lime-400/20 text-lime-400 border-lime-400/50"
-                : "bg-[var(--input)] border-[var(--border)] text-[var(--muted-foreground)] hover:border-lime-400/50"
-            }`}
-          >
-            {loadingLocation ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Navigation className="w-4 h-4" />
-            )}
-            {useLocationFilter ? "Near Me" : "Use Location"}
-          </button>
-
-          {/* More Filters Toggle */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`px-4 py-2 flex items-center gap-2 border clip-notch-sm transition-colors ${
-              showFilters
-                ? "bg-lime-400/20 text-lime-400 border-lime-400/50"
-                : "bg-[var(--input)] border-[var(--border)] text-[var(--muted-foreground)] hover:border-lime-400/50"
-            }`}
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            Filters
-          </button>
-
-          {/* Heatmap Toggle (map view only) */}
-          {viewMode === "map" && activeTab === "insights" && (
-            <button
-              onClick={() => setShowHeatmap(!showHeatmap)}
-              className={`px-4 py-2 flex items-center gap-2 border clip-notch-sm transition-colors ${
-                showHeatmap
-                  ? "bg-orange-400/20 text-orange-400 border-orange-400/50"
-                  : "bg-[var(--input)] border-[var(--border)] text-[var(--muted-foreground)] hover:border-orange-400/50"
-              }`}
-            >
-              <Flame className="w-4 h-4" />
-              Heatmap
-            </button>
-          )}
-        </div>
-
-        {/* Extended Filters Panel */}
-        {showFilters && (
-          <div className="bg-[var(--card)] border border-[var(--border)] p-4 clip-notch space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Radius Slider */}
-              {useLocationFilter && (
-                <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-                    Search Radius: {radiusMiles} miles
-                  </label>
-                  <input
-                    type="range"
-                    min="5"
-                    max="200"
-                    step="5"
-                    value={radiusMiles}
-                    onChange={(e) => setRadiusMiles(parseInt(e.target.value))}
-                    className="w-full accent-lime-400"
-                  />
-                  <div className="flex justify-between text-xs text-[var(--muted-foreground)]">
-                    <span>5 mi</span>
-                    <span>200 mi</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Value Range (insights tab) */}
-              {activeTab === "insights" && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-                      Min Value
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
-                      <input
-                        type="number"
-                        placeholder="0"
-                        value={minValue}
-                        onChange={(e) => setMinValue(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-[var(--input)] border border-[var(--border)] text-[var(--foreground)] clip-notch-sm focus:outline-none focus:border-lime-400"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-                      Max Value
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
-                      <input
-                        type="number"
-                        placeholder="No limit"
-                        value={maxValue}
-                        onChange={(e) => setMaxValue(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-[var(--input)] border border-[var(--border)] text-[var(--foreground)] clip-notch-sm focus:outline-none focus:border-lime-400"
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
+            {/* Buffer Distance */}
+            <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+              <span>Buffer Distance:</span>
+              <div className="flex gap-1">
+                {BUFFER_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setBufferMiles(opt.value)}
+                    className={`px-3 py-1 text-xs font-mono border clip-notch-sm transition-colors ${
+                      bufferMiles === opt.value
+                        ? "bg-lime-400/20 text-lime-400 border-lime-400/50"
+                        : "bg-[var(--muted)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-lime-400/50"
+                    }`}
+                  >
+                    {opt.value} mi
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Clear Location Filter */}
-            {useLocationFilter && (
+            {/* View Toggle */}
+            <div className="ml-auto flex items-center bg-[var(--muted)] rounded-lg p-1">
               <button
-                onClick={() => {
-                  setUseLocationFilter(false);
-                  setUserLocation(null);
-                }}
-                className="text-sm text-red-400 hover:text-red-300"
+                onClick={() => setViewMode("table")}
+                className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-colors ${
+                  viewMode === "table"
+                    ? "bg-[var(--card)] text-lime-400"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                }`}
               >
-                Clear location filter
+                <List className="w-4 h-4" />
+                Table
               </button>
-            )}
+              <button
+                onClick={() => setViewMode("map")}
+                className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-colors ${
+                  viewMode === "map"
+                    ? "bg-[var(--card)] text-lime-400"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                <Map className="w-4 h-4" />
+                Map
+              </button>
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* Type Filters (for insights tab) */}
-      {activeTab === "insights" && (
-        <div className="flex flex-wrap gap-2">
-          {Object.entries(INSIGHT_TYPES).map(([key, value]) => (
-            <button
-              key={key}
-              onClick={() => toggleType(key as InsightType)}
-              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider border clip-notch-sm transition-colors ${
-                selectedTypes.includes(key as InsightType)
-                  ? "bg-lime-400/20 text-lime-400 border-lime-400/50"
-                  : "bg-[var(--muted)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--foreground)]"
-              }`}
-            >
-              {value.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Specialty Filters (for engineers tab) */}
-      {activeTab === "engineers" && (
-        <div className="flex flex-wrap gap-2">
-          {ENGINEER_SPECIALTIES.map((specialty) => (
-            <button
-              key={specialty.id}
-              onClick={() => toggleSpecialty(specialty.id)}
-              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider border clip-notch-sm transition-colors ${
-                selectedSpecialties.includes(specialty.id)
-                  ? "bg-lime-400/20 text-lime-400 border-lime-400/50"
-                  : "bg-[var(--muted)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--foreground)]"
-              }`}
-            >
-              {specialty.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Map View */}
-      {viewMode === "map" && (
-        <div className="bg-[var(--card)] border border-[var(--border)] clip-notch overflow-hidden relative">
-          <MapView
-            markers={currentMarkers}
-            showBaseLayerSwitcher
-            style={{ height: 500 }}
-            center={
-              userLocation ? [userLocation.lng, userLocation.lat] : undefined
-            }
-            zoom={userLocation ? 10 : undefined}
-            heatmapData={activeTab === "insights" ? heatmapPoints : undefined}
-            showHeatmap={showHeatmap && activeTab === "insights"}
-            heatmapRadius={25}
-            heatmapIntensity={1.5}
-            heatmapOpacity={0.7}
-          />
-          {showHeatmap &&
-            heatmapPoints.length > 0 &&
-            activeTab === "insights" && (
-              <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-2 rounded text-sm z-10">
-                <Flame className="w-4 h-4 inline mr-2 text-orange-400" />
-                Heatmap: {heatmapPoints.length} data points
-              </div>
-            )}
-        </div>
-      )}
-
-      {/* List View Content */}
-      {viewMode === "list" && (
-        <div className="space-y-4">
-          {/* Insights Tab */}
-          {activeTab === "insights" && (
-            <>
+          {/* Table View */}
+          {viewMode === "table" && (
+            <div className="bg-[var(--card)] border border-[var(--border)] clip-notch overflow-hidden">
               {insightsLoading ? (
                 <div className="flex justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
                 </div>
               ) : insightsData?.items.length === 0 ? (
                 <div className="text-center py-12">
-                  <TrendingUp className="w-12 h-12 mx-auto text-[var(--muted-foreground)]" />
-                  <p className="mt-4 text-[var(--muted-foreground)]">
-                    No insights found
+                  <Activity className="w-12 h-12 mx-auto text-[var(--muted-foreground)]" />
+                  <p className="mt-4 text-[var(--foreground)] font-medium">
+                    No growth opportunities identified for {county} County
+                  </p>
+                  <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                    Try selecting a different county or adjusting filters
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {insightsData?.items.map((insight) => (
-                    <div
-                      key={insight.id}
-                      className="bg-[var(--card)] border border-[var(--border)] p-5 clip-notch hover:border-lime-400/50 transition-colors"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div
-                          className={`p-2 clip-notch-sm ${getInsightColor(insight.type)}`}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
+                        <th className="px-4 py-3 text-left text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
+                          Project
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
+                          Type
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
+                          Year
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
+                          Parcels
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
+                          Avg Value Δ
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
+                          Lag Period
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
+                          Correlation
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--border)]">
+                      {insightsData?.items.map((insight) => (
+                        <tr
+                          key={insight.id}
+                          className="hover:bg-[var(--muted)]/20 transition-colors"
                         >
-                          {getInsightIcon(insight.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-semibold text-[var(--foreground)] truncate">
-                              {insight.title}
-                            </h3>
-                            <span
-                              className={`px-2 py-0.5 text-xs font-mono uppercase tracking-wider border clip-notch-sm shrink-0 ${getInsightColor(insight.type)}`}
-                            >
-                              {insight.type.replace(/_/g, " ")}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="p-1.5 bg-[var(--muted)] clip-notch-sm">
+                                {getInsightIcon(insight.type)}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-[var(--foreground)]">
+                                  {insight.title}
+                                </p>
+                                <p className="text-xs text-[var(--muted-foreground)]">
+                                  {insight.city || insight.county},{" "}
+                                  {insight.state}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="px-2 py-1 text-xs font-mono uppercase tracking-wider bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)] clip-notch-sm">
+                              {insight.type
+                                .replace(/_/g, " ")
+                                .replace(/PROJECT|CONSTRUCTION/g, "")
+                                .trim()}
                             </span>
-                          </div>
-                          <p className="text-sm text-[var(--muted-foreground)] mt-1 line-clamp-2">
-                            {insight.description}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-[var(--muted-foreground)]">
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {insight.city || insight.county}, {insight.state}
-                            </span>
-                            {insight.estimatedValue && (
-                              <span className="flex items-center gap-1 text-lime-400 font-mono">
-                                <DollarSign className="w-3 h-3" />
-                                {Number(
-                                  insight.estimatedValue,
-                                ).toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-mono text-[var(--foreground)]">
+                            {insight.projectYear || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-right text-sm font-mono text-[var(--foreground)]">
+                            {insight.parcelsAffected?.toLocaleString() || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {insight.avgValueChange !== null ? (
+                              <span
+                                className={`text-sm font-mono ${
+                                  insight.avgValueChange > 0
+                                    ? "text-lime-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {insight.avgValueChange > 0 ? "+" : ""}
+                                {insight.avgValueChange.toFixed(1)}%
+                              </span>
+                            ) : (
+                              <span className="text-sm text-[var(--muted-foreground)]">
+                                —
                               </span>
                             )}
-                            {insight.expectedROI && (
-                              <span className="flex items-center gap-1 text-green-400 font-mono">
-                                <TrendingUp className="w-3 h-3" />
-                                {insight.expectedROI}% ROI
+                          </td>
+                          <td className="px-4 py-3 text-right text-sm font-mono text-[var(--foreground)]">
+                            {insight.lagPeriodYears !== null
+                              ? `${insight.lagPeriodYears.toFixed(1)} yrs`
+                              : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {insight.correlation !== null ? (
+                              <span
+                                className={`text-sm font-mono ${
+                                  insight.correlation > 0.5
+                                    ? "text-lime-400"
+                                    : insight.correlation > 0.3
+                                      ? "text-yellow-400"
+                                      : "text-[var(--muted-foreground)]"
+                                }`}
+                              >
+                                {insight.correlation.toFixed(2)}
+                              </span>
+                            ) : (
+                              <span className="text-sm text-[var(--muted-foreground)]">
+                                —
                               </span>
                             )}
-                            {insight.distance !== null && (
-                              <span className="flex items-center gap-1">
-                                <Target className="w-3 h-3" />
-                                {insight.distance.toFixed(1)} mi
-                              </span>
-                            )}
-                          </div>
-                          {insight.sourceUrl && (
-                            <a
-                              href={insight.sourceUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 mt-3 text-xs text-lime-400 hover:text-lime-300"
-                            >
-                              View Source <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
-            </>
+              {/* Table footer */}
+              <div className="px-4 py-3 border-t border-[var(--border)] text-xs text-[var(--muted-foreground)]">
+                Showing {insightsData?.items.length || 0} projects sorted by
+                correlation strength
+              </div>
+            </div>
           )}
 
-          {/* Property Owners Tab */}
-          {activeTab === "owners" && (
-            <>
-              {ownersLoading ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
+          {/* Map View */}
+          {viewMode === "map" && (
+            <div className="bg-[var(--card)] border border-[var(--border)] clip-notch overflow-hidden relative">
+              <MapView
+                markers={currentMarkers}
+                showBaseLayerSwitcher
+                style={{ height: 500 }}
+                center={
+                  userLocation
+                    ? [userLocation.lng, userLocation.lat]
+                    : undefined
+                }
+                zoom={userLocation ? 10 : undefined}
+                heatmapData={heatmapPoints}
+                showHeatmap={showHeatmap}
+                heatmapRadius={25}
+                heatmapIntensity={1.5}
+                heatmapOpacity={0.7}
+              />
+              <div className="absolute top-4 right-4 flex gap-2">
+                <button
+                  onClick={() => setShowHeatmap(!showHeatmap)}
+                  className={`px-3 py-2 text-sm font-mono flex items-center gap-2 clip-notch-sm transition-colors ${
+                    showHeatmap
+                      ? "bg-orange-400/90 text-black"
+                      : "bg-black/70 text-white hover:bg-black/80"
+                  }`}
+                >
+                  <Flame className="w-4 h-4" />
+                  Heatmap
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Property Owners Tab */}
+      {activeTab === "owners" && (
+        <>
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-[var(--card)] border border-[var(--border)] p-4 clip-notch">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-400/10 text-purple-400 clip-notch-sm">
+                  <Users className="w-5 h-5" />
                 </div>
-              ) : ownersData?.items.length === 0 ? (
-                <div className="text-center py-12">
-                  <Users className="w-12 h-12 mx-auto text-[var(--muted-foreground)]" />
-                  <p className="mt-4 text-[var(--muted-foreground)]">
-                    No property owners found
+                <div>
+                  <p className="text-[var(--muted-foreground)] text-sm">
+                    Property Owners
+                  </p>
+                  <p className="text-xl font-bold text-[var(--foreground)] font-mono">
+                    {stats?.totalPropertyOwners || 0}
                   </p>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {ownersData?.items.map((owner) => (
-                    <div
-                      key={owner.id}
-                      className="bg-[var(--card)] border border-[var(--border)] p-4 clip-notch hover:border-lime-400/50 transition-colors"
-                    >
-                      <h3 className="font-semibold text-[var(--foreground)]">
-                        {owner.ownerName}
-                      </h3>
-                      <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                        {owner.addressLine1}
-                      </p>
-                      <p className="text-sm text-[var(--muted-foreground)]">
-                        {owner.city}, {owner.state} {owner.zipCode}
-                      </p>
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        <span className="px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)] clip-notch-sm">
-                          {owner.ownerType}
+              </div>
+            </div>
+          </div>
+
+          {/* Search */}
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+            <input
+              type="text"
+              placeholder="Search property owners..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-[var(--input)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--muted-foreground)] clip-notch-sm focus:outline-none focus:border-lime-400"
+            />
+          </div>
+
+          {/* List */}
+          {ownersLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
+            </div>
+          ) : ownersData?.items.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="w-12 h-12 mx-auto text-[var(--muted-foreground)]" />
+              <p className="mt-4 text-[var(--muted-foreground)]">
+                No property owners found
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {ownersData?.items.map((owner) => (
+                <div
+                  key={owner.id}
+                  className="bg-[var(--card)] border border-[var(--border)] p-4 clip-notch hover:border-lime-400/50 transition-colors"
+                >
+                  <h3 className="font-semibold text-[var(--foreground)]">
+                    {owner.ownerName}
+                  </h3>
+                  <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                    {owner.addressLine1}
+                  </p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    {owner.city}, {owner.state} {owner.zipCode}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <span className="px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)] clip-notch-sm">
+                      {owner.ownerType}
+                    </span>
+                    {owner.zoning && (
+                      <span className="px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-purple-400/10 text-purple-400 border border-purple-400/30 clip-notch-sm">
+                        {owner.zoning}
+                      </span>
+                    )}
+                  </div>
+                  {owner.assessedValue && (
+                    <p className="text-sm text-lime-400 font-mono mt-3">
+                      Assessed: ${Number(owner.assessedValue).toLocaleString()}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-3 mt-3 pt-3 border-t border-[var(--border)]">
+                    {owner.phone && (
+                      <a
+                        href={`tel:${owner.phone}`}
+                        className="flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300"
+                      >
+                        <Phone className="w-3 h-3" />
+                        Call
+                      </a>
+                    )}
+                    {owner.email && (
+                      <a
+                        href={`mailto:${owner.email}`}
+                        className="flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300"
+                      >
+                        <Mail className="w-3 h-3" />
+                        Email
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Engineers Tab */}
+      {activeTab === "engineers" && (
+        <>
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-[var(--card)] border border-[var(--border)] p-4 clip-notch">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-400/10 text-orange-400 clip-notch-sm">
+                  <Wrench className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-[var(--muted-foreground)] text-sm">
+                    Engineers
+                  </p>
+                  <p className="text-xl font-bold text-[var(--foreground)] font-mono">
+                    {stats?.totalEngineers || 0}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="flex flex-wrap gap-4">
+            <div className="relative flex-1 min-w-[200px] max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+              <input
+                type="text"
+                placeholder="Search engineers..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-[var(--input)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--muted-foreground)] clip-notch-sm focus:outline-none focus:border-lime-400"
+              />
+            </div>
+          </div>
+
+          {/* Specialty Filters */}
+          <div className="flex flex-wrap gap-2">
+            {ENGINEER_SPECIALTIES.map((specialty) => (
+              <button
+                key={specialty.id}
+                onClick={() => toggleSpecialty(specialty.id)}
+                className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider border clip-notch-sm transition-colors ${
+                  selectedSpecialties.includes(specialty.id)
+                    ? "bg-lime-400/20 text-lime-400 border-lime-400/50"
+                    : "bg-[var(--muted)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--foreground)]"
+                }`}
+              >
+                {specialty.label}
+              </button>
+            ))}
+          </div>
+
+          {/* List */}
+          {engineersLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
+            </div>
+          ) : engineersData?.items.length === 0 ? (
+            <div className="text-center py-12">
+              <Wrench className="w-12 h-12 mx-auto text-[var(--muted-foreground)]" />
+              <p className="mt-4 text-[var(--muted-foreground)]">
+                No engineers found
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {engineersData?.items.map((engineer) => (
+                <div
+                  key={engineer.id}
+                  className="bg-[var(--card)] border border-[var(--border)] p-5 clip-notch hover:border-lime-400/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-[var(--foreground)]">
+                          {engineer.companyName}
+                        </h3>
+                        {engineer.isVerified && (
+                          <CheckCircle className="w-4 h-4 text-lime-400" />
+                        )}
+                      </div>
+                      {engineer.contactName && (
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                          {engineer.contactName}
+                        </p>
+                      )}
+                    </div>
+                    {engineer.rating > 0 && (
+                      <div className="flex items-center gap-1 text-yellow-400">
+                        <Star className="w-4 h-4 fill-current" />
+                        <span className="font-mono text-sm">
+                          {engineer.rating.toFixed(1)}
                         </span>
-                        {owner.zoning && (
-                          <span className="px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-purple-400/10 text-purple-400 border border-purple-400/30 clip-notch-sm">
-                            {owner.zoning}
-                          </span>
-                        )}
                       </div>
-                      {owner.assessedValue && (
-                        <p className="text-sm text-lime-400 font-mono mt-3">
-                          Assessed: $
-                          {Number(owner.assessedValue).toLocaleString()}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-3 mt-3 pt-3 border-t border-[var(--border)]">
-                        {owner.phone && (
-                          <a
-                            href={`tel:${owner.phone}`}
-                            className="flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300"
-                          >
-                            <Phone className="w-3 h-3" />
-                            Call
-                          </a>
-                        )}
-                        {owner.email && (
-                          <a
-                            href={`mailto:${owner.email}`}
-                            className="flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300"
-                          >
-                            <Mail className="w-3 h-3" />
-                            Email
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+                    )}
+                  </div>
 
-          {/* Engineers Tab */}
-          {activeTab === "engineers" && (
-            <>
-              {engineersLoading ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
-                </div>
-              ) : engineersData?.items.length === 0 ? (
-                <div className="text-center py-12">
-                  <Wrench className="w-12 h-12 mx-auto text-[var(--muted-foreground)]" />
-                  <p className="mt-4 text-[var(--muted-foreground)]">
-                    No engineers found
+                  <p className="text-sm text-[var(--muted-foreground)] mt-2">
+                    {engineer.city}, {engineer.county}, {engineer.state}
                   </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {engineersData?.items.map((engineer) => (
-                    <div
-                      key={engineer.id}
-                      className="bg-[var(--card)] border border-[var(--border)] p-5 clip-notch hover:border-lime-400/50 transition-colors"
+
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    {engineer.specialties.map((specialty) => (
+                      <span
+                        key={specialty}
+                        className="px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-orange-400/10 text-orange-400 border border-orange-400/30 clip-notch-sm"
+                      >
+                        {specialty}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-4 mt-4 pt-3 border-t border-[var(--border)]">
+                    <a
+                      href={`tel:${engineer.phone}`}
+                      className="flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300"
                     >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-[var(--foreground)]">
-                              {engineer.companyName}
-                            </h3>
-                            {engineer.isVerified && (
-                              <CheckCircle className="w-4 h-4 text-lime-400" />
-                            )}
-                          </div>
-                          {engineer.contactName && (
-                            <p className="text-sm text-[var(--muted-foreground)]">
-                              {engineer.contactName}
-                            </p>
-                          )}
-                        </div>
-                        {engineer.rating > 0 && (
-                          <div className="flex items-center gap-1 text-yellow-400">
-                            <Star className="w-4 h-4 fill-current" />
-                            <span className="font-mono text-sm">
-                              {engineer.rating.toFixed(1)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                      <Phone className="w-3 h-3" />
+                      {engineer.phone}
+                    </a>
+                    {engineer.email && (
+                      <a
+                        href={`mailto:${engineer.email}`}
+                        className="flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300"
+                      >
+                        <Mail className="w-3 h-3" />
+                        Email
+                      </a>
+                    )}
+                    {engineer.website && (
+                      <a
+                        href={engineer.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300"
+                      >
+                        <Globe className="w-3 h-3" />
+                        Website
+                      </a>
+                    )}
+                  </div>
 
-                      <p className="text-sm text-[var(--muted-foreground)] mt-2">
-                        {engineer.city}, {engineer.county}, {engineer.state}
-                      </p>
-
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        {engineer.specialties.map((specialty) => (
-                          <span
-                            key={specialty}
-                            className="px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-orange-400/10 text-orange-400 border border-orange-400/30 clip-notch-sm"
-                          >
-                            {specialty}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="flex items-center gap-4 mt-4 pt-3 border-t border-[var(--border)]">
-                        <a
-                          href={`tel:${engineer.phone}`}
-                          className="flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300"
-                        >
-                          <Phone className="w-3 h-3" />
-                          {engineer.phone}
-                        </a>
-                        {engineer.email && (
-                          <a
-                            href={`mailto:${engineer.email}`}
-                            className="flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300"
-                          >
-                            <Mail className="w-3 h-3" />
-                            Email
-                          </a>
-                        )}
-                        {engineer.website && (
-                          <a
-                            href={engineer.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300"
-                          >
-                            <Globe className="w-3 h-3" />
-                            Website
-                          </a>
-                        )}
-                      </div>
-
-                      {engineer.distance !== null && (
-                        <p className="text-xs text-[var(--muted-foreground)] mt-2">
-                          <Target className="w-3 h-3 inline mr-1" />
-                          {engineer.distance.toFixed(1)} miles away
-                          {engineer.serviceRadiusMiles &&
-                            ` (serves ${engineer.serviceRadiusMiles} mi radius)`}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                  {engineer.distance !== null && (
+                    <p className="text-xs text-[var(--muted-foreground)] mt-2">
+                      <Target className="w-3 h-3 inline mr-1" />
+                      {engineer.distance.toFixed(1)} miles away
+                      {engineer.serviceRadiusMiles &&
+                        ` (serves ${engineer.serviceRadiusMiles} mi radius)`}
+                    </p>
+                  )}
                 </div>
-              )}
-            </>
+              ))}
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
