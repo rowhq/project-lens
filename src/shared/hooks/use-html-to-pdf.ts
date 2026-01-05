@@ -30,31 +30,42 @@ export function useHtmlToPdf() {
         const container = document.createElement("div");
         container.innerHTML = htmlContent;
 
-        // Set container width for proper rendering
-        container.style.width = "210mm"; // A4/Letter width
-        container.style.position = "absolute";
-        container.style.left = "-9999px";
+        // CRITICAL: Container must be ON-SCREEN for html2canvas to render properly
+        // Using opacity:0 instead of left:-9999px because html2canvas doesn't render offscreen elements
+        container.style.position = "fixed";
+        container.style.left = "0";
         container.style.top = "0";
+        container.style.width = "210mm";
+        container.style.opacity = "0"; // Invisible but still rendered
+        container.style.pointerEvents = "none";
+        container.style.zIndex = "-1";
 
         document.body.appendChild(container);
+
+        // CRITICAL: Wait for fonts to load before rendering
+        await document.fonts.ready;
+
+        // Small delay to ensure DOM is fully painted
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Configure PDF generation options
         const pdfOptions = {
           margin: options?.margin ?? [10, 10, 10, 10],
           filename: `${filename}.pdf`,
-          image: { type: "jpeg" as const, quality: 0.98 },
+          image: { type: "jpeg" as const, quality: 0.95 },
           html2canvas: {
             scale: 2,
             useCORS: true,
+            allowTaint: true, // Allow external images even if CORS fails
             logging: false,
-            letterRendering: true,
+            windowWidth: 794, // A4 width in pixels at 96dpi
           },
           jsPDF: {
             unit: "mm" as const,
             format: options?.pageSize ?? "letter",
             orientation: options?.orientation ?? "portrait",
           },
-          pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+          pagebreak: { mode: ["css", "legacy"] },
         };
 
         await html2pdf().set(pdfOptions).from(container).save();
