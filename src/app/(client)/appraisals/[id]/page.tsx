@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Download,
   Share2,
-  RefreshCw,
   Calendar,
   DollarSign,
   TrendingUp,
@@ -39,47 +38,6 @@ import { Skeleton } from "@/shared/components/ui/Skeleton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
-}
-
-// Regenerate Button Component - for reports without PDF
-function RegenerateButton({
-  appraisalId,
-  onSuccess,
-}: {
-  appraisalId: string;
-  onSuccess: () => void;
-}) {
-  const { toast } = useToast();
-  const regenerate = trpc.report.regenerate.useMutation({
-    onSuccess: () => {
-      toast({
-        title: "Regenerando reporte",
-        description:
-          "El PDF se está generando. Esto puede tomar unos segundos.",
-      });
-      onSuccess();
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  return (
-    <button
-      onClick={() => regenerate.mutate({ appraisalId })}
-      disabled={regenerate.isPending}
-      className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-gray-900 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50"
-    >
-      <RefreshCw
-        className={`w-4 h-4 ${regenerate.isPending ? "animate-spin" : ""}`}
-      />
-      {regenerate.isPending ? "Regenerando..." : "Generar PDF"}
-    </button>
-  );
 }
 
 // SLA Progress Tracker Component
@@ -679,6 +637,20 @@ export default function AppraisalDetailPage({ params }: PageProps) {
     }
   };
 
+  // Download PDF mutation - generates on-demand if missing
+  const downloadPdf = trpc.report.download.useMutation({
+    onSuccess: (data) => {
+      window.open(data.url, "_blank");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to download PDF",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Handle payment success callback from Stripe
   // Now uses polling to wait for webhook processing
   useEffect(() => {
@@ -944,22 +916,18 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 <Share2 className="w-4 h-4" />
                 Share
               </button>
-              {report.pdfUrl ? (
-                <a
-                  href={report.pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-gray-900 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300"
-                >
+              <button
+                onClick={() => downloadPdf.mutate({ reportId: report.id })}
+                disabled={downloadPdf.isPending}
+                className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-gray-900 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50"
+              >
+                {downloadPdf.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
                   <Download className="w-4 h-4" />
-                  Download PDF
-                </a>
-              ) : (
-                <RegenerateButton
-                  appraisalId={appraisal.id}
-                  onSuccess={() => refetch()}
-                />
-              )}
+                )}
+                {downloadPdf.isPending ? "Generating..." : "Download PDF"}
+              </button>
             </>
           )}
           <button

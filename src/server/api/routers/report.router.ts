@@ -15,6 +15,7 @@ import crypto from "crypto";
 import * as storage from "@/shared/lib/storage";
 import { sendReportEmail } from "@/shared/lib/resend";
 import { processAppraisal } from "@/server/services/appraisal-processor";
+import { reportGenerator } from "@/server/services/report-generator";
 
 export const reportRouter = createTRPCRouter({
   /**
@@ -124,20 +125,16 @@ export const reportRouter = createTRPCRouter({
         });
       }
 
-      if (!report.pdfUrl) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "PDF not available",
-        });
-      }
-
-      // Generate signed URL for secure download
+      // Use getDownloadUrl which generates PDF on-demand if missing
       try {
-        const fileKey = storage.getKeyFromUrl(report.pdfUrl);
+        const pdfUrl = await reportGenerator.getDownloadUrl(input.reportId);
+
+        // Generate signed URL for secure download
+        const fileKey = storage.getKeyFromUrl(pdfUrl);
         if (!fileKey) {
           // If not in our storage, return the URL directly
           return {
-            url: report.pdfUrl,
+            url: pdfUrl,
             expiresIn: 3600,
           };
         }
@@ -155,7 +152,10 @@ export const reportRouter = createTRPCRouter({
         console.error("Error generating download URL:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to generate download URL",
+          message:
+            error instanceof Error
+              ? `PDF generation failed: ${error.message}`
+              : "Failed to generate download URL",
         });
       }
     }),
