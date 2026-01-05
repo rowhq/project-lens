@@ -1,12 +1,14 @@
 "use client";
 
-import { MapPin, ZoomIn, Ruler, Layers } from "lucide-react";
+import { MapPin, ZoomIn, Ruler, Layers, Briefcase, Users } from "lucide-react";
 
 interface StatusBarProps {
   lat: number;
   lng: number;
   zoom: number;
   parcelCount: number;
+  jobCount?: number;
+  appraiserCount?: number;
 }
 
 /**
@@ -26,7 +28,14 @@ function calculateScale(zoom: number, lat: number): string {
   return `${Math.round(scaleMeters)} m`;
 }
 
-export function StatusBar({ lat, lng, zoom, parcelCount }: StatusBarProps) {
+export function StatusBar({
+  lat,
+  lng,
+  zoom,
+  parcelCount,
+  jobCount,
+  appraiserCount,
+}: StatusBarProps) {
   const scale = calculateScale(zoom, lat);
 
   return (
@@ -58,12 +67,35 @@ export function StatusBar({ lat, lng, zoom, parcelCount }: StatusBarProps) {
           </div>
         </div>
 
-        {/* Parcel Count */}
-        <div className="flex items-center gap-1.5 text-gray-300">
-          <Layers className="w-3.5 h-3.5 text-green-400" />
-          <span>
-            <span className="text-white">{parcelCount}</span> parcels visible
-          </span>
+        {/* Stats */}
+        <div className="flex items-center gap-4">
+          {/* Jobs Count */}
+          {jobCount !== undefined && (
+            <div className="flex items-center gap-1.5 text-gray-300">
+              <Briefcase className="w-3.5 h-3.5 text-yellow-400" />
+              <span>
+                <span className="text-white">{jobCount}</span> jobs
+              </span>
+            </div>
+          )}
+
+          {/* Appraisers Count */}
+          {appraiserCount !== undefined && (
+            <div className="flex items-center gap-1.5 text-gray-300">
+              <Users className="w-3.5 h-3.5 text-cyan-400" />
+              <span>
+                <span className="text-white">{appraiserCount}</span> appraisers
+              </span>
+            </div>
+          )}
+
+          {/* Parcel Count */}
+          <div className="flex items-center gap-1.5 text-gray-300">
+            <Layers className="w-3.5 h-3.5 text-green-400" />
+            <span>
+              <span className="text-white">{parcelCount}</span> parcels
+            </span>
+          </div>
         </div>
       </div>
     </div>

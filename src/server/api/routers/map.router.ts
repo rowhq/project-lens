@@ -86,6 +86,8 @@ export const mapRouter = createTRPCRouter({
             id: true,
             firstName: true,
             lastName: true,
+            email: true,
+            phone: true,
           },
         },
       },
@@ -94,6 +96,9 @@ export const mapRouter = createTRPCRouter({
     return appraisers.map((appraiser) => ({
       userId: appraiser.userId,
       name: `${appraiser.user.firstName} ${appraiser.user.lastName}`,
+      email: appraiser.user.email,
+      phone: appraiser.user.phone,
+      licenseNumber: appraiser.licenseNumber,
       latitude: appraiser.homeBaseLat,
       longitude: appraiser.homeBaseLng,
       coverageRadiusMiles: appraiser.coverageRadiusMiles,
