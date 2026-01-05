@@ -74,8 +74,11 @@ class PDFGenerator {
       }
     } catch (error) {
       console.error("PDF generation failed:", error);
-      // Create a minimal placeholder PDF
-      pdfBuffer = this.createPlaceholderPDF(options);
+      // Re-throw to trigger retry in appraisal processor
+      // This ensures users don't get placeholder PDFs
+      throw new Error(
+        `PDF generation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
 
     // Upload to storage

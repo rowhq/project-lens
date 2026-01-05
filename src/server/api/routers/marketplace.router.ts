@@ -1056,10 +1056,35 @@ export const marketplaceRouter = createTRPCRouter({
         },
       });
 
-      // Return report URL if available, otherwise return documents
+      // Generate signed URLs for secure downloads
+      let signedDownloadUrl: string | null = null;
+      if (purchase.listing.report?.pdfUrl) {
+        const fileKey = storage.getKeyFromUrl(purchase.listing.report.pdfUrl);
+        if (fileKey) {
+          signedDownloadUrl = await storage.getDownloadUrl({
+            key: fileKey,
+            expiresIn: 3600, // 1 hour
+          });
+        }
+      }
+
+      // Sign document URLs
+      const signedDocuments = await Promise.all(
+        purchase.listing.documents.map(async (doc) => {
+          const fileKey = storage.getKeyFromUrl(doc.fileUrl);
+          const signedUrl = fileKey
+            ? await storage.getDownloadUrl({ key: fileKey, expiresIn: 3600 })
+            : doc.fileUrl;
+          return {
+            ...doc,
+            fileUrl: signedUrl,
+          };
+        }),
+      );
+
       return {
-        downloadUrl: purchase.listing.report?.pdfUrl || null,
-        documents: purchase.listing.documents,
+        downloadUrl: signedDownloadUrl,
+        documents: signedDocuments,
       };
     }),
 

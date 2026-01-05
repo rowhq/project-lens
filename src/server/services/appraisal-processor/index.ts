@@ -179,21 +179,27 @@ export async function processAppraisal(
 }
 
 /**
- * Process all queued appraisals (including due retries)
+ * Process all queued appraisals (including due retries and stuck RUNNING)
  * Useful for batch processing or cron jobs
  */
 export async function processQueuedAppraisals(): Promise<ProcessingResult[]> {
   const now = new Date();
+  // Appraisals stuck in RUNNING for more than 1 hour should be re-processed
+  const stuckThreshold = new Date(Date.now() - 60 * 60 * 1000);
 
   // Find appraisals that are either:
   // 1. QUEUED with no retry scheduled (new appraisals)
   // 2. QUEUED with nextRetryAt <= now (retries that are due)
+  // 3. RUNNING with lastAttemptAt > 1 hour ago (stuck appraisals)
   const queued = await prisma.appraisalRequest.findMany({
     where: {
-      status: "QUEUED",
       OR: [
-        { nextRetryAt: null }, // New appraisals
-        { nextRetryAt: { lte: now } }, // Retries that are due
+        // New appraisals in QUEUED
+        { status: "QUEUED", nextRetryAt: null },
+        // Retries that are due
+        { status: "QUEUED", nextRetryAt: { lte: now } },
+        // Stuck in RUNNING for more than 1 hour
+        { status: "RUNNING", lastAttemptAt: { lt: stuckThreshold } },
       ],
     },
     orderBy: { createdAt: "asc" },
