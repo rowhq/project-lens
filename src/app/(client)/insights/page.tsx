@@ -36,7 +36,12 @@ import {
   Share2,
   Check,
   GitCompare,
+  Sparkles,
 } from "lucide-react";
+import {
+  GrowthOpportunityCard,
+  GrowthOpportunityCardSkeleton,
+} from "@/shared/components/insights";
 
 // Dynamic import for MapView to avoid SSR issues
 const MapView = dynamic(
@@ -273,6 +278,19 @@ export default function InsightsPage() {
       minYear: yearFrom ? Number(yearFrom) : undefined,
       maxYear: yearTo ? Number(yearTo) : undefined,
     });
+
+  // Growth Opportunities query
+  const { data: growthData, isLoading: growthLoading } =
+    trpc.insights.getGrowthOpportunities.useQuery(
+      {
+        county: county,
+        limit: 6,
+        minConfidence: 30,
+      },
+      {
+        enabled: !!county,
+      },
+    );
 
   // Get items selected for comparison
   const comparisonItems = useMemo(() => {
@@ -1193,6 +1211,69 @@ export default function InsightsPage() {
           </p>
         </div>
       ) : null}
+
+      {/* Growth Opportunities Section */}
+      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+        {/* L-Bracket Corners */}
+        <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
+        <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-lime-400/10 clip-notch">
+              <Sparkles className="w-5 h-5 text-lime-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">
+                Growth Opportunities
+              </h3>
+              <p className="text-sm text-gray-400">
+                Properties with highest projected appreciation based on
+                infrastructure signals
+              </p>
+            </div>
+          </div>
+          {growthData?.opportunities && growthData.opportunities.length > 0 && (
+            <span className="px-3 py-1 bg-lime-400/10 text-lime-400 text-sm font-mono border border-lime-400/30 clip-notch">
+              {growthData.opportunities.length} properties
+            </span>
+          )}
+        </div>
+
+        {growthLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(3)].map((_, i) => (
+              <GrowthOpportunityCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : growthData?.opportunities && growthData.opportunities.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {growthData.opportunities.map((opp) => (
+              <GrowthOpportunityCard
+                key={opp.property.parcelId}
+                property={opp.property}
+                currentValue={opp.currentValue}
+                projectedValue={opp.projectedValue}
+                projectedAppreciation={opp.projectedAppreciation}
+                confidence={opp.confidence}
+                risk={opp.risk}
+                signals={opp.signals}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Sparkles className="w-12 h-12 mx-auto text-gray-600" />
+            <p className="mt-4 text-white font-medium">
+              No growth opportunities found
+            </p>
+            <p className="text-sm text-gray-400 mt-1">
+              We couldn&apos;t find properties with infrastructure signals in{" "}
+              {county} County. Try selecting a different county.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Filters Row */}
       <div

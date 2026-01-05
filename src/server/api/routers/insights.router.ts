@@ -1397,4 +1397,216 @@ export const insightsRouter = createTRPCRouter({
         },
       };
     }),
+
+  /**
+   * Get growth opportunities - properties with high projected appreciation
+   * based on nearby infrastructure signals
+   */
+  getGrowthOpportunities: clientProcedure
+    .input(
+      z.object({
+        county: z.string(),
+        limit: z.number().min(1).max(50).default(10),
+        minConfidence: z.number().min(0).max(100).default(30),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // 1. Get infrastructure insights in the county
+      const insights = await ctx.prisma.investmentInsight.findMany({
+        where: {
+          county: input.county,
+          avgValueChange: { not: null, gt: 0 },
+          correlation: { not: null, gt: 0 },
+        },
+        select: {
+          id: true,
+          title: true,
+          type: true,
+          latitude: true,
+          longitude: true,
+          avgValueChange: true,
+          correlation: true,
+          lagPeriodYears: true,
+          impactRadiusMiles: true,
+          projectYear: true,
+          status: true,
+        },
+      });
+
+      if (insights.length === 0) {
+        return { opportunities: [] };
+      }
+
+      // 2. Get properties in the county with assessed values
+      const properties = await ctx.prisma.propertyOwner.findMany({
+        where: {
+          county: input.county,
+          assessedValue: { not: null, gt: 0 },
+          latitude: { not: null },
+          longitude: { not: null },
+        },
+        select: {
+          parcelId: true,
+          addressLine1: true,
+          city: true,
+          state: true,
+          zipCode: true,
+          assessedValue: true,
+          latitude: true,
+          longitude: true,
+        },
+        take: 500, // Limit for performance
+      });
+
+      if (properties.length === 0) {
+        return { opportunities: [] };
+      }
+
+      // Helper to calculate distance in miles
+      const calculateDistance = (
+        lat1: number,
+        lng1: number,
+        lat2: number,
+        lng2: number,
+      ): number => {
+        const R = 3959; // Earth's radius in miles
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLng = ((lng2 - lng1) * Math.PI) / 180;
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            Math.sin(dLng / 2) *
+            Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      };
+
+      // 3. For each property, find nearby insights and calculate metrics
+      const opportunities = properties
+        .map((property) => {
+          if (!property.latitude || !property.longitude) return null;
+
+          // Find insights within their impact radius
+          const nearbySignals = insights
+            .filter((insight) => {
+              if (!insight.latitude || !insight.longitude) return false;
+              const distance = calculateDistance(
+                property.latitude!,
+                property.longitude!,
+                insight.latitude,
+                insight.longitude,
+              );
+              const radius = insight.impactRadiusMiles || 5;
+              return distance <= radius;
+            })
+            .map((insight) => ({
+              id: insight.id,
+              title: insight.title,
+              type: insight.type,
+              distance: calculateDistance(
+                property.latitude!,
+                property.longitude!,
+                insight.latitude!,
+                insight.longitude!,
+              ),
+              year: insight.projectYear,
+              avgValueChange: insight.avgValueChange,
+              correlation: insight.correlation,
+              status: insight.status,
+              lagPeriodYears: insight.lagPeriodYears,
+            }))
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 5); // Top 5 signals
+
+          if (nearbySignals.length === 0) return null;
+
+          // Calculate weighted projected appreciation
+          let totalWeight = 0;
+          let weightedAppreciation = 0;
+          let avgCorrelation = 0;
+          let hasHighRiskSignal = false;
+          let hasLongLag = false;
+
+          nearbySignals.forEach((signal) => {
+            const weight = signal.correlation || 0.5;
+            totalWeight += weight;
+            weightedAppreciation += (signal.avgValueChange || 0) * weight;
+            avgCorrelation += signal.correlation || 0;
+
+            if (signal.status === "CANCELLED" || signal.status === "PENDING") {
+              hasHighRiskSignal = true;
+            }
+            if (signal.lagPeriodYears && signal.lagPeriodYears > 3) {
+              hasLongLag = true;
+            }
+          });
+
+          const projectedAppreciation =
+            totalWeight > 0 ? weightedAppreciation / totalWeight : 0;
+          avgCorrelation = avgCorrelation / nearbySignals.length;
+
+          // Confidence: based on correlation and number of signals
+          const confidence = Math.min(
+            100,
+            Math.round(avgCorrelation * 80 + nearbySignals.length * 5),
+          );
+
+          // Risk assessment
+          let risk: "LOW" | "MEDIUM" | "HIGH" = "LOW";
+          if (hasHighRiskSignal) {
+            risk = "HIGH";
+          } else if (hasLongLag || avgCorrelation < 0.5) {
+            risk = "MEDIUM";
+          }
+
+          // Current and projected values
+          const currentValue =
+            typeof property.assessedValue === "object" &&
+            property.assessedValue !== null &&
+            "toNumber" in property.assessedValue
+              ? (
+                  property.assessedValue as { toNumber: () => number }
+                ).toNumber()
+              : Number(property.assessedValue);
+
+          const projectedValue = Math.round(
+            currentValue * (1 + projectedAppreciation / 100),
+          );
+
+          return {
+            property: {
+              parcelId: property.parcelId,
+              address: property.addressLine1 || property.parcelId,
+              city: property.city,
+              state: property.state,
+              zipCode: property.zipCode,
+              latitude: property.latitude,
+              longitude: property.longitude,
+            },
+            currentValue,
+            projectedValue,
+            projectedAppreciation: Math.round(projectedAppreciation * 10) / 10,
+            confidence,
+            risk,
+            signals: nearbySignals.map((s) => ({
+              id: s.id,
+              title: s.title,
+              type: s.type,
+              distance: Math.round(s.distance * 10) / 10,
+              year: s.year,
+            })),
+          };
+        })
+        .filter(
+          (opp): opp is NonNullable<typeof opp> =>
+            opp !== null &&
+            opp.confidence >= input.minConfidence &&
+            opp.projectedAppreciation > 0,
+        )
+        .sort((a, b) => b.projectedAppreciation - a.projectedAppreciation)
+        .slice(0, input.limit);
+
+      return { opportunities };
+    }),
 });
