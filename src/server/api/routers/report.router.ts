@@ -99,6 +99,53 @@ export const reportRouter = createTRPCRouter({
     }),
 
   /**
+   * Get HTML content for client-side PDF generation
+   * Used when server-side PDF generation is not available (Vercel serverless)
+   */
+  getHtmlContent: clientProcedure
+    .input(z.object({ reportId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const report = await ctx.prisma.report.findUnique({
+        where: { id: input.reportId },
+        include: {
+          appraisalRequest: {
+            select: {
+              organizationId: true,
+              referenceCode: true,
+            },
+          },
+        },
+      });
+
+      if (!report) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Report not found",
+        });
+      }
+
+      if (report.appraisalRequest?.organizationId !== ctx.organization!.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Access denied",
+        });
+      }
+
+      if (!report.htmlContent) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Report HTML content not available",
+        });
+      }
+
+      return {
+        htmlContent: report.htmlContent,
+        referenceCode:
+          report.appraisalRequest?.referenceCode || `report-${report.id}`,
+      };
+    }),
+
+  /**
    * Get PDF download URL with signed access
    */
   download: clientProcedure

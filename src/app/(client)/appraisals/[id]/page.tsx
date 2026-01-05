@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
 import { PRICING } from "@/shared/config/constants";
 import { useToast } from "@/shared/hooks/use-toast";
+import { useHtmlToPdf } from "@/shared/hooks/use-html-to-pdf";
 import {
   ArrowLeft,
   Download,
@@ -637,19 +638,36 @@ export default function AppraisalDetailPage({ params }: PageProps) {
     }
   };
 
-  // Download PDF mutation - generates on-demand if missing
-  const downloadPdf = trpc.report.download.useMutation({
-    onSuccess: (data) => {
-      window.open(data.url, "_blank");
-    },
-    onError: (error) => {
+  // Client-side PDF generation hook
+  const { generatePdf, isGenerating: isPdfGenerating } = useHtmlToPdf();
+
+  // Query for report HTML content (for client-side PDF generation)
+  const { data: reportHtml } = trpc.report.getHtmlContent.useQuery(
+    { reportId: appraisal?.report?.id ?? "" },
+    { enabled: !!appraisal?.report?.id && appraisal?.status === "READY" },
+  );
+
+  // Handle PDF download using client-side generation
+  const handleDownloadPdf = async () => {
+    if (!reportHtml?.htmlContent || !appraisal) return;
+
+    try {
+      await generatePdf(
+        reportHtml.htmlContent,
+        `TruPlat-${appraisal.referenceCode}`,
+      );
+      toast({
+        title: "PDF Downloaded",
+        description: "Your report has been downloaded successfully.",
+      });
+    } catch {
       toast({
         title: "Error",
-        description: error.message || "Failed to download PDF",
+        description: "Failed to generate PDF. Please try again.",
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
   // Handle payment success callback from Stripe
   // Now uses polling to wait for webhook processing
@@ -917,16 +935,16 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 Share
               </button>
               <button
-                onClick={() => downloadPdf.mutate({ reportId: report.id })}
-                disabled={downloadPdf.isPending}
+                onClick={handleDownloadPdf}
+                disabled={isPdfGenerating || !reportHtml?.htmlContent}
                 className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-gray-900 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50"
               >
-                {downloadPdf.isPending ? (
+                {isPdfGenerating ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Download className="w-4 h-4" />
                 )}
-                {downloadPdf.isPending ? "Generating..." : "Download PDF"}
+                {isPdfGenerating ? "Generating..." : "Download PDF"}
               </button>
             </>
           )}
