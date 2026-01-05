@@ -9,464 +9,310 @@ import {
   Search,
   FileText,
   MapPin,
-  DollarSign,
-  TrendingUp,
+  Eye,
   ShoppingCart,
   ChevronDown,
   Loader2,
-  Building2,
-  Home,
-  Warehouse,
-  Navigation,
-  Layers,
-  Droplets,
-  Mountain,
-  Compass,
-  ScrollText,
+  File,
 } from "lucide-react";
-import { STUDY_CATEGORIES } from "@/shared/config/constants";
 
-const PROPERTY_CATEGORIES = [
-  { value: "", label: "All Property Types", icon: FileText },
-  { value: "residential", label: "Residential", icon: Home },
-  { value: "commercial", label: "Commercial", icon: Building2 },
-  { value: "land", label: "Land", icon: MapPin },
-  { value: "industrial", label: "Industrial", icon: Warehouse },
-];
-
-type StudyCategory =
-  | "APPRAISAL_REPORT"
-  | "SOIL_STUDY"
-  | "DRAINAGE_STUDY"
-  | "CIVIL_ENGINEERING"
-  | "ENVIRONMENTAL"
-  | "GEOTECHNICAL"
-  | "STRUCTURAL"
-  | "FLOOD_RISK"
-  | "ZONING_ANALYSIS"
-  | "SURVEY"
-  | "TITLE_REPORT"
-  | "OTHER";
-
-const STUDY_CATEGORY_OPTIONS: { value: "" | StudyCategory; label: string }[] = [
-  { value: "", label: "All Study Types" },
+const CATEGORY_OPTIONS = [
+  { value: "", label: "All Categories" },
   { value: "APPRAISAL_REPORT", label: "Appraisal Report" },
+  { value: "ENVIRONMENTAL", label: "Phase I ESA" },
+  { value: "SURVEY", label: "Survey" },
+  { value: "CIVIL_ENGINEERING", label: "Civil Plans" },
+  { value: "GEOTECHNICAL", label: "Geotechnical" },
+  { value: "TITLE_REPORT", label: "Title Report" },
+  { value: "ZONING_ANALYSIS", label: "Zoning Docs" },
   { value: "SOIL_STUDY", label: "Soil Study" },
   { value: "DRAINAGE_STUDY", label: "Drainage Study" },
-  { value: "CIVIL_ENGINEERING", label: "Civil Engineering" },
-  { value: "ENVIRONMENTAL", label: "Environmental" },
-  { value: "GEOTECHNICAL", label: "Geotechnical" },
   { value: "STRUCTURAL", label: "Structural" },
   { value: "FLOOD_RISK", label: "Flood Risk" },
-  { value: "ZONING_ANALYSIS", label: "Zoning Analysis" },
-  { value: "SURVEY", label: "Survey" },
-  { value: "TITLE_REPORT", label: "Title Report" },
   { value: "OTHER", label: "Other" },
 ];
 
-const SORT_OPTIONS = [
-  { value: "newest", label: "Newest First" },
-  { value: "price_asc", label: "Price: Low to High" },
-  { value: "price_desc", label: "Price: High to Low" },
-  { value: "popular", label: "Most Popular" },
-  { value: "distance", label: "Nearest" },
-];
+const CATEGORY_LABELS: Record<string, string> = {
+  APPRAISAL_REPORT: "Appraisal",
+  ENVIRONMENTAL: "Phase I ESA",
+  SURVEY: "Survey",
+  CIVIL_ENGINEERING: "Civil Plans",
+  GEOTECHNICAL: "Geotechnical",
+  TITLE_REPORT: "Title Report",
+  ZONING_ANALYSIS: "Zoning Docs",
+  SOIL_STUDY: "Soil Study",
+  DRAINAGE_STUDY: "Drainage Study",
+  STRUCTURAL: "Structural",
+  FLOOD_RISK: "Flood Risk",
+  OTHER: "Other",
+};
+
+type StudyCategory =
+  | "APPRAISAL_REPORT"
+  | "ENVIRONMENTAL"
+  | "SURVEY"
+  | "CIVIL_ENGINEERING"
+  | "GEOTECHNICAL"
+  | "TITLE_REPORT"
+  | "ZONING_ANALYSIS"
+  | "SOIL_STUDY"
+  | "DRAINAGE_STUDY"
+  | "STRUCTURAL"
+  | "FLOOD_RISK"
+  | "OTHER";
 
 export default function MarketplacePage() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [studyCategory, setStudyCategory] = useState<"" | StudyCategory>("");
-  const [sortBy, setSortBy] = useState<
-    "newest" | "price_asc" | "price_desc" | "popular" | "distance"
-  >("newest");
-  const [county, setCounty] = useState("");
-  const cartItemCount = useCartStore((state) => state.getItemCount());
+  const [category, setCategory] = useState<StudyCategory | "">("");
+  const addItem = useCartStore((state) => state.addItem);
+  const hasItem = useCartStore((state) => state.hasItem);
 
-  // Location filter state
-  const [userLocation, setUserLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  const [radiusMiles, setRadiusMiles] = useState(50);
-  const [useLocationFilter, setUseLocationFilter] = useState(false);
-  const [loadingLocation, setLoadingLocation] = useState(false);
+  const { data: listings, isLoading } = trpc.marketplace.list.useQuery({
+    limit: 20,
+    studyCategory: category || undefined,
+    search: search || undefined,
+    sortBy: "newest",
+  });
 
-  // Get user's location
-  const getUserLocation = () => {
-    if (!navigator.geolocation) {
+  const handleAddToCart = (
+    e: React.MouseEvent,
+    listing: {
+      id: string;
+      title: string;
+      price: number | { toNumber: () => number };
+      city?: string | null;
+      state?: string | null;
+      studyCategory?: string | null;
+      report?: { type?: string | null } | null;
+    },
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (hasItem(listing.id)) {
       toast({
-        title: "Error",
-        description: "Geolocation is not supported by your browser",
-        variant: "destructive",
+        title: "Already in cart",
+        description: "This item is already in your cart",
       });
       return;
     }
 
-    setLoadingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-        setUseLocationFilter(true);
-        setLoadingLocation(false);
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-        setLoadingLocation(false);
-        toast({
-          title: "Error",
-          description: "Could not get your location. Please check permissions.",
-          variant: "destructive",
-        });
-      },
-    );
+    addItem({
+      listingId: listing.id,
+      title: listing.title,
+      price:
+        typeof listing.price === "number"
+          ? listing.price
+          : listing.price.toNumber(),
+      property: listing.city
+        ? {
+            city: listing.city,
+            state: listing.state || "TX",
+          }
+        : undefined,
+      reportType: listing.studyCategory || listing.report?.type || "Document",
+    });
+
+    toast({
+      title: "Added to cart",
+      description: listing.title,
+    });
   };
 
-  const { data: listings, isLoading } = trpc.marketplace.list.useQuery({
-    limit: 20,
-    category: category || undefined,
-    studyCategory: studyCategory || undefined,
-    sortBy,
-    search: search || undefined,
-    county: county || undefined,
-    latitude: useLocationFilter && userLocation ? userLocation.lat : undefined,
-    longitude: useLocationFilter && userLocation ? userLocation.lng : undefined,
-    radiusMiles: useLocationFilter ? radiusMiles : undefined,
-  });
-
-  const { data: stats } = trpc.marketplace.stats.useQuery();
-
-  const getStudyCategoryIcon = (cat: string) => {
-    switch (cat) {
-      case "SOIL_STUDY":
-        return <Layers className="w-3 h-3" />;
-      case "DRAINAGE_STUDY":
-        return <Droplets className="w-3 h-3" />;
-      case "GEOTECHNICAL":
-        return <Mountain className="w-3 h-3" />;
-      case "SURVEY":
-        return <Compass className="w-3 h-3" />;
-      case "TITLE_REPORT":
-        return <ScrollText className="w-3 h-3" />;
-      default:
-        return <FileText className="w-3 h-3" />;
+  // Get category label for display
+  const getCategoryLabel = (
+    studyCategory: string | null,
+    reportType?: string | null,
+  ) => {
+    if (studyCategory && CATEGORY_LABELS[studyCategory]) {
+      return CATEGORY_LABELS[studyCategory];
     }
+    if (reportType) {
+      return reportType.replace(/_/g, " ");
+    }
+    return "Document";
+  };
+
+  // Generate tags from listing data
+  const generateTags = (listing: {
+    category?: string | null;
+    county?: string | null;
+    city?: string | null;
+    state?: string | null;
+    report?: { type?: string | null } | null;
+  }) => {
+    const tags: string[] = [];
+    if (listing.category) tags.push(listing.category.toLowerCase());
+    if (listing.county)
+      tags.push(listing.county.toLowerCase().replace(" county", ""));
+    if (listing.city)
+      tags.push(listing.city.toLowerCase().replace(/\s+/g, "-"));
+    return tags.slice(0, 3);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">
-            DD Marketplace
-          </h1>
-          <p className="text-[var(--muted-foreground)]">
-            Buy and sell due diligence reports from verified appraisals
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Link
-            href="/marketplace/cart"
-            className="relative px-4 py-2 border border-gray-700 clip-notch text-white font-mono text-sm uppercase tracking-wider hover:bg-gray-800 transition-colors flex items-center gap-2"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            Cart
-            {cartItemCount > 0 && (
-              <span className="absolute -top-2 -right-2 w-5 h-5 bg-lime-400 text-black text-xs font-bold clip-notch-sm flex items-center justify-center">
-                {cartItemCount}
-              </span>
-            )}
-          </Link>
-          <Link
-            href="/marketplace/my-listings"
-            className="px-4 py-2 border border-gray-700 clip-notch text-white font-mono text-sm uppercase tracking-wider hover:bg-gray-800 transition-colors"
-          >
-            My Listings
-          </Link>
-          <Link
-            href="/marketplace/sell"
-            className="px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 transition-colors"
-          >
-            Sell a Report
-          </Link>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-emerald-400">DD Marketplace</h1>
+        <p className="text-gray-400 mt-1">
+          Purchase unused Due Diligence assets - Phase I ESAs, surveys, civil
+          plans, and more
+        </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-gray-900 clip-notch border border-gray-800 p-4 flex items-center gap-4">
-          <div className="w-12 h-12 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
-            <FileText className="w-6 h-6 text-lime-400" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white font-mono">
-              {stats?.totalListings || 0}
-            </p>
-            <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
-              Active Listings
-            </p>
-          </div>
-        </div>
-        <div className="bg-gray-900 clip-notch border border-gray-800 p-4 flex items-center gap-4">
-          <div className="w-12 h-12 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
-            <ShoppingCart className="w-6 h-6 text-lime-400" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white font-mono">
-              {stats?.totalSales || 0}
-            </p>
-            <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
-              Total Sales
-            </p>
-          </div>
-        </div>
-        <div className="bg-gray-900 clip-notch border border-gray-800 p-4 flex items-center gap-4">
-          <div className="w-12 h-12 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-lime-400" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white font-mono">$75</p>
-            <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
-              Avg. Price
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="bg-gray-900 clip-notch border border-gray-800 p-4 space-y-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search listings..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
-            />
-          </div>
-
-          {/* Property Category */}
-          <div className="relative">
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="appearance-none px-4 py-2 pr-10 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
-            >
-              {PROPERTY_CATEGORIES.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-          </div>
-
-          {/* Study Category */}
-          <div className="relative">
-            <select
-              value={studyCategory}
-              onChange={(e) =>
-                setStudyCategory(e.target.value as "" | StudyCategory)
-              }
-              className="appearance-none px-4 py-2 pr-10 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
-            >
-              {STUDY_CATEGORY_OPTIONS.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-          </div>
-
-          {/* Sort */}
-          <div className="relative">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="appearance-none px-4 py-2 pr-10 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-          </div>
+      {/* Search and Filter */}
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Search */}
+        <div className="flex-1 relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search by title, location, tags..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50"
+          />
         </div>
 
-        {/* Second Row: Location Filters */}
-        <div className="flex flex-wrap gap-4 items-center">
-          {/* County */}
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="County"
-              value={county}
-              onChange={(e) => setCounty(e.target.value)}
-              className="w-40 pl-10 pr-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
-            />
-          </div>
-
-          {/* Location Filter Button */}
-          <button
-            onClick={getUserLocation}
-            disabled={loadingLocation}
-            className={`px-4 py-2 flex items-center gap-2 border clip-notch-sm transition-colors ${
-              useLocationFilter
-                ? "bg-lime-400/20 text-lime-400 border-lime-400/50"
-                : "bg-gray-900 border-gray-700 text-gray-400 hover:border-lime-400/50"
-            }`}
+        {/* Category Filter */}
+        <div className="relative">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value as StudyCategory | "")}
+            className="appearance-none px-4 py-3 pr-10 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-emerald-500/50 min-w-[180px]"
           >
-            {loadingLocation ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Navigation className="w-4 h-4" />
-            )}
-            {useLocationFilter ? "Near Me" : "Use My Location"}
-          </button>
-
-          {/* Radius Slider (shows when location is active) */}
-          {useLocationFilter && (
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-400">Radius:</span>
-              <input
-                type="range"
-                min="5"
-                max="200"
-                step="5"
-                value={radiusMiles}
-                onChange={(e) => setRadiusMiles(parseInt(e.target.value))}
-                className="w-32 accent-lime-400"
-              />
-              <span className="text-sm text-lime-400 font-mono w-16">
-                {radiusMiles} mi
-              </span>
-              <button
-                onClick={() => {
-                  setUseLocationFilter(false);
-                  setUserLocation(null);
-                }}
-                className="text-sm text-red-400 hover:text-red-300"
-              >
-                Clear
-              </button>
-            </div>
-          )}
+            {CATEGORY_OPTIONS.map((cat) => (
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
         </div>
       </div>
 
       {/* Listings Grid */}
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
+        <div className="flex justify-center py-16">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
         </div>
       ) : listings?.items?.length === 0 ? (
-        <div className="text-center py-12 bg-gray-900 clip-notch border border-gray-800">
-          <FileText className="w-12 h-12 mx-auto text-gray-600" />
-          <p className="mt-4 text-gray-400">No listings found</p>
-          <p className="text-sm text-gray-500">
-            Try adjusting your search or filters
-          </p>
+        <div className="text-center py-16">
+          <FileText className="w-16 h-16 mx-auto text-gray-600" />
+          <p className="mt-4 text-xl text-gray-400">No listings found</p>
+          <p className="text-gray-500">Try adjusting your search or filters</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {listings?.items?.map((listing) => (
-            <Link
-              key={listing.id}
-              href={`/marketplace/listing/${listing.id}`}
-              className="bg-gray-900 clip-notch border border-gray-800 overflow-hidden hover:border-lime-400/50 transition-colors group"
-            >
-              {/* Thumbnail placeholder */}
-              <div className="h-40 bg-gray-800 flex items-center justify-center">
-                {listing.studyCategory && !listing.report ? (
-                  <div className="text-center">
-                    {getStudyCategoryIcon(listing.studyCategory)}
-                    <p className="text-xs text-gray-500 mt-1">
-                      {STUDY_CATEGORIES[
-                        listing.studyCategory as keyof typeof STUDY_CATEGORIES
-                      ]?.label || listing.studyCategory}
-                    </p>
-                  </div>
-                ) : (
-                  <FileText className="w-12 h-12 text-gray-600" />
-                )}
-              </div>
+          {listings?.items?.map((listing) => {
+            const categoryLabel = getCategoryLabel(
+              listing.studyCategory,
+              listing.report?.type,
+            );
+            const tags = generateTags(listing);
+            const propertyData = listing.report?.appraisalRequest?.property;
+            const address = propertyData
+              ? `${propertyData.city}, ${propertyData.state}`
+              : `${listing.city || ""}, ${listing.state || "TX"}`.trim();
+            const fileCount =
+              listing.documents?.length || (listing.report ? 1 : 0);
+            const inCart = hasItem(listing.id);
 
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-white group-hover:text-lime-400 transition-colors line-clamp-2">
+            return (
+              <Link
+                key={listing.id}
+                href={`/marketplace/listing/${listing.id}`}
+                className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-emerald-500/50 transition-all group"
+              >
+                {/* Category Header */}
+                <div className="bg-emerald-600 px-4 py-2">
+                  <span className="text-white font-medium text-sm">
+                    {categoryLabel}
+                  </span>
+                </div>
+
+                {/* Content */}
+                <div className="p-5 space-y-4">
+                  {/* Title */}
+                  <h3 className="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors line-clamp-2">
                     {listing.title}
                   </h3>
-                  <div className="flex flex-col gap-1">
-                    <span className="px-2 py-0.5 bg-lime-400/10 text-lime-400 text-xs font-mono uppercase tracking-wider clip-notch-sm">
-                      {listing.category}
-                    </span>
-                    {listing.studyCategory && (
-                      <span className="px-2 py-0.5 bg-blue-400/10 text-blue-400 text-xs font-mono uppercase tracking-wider clip-notch-sm flex items-center gap-1">
-                        {getStudyCategoryIcon(listing.studyCategory)}
-                        {listing.studyCategory
-                          .replace(/_/g, " ")
-                          .substring(0, 10)}
-                      </span>
-                    )}
-                  </div>
-                </div>
 
-                <div className="mt-2 flex items-center gap-2 text-sm text-gray-400">
-                  <MapPin className="w-4 h-4" />
-                  <span>
-                    {listing.city ||
-                      listing.report?.appraisalRequest?.property?.city}
-                    ,{" "}
-                    {listing.state ||
-                      listing.report?.appraisalRequest?.property?.state}
-                  </span>
-                </div>
-
-                {listing.county && (
-                  <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
-                    <span>{listing.county} County</span>
-                  </div>
-                )}
-
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <DollarSign className="w-4 h-4 text-lime-400" />
-                    <span className="text-lg font-bold text-white font-mono">
-                      {Number(listing.price).toFixed(0)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm text-gray-400">
-                    <ShoppingCart className="w-4 h-4" />
-                    <span>{listing._count.purchases} sold</span>
-                  </div>
-                </div>
-
-                <div className="mt-3 pt-3 border-t border-gray-700 flex items-center justify-between text-xs text-gray-400">
-                  {listing.report?.valueEstimate && (
-                    <span>
-                      Est. Value: $
-                      {Number(listing.report.valueEstimate).toLocaleString()}
-                    </span>
+                  {/* Description */}
+                  {listing.description && (
+                    <p className="text-sm text-gray-400 line-clamp-3">
+                      {listing.description}
+                    </p>
                   )}
-                  <span>
-                    {listing.report?.type?.replace("_", " ") ||
-                      listing.studyCategory?.replace(/_/g, " ")}
-                  </span>
+
+                  {/* Address */}
+                  <div className="flex items-start gap-2 text-sm text-gray-400">
+                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>{address}</span>
+                  </div>
+
+                  {/* Tags */}
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* File Info */}
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <File className="w-4 h-4" />
+                      {fileCount} {fileCount === 1 ? "file" : "files"}
+                    </span>
+                  </div>
+
+                  {/* Views & Sold */}
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Eye className="w-4 h-4" />
+                      {listing.viewCount || 0} views
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <ShoppingCart className="w-4 h-4" />
+                      {listing._count?.purchases || 0} sold
+                    </span>
+                  </div>
+
+                  {/* Price & Buy Button */}
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-800">
+                    <div>
+                      <span className="text-2xl font-bold text-emerald-400">
+                        ${Number(listing.price).toLocaleString()}
+                      </span>
+                    </div>
+                    <button
+                      onClick={(e) => handleAddToCart(e, listing)}
+                      disabled={inCart}
+                      className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                        inCart
+                          ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                          : "bg-emerald-600 text-white hover:bg-emerald-500"
+                      }`}
+                    >
+                      {inCart ? "In Cart" : "Buy Now"}
+                    </button>
+                  </div>
+
+                  {/* License */}
+                  <p className="text-xs text-gray-500">Non-exclusive license</p>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
