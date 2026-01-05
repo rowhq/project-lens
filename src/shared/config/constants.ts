@@ -6,7 +6,7 @@ export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://truplat.com";
 
 // SLA Configuration (in hours)
 export const SLA_CONFIG = {
-  AI_REPORT: 0.5, // 30 minutes
+  AI_REPORT: 0.0167, // 1 minute (optimized from 30 minutes)
   ON_SITE: 48,
   CERTIFIED: 72,
   DISPATCH: {
@@ -202,3 +202,53 @@ export const NOTIFICATION_CHANNELS = {
   SMS: "sms",
   PUSH: "push",
 } as const;
+
+// Study categories for DD Marketplace
+export const STUDY_CATEGORIES = {
+  APPRAISAL_REPORT: { label: "Appraisal Report", icon: "FileText" },
+  SOIL_STUDY: { label: "Soil Study", icon: "Layers" },
+  DRAINAGE_STUDY: { label: "Drainage Study", icon: "Droplets" },
+  CIVIL_ENGINEERING: { label: "Civil Engineering", icon: "Building2" },
+  ENVIRONMENTAL: { label: "Environmental", icon: "Leaf" },
+  GEOTECHNICAL: { label: "Geotechnical", icon: "Mountain" },
+  STRUCTURAL: { label: "Structural", icon: "Construction" },
+  FLOOD_RISK: { label: "Flood Risk", icon: "Waves" },
+  ZONING_ANALYSIS: { label: "Zoning Analysis", icon: "Map" },
+  SURVEY: { label: "Survey", icon: "Compass" },
+  TITLE_REPORT: { label: "Title Report", icon: "ScrollText" },
+  OTHER: { label: "Other", icon: "File" },
+} as const;
+
+// Insight types for investment opportunities
+export const INSIGHT_TYPES = {
+  MUNICIPAL_BOND: { label: "Municipal Bond", icon: "Landmark", color: "blue" },
+  SCHOOL_CONSTRUCTION: {
+    label: "School Construction",
+    icon: "GraduationCap",
+    color: "green",
+  },
+  ROAD_PROJECT: { label: "Road Project", icon: "Route", color: "orange" },
+  ZONING_CHANGE: { label: "Zoning Change", icon: "MapPin", color: "purple" },
+  DEVELOPMENT_PERMIT: {
+    label: "Development Permit",
+    icon: "FileCheck",
+    color: "teal",
+  },
+  INFRASTRUCTURE: { label: "Infrastructure", icon: "Building", color: "cyan" },
+  TAX_INCENTIVE: {
+    label: "Tax Incentive",
+    icon: "BadgeDollarSign",
+    color: "yellow",
+  },
+} as const;
+
+// Engineer specialties
+export const ENGINEER_SPECIALTIES = [
+  { id: "soil", label: "Soil Engineering" },
+  { id: "drainage", label: "Drainage Engineering" },
+  { id: "civil", label: "Civil Engineering" },
+  { id: "structural", label: "Structural Engineering" },
+  { id: "environmental", label: "Environmental Engineering" },
+  { id: "survey", label: "Land Surveying" },
+  { id: "geotechnical", label: "Geotechnical Engineering" },
+] as const;

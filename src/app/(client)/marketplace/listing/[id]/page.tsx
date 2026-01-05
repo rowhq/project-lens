@@ -42,7 +42,7 @@ export default function ListingDetailPage() {
   const handleAddToCart = () => {
     if (!listing) return;
 
-    const property = listing.report.appraisalRequest?.property;
+    const property = listing.report?.appraisalRequest?.property;
 
     addItem({
       listingId: listing.id,
@@ -50,8 +50,10 @@ export default function ListingDetailPage() {
       price: Number(listing.price),
       property: property
         ? { city: property.city, state: property.state }
-        : undefined,
-      reportType: listing.report.type,
+        : listing.city && listing.state
+          ? { city: listing.city, state: listing.state }
+          : undefined,
+      reportType: listing.report?.type || listing.studyCategory || "STUDY",
     });
 
     toast.success("Added to cart!");
@@ -89,7 +91,7 @@ export default function ListingDetailPage() {
     );
   }
 
-  const property = listing.report.appraisalRequest?.property;
+  const property = listing.report?.appraisalRequest?.property;
 
   return (
     <div className="space-y-6">
@@ -200,59 +202,90 @@ export default function ListingDetailPage() {
             )}
           </div>
 
-          {/* Report Details */}
-          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
-            <h2 className="font-semibold text-white mb-4">
-              Report Information
-            </h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b border-gray-700">
-                <span className="text-gray-400">Report Type</span>
-                <span className="font-medium text-white">
-                  {listing.report.type.replace(/_/g, " ")}
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-3 border-b border-gray-700">
-                <span className="text-gray-400">Estimated Value</span>
-                <span className="font-medium text-white font-mono">
-                  ${Number(listing.report.valueEstimate).toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-3 border-b border-gray-700">
-                <span className="text-gray-400">Value Range</span>
-                <span className="font-medium text-white font-mono">
-                  ${Number(listing.report.valueRangeMin).toLocaleString()} - $
-                  {Number(listing.report.valueRangeMax).toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-3 border-b border-gray-700">
-                <span className="text-gray-400">Confidence Score</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-gray-700 clip-notch-sm overflow-hidden">
-                    <div
-                      className="h-full bg-lime-400 clip-notch-sm"
-                      style={{ width: `${listing.report.confidenceScore}%` }}
-                    />
-                  </div>
+          {/* Report Details - Only show if report exists */}
+          {listing.report && (
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <h2 className="font-semibold text-white mb-4">
+                Report Information
+              </h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                  <span className="text-gray-400">Report Type</span>
+                  <span className="font-medium text-white">
+                    {listing.report.type.replace(/_/g, " ")}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                  <span className="text-gray-400">Estimated Value</span>
                   <span className="font-medium text-white font-mono">
-                    {listing.report.confidenceScore}%
+                    ${Number(listing.report.valueEstimate).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                  <span className="text-gray-400">Value Range</span>
+                  <span className="font-medium text-white font-mono">
+                    ${Number(listing.report.valueRangeMin).toLocaleString()} - $
+                    {Number(listing.report.valueRangeMax).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                  <span className="text-gray-400">Confidence Score</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 h-2 bg-gray-700 clip-notch-sm overflow-hidden">
+                      <div
+                        className="h-full bg-lime-400 clip-notch-sm"
+                        style={{ width: `${listing.report.confidenceScore}%` }}
+                      />
+                    </div>
+                    <span className="font-medium text-white font-mono">
+                      {listing.report.confidenceScore}%
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                  <span className="text-gray-400">Comparables Used</span>
+                  <span className="font-medium text-white font-mono">
+                    {listing.report.compsCount}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-3">
+                  <span className="text-gray-400">Generated</span>
+                  <span className="font-medium text-white">
+                    {new Date(listing.report.generatedAt).toLocaleDateString()}
                   </span>
                 </div>
               </div>
-              <div className="flex items-center justify-between py-3 border-b border-gray-700">
-                <span className="text-gray-400">Comparables Used</span>
-                <span className="font-medium text-white font-mono">
-                  {listing.report.compsCount}
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-3">
-                <span className="text-gray-400">Generated</span>
-                <span className="font-medium text-white">
-                  {new Date(listing.report.generatedAt).toLocaleDateString()}
-                </span>
+            </div>
+          )}
+
+          {/* Study Category - Show if no report */}
+          {!listing.report && listing.studyCategory && (
+            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <h2 className="font-semibold text-white mb-4">
+                Study Information
+              </h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                  <span className="text-gray-400">Study Type</span>
+                  <span className="font-medium text-white">
+                    {listing.studyCategory.replace(/_/g, " ")}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                  <span className="text-gray-400">Location</span>
+                  <span className="font-medium text-white">
+                    {listing.city}, {listing.county}, {listing.state}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-3">
+                  <span className="text-gray-400">Listed</span>
+                  <span className="font-medium text-white">
+                    {new Date(listing.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Sidebar */}

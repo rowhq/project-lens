@@ -1,23 +1,36 @@
 /**
  * Marketplace Router
- * Handles DD Marketplace operations for buying/selling reports
+ * Handles DD Marketplace operations for buying/selling reports and studies
  */
 
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  publicProcedure,
-  clientProcedure,
-} from "../trpc";
+import { createTRPCRouter, publicProcedure, clientProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import * as stripe from "@/shared/lib/stripe";
+import { getBoundingBox, calculateDistanceMiles } from "@/shared/lib/geo";
 
 // Platform fee is 20%
-const PLATFORM_FEE_PERCENTAGE = 0.20;
+const PLATFORM_FEE_PERCENTAGE = 0.2;
+
+// Study categories enum values
+const STUDY_CATEGORY_VALUES = [
+  "APPRAISAL_REPORT",
+  "SOIL_STUDY",
+  "DRAINAGE_STUDY",
+  "CIVIL_ENGINEERING",
+  "ENVIRONMENTAL",
+  "GEOTECHNICAL",
+  "STRUCTURAL",
+  "FLOOD_RISK",
+  "ZONING_ANALYSIS",
+  "SURVEY",
+  "TITLE_REPORT",
+  "OTHER",
+] as const;
 
 export const marketplaceRouter = createTRPCRouter({
   /**
-   * List marketplace listings with filters
+   * List marketplace listings with filters including geographic search
    */
   list: publicProcedure
     .input(
@@ -25,18 +38,55 @@ export const marketplaceRouter = createTRPCRouter({
         limit: z.number().min(1).max(50).default(20),
         cursor: z.string().optional(),
         category: z.string().optional(),
+        studyCategory: z.enum(STUDY_CATEGORY_VALUES).optional(),
         minPrice: z.number().optional(),
         maxPrice: z.number().optional(),
-        sortBy: z.enum(["newest", "price_asc", "price_desc", "popular"]).default("newest"),
+        sortBy: z
+          .enum(["newest", "price_asc", "price_desc", "popular", "distance"])
+          .default("newest"),
         search: z.string().optional(),
-      })
+        // Geographic filters
+        latitude: z.number().optional(),
+        longitude: z.number().optional(),
+        radiusMiles: z.number().min(1).max(500).default(50),
+        county: z.string().optional(),
+        zipCode: z.string().optional(),
+      }),
     )
     .query(async ({ ctx, input }) => {
-      const { limit, cursor, category, minPrice, maxPrice, sortBy, search } = input;
+      const {
+        limit,
+        cursor,
+        category,
+        studyCategory,
+        minPrice,
+        maxPrice,
+        sortBy,
+        search,
+        latitude,
+        longitude,
+        radiusMiles,
+        county,
+        zipCode,
+      } = input;
+
+      // Build geographic bounding box filter if coordinates provided
+      let geoFilter = {};
+      if (latitude !== undefined && longitude !== undefined) {
+        const bbox = getBoundingBox(latitude, longitude, radiusMiles);
+        geoFilter = {
+          latitude: { gte: bbox.minLat, lte: bbox.maxLat },
+          longitude: { gte: bbox.minLon, lte: bbox.maxLon },
+        };
+      }
 
       const where = {
         status: "ACTIVE" as const,
         ...(category && { category }),
+        ...(studyCategory && { studyCategory }),
+        ...(county && { county }),
+        ...(zipCode && { zipCode }),
+        ...geoFilter,
         ...(minPrice !== undefined || maxPrice !== undefined
           ? {
               price: {
@@ -58,6 +108,7 @@ export const marketplaceRouter = createTRPCRouter({
         price_asc: { price: "asc" as const },
         price_desc: { price: "desc" as const },
         popular: { soldCount: "desc" as const },
+        distance: { createdAt: "desc" as const }, // Will be sorted client-side
       }[sortBy];
 
       const listings = await ctx.prisma.marketplaceListing.findMany({
@@ -80,6 +131,8 @@ export const marketplaceRouter = createTRPCRouter({
                       county: true,
                       state: true,
                       propertyType: true,
+                      latitude: true,
+                      longitude: true,
                     },
                   },
                 },
@@ -91,22 +144,82 @@ export const marketplaceRouter = createTRPCRouter({
               name: true,
             },
           },
+          documents: {
+            select: {
+              id: true,
+              title: true,
+              documentType: true,
+            },
+          },
           _count: {
             select: {
               purchases: true,
+              documents: true,
             },
           },
         },
       });
 
+      // If geographic search, calculate actual distances and filter precisely
+      let filteredListings = listings;
+      if (latitude !== undefined && longitude !== undefined) {
+        filteredListings = listings.filter((listing) => {
+          const listingLat =
+            listing.latitude ||
+            listing.report?.appraisalRequest?.property?.latitude;
+          const listingLon =
+            listing.longitude ||
+            listing.report?.appraisalRequest?.property?.longitude;
+          if (!listingLat || !listingLon) return false;
+          const distance = calculateDistanceMiles(
+            latitude,
+            longitude,
+            listingLat,
+            listingLon,
+          );
+          return distance <= radiusMiles;
+        });
+
+        // Sort by distance if requested
+        if (sortBy === "distance") {
+          filteredListings.sort((a, b) => {
+            const aLat =
+              a.latitude || a.report?.appraisalRequest?.property?.latitude || 0;
+            const aLon =
+              a.longitude ||
+              a.report?.appraisalRequest?.property?.longitude ||
+              0;
+            const bLat =
+              b.latitude || b.report?.appraisalRequest?.property?.latitude || 0;
+            const bLon =
+              b.longitude ||
+              b.report?.appraisalRequest?.property?.longitude ||
+              0;
+            const distA = calculateDistanceMiles(
+              latitude,
+              longitude,
+              aLat,
+              aLon,
+            );
+            const distB = calculateDistanceMiles(
+              latitude,
+              longitude,
+              bLat,
+              bLon,
+            );
+            return distA - distB;
+          });
+        }
+      }
+
       let nextCursor: string | undefined;
-      if (listings.length > limit) {
-        const nextItem = listings.pop();
+      if (filteredListings.length > limit) {
+        const nextItem = filteredListings.pop();
         nextCursor = nextItem?.id;
       }
 
       return {
-        items: listings,
+        items: filteredListings,
         nextCursor,
       };
     }),
@@ -180,66 +293,119 @@ export const marketplaceRouter = createTRPCRouter({
     }),
 
   /**
-   * Create a new listing from a completed report
+   * Create a new listing (from report or external study)
    */
   create: clientProcedure
     .input(
       z.object({
-        reportId: z.string(),
+        // Optional - can create listing from report or as standalone study
+        reportId: z.string().optional(),
         title: z.string().min(10).max(200),
         description: z.string().max(2000).optional(),
         category: z.string(),
-        price: z.number().min(1).max(10000),
-      })
+        studyCategory: z
+          .enum(STUDY_CATEGORY_VALUES)
+          .default("APPRAISAL_REPORT"),
+        price: z.number().min(1).max(100000), // Increased max for engineering studies
+        // Location (required for standalone studies)
+        latitude: z.number().optional(),
+        longitude: z.number().optional(),
+        city: z.string().optional(),
+        county: z.string().optional(),
+        state: z.string().default("TX"),
+        zipCode: z.string().optional(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
-      // Verify the report exists and belongs to the organization
-      const report = await ctx.prisma.report.findUnique({
-        where: { id: input.reportId },
-        include: {
-          appraisalRequest: {
-            select: {
-              organizationId: true,
-              status: true,
+      let locationData = {
+        latitude: input.latitude,
+        longitude: input.longitude,
+        city: input.city,
+        county: input.county,
+        state: input.state,
+        zipCode: input.zipCode,
+      };
+
+      // If reportId is provided, verify ownership
+      if (input.reportId) {
+        const report = await ctx.prisma.report.findUnique({
+          where: { id: input.reportId },
+          include: {
+            appraisalRequest: {
+              select: {
+                organizationId: true,
+                status: true,
+                property: {
+                  select: {
+                    latitude: true,
+                    longitude: true,
+                    city: true,
+                    county: true,
+                    state: true,
+                    zipCode: true,
+                  },
+                },
+              },
             },
           },
-        },
-      });
-
-      if (!report) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Report not found",
         });
-      }
 
-      if (report.appraisalRequest?.organizationId !== ctx.organization!.id) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You do not own this report",
+        if (!report) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Report not found",
+          });
+        }
+
+        if (report.appraisalRequest?.organizationId !== ctx.organization!.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You do not own this report",
+          });
+        }
+
+        if (report.appraisalRequest?.status !== "READY") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Report must be completed before listing",
+          });
+        }
+
+        // Check if already listed
+        const existingListing = await ctx.prisma.marketplaceListing.findFirst({
+          where: {
+            reportId: input.reportId,
+            status: "ACTIVE",
+          },
         });
-      }
 
-      if (report.appraisalRequest?.status !== "READY") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Report must be completed before listing",
-        });
-      }
+        if (existingListing) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "This report is already listed",
+          });
+        }
 
-      // Check if already listed
-      const existingListing = await ctx.prisma.marketplaceListing.findFirst({
-        where: {
-          reportId: input.reportId,
-          status: "ACTIVE",
-        },
-      });
-
-      if (existingListing) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "This report is already listed",
-        });
+        // Use property location if not provided
+        const property = report.appraisalRequest?.property;
+        if (property) {
+          locationData = {
+            latitude: input.latitude ?? property.latitude,
+            longitude: input.longitude ?? property.longitude,
+            city: input.city ?? property.city,
+            county: input.county ?? property.county,
+            state: input.state ?? property.state,
+            zipCode: input.zipCode ?? property.zipCode,
+          };
+        }
+      } else {
+        // For standalone studies, location is required
+        if (!input.county) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "County is required for external studies",
+          });
+        }
       }
 
       // Create the listing
@@ -250,7 +416,9 @@ export const marketplaceRouter = createTRPCRouter({
           title: input.title,
           description: input.description,
           category: input.category,
+          studyCategory: input.studyCategory,
           price: input.price,
+          ...locationData,
         },
         include: {
           report: {
@@ -265,6 +433,111 @@ export const marketplaceRouter = createTRPCRouter({
     }),
 
   /**
+   * Upload a document to a listing
+   */
+  uploadDocument: clientProcedure
+    .input(
+      z.object({
+        listingId: z.string(),
+        title: z.string().min(3).max(200),
+        description: z.string().max(1000).optional(),
+        fileName: z.string(),
+        fileSize: z.number(),
+        fileUrl: z.string().url(),
+        mimeType: z.string(),
+        documentType: z.string(), // soil_report, drainage_plan, survey, etc.
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Verify listing ownership
+      const listing = await ctx.prisma.marketplaceListing.findUnique({
+        where: { id: input.listingId },
+      });
+
+      if (!listing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Listing not found",
+        });
+      }
+
+      if (listing.sellerId !== ctx.organization!.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not own this listing",
+        });
+      }
+
+      const document = await ctx.prisma.marketplaceDocument.create({
+        data: {
+          listingId: input.listingId,
+          title: input.title,
+          description: input.description,
+          fileName: input.fileName,
+          fileSize: input.fileSize,
+          fileUrl: input.fileUrl,
+          mimeType: input.mimeType,
+          documentType: input.documentType,
+          uploadedById: ctx.user.id,
+        },
+      });
+
+      return document;
+    }),
+
+  /**
+   * Remove a document from a listing
+   */
+  removeDocument: clientProcedure
+    .input(z.object({ documentId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const document = await ctx.prisma.marketplaceDocument.findUnique({
+        where: { id: input.documentId },
+        include: {
+          listing: {
+            select: {
+              sellerId: true,
+            },
+          },
+        },
+      });
+
+      if (!document) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Document not found",
+        });
+      }
+
+      if (document.listing.sellerId !== ctx.organization!.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not own this document",
+        });
+      }
+
+      await ctx.prisma.marketplaceDocument.delete({
+        where: { id: input.documentId },
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * Get documents for a listing
+   */
+  getDocuments: publicProcedure
+    .input(z.object({ listingId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const documents = await ctx.prisma.marketplaceDocument.findMany({
+        where: { listingId: input.listingId },
+        orderBy: { uploadedAt: "desc" },
+      });
+
+      return documents;
+    }),
+
+  /**
    * Update a listing
    */
   update: clientProcedure
@@ -275,7 +548,7 @@ export const marketplaceRouter = createTRPCRouter({
         description: z.string().max(2000).optional(),
         price: z.number().min(1).max(10000).optional(),
         status: z.enum(["ACTIVE", "ARCHIVED"]).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const listing = await ctx.prisma.marketplaceListing.findUnique({
@@ -300,7 +573,9 @@ export const marketplaceRouter = createTRPCRouter({
         where: { id: input.id },
         data: {
           ...(input.title && { title: input.title }),
-          ...(input.description !== undefined && { description: input.description }),
+          ...(input.description !== undefined && {
+            description: input.description,
+          }),
           ...(input.price && { price: input.price }),
           ...(input.status && { status: input.status }),
         },
@@ -431,7 +706,9 @@ export const marketplaceRouter = createTRPCRouter({
       }
 
       // Can't buy your own listings
-      const ownListings = listings.filter((l) => l.sellerId === ctx.organization!.id);
+      const ownListings = listings.filter(
+        (l) => l.sellerId === ctx.organization!.id,
+      );
       if (ownListings.length > 0) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -444,19 +721,24 @@ export const marketplaceRouter = createTRPCRouter({
 
       // Build line items for Stripe
       const lineItems = listings.map((listing) => {
-        const property = listing.report.appraisalRequest?.property;
+        const property = listing.report?.appraisalRequest?.property;
+        const reportType =
+          listing.report?.type?.replace(/_/g, " ") ||
+          listing.studyCategory?.replace(/_/g, " ") ||
+          "Study";
         return {
           name: listing.title,
           description: property
-            ? `${listing.report.type.replace(/_/g, " ")} - ${property.city}, ${property.state}`
-            : listing.report.type.replace(/_/g, " "),
+            ? `${reportType} - ${property.city}, ${property.state}`
+            : reportType,
           amount: Math.round(Number(listing.price) * 100), // Convert to cents
           quantity: 1,
         };
       });
 
       // Create Stripe checkout session
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       const checkoutSession = await stripe.createMarketplaceCheckout({
         organizationId: ctx.organization!.id,
         listingIds: input.listingIds,
@@ -479,7 +761,9 @@ export const marketplaceRouter = createTRPCRouter({
   confirmPurchase: clientProcedure
     .input(z.object({ listingIds: z.array(z.string()) }))
     .mutation(async ({ ctx, input }) => {
-      const purchases: Awaited<ReturnType<typeof ctx.prisma.marketplacePurchase.create>>[] = [];
+      const purchases: Awaited<
+        ReturnType<typeof ctx.prisma.marketplacePurchase.create>
+      >[] = [];
 
       for (const listingId of input.listingIds) {
         const listing = await ctx.prisma.marketplaceListing.findUnique({
@@ -531,7 +815,7 @@ export const marketplaceRouter = createTRPCRouter({
         status: z.enum(["ACTIVE", "SOLD_OUT", "ARCHIVED"]).optional(),
         limit: z.number().min(1).max(50).default(20),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { limit, cursor, status } = input;
@@ -589,7 +873,7 @@ export const marketplaceRouter = createTRPCRouter({
       z.object({
         limit: z.number().min(1).max(50).default(20),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { limit, cursor } = input;
@@ -648,7 +932,7 @@ export const marketplaceRouter = createTRPCRouter({
     }),
 
   /**
-   * Download a purchased report
+   * Download a purchased report or documents
    */
   download: clientProcedure
     .input(z.object({ purchaseId: z.string() }))
@@ -661,6 +945,14 @@ export const marketplaceRouter = createTRPCRouter({
               report: {
                 select: {
                   pdfUrl: true,
+                },
+              },
+              documents: {
+                select: {
+                  id: true,
+                  title: true,
+                  fileUrl: true,
+                  documentType: true,
                 },
               },
             },
@@ -698,8 +990,10 @@ export const marketplaceRouter = createTRPCRouter({
         },
       });
 
+      // Return report URL if available, otherwise return documents
       return {
-        downloadUrl: purchase.listing.report.pdfUrl,
+        downloadUrl: purchase.listing.report?.pdfUrl || null,
+        documents: purchase.listing.documents,
       };
     }),
 

@@ -222,8 +222,11 @@ export default function MarketplacePage() {
                 <div className="mt-2 flex items-center gap-2 text-sm text-gray-400">
                   <MapPin className="w-4 h-4" />
                   <span>
-                    {listing.report.appraisalRequest?.property?.city},{" "}
-                    {listing.report.appraisalRequest?.property?.state}
+                    {listing.city ||
+                      listing.report?.appraisalRequest?.property?.city}
+                    ,{" "}
+                    {listing.state ||
+                      listing.report?.appraisalRequest?.property?.state}
                   </span>
                 </div>
 
@@ -241,11 +244,16 @@ export default function MarketplacePage() {
                 </div>
 
                 <div className="mt-3 pt-3 border-t border-gray-700 flex items-center justify-between text-xs text-gray-400">
+                  {listing.report?.valueEstimate && (
+                    <span>
+                      Est. Value: $
+                      {Number(listing.report.valueEstimate).toLocaleString()}
+                    </span>
+                  )}
                   <span>
-                    Est. Value: $
-                    {Number(listing.report.valueEstimate).toLocaleString()}
+                    {listing.report?.type?.replace("_", " ") ||
+                      listing.studyCategory?.replace("_", " ")}
                   </span>
-                  <span>{listing.report.type.replace("_", " ")}</span>
                 </div>
               </div>
             </Link>

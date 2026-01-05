@@ -231,10 +231,11 @@ export default function MyListingsPage() {
                           </p>
                           <p className="text-sm text-gray-400 flex items-center gap-1 mt-1">
                             <MapPin className="w-3 h-3" />
-                            {
-                              listing.report.appraisalRequest?.property?.city
-                            },{" "}
-                            {listing.report.appraisalRequest?.property?.state}
+                            {listing.city ||
+                              listing.report?.appraisalRequest?.property?.city}
+                            ,{" "}
+                            {listing.state ||
+                              listing.report?.appraisalRequest?.property?.state}
                           </p>
                         </Link>
                       </td>
@@ -310,18 +311,18 @@ export default function MyListingsPage() {
                       </h3>
                       <p className="text-sm text-gray-400 flex items-center gap-1 mt-1">
                         <MapPin className="w-3 h-3" />
+                        {purchase.listing.report?.appraisalRequest?.property
+                          ?.addressLine1 || ""}
+                        {purchase.listing.report?.appraisalRequest?.property
+                          ?.city && ", "}
                         {
-                          purchase.listing.report.appraisalRequest?.property
-                            ?.addressLine1
-                        }
-                        ,{" "}
-                        {
-                          purchase.listing.report.appraisalRequest?.property
+                          purchase.listing.report?.appraisalRequest?.property
                             ?.city
                         }
-                        ,{" "}
+                        {purchase.listing.report?.appraisalRequest?.property
+                          ?.state && ", "}
                         {
-                          purchase.listing.report.appraisalRequest?.property
+                          purchase.listing.report?.appraisalRequest?.property
                             ?.state
                         }
                       </p>
