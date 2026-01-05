@@ -647,6 +647,12 @@ async function main() {
   ];
 
   for (const insight of insights) {
+    const insightData = {
+      ...insight,
+      estimatedValue: insight.estimatedValue ?? undefined,
+      fundingAmount: insight.fundingAmount ?? undefined,
+      expectedEnd: insight.expectedEnd ?? undefined,
+    };
     await prisma.investmentInsight.upsert({
       where: {
         id: insight.title
@@ -654,16 +660,13 @@ async function main() {
           .replace(/[^a-z0-9]/g, "-")
           .slice(0, 20),
       },
-      update: {},
+      update: insightData,
       create: {
         id: insight.title
           .toLowerCase()
           .replace(/[^a-z0-9]/g, "-")
           .slice(0, 20),
-        ...insight,
-        estimatedValue: insight.estimatedValue ?? undefined,
-        fundingAmount: insight.fundingAmount ?? undefined,
-        expectedEnd: insight.expectedEnd ?? undefined,
+        ...insightData,
       },
     });
   }
