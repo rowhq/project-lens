@@ -13,53 +13,86 @@ import {
   ShoppingCart,
   ChevronDown,
   Loader2,
-  File,
+  Calendar,
+  CheckCircle,
 } from "lucide-react";
+
+// Category configuration with colors
+const CATEGORY_CONFIG: Record<
+  string,
+  { label: string; color: string; bgColor: string }
+> = {
+  ENVIRONMENTAL: {
+    label: "Phase I ESA",
+    color: "text-green-400",
+    bgColor: "bg-green-600",
+  },
+  SURVEY: {
+    label: "Survey",
+    color: "text-blue-400",
+    bgColor: "bg-blue-600",
+  },
+  CIVIL_ENGINEERING: {
+    label: "Civil Plans",
+    color: "text-purple-400",
+    bgColor: "bg-purple-600",
+  },
+  GEOTECHNICAL: {
+    label: "Geotechnical",
+    color: "text-orange-400",
+    bgColor: "bg-orange-600",
+  },
+  TITLE_REPORT: {
+    label: "Title Report",
+    color: "text-cyan-400",
+    bgColor: "bg-cyan-600",
+  },
+  ZONING_ANALYSIS: {
+    label: "Zoning Docs",
+    color: "text-pink-400",
+    bgColor: "bg-pink-600",
+  },
+  SOIL_STUDY: {
+    label: "Soil Study",
+    color: "text-amber-400",
+    bgColor: "bg-amber-600",
+  },
+  APPRAISAL_REPORT: {
+    label: "Appraisal",
+    color: "text-emerald-400",
+    bgColor: "bg-emerald-600",
+  },
+  DRAINAGE_STUDY: {
+    label: "Drainage",
+    color: "text-sky-400",
+    bgColor: "bg-sky-600",
+  },
+  STRUCTURAL: {
+    label: "Structural",
+    color: "text-red-400",
+    bgColor: "bg-red-600",
+  },
+  FLOOD_RISK: {
+    label: "Flood Risk",
+    color: "text-indigo-400",
+    bgColor: "bg-indigo-600",
+  },
+  OTHER: {
+    label: "Other",
+    color: "text-gray-400",
+    bgColor: "bg-gray-600",
+  },
+};
 
 const CATEGORY_OPTIONS = [
   { value: "", label: "All Categories" },
-  { value: "APPRAISAL_REPORT", label: "Appraisal Report" },
-  { value: "ENVIRONMENTAL", label: "Phase I ESA" },
-  { value: "SURVEY", label: "Survey" },
-  { value: "CIVIL_ENGINEERING", label: "Civil Plans" },
-  { value: "GEOTECHNICAL", label: "Geotechnical" },
-  { value: "TITLE_REPORT", label: "Title Report" },
-  { value: "ZONING_ANALYSIS", label: "Zoning Docs" },
-  { value: "SOIL_STUDY", label: "Soil Study" },
-  { value: "DRAINAGE_STUDY", label: "Drainage Study" },
-  { value: "STRUCTURAL", label: "Structural" },
-  { value: "FLOOD_RISK", label: "Flood Risk" },
-  { value: "OTHER", label: "Other" },
+  ...Object.entries(CATEGORY_CONFIG).map(([value, config]) => ({
+    value,
+    label: config.label,
+  })),
 ];
 
-const CATEGORY_LABELS: Record<string, string> = {
-  APPRAISAL_REPORT: "Appraisal",
-  ENVIRONMENTAL: "Phase I ESA",
-  SURVEY: "Survey",
-  CIVIL_ENGINEERING: "Civil Plans",
-  GEOTECHNICAL: "Geotechnical",
-  TITLE_REPORT: "Title Report",
-  ZONING_ANALYSIS: "Zoning Docs",
-  SOIL_STUDY: "Soil Study",
-  DRAINAGE_STUDY: "Drainage Study",
-  STRUCTURAL: "Structural",
-  FLOOD_RISK: "Flood Risk",
-  OTHER: "Other",
-};
-
-type StudyCategory =
-  | "APPRAISAL_REPORT"
-  | "ENVIRONMENTAL"
-  | "SURVEY"
-  | "CIVIL_ENGINEERING"
-  | "GEOTECHNICAL"
-  | "TITLE_REPORT"
-  | "ZONING_ANALYSIS"
-  | "SOIL_STUDY"
-  | "DRAINAGE_STUDY"
-  | "STRUCTURAL"
-  | "FLOOD_RISK"
-  | "OTHER";
+type StudyCategory = keyof typeof CATEGORY_CONFIG;
 
 export default function MarketplacePage() {
   const { toast } = useToast();
@@ -70,7 +103,20 @@ export default function MarketplacePage() {
 
   const { data: listings, isLoading } = trpc.marketplace.list.useQuery({
     limit: 20,
-    studyCategory: category || undefined,
+    studyCategory: (category || undefined) as
+      | "APPRAISAL_REPORT"
+      | "SOIL_STUDY"
+      | "DRAINAGE_STUDY"
+      | "CIVIL_ENGINEERING"
+      | "ENVIRONMENTAL"
+      | "GEOTECHNICAL"
+      | "STRUCTURAL"
+      | "FLOOD_RISK"
+      | "ZONING_ANALYSIS"
+      | "SURVEY"
+      | "TITLE_REPORT"
+      | "OTHER"
+      | undefined,
     search: search || undefined,
     sortBy: "newest",
   });
@@ -120,35 +166,19 @@ export default function MarketplacePage() {
     });
   };
 
-  // Get category label for display
-  const getCategoryLabel = (
-    studyCategory: string | null,
-    reportType?: string | null,
-  ) => {
-    if (studyCategory && CATEGORY_LABELS[studyCategory]) {
-      return CATEGORY_LABELS[studyCategory];
+  // Get category config
+  const getCategoryConfig = (studyCategory: string | null) => {
+    if (studyCategory && CATEGORY_CONFIG[studyCategory]) {
+      return CATEGORY_CONFIG[studyCategory];
     }
-    if (reportType) {
-      return reportType.replace(/_/g, " ");
-    }
-    return "Document";
+    return CATEGORY_CONFIG.OTHER;
   };
 
-  // Generate tags from listing data
-  const generateTags = (listing: {
-    category?: string | null;
-    county?: string | null;
-    city?: string | null;
-    state?: string | null;
-    report?: { type?: string | null } | null;
-  }) => {
-    const tags: string[] = [];
-    if (listing.category) tags.push(listing.category.toLowerCase());
-    if (listing.county)
-      tags.push(listing.county.toLowerCase().replace(" county", ""));
-    if (listing.city)
-      tags.push(listing.city.toLowerCase().replace(/\s+/g, "-"));
-    return tags.slice(0, 3);
+  // Format date
+  const formatDate = (date: Date | string | null | undefined) => {
+    if (!date) return null;
+    const d = new Date(date);
+    return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
   };
 
   return (
@@ -207,110 +237,101 @@ export default function MarketplacePage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {listings?.items?.map((listing) => {
-            const categoryLabel = getCategoryLabel(
-              listing.studyCategory,
-              listing.report?.type,
-            );
-            const tags = generateTags(listing);
+            const categoryConfig = getCategoryConfig(listing.studyCategory);
             const propertyData = listing.report?.appraisalRequest?.property;
-            const address = propertyData
+            const location = propertyData
               ? `${propertyData.city}, ${propertyData.state}`
-              : `${listing.city || ""}, ${listing.state || "TX"}`.trim();
-            const fileCount =
-              listing.documents?.length || (listing.report ? 1 : 0);
+              : listing.city && listing.state
+                ? `${listing.city}, ${listing.state}`
+                : listing.county
+                  ? `${listing.county} County, TX`
+                  : "Texas";
             const inCart = hasItem(listing.id);
+            const dateCreated = formatDate(listing.createdAt);
 
             return (
-              <Link
+              <div
                 key={listing.id}
-                href={`/marketplace/listing/${listing.id}`}
-                className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-emerald-500/50 transition-all group"
+                className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-all"
               >
-                {/* Category Header */}
-                <div className="bg-emerald-600 px-4 py-2">
+                {/* Category Header - Color coded */}
+                <div className={`${categoryConfig.bgColor} px-4 py-2`}>
                   <span className="text-white font-medium text-sm">
-                    {categoryLabel}
+                    {categoryConfig.label}
                   </span>
                 </div>
 
                 {/* Content */}
-                <div className="p-5 space-y-4">
+                <div className="p-5 space-y-3">
                   {/* Title */}
-                  <h3 className="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors line-clamp-2">
+                  <h3 className="text-lg font-semibold text-white line-clamp-2 min-h-[3.5rem]">
                     {listing.title}
                   </h3>
 
-                  {/* Description */}
+                  {/* Description - truncated */}
                   {listing.description && (
-                    <p className="text-sm text-gray-400 line-clamp-3">
+                    <p className="text-sm text-gray-400 line-clamp-2">
                       {listing.description}
                     </p>
                   )}
 
-                  {/* Address */}
-                  <div className="flex items-start gap-2 text-sm text-gray-400">
-                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>{address}</span>
-                  </div>
-
-                  {/* Tags */}
-                  {tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* File Info */}
+                  {/* Meta info row */}
                   <div className="flex items-center gap-4 text-sm text-gray-500">
                     <span className="flex items-center gap-1">
-                      <File className="w-4 h-4" />
-                      {fileCount} {fileCount === 1 ? "file" : "files"}
+                      <MapPin className="w-4 h-4" />
+                      {location}
                     </span>
+                    {dateCreated && (
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {dateCreated}
+                      </span>
+                    )}
                   </div>
 
-                  {/* Views & Sold */}
+                  {/* Stats row */}
                   <div className="flex items-center gap-4 text-sm text-gray-500">
                     <span className="flex items-center gap-1">
                       <Eye className="w-4 h-4" />
                       {listing.viewCount || 0} views
                     </span>
                     <span className="flex items-center gap-1">
-                      <ShoppingCart className="w-4 h-4" />
+                      <CheckCircle className="w-4 h-4" />
                       {listing._count?.purchases || 0} sold
                     </span>
                   </div>
 
-                  {/* Price & Buy Button */}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-800">
-                    <div>
-                      <span className="text-2xl font-bold text-emerald-400">
-                        ${Number(listing.price).toLocaleString()}
-                      </span>
-                    </div>
+                  {/* Price */}
+                  <div className="pt-3 border-t border-gray-800">
+                    <span className="text-2xl font-bold text-white">
+                      ${Number(listing.price).toLocaleString()}
+                    </span>
+                    <span className="text-gray-500 text-sm ml-2">USD</span>
+                  </div>
+
+                  {/* Action Buttons - SEPARATED clearly */}
+                  <div className="flex gap-3 pt-2">
+                    <Link
+                      href={`/marketplace/listing/${listing.id}`}
+                      className="flex-1 px-4 py-2.5 border border-gray-700 rounded-lg text-center text-gray-300 hover:bg-gray-800 hover:border-gray-600 transition-colors text-sm font-medium"
+                    >
+                      View Details
+                    </Link>
                     <button
                       onClick={(e) => handleAddToCart(e, listing)}
                       disabled={inCart}
-                      className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                      className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
                         inCart
                           ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                           : "bg-emerald-600 text-white hover:bg-emerald-500"
                       }`}
                     >
-                      {inCart ? "In Cart" : "Buy Now"}
+                      <ShoppingCart className="w-4 h-4" />
+                      {inCart ? "In Cart" : "Add to Cart"}
                     </button>
                   </div>
-
-                  {/* License */}
-                  <p className="text-xs text-gray-500">Non-exclusive license</p>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>
