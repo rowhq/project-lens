@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -1176,6 +1177,211 @@ async function main() {
     });
   }
   console.log(`✅ Created ${engineers.length} engineers`);
+
+  // ============================================
+  // TEST USERS
+  // ============================================
+  console.log("👤 Seeding test users...");
+
+  const hashedPassword = await hash("Test123!", 12);
+
+  // Create ADMIN user
+  const adminUser = await prisma.user.upsert({
+    where: { email: "admin@truplat.com" },
+    update: {},
+    create: {
+      email: "admin@truplat.com",
+      password: hashedPassword,
+      firstName: "Admin",
+      lastName: "User",
+      role: "ADMIN",
+      status: "ACTIVE",
+    },
+  });
+  console.log(`  ✅ Admin user: admin@truplat.com / Test123!`);
+
+  // Create CLIENT organization
+  const testOrg = await prisma.organization.upsert({
+    where: { slug: "test-investment-corp" },
+    update: {},
+    create: {
+      name: "Test Investment Corp",
+      slug: "test-investment-corp",
+      billingEmail: "contact@testinvestment.com",
+      phone: "(512) 555-0001",
+      plan: "PROFESSIONAL",
+      seats: 10,
+    },
+  });
+
+  // Create CLIENT user with organization
+  const clientUser = await prisma.user.upsert({
+    where: { email: "client@truplat.com" },
+    update: {},
+    create: {
+      email: "client@truplat.com",
+      password: hashedPassword,
+      firstName: "Client",
+      lastName: "User",
+      role: "CLIENT",
+      status: "ACTIVE",
+      organizationId: testOrg.id,
+    },
+  });
+  console.log(`  ✅ Client user: client@truplat.com / Test123!`);
+
+  // Create APPRAISER user with profile
+  const appraiserUser = await prisma.user.upsert({
+    where: { email: "appraiser@truplat.com" },
+    update: {},
+    create: {
+      email: "appraiser@truplat.com",
+      password: hashedPassword,
+      firstName: "John",
+      lastName: "Appraiser",
+      phone: "(512) 555-0002",
+      role: "APPRAISER",
+      status: "ACTIVE",
+    },
+  });
+
+  // Create appraiser profile
+  await prisma.appraiserProfile.upsert({
+    where: { userId: appraiserUser.id },
+    update: {},
+    create: {
+      userId: appraiserUser.id,
+      licenseNumber: "TX-12345",
+      licenseState: "TX",
+      licenseType: "CERTIFIED_RESIDENTIAL",
+      licenseExpiry: new Date("2026-12-31"),
+      homeBaseLat: 30.2672,
+      homeBaseLng: -97.7431,
+      coverageRadiusMiles: 50,
+      verificationStatus: "VERIFIED",
+      rating: 4.8,
+      completedJobs: 150,
+    },
+  });
+  console.log(`  ✅ Appraiser user: appraiser@truplat.com / Test123!`);
+
+  // Create some test properties and jobs for the map
+  console.log("🏠 Creating test properties and jobs...");
+
+  const testProperties = [
+    {
+      id: "prop-001",
+      parcelId: "TRAVIS-001234",
+      addressLine1: "123 Congress Ave",
+      addressFull: "123 Congress Ave, Austin, TX 78701",
+      city: "Austin",
+      county: "Travis",
+      state: "TX",
+      zipCode: "78701",
+      latitude: 30.2672,
+      longitude: -97.7431,
+      propertyType: "COMMERCIAL" as const,
+    },
+    {
+      id: "prop-002",
+      parcelId: "TRAVIS-005678",
+      addressLine1: "456 South Lamar Blvd",
+      addressFull: "456 South Lamar Blvd, Austin, TX 78704",
+      city: "Austin",
+      county: "Travis",
+      state: "TX",
+      zipCode: "78704",
+      latitude: 30.2519,
+      longitude: -97.7678,
+      propertyType: "SINGLE_FAMILY" as const,
+    },
+    {
+      id: "prop-003",
+      parcelId: "HARRIS-001234",
+      addressLine1: "789 Westheimer Rd",
+      addressFull: "789 Westheimer Rd, Houston, TX 77006",
+      city: "Houston",
+      county: "Harris",
+      state: "TX",
+      zipCode: "77006",
+      latitude: 29.7423,
+      longitude: -95.3974,
+      propertyType: "MULTI_FAMILY" as const,
+    },
+  ];
+
+  for (const prop of testProperties) {
+    await prisma.property.upsert({
+      where: { id: prop.id },
+      update: {},
+      create: prop,
+    });
+  }
+
+  // Create test jobs
+  const schedulingWindow = JSON.stringify({
+    start: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    end: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
+  });
+
+  const testJobs = [
+    {
+      id: "job-001",
+      propertyId: "prop-001",
+      organizationId: testOrg.id,
+      jobType: "ONSITE_PHOTOS" as const,
+      status: "PENDING_DISPATCH" as const,
+      scope: "Exterior photos, front and back. Interior photos if accessible.",
+      schedulingWindow,
+      payoutAmount: 150,
+      slaDueAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 hours from now
+    },
+    {
+      id: "job-002",
+      propertyId: "prop-002",
+      organizationId: testOrg.id,
+      assignedAppraiserId: appraiserUser.id,
+      jobType: "CERTIFIED_APPRAISAL" as const,
+      status: "ACCEPTED" as const,
+      scope: "Full certified appraisal with interior/exterior inspection.",
+      schedulingWindow,
+      payoutAmount: 350,
+      slaDueAt: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours from now
+    },
+    {
+      id: "job-003",
+      propertyId: "prop-003",
+      organizationId: testOrg.id,
+      assignedAppraiserId: appraiserUser.id,
+      jobType: "ONSITE_PHOTOS" as const,
+      status: "IN_PROGRESS" as const,
+      scope: "Residential property assessment with land survey review.",
+      schedulingWindow,
+      payoutAmount: 175,
+      slaDueAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+    },
+  ];
+
+  for (const job of testJobs) {
+    await prisma.job.upsert({
+      where: { id: job.id },
+      update: {},
+      create: job,
+    });
+  }
+  console.log(
+    `  ✅ Created ${testProperties.length} properties and ${testJobs.length} jobs`,
+  );
+
+  console.log("");
+  console.log("═══════════════════════════════════════════════════");
+  console.log("  TEST ACCOUNTS CREATED:");
+  console.log("═══════════════════════════════════════════════════");
+  console.log("  🔑 Admin:     admin@truplat.com     / Test123!");
+  console.log("  🔑 Client:    client@truplat.com    / Test123!");
+  console.log("  🔑 Appraiser: appraiser@truplat.com / Test123!");
+  console.log("═══════════════════════════════════════════════════");
+  console.log("");
 
   console.log("🎉 Seed completed successfully!");
 }

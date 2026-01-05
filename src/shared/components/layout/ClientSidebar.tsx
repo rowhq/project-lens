@@ -17,6 +17,8 @@ import {
   HelpCircle,
   X,
   Map,
+  Lightbulb,
+  Store,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Logo } from "@/shared/components/common/Logo";
@@ -37,6 +39,16 @@ const baseNavigation = [
     name: "Map",
     href: "/map",
     icon: Map,
+  },
+  {
+    name: "Insights",
+    href: "/insights",
+    icon: Lightbulb,
+  },
+  {
+    name: "Marketplace",
+    href: "/marketplace",
+    icon: Store,
   },
   {
     name: "Appraisals",
@@ -88,8 +100,13 @@ export function ClientSidebar({ isMobileOpen, onClose }: ClientSidebarProps) {
   );
 
   // Build navigation array based on team status
+  // Insert Team before Billing (last item) when organization has multiple members
   const navigation = teamStatus?.showTeamPage
-    ? [...baseNavigation.slice(0, 3), teamNavItem, baseNavigation[3]] // Insert Team before Billing
+    ? [
+        ...baseNavigation.slice(0, -1),
+        teamNavItem,
+        baseNavigation[baseNavigation.length - 1],
+      ]
     : baseNavigation;
 
   const NavItem = ({
