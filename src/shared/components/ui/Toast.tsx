@@ -59,16 +59,31 @@ export function useToast() {
 
   const { addToast } = context;
 
-  return {
-    success: (title: string, message?: string) =>
+  const success = useCallback(
+    (title: string, message?: string) =>
       addToast({ type: "success", title, message }),
-    error: (title: string, message?: string) =>
+    [addToast],
+  );
+
+  const error = useCallback(
+    (title: string, message?: string) =>
       addToast({ type: "error", title, message }),
-    warning: (title: string, message?: string) =>
+    [addToast],
+  );
+
+  const warning = useCallback(
+    (title: string, message?: string) =>
       addToast({ type: "warning", title, message }),
-    info: (title: string, message?: string) =>
+    [addToast],
+  );
+
+  const info = useCallback(
+    (title: string, message?: string) =>
       addToast({ type: "info", title, message }),
-  };
+    [addToast],
+  );
+
+  return { success, error, warning, info };
 }
 
 // Toast Container
