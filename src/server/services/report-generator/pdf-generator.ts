@@ -166,11 +166,21 @@ class PDFGenerator {
   /**
    * Generate PDF using Playwright (Chromium)
    * Full HTML rendering without external services
+   * NOTE: This does NOT work in Vercel serverless - requires GOTENBERG_URL
    */
   private async generateSimplePDF(
     htmlContent: string,
     options: PDFOptions,
   ): Promise<Buffer> {
+    // Playwright/Chromium requires browser binaries (~300MB) which are not available
+    // in Vercel serverless functions (50MB limit). Fail fast with clear message.
+    if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+      throw new Error(
+        "PDF generation requires GOTENBERG_URL in serverless environment. " +
+          "Chromium binaries are not available in Vercel/Lambda functions.",
+      );
+    }
+
     const browser = await chromium.launch({
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],

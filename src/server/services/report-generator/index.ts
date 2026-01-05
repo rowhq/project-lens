@@ -111,13 +111,24 @@ class ReportGenerator {
       `[ReportGenerator] Step 3: HTML generated (${htmlContent.length} chars)`,
     );
 
-    // Generate PDF
-    console.log(`[ReportGenerator] Step 4: Generating PDF via Gotenberg...`);
-    const pdfUrl = await pdfGenerator.generate(htmlContent, {
-      reportId: appraisalRequest.referenceCode,
-      reportType: input.reportType,
-    });
-    console.log(`[ReportGenerator] Step 4: PDF generated - ${pdfUrl}`);
+    // Generate PDF (optional - will be generated on-demand if this fails)
+    console.log(`[ReportGenerator] Step 4: Generating PDF...`);
+    let pdfUrl: string | undefined;
+    try {
+      pdfUrl = await pdfGenerator.generate(htmlContent, {
+        reportId: appraisalRequest.referenceCode,
+        reportType: input.reportType,
+      });
+      console.log(`[ReportGenerator] Step 4: PDF generated - ${pdfUrl}`);
+    } catch (pdfError) {
+      // PDF generation is optional - report can be completed without it
+      // PDF will be generated on-demand when user downloads via getDownloadUrl
+      console.warn(
+        `[ReportGenerator] PDF generation failed, will generate on-demand:`,
+        pdfError instanceof Error ? pdfError.message : pdfError,
+      );
+      pdfUrl = undefined;
+    }
 
     // Calculate risk score from risk flags
     const riskScore = valuation.riskFlags.reduce((score, flag) => {
