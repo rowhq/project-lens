@@ -17,70 +17,82 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-// Category configuration with colors
+// Category configuration with badge-style colors (transparent bg, colored border/text)
 const CATEGORY_CONFIG: Record<
   string,
-  { label: string; color: string; bgColor: string }
+  { label: string; textColor: string; bgColor: string; borderColor: string }
 > = {
   ENVIRONMENTAL: {
     label: "Phase I ESA",
-    color: "text-green-400",
-    bgColor: "bg-green-600",
+    textColor: "text-green-400",
+    bgColor: "bg-green-400/10",
+    borderColor: "border-green-400/30",
   },
   SURVEY: {
     label: "Survey",
-    color: "text-blue-400",
-    bgColor: "bg-blue-600",
+    textColor: "text-blue-400",
+    bgColor: "bg-blue-400/10",
+    borderColor: "border-blue-400/30",
   },
   CIVIL_ENGINEERING: {
     label: "Civil Plans",
-    color: "text-purple-400",
-    bgColor: "bg-purple-600",
+    textColor: "text-purple-400",
+    bgColor: "bg-purple-400/10",
+    borderColor: "border-purple-400/30",
   },
   GEOTECHNICAL: {
     label: "Geotechnical",
-    color: "text-orange-400",
-    bgColor: "bg-orange-600",
+    textColor: "text-orange-400",
+    bgColor: "bg-orange-400/10",
+    borderColor: "border-orange-400/30",
   },
   TITLE_REPORT: {
     label: "Title Report",
-    color: "text-cyan-400",
-    bgColor: "bg-cyan-600",
+    textColor: "text-cyan-400",
+    bgColor: "bg-cyan-400/10",
+    borderColor: "border-cyan-400/30",
   },
   ZONING_ANALYSIS: {
     label: "Zoning Docs",
-    color: "text-pink-400",
-    bgColor: "bg-pink-600",
+    textColor: "text-pink-400",
+    bgColor: "bg-pink-400/10",
+    borderColor: "border-pink-400/30",
   },
   SOIL_STUDY: {
     label: "Soil Study",
-    color: "text-amber-400",
-    bgColor: "bg-amber-600",
+    textColor: "text-amber-400",
+    bgColor: "bg-amber-400/10",
+    borderColor: "border-amber-400/30",
   },
   APPRAISAL_REPORT: {
     label: "Appraisal",
-    color: "text-emerald-400",
-    bgColor: "bg-emerald-600",
+    textColor: "text-lime-400",
+    bgColor: "bg-lime-400/10",
+    borderColor: "border-lime-400/30",
   },
   DRAINAGE_STUDY: {
     label: "Drainage",
-    color: "text-sky-400",
-    bgColor: "bg-sky-600",
+    textColor: "text-sky-400",
+    bgColor: "bg-sky-400/10",
+    borderColor: "border-sky-400/30",
   },
   STRUCTURAL: {
     label: "Structural",
-    color: "text-red-400",
-    bgColor: "bg-red-600",
+    textColor: "text-red-400",
+    bgColor: "bg-red-400/10",
+    borderColor: "border-red-400/30",
   },
   FLOOD_RISK: {
     label: "Flood Risk",
-    color: "text-indigo-400",
-    bgColor: "bg-indigo-600",
+    textColor: "text-indigo-400",
+    bgColor: "bg-indigo-400/10",
+    borderColor: "border-indigo-400/30",
   },
   OTHER: {
     label: "Other",
-    color: "text-gray-400",
-    bgColor: "bg-gray-600",
+    textColor: "text-gray-400",
+    bgColor: "bg-gray-400/10",
+    borderColor: "border-gray-400/30",
   },
 };
 
@@ -185,7 +197,9 @@ export default function MarketplacePage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-emerald-400">DD Marketplace</h1>
+        <h1 className="text-3xl font-bold text-[var(--foreground)]">
+          DD Marketplace
+        </h1>
         <p className="text-gray-400 mt-1">
           Purchase unused Due Diligence assets - Phase I ESAs, surveys, civil
           plans, and more
@@ -202,7 +216,7 @@ export default function MarketplacePage() {
             placeholder="Search by title, location, tags..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50"
+            className="w-full pl-12 pr-4 py-3 bg-gray-900 border border-gray-700 clip-notch text-white placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
           />
         </div>
 
@@ -211,7 +225,7 @@ export default function MarketplacePage() {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as StudyCategory | "")}
-            className="appearance-none px-4 py-3 pr-10 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-emerald-500/50 min-w-[180px]"
+            className="appearance-none px-4 py-3 pr-10 bg-gray-900 border border-gray-700 clip-notch text-white focus:outline-none focus:border-lime-400/50 min-w-[180px]"
           >
             {CATEGORY_OPTIONS.map((cat) => (
               <option key={cat.value} value={cat.value}>
@@ -226,7 +240,7 @@ export default function MarketplacePage() {
       {/* Listings Grid */}
       {isLoading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
         </div>
       ) : listings?.items?.length === 0 ? (
         <div className="text-center py-16">
@@ -252,11 +266,19 @@ export default function MarketplacePage() {
             return (
               <div
                 key={listing.id}
-                className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-all"
+                className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden hover:border-lime-400/50 transition-all"
               >
-                {/* Category Header - Color coded */}
-                <div className={`${categoryConfig.bgColor} px-4 py-2`}>
-                  <span className="text-white font-medium text-sm">
+                {/* L-Bracket Corners */}
+                <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
+                <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+
+                {/* Category Header - Badge style */}
+                <div
+                  className={`px-4 py-2 border-b ${categoryConfig.borderColor} ${categoryConfig.bgColor}`}
+                >
+                  <span
+                    className={`font-mono text-sm uppercase tracking-wider ${categoryConfig.textColor}`}
+                  >
                     {categoryConfig.label}
                   </span>
                 </div>
@@ -303,27 +325,27 @@ export default function MarketplacePage() {
 
                   {/* Price */}
                   <div className="pt-3 border-t border-gray-800">
-                    <span className="text-2xl font-bold text-white">
+                    <span className="text-2xl font-bold text-white font-mono">
                       ${Number(listing.price).toLocaleString()}
                     </span>
                     <span className="text-gray-500 text-sm ml-2">USD</span>
                   </div>
 
-                  {/* Action Buttons - SEPARATED clearly */}
+                  {/* Action Buttons - Brand aligned */}
                   <div className="flex gap-3 pt-2">
                     <Link
                       href={`/marketplace/listing/${listing.id}`}
-                      className="flex-1 px-4 py-2.5 border border-gray-700 rounded-lg text-center text-gray-300 hover:bg-gray-800 hover:border-gray-600 transition-colors text-sm font-medium"
+                      className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch text-center text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors"
                     >
                       View Details
                     </Link>
                     <button
                       onClick={(e) => handleAddToCart(e, listing)}
                       disabled={inCart}
-                      className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
+                      className={`flex-1 px-4 py-2.5 clip-notch font-mono text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
                         inCart
                           ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                          : "bg-emerald-600 text-white hover:bg-emerald-500"
+                          : "bg-lime-400 text-black hover:bg-lime-300"
                       }`}
                     >
                       <ShoppingCart className="w-4 h-4" />
