@@ -203,7 +203,7 @@ export function GrowthOpportunityCard({
           </Link>
         )}
         <Link
-          href={`/insights?property=${property.parcelId}`}
+          href={`/insights/property/${property.parcelId}`}
           className="flex-1 px-3 py-2 bg-lime-400 text-black clip-notch text-center font-mono text-xs uppercase tracking-wider hover:bg-lime-300 transition-colors"
         >
           View Analysis

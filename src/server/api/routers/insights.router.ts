@@ -1609,4 +1609,247 @@ export const insightsRouter = createTRPCRouter({
 
       return { opportunities };
     }),
+
+  /**
+   * Get detailed property analysis - property with all infrastructure signals
+   */
+  getPropertyAnalysis: clientProcedure
+    .input(
+      z.object({
+        parcelId: z.string(),
+        county: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // 1. Get the property - parcelId + county is unique, but we try to find first match
+      const property = await ctx.prisma.propertyOwner.findFirst({
+        where: {
+          parcelId: input.parcelId,
+          ...(input.county ? { county: input.county } : {}),
+        },
+        select: {
+          parcelId: true,
+          addressLine1: true,
+          city: true,
+          state: true,
+          county: true,
+          zipCode: true,
+          assessedValue: true,
+          latitude: true,
+          longitude: true,
+          lotSizeSqft: true,
+          zoning: true,
+          landUse: true,
+          lastSalePrice: true,
+          lastSaleDate: true,
+        },
+      });
+
+      if (!property) {
+        throw new Error("Property not found");
+      }
+
+      if (!property.latitude || !property.longitude) {
+        return {
+          property,
+          analysis: null,
+          signals: [],
+        };
+      }
+
+      // 2. Get all insights in the same county
+      const insights = await ctx.prisma.investmentInsight.findMany({
+        where: {
+          county: property.county || undefined,
+        },
+        select: {
+          id: true,
+          title: true,
+          type: true,
+          status: true,
+          latitude: true,
+          longitude: true,
+          avgValueChange: true,
+          correlation: true,
+          lagPeriodYears: true,
+          impactRadiusMiles: true,
+          projectYear: true,
+          description: true,
+          parcelsAffected: true,
+          estimatedValue: true,
+        },
+      });
+
+      // Helper to calculate distance in miles
+      const calculateDistance = (
+        lat1: number,
+        lng1: number,
+        lat2: number,
+        lng2: number,
+      ): number => {
+        const R = 3959; // Earth's radius in miles
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLng = ((lng2 - lng1) * Math.PI) / 180;
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            Math.sin(dLng / 2) *
+            Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      };
+
+      // 3. Find all signals affecting this property
+      const signals = insights
+        .filter((insight) => {
+          if (!insight.latitude || !insight.longitude) return false;
+          const distance = calculateDistance(
+            property.latitude!,
+            property.longitude!,
+            insight.latitude,
+            insight.longitude,
+          );
+          const radius = insight.impactRadiusMiles || 5;
+          return distance <= radius;
+        })
+        .map((insight) => ({
+          id: insight.id,
+          title: insight.title,
+          type: insight.type,
+          status: insight.status,
+          description: insight.description,
+          distance:
+            Math.round(
+              calculateDistance(
+                property.latitude!,
+                property.longitude!,
+                insight.latitude!,
+                insight.longitude!,
+              ) * 10,
+            ) / 10,
+          year: insight.projectYear,
+          avgValueChange: insight.avgValueChange,
+          correlation: insight.correlation,
+          lagPeriodYears: insight.lagPeriodYears,
+          parcelsAffected: insight.parcelsAffected,
+          estimatedValue: insight.estimatedValue,
+          latitude: insight.latitude,
+          longitude: insight.longitude,
+        }))
+        .sort((a, b) => a.distance - b.distance);
+
+      if (signals.length === 0) {
+        return {
+          property,
+          analysis: null,
+          signals: [],
+        };
+      }
+
+      // 4. Calculate analysis metrics
+      let totalWeight = 0;
+      let weightedAppreciation = 0;
+      let totalCorrelation = 0;
+      const riskFactors: string[] = [];
+      const positiveFactors: string[] = [];
+      let avgLag = 0;
+      let lagCount = 0;
+
+      signals.forEach((signal) => {
+        const weight = signal.correlation || 0.5;
+        totalWeight += weight;
+        weightedAppreciation += (signal.avgValueChange || 0) * weight;
+        totalCorrelation += signal.correlation || 0;
+
+        if (signal.lagPeriodYears) {
+          avgLag += signal.lagPeriodYears;
+          lagCount++;
+        }
+
+        // Risk factors
+        if (signal.status === "CANCELLED") {
+          riskFactors.push(`${signal.title} has been cancelled`);
+        }
+        if (signal.status === "PENDING") {
+          riskFactors.push(`${signal.title} is still pending approval`);
+        }
+        if (signal.lagPeriodYears && signal.lagPeriodYears > 4) {
+          riskFactors.push(
+            `${signal.title} has a long appreciation lag (${signal.lagPeriodYears.toFixed(1)} years)`,
+          );
+        }
+
+        // Positive factors
+        if (signal.status === "ACTIVE" || signal.status === "COMPLETED") {
+          if (signal.avgValueChange && signal.avgValueChange > 15) {
+            positiveFactors.push(
+              `${signal.title} shows strong historical appreciation (+${signal.avgValueChange.toFixed(1)}%)`,
+            );
+          }
+        }
+        if (signal.correlation && signal.correlation > 0.7) {
+          positiveFactors.push(
+            `${signal.title} has high correlation with property values (${signal.correlation.toFixed(2)})`,
+          );
+        }
+      });
+
+      const projectedAppreciation =
+        totalWeight > 0 ? weightedAppreciation / totalWeight : 0;
+      const avgCorrelation = totalCorrelation / signals.length;
+      avgLag = lagCount > 0 ? avgLag / lagCount : 2.5; // Default 2.5 years
+
+      // Signal strength
+      let signalStrength: "STRONG" | "MODERATE" | "WEAK" = "WEAK";
+      if (avgCorrelation >= 0.7) signalStrength = "STRONG";
+      else if (avgCorrelation >= 0.5) signalStrength = "MODERATE";
+
+      // Confidence score
+      const confidence = Math.min(
+        100,
+        Math.round(avgCorrelation * 80 + signals.length * 5),
+      );
+
+      // Risk level
+      let risk: "LOW" | "MEDIUM" | "HIGH" = "LOW";
+      if (
+        riskFactors.length >= 2 ||
+        signals.some((s) => s.status === "CANCELLED")
+      ) {
+        risk = "HIGH";
+      } else if (riskFactors.length >= 1 || avgCorrelation < 0.5) {
+        risk = "MEDIUM";
+      }
+
+      // Current value
+      const currentValue =
+        typeof property.assessedValue === "object" &&
+        property.assessedValue !== null &&
+        "toNumber" in property.assessedValue
+          ? (property.assessedValue as { toNumber: () => number }).toNumber()
+          : Number(property.assessedValue || 0);
+
+      const projectedValue = Math.round(
+        currentValue * (1 + projectedAppreciation / 100),
+      );
+
+      return {
+        property,
+        analysis: {
+          projectedAppreciation: Math.round(projectedAppreciation * 10) / 10,
+          projectedValue,
+          currentValue,
+          confidence,
+          risk,
+          signalStrength,
+          avgCorrelation: Math.round(avgCorrelation * 100) / 100,
+          avgLagYears: Math.round(avgLag * 10) / 10,
+          riskFactors: riskFactors.slice(0, 4),
+          positiveFactors: positiveFactors.slice(0, 4),
+          signalCount: signals.length,
+        },
+        signals,
+      };
+    }),
 });
