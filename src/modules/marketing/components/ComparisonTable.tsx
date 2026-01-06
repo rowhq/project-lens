@@ -7,8 +7,8 @@ import { Check, ChevronDown, Zap, DollarSign, Database } from "lucide-react";
 const heroStats = [
   {
     icon: Zap,
-    multiplier: "5",
-    label: "Minutes",
+    multiplier: "30",
+    label: "Seconds",
     comparison: "AI Report Generation",
     description: "Get instant property valuations with AI-powered analysis.",
   },
@@ -41,7 +41,7 @@ const fullComparisonData = [
   {
     aspect: "AI Report",
     traditional: "Not available",
-    truplat: "5 minutes",
+    truplat: "~30 seconds",
   },
   {
     aspect: "On-Site Inspection",

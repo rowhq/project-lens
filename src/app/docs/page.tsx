@@ -15,7 +15,6 @@ import {
   Map,
   CheckCircle,
   Database,
-  Code,
   Globe,
   Layers,
   ChevronRight,
@@ -25,7 +24,6 @@ import {
   Settings,
   Lock,
   Server,
-  Target,
   BarChart3,
   Rocket,
   AlertTriangle,
@@ -33,12 +31,9 @@ import {
   Building2,
   PieChart,
   ArrowUpRight,
-  ArrowDownRight,
   Minus,
   FileText,
   Clock,
-  MapPin,
-  Percent,
 } from "lucide-react";
 
 // Navigation sections - Organized for CEO/Executive review
@@ -388,8 +383,8 @@ export default function DocsPage() {
               </div>
               <h4 className="text-lg font-semibold text-white mb-2">Precio</h4>
               <p className="text-gray-400 text-sm">
-                Desde ${PRICING.AI_REPORT} por reporte AI vs $400-600 de una
-                valuación tradicional.
+                Suscripciones desde $0/mes con AI Reports incluidos vs $400-600
+                de una valuación tradicional.
               </p>
             </div>
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
@@ -440,7 +435,7 @@ export default function DocsPage() {
               <ul className="space-y-3 text-gray-300 text-sm">
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
-                  AI Reports instantáneos (~30 seg) desde ${PRICING.AI_REPORT}
+                  AI Reports instantáneos (~30 seg) incluidos en suscripción
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
@@ -448,7 +443,7 @@ export default function DocsPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
-                  Certified appraisals USPAP en 5-7 días (${PRICING.CERTIFIED})
+                  Certified appraisals USPAP en 3 días (${PRICING.CERTIFIED})
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
@@ -724,8 +719,8 @@ export default function DocsPage() {
               <DollarSign className="w-8 h-8 text-lime-400 mb-4" />
               <h4 className="text-white font-semibold mb-2">Cost</h4>
               <p className="text-gray-400 text-sm">
-                Starting at ${PRICING.AI_REPORT} vs $400-600 traditional. Free
-                tier with 5 reports/month for new users.
+                Free tier with 5 AI reports/month. Pro plans from $99/month.
+                Save vs $400-600 traditional appraisals.
               </p>
             </div>
             <div className="bg-gradient-to-b from-amber-400/10 to-transparent border border-amber-400/20 rounded-lg p-6">
@@ -756,13 +751,13 @@ export default function DocsPage() {
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
                 <Zap className="w-5 h-5 text-cyan-400" />
-                Transactional (Primary)
+                Add-On Services (Per Report)
               </h4>
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-2 border-b border-gray-800">
                   <span className="text-gray-400">AI Report</span>
-                  <span className="text-white font-mono">
-                    ${PRICING.AI_REPORT}/report
+                  <span className="text-lime-400 font-mono">
+                    Included in plan
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-800">
@@ -1662,32 +1657,25 @@ export default function DocsPage() {
           <h3 className="text-xl font-semibold text-white mb-4">
             Revenue Mix (Year 2 Target)
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-cyan-400 mb-1">45%</div>
-              <div className="text-gray-400 text-sm">AI Reports</div>
-              <div className="text-gray-600 text-xs mt-1">
-                ${PRICING.AI_REPORT} × high volume
-              </div>
+              <div className="text-2xl font-bold text-purple-400 mb-1">60%</div>
+              <div className="text-gray-400 text-sm">Subscriptions</div>
+              <div className="text-gray-600 text-xs mt-1">$0/$99/$299 MRR</div>
             </div>
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-lime-400 mb-1">35%</div>
-              <div className="text-gray-400 text-sm">On-Site</div>
+              <div className="text-2xl font-bold text-lime-400 mb-1">25%</div>
+              <div className="text-gray-400 text-sm">On-Site Add-ons</div>
               <div className="text-gray-600 text-xs mt-1">
-                ${PRICING.ON_SITE} × medium volume
+                ${PRICING.ON_SITE}/report
               </div>
             </div>
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-amber-400 mb-1">15%</div>
-              <div className="text-gray-400 text-sm">Certified</div>
+              <div className="text-gray-400 text-sm">Certified Add-ons</div>
               <div className="text-gray-600 text-xs mt-1">
-                ${PRICING.CERTIFIED} × low volume
+                ${PRICING.CERTIFIED}/report
               </div>
-            </div>
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-purple-400 mb-1">5%</div>
-              <div className="text-gray-400 text-sm">Subscriptions</div>
-              <div className="text-gray-600 text-xs mt-1">MRR recurring</div>
             </div>
           </div>
 
@@ -1757,7 +1745,7 @@ export default function DocsPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Certified SLA</span>
-                  <span className="text-white font-mono">5-7 days</span>
+                  <span className="text-white font-mono">3 days</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Support Response</span>
@@ -1893,8 +1881,8 @@ export default function DocsPage() {
             <ProductCard
               icon={Zap}
               name="AI Report"
-              price={PRICING.AI_REPORT}
-              time="< 1 minute"
+              priceLabel="Included"
+              time="~30 seconds"
               color="cyan"
               features={[
                 "Automated valuation model (AVM)",
@@ -1925,7 +1913,7 @@ export default function DocsPage() {
               icon={Award}
               name="Certified"
               price={PRICING.CERTIFIED}
-              time="5-7 days"
+              time="3 days"
               color="amber"
               features={[
                 "Everything in Verified",
@@ -2089,7 +2077,7 @@ export default function DocsPage() {
                   Certified Appraisal
                 </h4>
                 <p className="text-gray-400 text-sm">
-                  USPAP compliant • 5-7 días
+                  USPAP compliant • 3 días
                 </p>
               </div>
               <div className="text-2xl font-bold text-white">
@@ -2104,11 +2092,11 @@ export default function DocsPage() {
               ¿Qué pasa si excedo mi límite de AI Reports?
             </h4>
             <p className="text-gray-400 text-sm">
-              Cada AI Report adicional después de tu límite mensual cuesta{" "}
-              <span className="text-cyan-400 font-mono font-semibold">
-                ${PRICING.AI_REPORT}
-              </span>
-              . Enterprise tiene reportes ilimitados.
+              Puedes{" "}
+              <span className="text-lime-400 font-semibold">
+                actualizar tu plan
+              </span>{" "}
+              para obtener más reportes. Enterprise tiene reportes ilimitados.
             </p>
           </div>
         </section>
@@ -2843,6 +2831,7 @@ function ProductCard({
   icon: Icon,
   name,
   price,
+  priceLabel,
   time,
   color,
   popular,
@@ -2851,7 +2840,8 @@ function ProductCard({
 }: {
   icon: React.ElementType;
   name: string;
-  price: number;
+  price?: number;
+  priceLabel?: string;
   time: string;
   color: "cyan" | "lime" | "amber";
   popular?: boolean;
@@ -2886,7 +2876,9 @@ function ProductCard({
           <div className="text-gray-500 text-xs">{time}</div>
         </div>
       </div>
-      <div className="text-3xl font-bold text-white mb-2">${price}</div>
+      <div className="text-3xl font-bold text-white mb-2">
+        {priceLabel || (price !== undefined ? `$${price}` : "")}
+      </div>
       <div className="text-gray-500 text-sm mb-4">{useCase}</div>
       <ul className="space-y-2">
         {features.map((f, i) => (

@@ -36,7 +36,7 @@ export function HeroSection() {
 
         {/* Subheading */}
         <p className="text-xl sm:text-2xl text-gray-400 max-w-3xl mx-auto mb-10">
-          From address to value in 5 minutes.
+          From address to value in 30 seconds.
           <br className="hidden sm:block" />
           Close deals faster. Decide with confidence.
         </p>
@@ -62,7 +62,7 @@ export function HeroSection() {
           <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-gray-800 bg-gray-900/50">
             <Zap className="w-4 h-4 text-lime-400" />
             <span className="font-mono text-xs uppercase tracking-wider text-white">
-              5-min AI Reports
+              30-sec AI Reports
             </span>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-gray-800 bg-gray-900/50">

@@ -111,7 +111,7 @@ export default function LandingPage() {
                 tier="free"
                 name="Starter"
                 price={0}
-                turnaround="5 min"
+                turnaround="~30 sec"
                 useCase="Try before you buy"
                 features={[
                   "5 AI Reports/month",
@@ -127,7 +127,7 @@ export default function LandingPage() {
                 tier="popular"
                 name="Professional"
                 price={99}
-                turnaround="5 min"
+                turnaround="~30 sec"
                 useCase="Growing teams & investors"
                 features={[
                   "50 AI Reports/month",

@@ -33,9 +33,9 @@ const plans = [
     description: "For growing businesses",
     features: [
       "50 AI Reports/month",
+      "On-Site Verification available",
       "Priority support",
       "Advanced analytics",
-      "Team collaboration",
       "API access",
     ],
     popular: true,
@@ -47,11 +47,10 @@ const plans = [
     description: "For large organizations",
     features: [
       "Unlimited AI Reports",
+      "All report types included",
       "Dedicated support",
       "Custom integrations",
-      "White-label reports",
       "SLA guarantee",
-      "Custom pricing",
     ],
     popular: false,
   },
@@ -169,7 +168,7 @@ export default function BillingPage() {
     onSuccess: (data) => {
       if (data && typeof data === "object" && "checkoutUrl" in data) {
         // Redirect to Stripe checkout
-        window.location.href = (data as { checkoutUrl: string }).checkoutUrl;
+        window.location.assign((data as { checkoutUrl: string }).checkoutUrl);
       } else {
         showFeedback("success", "Plan updated successfully");
       }
@@ -182,8 +181,9 @@ export default function BillingPage() {
   const handleUpgrade = (planId: string) => {
     if (planId === "enterprise") {
       // Contact sales - open email
-      window.location.href =
-        "mailto:sales@truplat.com?subject=Enterprise%20Plan%20Inquiry";
+      window.location.assign(
+        "mailto:sales@truplat.com?subject=Enterprise%20Plan%20Inquiry",
+      );
       return;
     }
 

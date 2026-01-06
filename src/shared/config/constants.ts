@@ -6,7 +6,7 @@ export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://truplat.com";
 
 // SLA Configuration (in hours)
 export const SLA_CONFIG = {
-  AI_REPORT: 0.0167, // 1 minute (optimized from 30 minutes)
+  AI_REPORT: 0.00833, // ~30 seconds
   ON_SITE: 48,
   CERTIFIED: 72,
   DISPATCH: {
