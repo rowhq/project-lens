@@ -56,33 +56,35 @@ export function LedgerHeader({
     <header className={cn("relative w-full bg-[var(--background)]", className)}>
       {/* Main header row */}
       <div className="flex items-center justify-between h-16 px-6">
-        {/* Left: Logo */}
-        <TruPlatLogo />
+        {/* Left: Logo + Navigation */}
+        <div className="flex items-center gap-8">
+          <TruPlatLogo />
 
-        {/* Center: Navigation with | separators */}
-        <nav className="hidden lg:flex items-center">
-          {navItems.map((item, index) => (
-            <div key={item.href} className="flex items-center">
-              {/* Separator before item (except first) */}
-              {index > 0 && <span className="w-px h-3 bg-gray-600 mx-6" />}
-              <Link
-                href={item.href}
-                className={cn(
-                  "font-mono text-xs uppercase tracking-widest",
-                  "transition-colors duration-300",
-                  item.isActive
-                    ? "text-[var(--foreground)]"
-                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
-                )}
-                style={{
-                  transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-                }}
-              >
-                {item.label}
-              </Link>
-            </div>
-          ))}
-        </nav>
+          {/* Navigation with | separators */}
+          <nav className="hidden lg:flex items-center">
+            {navItems.map((item, index) => (
+              <div key={item.href} className="flex items-center">
+                {/* Separator before item (except first) */}
+                {index > 0 && <span className="w-px h-3 bg-gray-600 mx-6" />}
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "font-mono text-xs uppercase tracking-widest",
+                    "transition-colors duration-300",
+                    item.isActive
+                      ? "text-[var(--foreground)]"
+                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
+                  )}
+                  style={{
+                    transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+                  }}
+                >
+                  {item.label}
+                </Link>
+              </div>
+            ))}
+          </nav>
+        </div>
 
         {/* Right: Theme toggle + Action button */}
         <div className="hidden lg:flex items-center gap-4">
@@ -90,8 +92,9 @@ export function LedgerHeader({
           <Link href={actionButtonHref}>
             <Button
               variant="outline"
-              size="sm"
-              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              size="md"
+              className="h-10 text-sm"
+              rightIcon={<ArrowRight className="w-4 h-4" />}
             >
               {actionButtonText}
             </Button>
