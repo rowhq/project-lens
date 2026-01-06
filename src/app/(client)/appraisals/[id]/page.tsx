@@ -1483,7 +1483,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Upgrade to Certified - Solo mostrar si no es CERTIFIED y está READY */}
+          {/* Upgrade to Certified - Only show if not CERTIFIED and status is READY */}
           {appraisal.requestedType !== "CERTIFIED_APPRAISAL" &&
             appraisal.status === "READY" && (
               <div className="bg-gradient-to-br from-lime-400/10 to-lime-400/5 clip-notch border border-lime-400/30 p-6">

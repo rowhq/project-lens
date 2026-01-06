@@ -119,7 +119,7 @@ export default function NewAppraisalPage() {
     const zipCode = searchParams.get("zipCode");
     const type = searchParams.get("type");
 
-    // Solo requerir address - el resto es opcional
+    // Only address is required - the rest is optional
     if (address) {
       const prefilledProperty = {
         id: `prefilled-${Date.now()}`,
@@ -141,7 +141,7 @@ export default function NewAppraisalPage() {
           reportType: type === "CERTIFIED" ? "CERTIFIED" : "AI_REPORT",
         }));
         setPrefilledFromMap(true);
-        // Saltar al paso de detalles ya que tenemos la propiedad
+        // Skip to details step since we already have the property
         setCurrentStep("details");
       }, 0);
     }
