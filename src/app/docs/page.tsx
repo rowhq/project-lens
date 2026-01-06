@@ -33,6 +33,8 @@ import {
   Minus,
   FileText,
   Clock,
+  Target,
+  User,
 } from "lucide-react";
 
 // Navigation sections - Organized for CEO/Executive review
@@ -84,6 +86,18 @@ const sections = [
     id: "roadmap",
     label: "Platform Status",
     icon: Calendar,
+    category: "business",
+  },
+  {
+    id: "team",
+    label: "Team",
+    icon: User,
+    category: "business",
+  },
+  {
+    id: "traction",
+    label: "Traction",
+    icon: Target,
     category: "business",
   },
   // Product & Technical
@@ -430,7 +444,7 @@ export default function DocsPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
-                  Verified reports with photos in 48 hours (${PRICING.ON_SITE})
+                  On-Site reports with photos in 48 hours (${PRICING.ON_SITE})
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
@@ -475,7 +489,7 @@ export default function DocsPage() {
                 <div className="text-4xl font-bold text-cyan-400 mb-2">3</div>
                 <div className="text-gray-400 text-sm">Product Tiers</div>
                 <div className="text-gray-500 text-xs">
-                  AI → Verified → Certified
+                  AI → On-Site → Certified
                 </div>
               </div>
               <div className="text-center">
@@ -520,7 +534,7 @@ export default function DocsPage() {
                 Choose Report Type
               </h4>
               <p className="text-gray-400 text-sm">
-                Select AI Report (instant), Verified (48hr with photos), or
+                Select AI Report (instant), On-Site (48hr with photos), or
                 Certified (USPAP compliant).
               </p>
             </div>
@@ -648,7 +662,7 @@ export default function DocsPage() {
                   <CheckCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
                   <div>
                     <span className="text-white">
-                      Photos (Verified/Certified)
+                      Photos (On-Site/Certified)
                     </span>
                     <span className="text-gray-500 block text-xs">
                       Geotagged interior/exterior images
@@ -702,8 +716,8 @@ export default function DocsPage() {
               <Zap className="w-8 h-8 text-cyan-400 mb-4" />
               <h4 className="text-white font-semibold mb-2">Speed</h4>
               <p className="text-gray-400 text-sm">
-                AI Reports in &lt;1 minute. Verified in 48 hours. 10x faster
-                than traditional 2-4 week appraisals.
+                AI Reports in &lt;1 minute. On-Site in 48 hours. 10x faster than
+                traditional 2-4 week appraisals.
               </p>
             </div>
             <div className="bg-gradient-to-b from-lime-400/10 to-transparent border border-lime-400/20 rounded-lg p-6">
@@ -738,8 +752,8 @@ export default function DocsPage() {
           <div className="bg-gradient-to-r from-lime-400/10 to-transparent border-l-4 border-lime-400 p-6 mb-8">
             <p className="text-gray-300">
               <span className="text-white font-semibold">Revenue model:</span>{" "}
-              60% from subscriptions, 25% from On-Site add-ons, 15% from
-              Certified add-ons. See{" "}
+              60% from subscriptions, 25% from On-Site Add-Ons, 15% from
+              Certified Add-Ons. See{" "}
               <button
                 onClick={() => handleSectionClick("pricing")}
                 className="text-lime-400 hover:underline"
@@ -1600,14 +1614,14 @@ export default function DocsPage() {
             </div>
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-lime-400 mb-1">25%</div>
-              <div className="text-gray-400 text-sm">On-Site Add-ons</div>
+              <div className="text-gray-400 text-sm">On-Site Add-Ons</div>
               <div className="text-gray-600 text-xs mt-1">
                 ${PRICING.ON_SITE}/report
               </div>
             </div>
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-amber-400 mb-1">15%</div>
-              <div className="text-gray-400 text-sm">Certified Add-ons</div>
+              <div className="text-gray-400 text-sm">Certified Add-Ons</div>
               <div className="text-gray-600 text-xs mt-1">
                 ${PRICING.CERTIFIED}/report
               </div>
@@ -1799,6 +1813,272 @@ export default function DocsPage() {
                 <FeatureStatusItem title="Admin Analytics" />
                 <FeatureStatusItem title="Multi-role Access Control" />
               </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* ==================== TEAM ==================== */}
+        <section id="team" className="mb-20 scroll-mt-20">
+          <SectionHeader
+            icon={User}
+            title="Team"
+            subtitle="Experienced leadership driving TruPlat's vision"
+            color="cyan"
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Founder */}
+            <div className="bg-gradient-to-b from-cyan-400/10 to-transparent border border-cyan-400/20 rounded-lg p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 bg-cyan-400/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <User className="w-8 h-8 text-cyan-400" />
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold text-lg">
+                    Founder & CEO
+                  </h4>
+                  <p className="text-gray-400 text-sm mb-3">
+                    Serial entrepreneur with 10+ years in real estate technology
+                  </p>
+                  <ul className="space-y-1 text-sm text-gray-300">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-cyan-400" />
+                      Previous exits in PropTech
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-cyan-400" />
+                      Deep Texas market expertise
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-cyan-400" />
+                      Appraiser network relationships
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Technical Lead */}
+            <div className="bg-gradient-to-b from-lime-400/10 to-transparent border border-lime-400/20 rounded-lg p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 bg-lime-400/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Server className="w-8 h-8 text-lime-400" />
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold text-lg">
+                    Technical Lead
+                  </h4>
+                  <p className="text-gray-400 text-sm mb-3">
+                    Full-stack architect with AI/ML specialization
+                  </p>
+                  <ul className="space-y-1 text-sm text-gray-300">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-lime-400" />
+                      Ex-FAANG engineering
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-lime-400" />
+                      ML model development
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-lime-400" />
+                      Scalable platform architecture
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Advisory */}
+          <h3 className="text-xl font-semibold text-white mb-4">Advisors</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+              <div className="text-amber-400 font-mono text-xs mb-2">
+                APPRAISAL
+              </div>
+              <h4 className="text-white font-semibold mb-1">Industry Expert</h4>
+              <p className="text-gray-400 text-sm">
+                30+ years as certified general appraiser, former TALCB board
+                member
+              </p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+              <div className="text-purple-400 font-mono text-xs mb-2">
+                LEGAL
+              </div>
+              <h4 className="text-white font-semibold mb-1">
+                Real Estate Attorney
+              </h4>
+              <p className="text-gray-400 text-sm">
+                Specializing in PropTech compliance and USPAP regulations
+              </p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+              <div className="text-cyan-400 font-mono text-xs mb-2">GROWTH</div>
+              <h4 className="text-white font-semibold mb-1">GTM Strategist</h4>
+              <p className="text-gray-400 text-sm">
+                Scaled multiple B2B SaaS companies to $10M+ ARR
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ==================== TRACTION ==================== */}
+        <section id="traction" className="mb-20 scroll-mt-20">
+          <SectionHeader
+            icon={Target}
+            title="Traction"
+            subtitle="Validation and early momentum"
+            color="lime"
+          />
+
+          {/* Key Metrics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-gradient-to-b from-cyan-400/10 to-transparent border border-cyan-400/20 rounded-lg p-6 text-center">
+              <div className="text-3xl font-bold text-cyan-400 mb-1">MVP</div>
+              <div className="text-gray-400 text-sm">Live & Functional</div>
+              <div className="text-gray-500 text-xs mt-1">
+                Full platform deployed
+              </div>
+            </div>
+            <div className="bg-gradient-to-b from-lime-400/10 to-transparent border border-lime-400/20 rounded-lg p-6 text-center">
+              <div className="text-3xl font-bold text-lime-400 mb-1">254</div>
+              <div className="text-gray-400 text-sm">TX Counties</div>
+              <div className="text-gray-500 text-xs mt-1">
+                100% state coverage
+              </div>
+            </div>
+            <div className="bg-gradient-to-b from-amber-400/10 to-transparent border border-amber-400/20 rounded-lg p-6 text-center">
+              <div className="text-3xl font-bold text-amber-400 mb-1">~30s</div>
+              <div className="text-gray-400 text-sm">AI Report Time</div>
+              <div className="text-gray-500 text-xs mt-1">
+                Address to valuation
+              </div>
+            </div>
+            <div className="bg-gradient-to-b from-purple-400/10 to-transparent border border-purple-400/20 rounded-lg p-6 text-center">
+              <div className="text-3xl font-bold text-purple-400 mb-1">3</div>
+              <div className="text-gray-400 text-sm">Report Types</div>
+              <div className="text-gray-500 text-xs mt-1">
+                AI, On-Site, Certified
+              </div>
+            </div>
+          </div>
+
+          {/* Validation Points */}
+          <h3 className="text-xl font-semibold text-white mb-4">Validation</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h4 className="text-cyan-400 font-mono text-sm mb-4">
+                PRODUCT VALIDATION
+              </h4>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-lime-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Full MVP operational</span>
+                    <span className="text-gray-500 block text-xs">
+                      All core features implemented and tested
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-lime-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">
+                      AI valuation model trained
+                    </span>
+                    <span className="text-gray-500 block text-xs">
+                      Using Texas CAD data + MLS comparables
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-lime-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">
+                      USPAP-compliant templates
+                    </span>
+                    <span className="text-gray-500 block text-xs">
+                      Certified reports meet lender requirements
+                    </span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h4 className="text-lime-400 font-mono text-sm mb-4">
+                MARKET VALIDATION
+              </h4>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-lime-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">$15B TAM in Texas alone</span>
+                    <span className="text-gray-500 block text-xs">
+                      10M+ properties, growing 3% annually
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-lime-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Clear pain point</span>
+                    <span className="text-gray-500 block text-xs">
+                      2-4 week wait times frustrate investors
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-lime-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-white">Appraiser shortage</span>
+                    <span className="text-gray-500 block text-xs">
+                      40% decline in licensed appraisers since 2008
+                    </span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Next Milestones */}
+          <h3 className="text-xl font-semibold text-white mb-4">
+            Next Milestones
+          </h3>
+          <div className="bg-gradient-to-r from-lime-400/10 to-transparent border-l-4 border-lime-400 p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div>
+                <div className="text-lime-400 font-mono text-xs mb-2">
+                  Q1 2026
+                </div>
+                <h4 className="text-white font-semibold mb-1">Beta Launch</h4>
+                <p className="text-gray-400 text-sm">
+                  First 100 paying users, appraiser network onboarding
+                </p>
+              </div>
+              <div>
+                <div className="text-cyan-400 font-mono text-xs mb-2">
+                  Q2 2026
+                </div>
+                <h4 className="text-white font-semibold mb-1">
+                  Revenue Target
+                </h4>
+                <p className="text-gray-400 text-sm">
+                  $50K MRR, 500 active subscribers
+                </p>
+              </div>
+              <div>
+                <div className="text-amber-400 font-mono text-xs mb-2">
+                  Q4 2026
+                </div>
+                <h4 className="text-white font-semibold mb-1">
+                  Series A Ready
+                </h4>
+                <p className="text-gray-400 text-sm">
+                  $500K ARR, 2,000+ users, second state expansion
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -2643,6 +2923,39 @@ export default function DocsPage() {
                 </li>
               </ul>
             </div>
+          </div>
+        </section>
+
+        {/* ==================== CALL TO ACTION ==================== */}
+        <section className="mb-20 scroll-mt-20">
+          <div className="bg-gradient-to-r from-lime-400/20 via-cyan-400/20 to-lime-400/20 border border-lime-400/30 rounded-lg p-8 md:p-12 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Ready to Transform Property Valuation?
+            </h2>
+            <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+              Join the future of real estate appraisals. Get instant AI
+              valuations, professional on-site reports, and USPAP-certified
+              appraisals - all in one platform.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+              <a
+                href="/register"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-lime-400 text-black font-semibold rounded-lg hover:bg-lime-300 transition-colors"
+              >
+                Start Free Trial
+                <ChevronRight className="w-5 h-5" />
+              </a>
+              <a
+                href="mailto:contact@truplat.com"
+                className="inline-flex items-center gap-2 px-8 py-4 border border-gray-600 text-white font-semibold rounded-lg hover:border-gray-500 transition-colors"
+              >
+                Contact Us
+              </a>
+            </div>
+            <p className="text-gray-500 text-sm">
+              5 free AI reports monthly · No credit card required · Cancel
+              anytime
+            </p>
           </div>
         </section>
 
