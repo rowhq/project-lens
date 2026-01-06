@@ -53,7 +53,7 @@ export function HeroSection() {
             </Button>
           </Link>
           <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            3 free AI reports included
+            5 free AI reports every month
           </span>
         </div>
 

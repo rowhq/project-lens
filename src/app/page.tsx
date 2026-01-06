@@ -8,23 +8,13 @@ import Image from "next/image";
 import {
   HeroSection,
   ComparisonTable,
-  StatsBlock,
   CTASection,
   TrustBadges,
   StickyMobileCTA,
 } from "@/modules/marketing/components";
 import { LedgerHeader } from "@/shared/components/layout/LedgerHeader";
 import { Button } from "@/shared/components/ui/Button";
-import { PRICING } from "@/shared/config/constants";
-import {
-  Zap,
-  Camera,
-  Award,
-  Check,
-  Clock,
-  ArrowRight,
-  Gift,
-} from "lucide-react";
+import { Zap, Award, Check, Clock, ArrowRight, Gift } from "lucide-react";
 
 export default function LandingPage() {
   const navItems = [
@@ -75,8 +65,8 @@ export default function LandingPage() {
               />
               <StepCard
                 number={2}
-                title="Pick Your Report"
-                description={`Free (5/mo), AI ($${PRICING.AI_REPORT}), Verified ($${PRICING.ON_SITE}), or Certified ($${PRICING.CERTIFIED}). Pick what fits.`}
+                title="Pick Your Plan"
+                description="Free (5 reports/mo), Pro ($99/mo), or Enterprise ($299/mo). Upgrade anytime."
               />
               <StepCard
                 number={3}
@@ -88,10 +78,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 3. Stats Block */}
-      <StatsBlock />
-
-      {/* 4. Trust Badges */}
+      {/* 3. Trust Badges */}
       <div className="relative z-10 py-8">
         <TrustBadges />
       </div>
@@ -111,13 +98,13 @@ export default function LandingPage() {
               Pick Your Speed
             </h2>
             <p className="mt-4 text-lg text-gray-400">
-              From instant AI to certified appraisals. Pay per report.
+              From free starter to unlimited enterprise. Simple monthly plans.
             </p>
           </div>
 
           {/* Pricing Cards - Popular elevated */}
-          <div className="mx-auto max-w-6xl">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:items-center pt-6">
+          <div className="mx-auto max-w-5xl">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:items-center pt-6">
               {/* Free tier */}
               <PricingCard
                 icon={Gift}
@@ -134,52 +121,36 @@ export default function LandingPage() {
                 ]}
               />
 
-              {/* AI Report - Basic tier */}
+              {/* Professional - Popular tier */}
               <PricingCard
                 icon={Zap}
-                tier="fastest"
-                name="AI Report"
-                price={PRICING.AI_REPORT}
-                turnaround="5 min"
-                useCase="Quick decisions & deal screening"
-                features={[
-                  "Unlimited AI Reports",
-                  "Comparable analysis",
-                  "Risk flags",
-                  "PDF download",
-                ]}
-              />
-
-              {/* On-Site - Popular tier */}
-              <PricingCard
-                icon={Camera}
                 tier="popular"
-                name="Verified"
-                price={PRICING.ON_SITE}
-                turnaround="48 hrs"
-                useCase="Refinancing & HELOCs"
+                name="Professional"
+                price={99}
+                turnaround="5 min"
+                useCase="Growing teams & investors"
                 features={[
-                  "Everything in AI Report",
-                  "Physical inspection",
-                  "Geotagged photos",
-                  "Condition assessment",
+                  "50 AI Reports/month",
+                  "On-Site Verification available",
+                  "Priority support",
+                  "API access",
                 ]}
                 popular
               />
 
-              {/* Certified - Premium tier */}
+              {/* Enterprise - Premium tier */}
               <PricingCard
                 icon={Award}
                 tier="premium"
-                name="Certified"
-                price={PRICING.CERTIFIED}
-                turnaround="5-7 days"
-                useCase="Purchase loans & litigation"
+                name="Enterprise"
+                price={299}
+                turnaround="Priority"
+                useCase="High-volume lenders & brokerages"
                 features={[
-                  "Everything in Verified",
-                  "Licensed appraiser",
-                  "USPAP compliant",
-                  "Court admissible",
+                  "Unlimited AI Reports",
+                  "All report types included",
+                  "Dedicated support",
+                  "Custom integrations",
                 ]}
               />
             </div>
@@ -188,7 +159,7 @@ export default function LandingPage() {
             <div className="mt-12 flex flex-wrap justify-center gap-8 py-6 border-t border-gray-800">
               <div className="flex items-center gap-2 text-sm text-gray-400">
                 <Check className="w-4 h-4 text-lime-400" />
-                <span>No subscriptions</span>
+                <span>Cancel anytime</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-400">
                 <Check className="w-4 h-4 text-lime-400" />
@@ -196,7 +167,7 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-400">
                 <Check className="w-4 h-4 text-lime-400" />
-                <span>Volume discounts available</span>
+                <span>Free tier forever</span>
               </div>
             </div>
           </div>
@@ -619,7 +590,7 @@ function PricingCard({
                     ${price}
                   </span>
                   <span className="text-gray-500 font-mono text-sm">
-                    /report
+                    /month
                   </span>
                 </>
               )}
