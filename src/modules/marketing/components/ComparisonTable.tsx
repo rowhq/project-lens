@@ -1,43 +1,30 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import {
-  Check,
-  ChevronDown,
-  Zap,
-  DollarSign,
-  Database,
-  Quote,
-} from "lucide-react";
+import { Check, ChevronDown, Zap, DollarSign, Database } from "lucide-react";
 
 // Hero stat data - the 3 most impactful differentiators
 const heroStats = [
   {
     icon: Zap,
-    multiplier: "10x",
-    label: "Faster",
-    comparison: "24hrs vs 2 weeks",
-    quote: "Turnaround dropped from weeks to 24 hours. Game changer.",
-    author: "Sarah M.",
-    company: "Texas Home Loans",
+    multiplier: "5",
+    label: "Minutes",
+    comparison: "AI Report Generation",
+    description: "Get instant property valuations with AI-powered analysis.",
   },
   {
     icon: DollarSign,
-    multiplier: "80%",
-    label: "Cheaper",
-    comparison: "$75 vs $400+",
-    quote: "Cut our appraisal costs dramatically without sacrificing quality.",
-    author: "Michael C.",
-    company: "Lone Star Investments",
+    multiplier: "0",
+    label: "To Start",
+    comparison: "5 Free Reports/Month",
+    description: "Try TruPlat free. Upgrade when you need more volume.",
   },
   {
     icon: Database,
     multiplier: "50+",
     label: "Data Sources",
-    comparison: "vs 3-5 comps",
-    quote: "The depth of analysis catches risks we would have missed.",
-    author: "Jennifer R.",
-    company: "Hill Country Bank",
+    comparison: "vs 3-5 Traditional Comps",
+    description: "Comprehensive analysis using multiple data providers.",
   },
 ];
 
@@ -52,18 +39,26 @@ const exclusiveFeatures = [
 // Full comparison data for expandable section
 const fullComparisonData = [
   {
-    aspect: "Turnaround Time",
+    aspect: "AI Report",
+    traditional: "Not available",
+    truplat: "5 minutes",
+  },
+  {
+    aspect: "On-Site Inspection",
     traditional: "2-3 weeks",
     truplat: "24-48 hours",
   },
-  { aspect: "Starting Cost", traditional: "$400-800", truplat: "From $75" },
+  {
+    aspect: "Starting Cost",
+    traditional: "$400-800",
+    truplat: "Free tier available",
+  },
   { aspect: "Data Points", traditional: "3-5 comps", truplat: "50+ sources" },
   {
     aspect: "Consistency",
     traditional: "Variable",
     truplat: "Standardized AI",
   },
-  { aspect: "Updates", traditional: "Manual re-order", truplat: "Real-time" },
   { aspect: "GPS Evidence", traditional: "No", truplat: "Yes" },
   { aspect: "Instant Reports", traditional: "No", truplat: "Yes" },
 ];
@@ -100,7 +95,7 @@ function useCountUp(
   return count;
 }
 
-// Hero Stat Card with integrated testimonial
+// Hero Stat Card
 function HeroStatCard({
   stat,
   isVisible,
@@ -129,7 +124,7 @@ function HeroStatCard({
       <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
       <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
 
-      {/* Top section - Stat */}
+      {/* Stat content */}
       <div className="p-6 text-center">
         {/* Icon */}
         <div className="w-10 h-10 mx-auto mb-3 bg-lime-500/10 border border-lime-500/30 clip-notch-sm flex items-center justify-center">
@@ -138,6 +133,7 @@ function HeroStatCard({
 
         {/* Multiplier - animated */}
         <div className="text-4xl sm:text-5xl font-bold text-lime-400 mb-1">
+          {stat.multiplier === "0" ? "$" : ""}
           {count}
           {suffix}
         </div>
@@ -148,24 +144,14 @@ function HeroStatCard({
         </div>
 
         {/* Comparison */}
-        <div className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        <div className="font-mono text-xs uppercase tracking-wider text-gray-500 mb-3">
           {stat.comparison}
         </div>
-      </div>
 
-      {/* Bottom section - Quote */}
-      <div className="px-5 py-4 bg-gray-950 border-t border-gray-800">
-        <div className="flex gap-2">
-          <Quote className="w-4 h-4 text-lime-400/30 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm text-gray-400 leading-relaxed mb-2">
-              {stat.quote}
-            </p>
-            <p className="font-mono text-xs uppercase tracking-wider text-gray-600">
-              {stat.author} · {stat.company}
-            </p>
-          </div>
-        </div>
+        {/* Description */}
+        <p className="text-sm text-gray-400 leading-relaxed">
+          {stat.description}
+        </p>
       </div>
     </div>
   );
@@ -337,8 +323,8 @@ export function ComparisonTable() {
           }}
         >
           <p className="font-mono text-xs uppercase tracking-wider text-gray-600">
-            Trusted by <span className="text-lime-400">500+</span> lenders
-            across Texas
+            Built for <span className="text-lime-400">Texas</span> real estate
+            professionals
           </p>
         </div>
       </div>
