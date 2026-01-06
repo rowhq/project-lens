@@ -54,40 +54,23 @@ export function LedgerHeader({
 }: LedgerHeaderProps) {
   return (
     <header className={cn("relative w-full bg-[var(--background)]", className)}>
-      {/* Main header row */}
+      {/* Main header row - 3 column layout */}
       <div className="flex items-center justify-between h-16 px-6">
-        {/* Left: Logo + Navigation */}
-        <div className="flex items-center gap-8">
-          <TruPlatLogo />
-
-          {/* Navigation with | separators */}
-          <nav className="hidden lg:flex items-center">
-            {navItems.map((item, index) => (
-              <div key={item.href} className="flex items-center">
-                {/* Separator before item (except first) */}
-                {index > 0 && <span className="w-px h-3 bg-gray-600 mx-6" />}
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "font-mono text-xs uppercase tracking-widest",
-                    "transition-colors duration-300",
-                    item.isActive
-                      ? "text-[var(--foreground)]"
-                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
-                  )}
-                  style={{
-                    transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-                  }}
-                >
-                  {item.label}
-                </Link>
-              </div>
-            ))}
-          </nav>
-        </div>
-
-        {/* Right: Theme toggle + Action button */}
+        {/* Left: Docs + Theme toggle + Action button */}
         <div className="hidden lg:flex items-center gap-4">
+          <Link
+            href="/docs"
+            className={cn(
+              "font-mono text-xs uppercase tracking-widest",
+              "transition-colors duration-300",
+              "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
+            )}
+            style={{
+              transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+            }}
+          >
+            Docs
+          </Link>
           <ThemeToggle />
           <Link href={actionButtonHref}>
             <Button
@@ -100,6 +83,36 @@ export function LedgerHeader({
             </Button>
           </Link>
         </div>
+
+        {/* Center: Logo */}
+        <div className="absolute left-1/2 transform -translate-x-1/2">
+          <TruPlatLogo />
+        </div>
+
+        {/* Right: Navigation with | separators */}
+        <nav className="hidden lg:flex items-center">
+          {navItems.map((item, index) => (
+            <div key={item.href} className="flex items-center">
+              {/* Separator before item (except first) */}
+              {index > 0 && <span className="w-px h-3 bg-gray-600 mx-6" />}
+              <Link
+                href={item.href}
+                className={cn(
+                  "font-mono text-xs uppercase tracking-widest",
+                  "transition-colors duration-300",
+                  item.isActive
+                    ? "text-[var(--foreground)]"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
+                )}
+                style={{
+                  transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+                }}
+              >
+                {item.label}
+              </Link>
+            </div>
+          ))}
+        </nav>
       </div>
 
       {/* Sub-navigation row (optional) */}

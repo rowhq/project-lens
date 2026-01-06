@@ -45,7 +45,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ),
       outline: cn(
         "bg-transparent text-[var(--foreground)]",
-        "hover:bg-lime-500/10 hover:text-lime-500",
+        "hover:bg-lime-500 hover:text-gray-900",
         "border border-[var(--border)] hover:border-lime-500",
         "focus:ring-lime-500/30",
       ),

@@ -18,10 +18,9 @@ import { Zap, Award, Check, Clock, ArrowRight, Gift } from "lucide-react";
 
 export default function LandingPage() {
   const navItems = [
-    { label: "Pricing", href: "#pricing" },
     { label: "How It Works", href: "#how-it-works" },
+    { label: "Pricing", href: "#pricing" },
     { label: "For Appraisers", href: "/for-appraisers" },
-    { label: "Docs", href: "/docs" },
   ];
 
   return (
