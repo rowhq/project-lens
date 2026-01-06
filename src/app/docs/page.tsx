@@ -16,7 +16,6 @@ import {
   CheckCircle,
   Database,
   Globe,
-  Layers,
   ChevronRight,
   DollarSign,
   TrendingUp,
@@ -89,14 +88,8 @@ const sections = [
   },
   // Product & Technical
   {
-    id: "product",
-    label: "Product Overview",
-    icon: Layers,
-    category: "product",
-  },
-  {
     id: "pricing",
-    label: "Pricing & Plans",
+    label: "Pricing",
     icon: DollarSign,
     category: "product",
   },
@@ -741,85 +734,20 @@ export default function DocsPage() {
             color="lime"
           />
 
-          {/* Revenue Model */}
-          <h3 className="text-xl font-semibold text-white mb-4">
-            Revenue Streams
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-              <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-cyan-400" />
-                Add-On Services (Per Report)
-              </h4>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center py-2 border-b border-gray-800">
-                  <span className="text-gray-400">AI Report</span>
-                  <span className="text-lime-400 font-mono">
-                    Included in plan
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-800">
-                  <span className="text-gray-400">On-Site Verification</span>
-                  <span className="text-white font-mono">
-                    ${PRICING.ON_SITE}/report
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-800">
-                  <span className="text-gray-400">Certified Appraisal</span>
-                  <span className="text-white font-mono">
-                    ${PRICING.CERTIFIED}/report
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-400">Rush Fee (1.5x)</span>
-                  <span className="text-amber-400 font-mono">+50%</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-              <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-lime-400" />
-                Subscription (Primary Revenue)
-              </h4>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center py-2 border-b border-gray-800">
-                  <div>
-                    <span className="text-gray-400">Starter</span>
-                    <span className="text-xs text-gray-600 ml-2">
-                      5 reports/mo
-                    </span>
-                  </div>
-                  <span className="text-emerald-400 font-mono">Free</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-800">
-                  <div>
-                    <span className="text-gray-400">Professional</span>
-                    <span className="text-xs text-gray-600 ml-2">
-                      50 reports/mo
-                    </span>
-                  </div>
-                  <span className="text-white font-mono">
-                    ${SUBSCRIPTION_PLANS.PROFESSIONAL.price}/mo
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <div>
-                    <span className="text-gray-400">Enterprise</span>
-                    <span className="text-xs text-gray-600 ml-2">
-                      Unlimited
-                    </span>
-                  </div>
-                  <span className="text-white font-mono">
-                    ${SUBSCRIPTION_PLANS.ENTERPRISE.price}/mo
-                  </span>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-3 italic">
-                Free tier serves as acquisition funnel for paid upgrades. Users
-                hitting 5-report limit see upgrade prompts with value props.
-              </p>
-            </div>
+          {/* Revenue Model Summary */}
+          <div className="bg-gradient-to-r from-lime-400/10 to-transparent border-l-4 border-lime-400 p-6 mb-8">
+            <p className="text-gray-300">
+              <span className="text-white font-semibold">Revenue model:</span>{" "}
+              60% from subscriptions, 25% from On-Site add-ons, 15% from
+              Certified add-ons. See{" "}
+              <button
+                onClick={() => handleSectionClick("pricing")}
+                className="text-lime-400 hover:underline"
+              >
+                Pricing section
+              </button>{" "}
+              for full details.
+            </p>
           </div>
 
           {/* Unit Economics */}
@@ -1875,124 +1803,39 @@ export default function DocsPage() {
           </div>
         </section>
 
-        {/* ==================== PRODUCT OVERVIEW ==================== */}
-        <section id="product" className="mb-20 scroll-mt-20">
-          <SectionHeader
-            icon={Layers}
-            title="Product Overview"
-            subtitle="Core product offerings and capabilities"
-            color="cyan"
-          />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <ProductCard
-              icon={Zap}
-              name="AI Report"
-              priceLabel="Included"
-              time="~30 seconds"
-              color="cyan"
-              features={[
-                "Automated valuation model (AVM)",
-                "Comparable sales analysis",
-                "Market trends & risk flags",
-                "PDF report download",
-                "Confidence score",
-              ]}
-              useCase="Deal screening, Quick estimates"
-            />
-            <ProductCard
-              icon={Camera}
-              name="Verified"
-              price={PRICING.ON_SITE}
-              time="48 hours"
-              color="lime"
-              popular
-              features={[
-                "Everything in AI Report",
-                "Licensed appraiser inspection",
-                "Geotagged property photos",
-                "Condition assessment",
-                "Interior/exterior documentation",
-              ]}
-              useCase="Refinancing, HELOCs"
-            />
-            <ProductCard
-              icon={Award}
-              name="Certified"
-              price={PRICING.CERTIFIED}
-              time="3 days"
-              color="amber"
-              features={[
-                "Everything in Verified",
-                "USPAP compliant",
-                "Court admissible",
-                "Digital signature & lock",
-                "Lender-ready format",
-              ]}
-              useCase="Purchase loans, Litigation"
-            />
-          </div>
-
-          {/* Key Features */}
-          <h3 className="text-xl font-semibold text-white mb-4">
-            Key Platform Features
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FeatureCard
-              icon={Map}
-              title="Interactive Property Map"
-              description="Search any Texas address, view property details, and order valuations directly from the map interface."
-            />
-            <FeatureCard
-              icon={TrendingUp}
-              title="Comparable Analysis"
-              description="AI-powered selection of comparable sales with adjustments for size, condition, and location."
-            />
-            <FeatureCard
-              icon={Shield}
-              title="Risk Assessment"
-              description="Automated detection of flood zones, title issues, market volatility, and other risk factors."
-            />
-            <FeatureCard
-              icon={Users}
-              title="Appraiser Marketplace"
-              description="Network of licensed Texas appraisers with automated dispatch based on location and availability."
-            />
-          </div>
-        </section>
-
         {/* ==================== PRICING ==================== */}
         <section id="pricing" className="mb-20 scroll-mt-20">
           <SectionHeader
             icon={DollarSign}
-            title="Pricing & Plans"
-            subtitle="Simple subscription pricing with AI reports included"
+            title="Pricing"
+            subtitle="Simple pricing with no hidden fees"
             color="cyan"
           />
 
           {/* How it works */}
           <div className="bg-gradient-to-r from-cyan-400/10 to-transparent border-l-4 border-cyan-400 p-6 mb-8">
             <p className="text-gray-300">
-              <span className="text-white font-semibold">Modelo simple:</span>{" "}
-              Elige un plan mensual que incluye AI Reports. On-Site y Certified
-              siempre se pagan adicional por reporte.
+              <span className="text-white font-semibold">Simple model:</span>{" "}
+              Pick a monthly plan for AI Reports. Add professional services when
+              you need them.
             </p>
           </div>
 
-          {/* Subscription Plans */}
+          {/* Monthly Plans */}
           <h3 className="text-xl font-semibold text-white mb-4">
-            Planes Mensuales
+            Monthly Plans
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {/* Starter */}
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <h4 className="text-white font-semibold mb-2">
                 {SUBSCRIPTION_PLANS.STARTER.name}
               </h4>
-              <div className="text-2xl font-bold text-white mb-4">
+              <div className="text-3xl font-bold text-white mb-1">
                 ${SUBSCRIPTION_PLANS.STARTER.price}
-                <span className="text-sm text-gray-500">/mo</span>
+                <span className="text-sm text-gray-500 font-normal">/mo</span>
               </div>
-              <div className="text-sm text-gray-400 mb-4">
+              <div className="text-sm text-lime-400 mb-4">
                 {SUBSCRIPTION_PLANS.STARTER.reportsPerMonth} AI reports/month
               </div>
               <ul className="space-y-2">
@@ -2007,15 +1850,22 @@ export default function DocsPage() {
                 ))}
               </ul>
             </div>
-            <div className="bg-gray-900 border border-lime-400/30 rounded-lg p-6">
+
+            {/* Professional - Most Popular */}
+            <div className="bg-gray-900 border-2 border-lime-400 rounded-lg p-6 relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-lime-400 text-black text-xs font-bold px-3 py-1 rounded-full uppercase">
+                  Most Popular
+                </span>
+              </div>
               <h4 className="text-white font-semibold mb-2">
                 {SUBSCRIPTION_PLANS.PROFESSIONAL.name}
               </h4>
-              <div className="text-2xl font-bold text-white mb-4">
+              <div className="text-3xl font-bold text-white mb-1">
                 ${SUBSCRIPTION_PLANS.PROFESSIONAL.price}
-                <span className="text-sm text-gray-500">/mo</span>
+                <span className="text-sm text-gray-500 font-normal">/mo</span>
               </div>
-              <div className="text-sm text-gray-400 mb-4">
+              <div className="text-sm text-lime-400 mb-4">
                 {SUBSCRIPTION_PLANS.PROFESSIONAL.reportsPerMonth} AI
                 reports/month
               </div>
@@ -2031,15 +1881,17 @@ export default function DocsPage() {
                 ))}
               </ul>
             </div>
+
+            {/* Enterprise */}
             <div className="bg-gray-900 border border-amber-400/30 rounded-lg p-6">
               <h4 className="text-white font-semibold mb-2">
                 {SUBSCRIPTION_PLANS.ENTERPRISE.name}
               </h4>
-              <div className="text-2xl font-bold text-white mb-4">
+              <div className="text-3xl font-bold text-white mb-1">
                 ${SUBSCRIPTION_PLANS.ENTERPRISE.price}
-                <span className="text-sm text-gray-500">/mo</span>
+                <span className="text-sm text-gray-500 font-normal">/mo</span>
               </div>
-              <div className="text-sm text-gray-400 mb-4">
+              <div className="text-sm text-amber-400 mb-4">
                 Unlimited AI reports
               </div>
               <ul className="space-y-2">
@@ -2056,54 +1908,90 @@ export default function DocsPage() {
             </div>
           </div>
 
-          {/* Additional Report Types */}
-          <h3 className="text-xl font-semibold text-white mb-4 mt-8">
-            Reportes Adicionales (Pay per Report)
+          {/* Add-On Services */}
+          <h3 className="text-xl font-semibold text-white mb-2 mt-8">
+            Add-On Services
           </h3>
           <p className="text-gray-400 text-sm mb-4">
-            On-Site y Certified siempre se pagan adicional, sin importar tu
-            plan.
+            Need human verification? Add professional services to any plan:
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            <div className="bg-gray-900 border border-lime-400/30 rounded-lg p-6 flex justify-between items-center">
-              <div>
-                <h4 className="text-lime-400 font-semibold">
-                  On-Site Verification
-                </h4>
-                <p className="text-gray-400 text-sm">
-                  Inspección con fotos • 48hr SLA
-                </p>
+            {/* On-Site Verification */}
+            <div className="bg-gray-900 border border-lime-400/30 rounded-lg p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h4 className="text-lime-400 font-semibold text-lg">
+                    On-Site Verification
+                  </h4>
+                  <p className="text-gray-500 text-sm">48-hour turnaround</p>
+                </div>
+                <div className="text-2xl font-bold text-white">
+                  +${PRICING.ON_SITE}
+                </div>
               </div>
-              <div className="text-2xl font-bold text-white">
-                ${PRICING.ON_SITE}
-              </div>
+              <ul className="space-y-2">
+                <li className="flex items-center gap-2 text-sm text-gray-300">
+                  <CheckCircle className="w-4 h-4 text-lime-400" />
+                  Licensed appraiser visit
+                </li>
+                <li className="flex items-center gap-2 text-sm text-gray-300">
+                  <CheckCircle className="w-4 h-4 text-lime-400" />
+                  Geotagged photo evidence
+                </li>
+                <li className="flex items-center gap-2 text-sm text-gray-300">
+                  <CheckCircle className="w-4 h-4 text-lime-400" />
+                  Condition assessment
+                </li>
+                <li className="flex items-center gap-2 text-sm text-gray-300">
+                  <CheckCircle className="w-4 h-4 text-lime-400" />
+                  Interior/exterior documentation
+                </li>
+              </ul>
             </div>
-            <div className="bg-gray-900 border border-amber-400/30 rounded-lg p-6 flex justify-between items-center">
-              <div>
-                <h4 className="text-amber-400 font-semibold">
-                  Certified Appraisal
-                </h4>
-                <p className="text-gray-400 text-sm">
-                  USPAP compliant • 3 días
-                </p>
+
+            {/* Certified Appraisal */}
+            <div className="bg-gray-900 border border-amber-400/30 rounded-lg p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h4 className="text-amber-400 font-semibold text-lg">
+                    Certified Appraisal
+                  </h4>
+                  <p className="text-gray-500 text-sm">3-day turnaround</p>
+                </div>
+                <div className="text-2xl font-bold text-white">
+                  +${PRICING.CERTIFIED}
+                </div>
               </div>
-              <div className="text-2xl font-bold text-white">
-                ${PRICING.CERTIFIED}
-              </div>
+              <ul className="space-y-2">
+                <li className="flex items-center gap-2 text-sm text-gray-300">
+                  <CheckCircle className="w-4 h-4 text-amber-400" />
+                  USPAP compliant
+                </li>
+                <li className="flex items-center gap-2 text-sm text-gray-300">
+                  <CheckCircle className="w-4 h-4 text-amber-400" />
+                  Court admissible
+                </li>
+                <li className="flex items-center gap-2 text-sm text-gray-300">
+                  <CheckCircle className="w-4 h-4 text-amber-400" />
+                  Digital signature & lock
+                </li>
+                <li className="flex items-center gap-2 text-sm text-gray-300">
+                  <CheckCircle className="w-4 h-4 text-amber-400" />
+                  Lender-ready format
+                </li>
+              </ul>
             </div>
           </div>
 
-          {/* Overage Pricing */}
+          {/* Free Tier Note */}
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
             <h4 className="text-white font-semibold mb-2">
-              ¿Qué pasa si excedo mi límite de AI Reports?
+              Why offer a free tier?
             </h4>
             <p className="text-gray-400 text-sm">
-              Puedes{" "}
-              <span className="text-lime-400 font-semibold">
-                actualizar tu plan
-              </span>{" "}
-              para obtener más reportes. Enterprise tiene reportes ilimitados.
+              The Starter plan lets users experience TruPlat before committing.
+              When they hit the 5-report limit, they see upgrade prompts with
+              clear value propositions. This drives conversions to paid plans.
             </p>
           </div>
         </section>
@@ -2830,71 +2718,6 @@ function MetricCard({
           {change}
         </div>
       )}
-    </div>
-  );
-}
-
-function ProductCard({
-  icon: Icon,
-  name,
-  price,
-  priceLabel,
-  time,
-  color,
-  popular,
-  features,
-  useCase,
-}: {
-  icon: React.ElementType;
-  name: string;
-  price?: number;
-  priceLabel?: string;
-  time: string;
-  color: "cyan" | "lime" | "amber";
-  popular?: boolean;
-  features: string[];
-  useCase: string;
-}) {
-  const colorClasses = {
-    cyan: "border-cyan-400/30 text-cyan-400",
-    lime: "border-lime-400/30 text-lime-400",
-    amber: "border-amber-400/30 text-amber-400",
-  };
-
-  return (
-    <div
-      className={`bg-gray-900 border rounded-lg p-6 relative ${popular ? "border-lime-400" : "border-gray-800"}`}
-    >
-      {popular && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="px-2 py-1 bg-lime-400 text-black text-xs font-mono rounded">
-            POPULAR
-          </span>
-        </div>
-      )}
-      <div className="flex items-center gap-3 mb-4">
-        <div
-          className={`w-10 h-10 rounded-lg flex items-center justify-center border ${colorClasses[color]}`}
-        >
-          <Icon className="w-5 h-5" />
-        </div>
-        <div>
-          <h4 className="font-semibold text-white">{name}</h4>
-          <div className="text-gray-500 text-xs">{time}</div>
-        </div>
-      </div>
-      <div className="text-3xl font-bold text-white mb-2">
-        {priceLabel || (price !== undefined ? `$${price}` : "")}
-      </div>
-      <div className="text-gray-500 text-sm mb-4">{useCase}</div>
-      <ul className="space-y-2">
-        {features.map((f, i) => (
-          <li key={i} className="flex items-center gap-2 text-sm text-gray-400">
-            <CheckCircle className="w-4 h-4 text-gray-600" />
-            {f}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
