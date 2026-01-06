@@ -30,24 +30,32 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
+    // For outline variant, we use notch-border wrapper technique
+    // The button background IS the border, inner span has the actual background
+    const isOutline = variant === "outline";
+
     const variants = {
       primary: cn(
         "bg-[var(--foreground)] text-[var(--background)]",
         "hover:bg-lime-500 hover:text-gray-900",
-        "border border-[var(--foreground)] hover:border-lime-500",
         "focus:ring-[var(--foreground)]/30",
       ),
       secondary: cn(
         "bg-[var(--secondary)] text-[var(--secondary-foreground)]",
         "hover:bg-[var(--muted)]",
-        "border border-[var(--border)] hover:border-[var(--muted-foreground)]",
         "focus:ring-[var(--muted-foreground)]/30",
       ),
+      // Outline uses notch-border technique - background IS the border color
       outline: cn(
-        "bg-transparent text-[var(--foreground)]",
-        "hover:bg-lime-500 hover:text-gray-900",
-        "border border-[var(--border)] hover:border-lime-500",
+        "text-[var(--foreground)]",
+        "hover:text-gray-900",
         "focus:ring-lime-500/30",
+        // Border color as background (shows through as border)
+        "[--notch-border-color:var(--border)]",
+        "hover:[--notch-border-color:theme(colors.lime.500)]",
+        // Inner background
+        "[--notch-bg:var(--background)]",
+        "hover:[--notch-bg:theme(colors.lime.500)]",
       ),
       ghost: cn(
         "bg-transparent text-[var(--muted-foreground)]",
@@ -57,23 +65,34 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       danger: cn(
         "bg-red-600 text-white",
         "hover:bg-red-700",
-        "border border-red-600 hover:border-red-700",
         "focus:ring-red-500/30",
       ),
       lime: cn(
         "bg-lime-500 text-gray-900",
         "hover:bg-lime-400",
-        "border border-lime-500 hover:border-lime-400",
         "focus:ring-lime-500/30",
       ),
     };
 
-    // Sizes: lg (56px/16px - standard), md (48px/14px), sm (32px/12px)
-    // All buttons get clip-notch for Ledger style
+    // Sizes with clip-notch classes
+    // For outline, we use notch-border instead of clip-notch
     const sizes = {
-      sm: "h-8 px-4 text-xs clip-notch-sm", // 32px height, 12px font
-      md: "h-12 px-5 text-sm clip-notch", // 48px height, 14px font
-      lg: "h-14 px-6 text-base clip-notch", // 56px height, 16px font (standard)
+      sm: isOutline
+        ? "h-8 px-4 text-xs notch-border-sm"
+        : "h-8 px-4 text-xs clip-notch-sm",
+      md: isOutline
+        ? "h-12 px-5 text-sm notch-border-sm"
+        : "h-12 px-5 text-sm clip-notch",
+      lg: isOutline
+        ? "h-14 px-6 text-base notch-border"
+        : "h-14 px-6 text-base clip-notch",
+    };
+
+    // Inner span classes for outline variant (the actual background)
+    const innerClasses = {
+      sm: "notch-border-sm-inner",
+      md: "notch-border-sm-inner",
+      lg: "notch-border-inner",
     };
 
     return (
@@ -103,22 +122,45 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {/* Optional L-bracket corners - only when explicitly requested */}
         {withBrackets && <LedgerCorners color="gray" size="sm" />}
 
-        {/* Content */}
-        <span className="relative z-10 flex items-center gap-2">
-          {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : leftIcon ? (
-            <span className="flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
-              {leftIcon}
+        {/* For outline variant, use inner span with background */}
+        {isOutline ? (
+          <span
+            className={cn(innerClasses[size], "transition-all duration-300")}
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : leftIcon ? (
+                <span className="flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
+                  {leftIcon}
+                </span>
+              ) : null}
+              <span>{children}</span>
+              {rightIcon && !isLoading && (
+                <span className="flex-shrink-0 transition-transform duration-300 group-hover:translate-x-0.5">
+                  {rightIcon}
+                </span>
+              )}
             </span>
-          ) : null}
-          <span>{children}</span>
-          {rightIcon && !isLoading && (
-            <span className="flex-shrink-0 transition-transform duration-300 group-hover:translate-x-0.5">
-              {rightIcon}
-            </span>
-          )}
-        </span>
+          </span>
+        ) : (
+          /* Standard content for non-outline variants */
+          <span className="relative z-10 flex items-center gap-2">
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : leftIcon ? (
+              <span className="flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
+                {leftIcon}
+              </span>
+            ) : null}
+            <span>{children}</span>
+            {rightIcon && !isLoading && (
+              <span className="flex-shrink-0 transition-transform duration-300 group-hover:translate-x-0.5">
+                {rightIcon}
+              </span>
+            )}
+          </span>
+        )}
       </button>
     );
   },

@@ -300,6 +300,78 @@ body {
   );
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   NOTCHED BORDERS - Border that follows clip-path shape
+   Uses wrapper technique: outer = border color, inner = background
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Notched border wrapper - apply to outer element */
+.notch-border {
+  --notch-border-width: 1px;
+  --notch-border-color: var(--border);
+  position: relative;
+  background: var(--notch-border-color);
+  clip-path: polygon(
+    0 var(--clip-size),
+    var(--clip-size) 0,
+    100% 0,
+    100% calc(100% - var(--clip-size)),
+    calc(100% - var(--clip-size)) 100%,
+    0 100%
+  );
+}
+
+.notch-border-sm {
+  --notch-border-width: 1px;
+  --notch-border-color: var(--border);
+  position: relative;
+  background: var(--notch-border-color);
+  clip-path: polygon(
+    0 var(--clip-size-sm),
+    var(--clip-size-sm) 0,
+    100% 0,
+    100% calc(100% - var(--clip-size-sm)),
+    calc(100% - var(--clip-size-sm)) 100%,
+    0 100%
+  );
+}
+
+/* Inner content - fills the wrapper minus border width */
+.notch-border-inner,
+.notch-border-sm-inner {
+  position: absolute;
+  inset: var(--notch-border-width, 1px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notch-border-inner {
+  --inner-clip: calc(var(--clip-size) - var(--notch-border-width) * 0.586);
+  background: var(--notch-bg, var(--background));
+  clip-path: polygon(
+    0 var(--inner-clip),
+    var(--inner-clip) 0,
+    100% 0,
+    100% calc(100% - var(--inner-clip)),
+    calc(100% - var(--inner-clip)) 100%,
+    0 100%
+  );
+}
+
+.notch-border-sm-inner {
+  --inner-clip: calc(var(--clip-size-sm) - var(--notch-border-width) * 0.586);
+  background: var(--notch-bg, var(--background));
+  clip-path: polygon(
+    0 var(--inner-clip),
+    var(--inner-clip) 0,
+    100% 0,
+    100% calc(100% - var(--inner-clip)),
+    calc(100% - var(--inner-clip)) 100%,
+    0 100%
+  );
+}
+
 /* Top-left corner only */
 .clip-corner-tl {
   clip-path: polygon(
