@@ -16,8 +16,8 @@ export function CTASection() {
           transition={{ duration: 0.5 }}
           className="relative overflow-hidden clip-notch-lg"
         >
-          {/* Dark gradient background - Ledger style */}
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black" />
+          {/* Gradient background - uses CSS variables */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--card)] via-[var(--background)] to-[var(--background)]" />
 
           {/* Grid Pattern Overlay - Ledger style */}
           <div className="absolute inset-0 grid-pattern opacity-50" />
@@ -32,37 +32,37 @@ export function CTASection() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-lime-400/50 to-transparent" />
 
           {/* Content */}
-          <div className="relative px-8 py-16 md:px-16 md:py-24 text-center border border-gray-800">
+          <div className="relative px-8 py-16 md:px-16 md:py-24 text-center border border-[var(--border)]">
             <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
               Start Today
             </p>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+            <h2 className="text-3xl md:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
               Ready to Speed Up
               <br />
               <span className="text-lime-400">Your Lending?</span>
             </h2>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-10">
+            <p className="text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto mb-10">
               Join 500+ lenders who&apos;ve made the switch to faster, smarter
               valuations.
             </p>
 
             {/* Benefits - Ledger style badges */}
             <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700 clip-notch-sm">
+              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--muted)]/50 border border-[var(--border)] clip-notch-sm">
                 <Zap className="w-4 h-4 text-lime-400" />
-                <span className="font-mono text-xs uppercase tracking-wider text-gray-300">
+                <span className="font-mono text-xs uppercase tracking-wider text-[var(--foreground)]">
                   5-min AI Reports
                 </span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700 clip-notch-sm">
+              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--muted)]/50 border border-[var(--border)] clip-notch-sm">
                 <Clock className="w-4 h-4 text-lime-400" />
-                <span className="font-mono text-xs uppercase tracking-wider text-gray-300">
+                <span className="font-mono text-xs uppercase tracking-wider text-[var(--foreground)]">
                   48hr On-Site
                 </span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700 clip-notch-sm">
+              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--muted)]/50 border border-[var(--border)] clip-notch-sm">
                 <Shield className="w-4 h-4 text-lime-400" />
-                <span className="font-mono text-xs uppercase tracking-wider text-gray-300">
+                <span className="font-mono text-xs uppercase tracking-wider text-[var(--foreground)]">
                   Bank-Ready
                 </span>
               </div>
@@ -79,7 +79,7 @@ export function CTASection() {
                   Start Free Trial
                 </Button>
               </Link>
-              <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+              <p className="font-mono text-xs uppercase tracking-wider text-[var(--muted-foreground)]">
                 3 free AI reports • No credit card required
               </p>
             </div>

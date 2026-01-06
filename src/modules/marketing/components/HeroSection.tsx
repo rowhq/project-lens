@@ -22,20 +22,20 @@ export function HeroSection() {
         {/* Badge */}
         <div className="inline-flex items-center gap-3 px-4 py-2 clip-notch-sm border border-lime-400/30 mb-8">
           <span className="w-1.5 h-1.5 bg-lime-400 animate-pulse" />
-          <span className="font-mono text-xs uppercase tracking-wider text-gray-400">
+          <span className="font-mono text-xs uppercase tracking-wider text-[var(--muted-foreground)]">
             Now Live in Texas
           </span>
         </div>
 
         {/* Main heading */}
         <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-          <span className="text-white">Property Values</span>
+          <span className="text-[var(--foreground)]">Property Values</span>
           <br />
           <span className="text-lime-400">in Minutes, Not Weeks</span>
         </h1>
 
         {/* Subheading */}
-        <p className="text-xl sm:text-2xl text-gray-400 max-w-3xl mx-auto mb-10">
+        <p className="text-xl sm:text-2xl text-[var(--muted-foreground)] max-w-3xl mx-auto mb-10">
           From address to value in 30 seconds.
           <br className="hidden sm:block" />
           Close deals faster. Decide with confidence.
@@ -52,28 +52,28 @@ export function HeroSection() {
               Start Free Trial
             </Button>
           </Link>
-          <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
+          <span className="font-mono text-xs uppercase tracking-wider text-[var(--muted-foreground)]">
             5 free AI reports every month
           </span>
         </div>
 
         {/* Feature pills */}
         <div className="flex flex-wrap justify-center gap-4">
-          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-gray-800 bg-gray-900/50">
+          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-[var(--border)] bg-[var(--card)]/50">
             <Zap className="w-4 h-4 text-lime-400" />
-            <span className="font-mono text-xs uppercase tracking-wider text-white">
+            <span className="font-mono text-xs uppercase tracking-wider text-[var(--foreground)]">
               30-sec AI Reports
             </span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-gray-800 bg-gray-900/50">
+          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-[var(--border)] bg-[var(--card)]/50">
             <Shield className="w-4 h-4 text-lime-400" />
-            <span className="font-mono text-xs uppercase tracking-wider text-white">
+            <span className="font-mono text-xs uppercase tracking-wider text-[var(--foreground)]">
               USPAP Compliant
             </span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-gray-800 bg-gray-900/50">
+          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-[var(--border)] bg-[var(--card)]/50">
             <Clock className="w-4 h-4 text-lime-400" />
-            <span className="font-mono text-xs uppercase tracking-wider text-white">
+            <span className="font-mono text-xs uppercase tracking-wider text-[var(--foreground)]">
               48hr On-Site
             </span>
           </div>
@@ -82,7 +82,7 @@ export function HeroSection() {
 
       {/* Bottom fade */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent"
+        className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[var(--background)] to-transparent"
         aria-hidden="true"
       />
     </section>

@@ -82,7 +82,7 @@ function StatCard({ stat, isVisible }: { stat: Stat; isVisible: boolean }) {
 
   return (
     <div
-      className="group relative flex flex-col items-center p-8 clip-notch bg-gray-900 border border-gray-800 hover:border-lime-500/50 transition-all"
+      className="group relative flex flex-col items-center p-8 clip-notch bg-[var(--card)] border border-[var(--border)] hover:border-lime-500/50 transition-all"
       style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
     >
       {/* L-bracket corners */}
@@ -92,12 +92,12 @@ function StatCard({ stat, isVisible }: { stat: Stat; isVisible: boolean }) {
       <div className="w-12 h-12 clip-notch-sm bg-lime-500/10 border border-lime-500/30 flex items-center justify-center mb-4">
         <Icon className="w-6 h-6 text-lime-400" />
       </div>
-      <div className="text-4xl sm:text-5xl font-bold text-white mb-2">
+      <div className="text-4xl sm:text-5xl font-bold text-[var(--foreground)] mb-2">
         {stat.prefix}
         {formattedValue}
         {stat.suffix}
       </div>
-      <div className="font-mono text-xs uppercase tracking-wider text-gray-500 text-center">
+      <div className="font-mono text-xs uppercase tracking-wider text-[var(--muted-foreground)] text-center">
         {stat.label}
       </div>
     </div>
@@ -140,10 +140,10 @@ export function StatsBlock() {
           <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
             Platform Metrics
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4">
             Trusted by Leading Lenders
           </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+          <p className="text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto">
             Our AI-powered platform delivers consistent, accurate valuations at
             unprecedented speed.
           </p>

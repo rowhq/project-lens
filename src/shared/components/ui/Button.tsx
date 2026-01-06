@@ -33,7 +33,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const variants = {
       primary: cn(
         "bg-[var(--foreground)] text-[var(--background)]",
-        "hover:bg-lime-500 hover:text-gray-900",
+        "hover:bg-lime-500 hover:!text-black",
         "border border-[var(--foreground)] hover:border-lime-500",
         "focus:ring-[var(--foreground)]/30",
       ),
@@ -45,7 +45,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ),
       outline: cn(
         "bg-transparent text-[var(--foreground)]",
-        "hover:bg-lime-500 hover:text-gray-900",
+        "hover:bg-lime-500 hover:!text-black",
         "border border-[var(--border)] hover:border-lime-500",
         "focus:ring-lime-500/30",
       ),
@@ -61,7 +61,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         "focus:ring-red-500/30",
       ),
       lime: cn(
-        "bg-lime-500 text-gray-900",
+        "bg-lime-500 !text-black",
         "hover:bg-lime-400",
         "border border-lime-500 hover:border-lime-400",
         "focus:ring-lime-500/30",

@@ -106,9 +106,9 @@ export function AppraiserBottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-10 bg-[var(--background)] safe-area-inset-bottom">
-      {/* Top border with SVG */}
-      <div className="absolute top-0 left-0 right-0 h-px">
+    <nav className="fixed bottom-0 left-0 right-0 z-10 bg-[var(--background)] safe-area-inset-bottom border-t border-[var(--border)]">
+      {/* Top accent line - only in dark mode */}
+      <div className="absolute top-0 left-0 right-0 h-px dark:block hidden">
         <svg
           className="w-full h-full"
           preserveAspectRatio="none"
