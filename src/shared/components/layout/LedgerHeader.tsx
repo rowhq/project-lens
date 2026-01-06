@@ -3,11 +3,13 @@
 /**
  * Ledger Brand Header - Exact replica of brand.ledger.com design
  * Features: TruPlat logo, nav with | separators, action button
+ * Mobile: Hamburger menu with dropdown navigation
  */
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Menu, X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/components/ui/Button";
 import { ThemeToggle } from "@/shared/components/ui/ThemeToggle";
@@ -52,12 +54,37 @@ export function LedgerHeader({
   actionButtonHref = "/assets",
   className,
 }: LedgerHeaderProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
   return (
     <header className={cn("relative w-full bg-[var(--background)]", className)}>
       {/* Main header row - 3 column layout */}
       <div className="flex items-center justify-between h-16 px-6">
-        {/* Left: Logo */}
-        <TruPlatLogo />
+        {/* Left: Mobile menu button + Logo */}
+        <div className="flex items-center gap-3">
+          {/* Mobile hamburger button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={cn(
+              "lg:hidden p-2 -ml-2",
+              "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
+              "transition-colors duration-300",
+            )}
+            style={{
+              transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+            }}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </button>
+          <TruPlatLogo />
+        </div>
 
         {/* Center: Navigation with | separators */}
         <nav className="hidden lg:flex items-center absolute left-1/2 transform -translate-x-1/2">
@@ -84,7 +111,7 @@ export function LedgerHeader({
           ))}
         </nav>
 
-        {/* Right: Docs + Theme toggle + Action button */}
+        {/* Right: Desktop - Docs + Theme toggle + Action button */}
         <div className="hidden lg:flex items-center gap-4">
           <Link
             href="/docs"
@@ -111,7 +138,69 @@ export function LedgerHeader({
             </Button>
           </Link>
         </div>
+
+        {/* Right: Mobile - Action button only */}
+        <div className="flex lg:hidden items-center">
+          <Link href={actionButtonHref}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 text-xs"
+              rightIcon={<ArrowRight className="w-3 h-3" />}
+            >
+              {actionButtonText}
+            </Button>
+          </Link>
+        </div>
       </div>
+
+      {/* Mobile Navigation Menu */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden absolute top-full left-0 right-0 z-50 bg-[var(--background)] border-b border-[var(--border)] animate-slide-down">
+          {/* Nav Items */}
+          <nav className="flex flex-col px-6 py-4">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={closeMobileMenu}
+                className={cn(
+                  "py-3 font-mono text-sm uppercase tracking-widest",
+                  "transition-colors duration-300",
+                  "border-b border-[var(--border)] last:border-b-0",
+                  item.isActive
+                    ? "text-[var(--foreground)]"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
+                )}
+                style={{
+                  transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+                }}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Bottom section with Docs + Theme */}
+          <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--border)]">
+            <Link
+              href="/docs"
+              onClick={closeMobileMenu}
+              className={cn(
+                "font-mono text-xs uppercase tracking-widest",
+                "transition-colors duration-300",
+                "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
+              )}
+              style={{
+                transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+              }}
+            >
+              Docs
+            </Link>
+            <ThemeToggle />
+          </div>
+        </div>
+      )}
 
       {/* Sub-navigation row (optional) */}
       {showBackLink && (
