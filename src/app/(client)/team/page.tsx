@@ -221,7 +221,7 @@ export default function TeamPage() {
       </div>
 
       {/* Organization Info */}
-      <div className="relative bg-gray-900 clip-notch border border-gray-800 p-6">
+      <div className="relative bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
@@ -254,7 +254,7 @@ export default function TeamPage() {
       </div>
 
       {/* Members List */}
-      <div className="relative bg-gray-900 clip-notch border border-gray-800">
+      <div className="relative bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
         <div className="px-6 py-4 border-b border-gray-800">
           <h3 className="font-semibold text-white">Members</h3>
         </div>
@@ -315,7 +315,7 @@ export default function TeamPage() {
                       <MoreVertical className="w-4 h-4 text-gray-400" />
                     </button>
                     {activeMenu === member.id && (
-                      <div className="absolute right-0 mt-2 w-48 bg-gray-900 clip-notch shadow-lg border border-gray-700 py-1 z-10">
+                      <div className="absolute right-0 mt-2 w-48 bg-gray-900 clip-notch shadow-lg shadow-[inset_0_0_0_1px_theme(colors.gray.700)] py-1 z-10">
                         {/* Change Role Submenu */}
                         <div className="relative">
                           <button
@@ -332,7 +332,7 @@ export default function TeamPage() {
                             Change Role
                           </button>
                           {showRoleDropdown === member.id && (
-                            <div className="absolute left-full top-0 ml-1 w-36 bg-gray-900 clip-notch shadow-lg border border-gray-700 py-1">
+                            <div className="absolute left-full top-0 ml-1 w-36 bg-gray-900 clip-notch shadow-lg shadow-[inset_0_0_0_1px_theme(colors.gray.700)] py-1">
                               {availableRoles.map((role) => (
                                 <button
                                   key={role.value}
@@ -375,7 +375,7 @@ export default function TeamPage() {
       </div>
 
       {/* Pending Invitations */}
-      <div className="relative bg-gray-900 clip-notch border border-gray-800">
+      <div className="relative bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
         <div className="px-6 py-4 border-b border-gray-800">
           <h3 className="font-semibold text-white">Pending Invitations</h3>
         </div>
@@ -434,14 +434,17 @@ export default function TeamPage() {
       </div>
 
       {/* Roles & Permissions */}
-      <div className="relative bg-gray-900 clip-notch border border-gray-800">
+      <div className="relative bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
         <div className="px-6 py-4 border-b border-gray-800">
           <h3 className="font-semibold text-white">Roles & Permissions</h3>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-3 gap-4">
             {Object.entries(roleLabels).map(([role, config]) => (
-              <div key={role} className="border border-gray-700 clip-notch p-4">
+              <div
+                key={role}
+                className="shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch p-4"
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="w-5 h-5 text-gray-400" />
                   <span
@@ -460,7 +463,7 @@ export default function TeamPage() {
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 clip-notch border border-gray-700 w-full max-w-md p-6">
+          <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.700)] w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-white">
                 Invite Team Member
@@ -483,7 +486,7 @@ export default function TeamPage() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="colleague@company.com"
-                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                  className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                 />
               </div>
 
@@ -497,7 +500,7 @@ export default function TeamPage() {
                     value={inviteFirstName}
                     onChange={(e) => setInviteFirstName(e.target.value)}
                     placeholder="John"
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   />
                 </div>
                 <div>
@@ -509,7 +512,7 @@ export default function TeamPage() {
                     value={inviteLastName}
                     onChange={(e) => setInviteLastName(e.target.value)}
                     placeholder="Doe"
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   />
                 </div>
               </div>
@@ -518,7 +521,7 @@ export default function TeamPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
+                className="flex-1 px-4 py-2.5 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
               >
                 Cancel
               </button>
@@ -547,7 +550,7 @@ export default function TeamPage() {
       {/* Edit Organization Modal */}
       {showEditOrgModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 clip-notch border border-gray-700 w-full max-w-md p-6">
+          <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.700)] w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-white">
                 Edit Organization
@@ -570,7 +573,7 @@ export default function TeamPage() {
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
                   placeholder="Acme Inc."
-                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                  className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                 />
               </div>
 
@@ -583,7 +586,7 @@ export default function TeamPage() {
                   value={orgPhone}
                   onChange={(e) => setOrgPhone(e.target.value)}
                   placeholder="+1 (555) 123-4567"
-                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                  className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Billing address can be updated in the Billing page
@@ -594,7 +597,7 @@ export default function TeamPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowEditOrgModal(false)}
-                className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
+                className="flex-1 px-4 py-2.5 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
               >
                 Cancel
               </button>
@@ -618,7 +621,7 @@ export default function TeamPage() {
       {/* Remove Member Confirmation Modal */}
       {showRemoveConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 clip-notch border border-gray-700 w-full max-w-sm p-6">
+          <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.700)] w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-red-500/10 clip-notch-sm flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -639,7 +642,7 @@ export default function TeamPage() {
                   setShowRemoveConfirm(null);
                   setActiveMenu(null);
                 }}
-                className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
+                className="flex-1 px-4 py-2.5 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
               >
                 Cancel
               </button>

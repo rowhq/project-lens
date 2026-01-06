@@ -288,19 +288,6 @@ body {
   );
 }
 
-/* Extra small notch (for tooltips, tiny elements) */
-.clip-notch-xs {
-  --clip-size-xs: 2px;
-  clip-path: polygon(
-    0 var(--clip-size-xs),
-    var(--clip-size-xs) 0,
-    100% 0,
-    100% calc(100% - var(--clip-size-xs)),
-    calc(100% - var(--clip-size-xs)) 100%,
-    0 100%
-  );
-}
-
 /* Large notch */
 .clip-notch-lg {
   clip-path: polygon(
@@ -374,75 +361,6 @@ body {
 
 .notch-border-sm-inner {
   --inner-clip: calc(var(--clip-size-sm) - var(--notch-border-width) * 0.586);
-  background: var(--notch-bg, var(--background));
-  clip-path: polygon(
-    0 var(--inner-clip),
-    var(--inner-clip) 0,
-    100% 0,
-    100% calc(100% - var(--inner-clip)),
-    calc(100% - var(--inner-clip)) 100%,
-    0 100%
-  );
-}
-
-/* Large notch border wrapper */
-.notch-border-lg {
-  --notch-border-width: 1px;
-  --notch-border-color: var(--border);
-  position: relative;
-  background: var(--notch-border-color);
-  clip-path: polygon(
-    0 var(--clip-size-lg),
-    var(--clip-size-lg) 0,
-    100% 0,
-    100% calc(100% - var(--clip-size-lg)),
-    calc(100% - var(--clip-size-lg)) 100%,
-    0 100%
-  );
-}
-
-.notch-border-lg-inner {
-  --inner-clip: calc(var(--clip-size-lg) - var(--notch-border-width) * 0.586);
-  position: absolute;
-  inset: var(--notch-border-width, 1px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--notch-bg, var(--background));
-  clip-path: polygon(
-    0 var(--inner-clip),
-    var(--inner-clip) 0,
-    100% 0,
-    100% calc(100% - var(--inner-clip)),
-    calc(100% - var(--inner-clip)) 100%,
-    0 100%
-  );
-}
-
-/* Extra small notch border wrapper (for tooltips, small badges) */
-.notch-border-xs {
-  --notch-border-width: 1px;
-  --notch-border-color: var(--border);
-  --clip-size-xs: 2px;
-  position: relative;
-  background: var(--notch-border-color);
-  clip-path: polygon(
-    0 var(--clip-size-xs),
-    var(--clip-size-xs) 0,
-    100% 0,
-    100% calc(100% - var(--clip-size-xs)),
-    calc(100% - var(--clip-size-xs)) 100%,
-    0 100%
-  );
-}
-
-.notch-border-xs-inner {
-  --inner-clip: calc(var(--clip-size-xs, 2px) - var(--notch-border-width) * 0.586);
-  position: absolute;
-  inset: var(--notch-border-width, 1px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: var(--notch-bg, var(--background));
   clip-path: polygon(
     0 var(--inner-clip),

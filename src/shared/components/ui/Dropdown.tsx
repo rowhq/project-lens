@@ -60,52 +60,50 @@ export function Dropdown({
         <div
           className={cn(
             "absolute z-dropdown mt-2 min-w-[200px]",
-            "notch-border animate-fade-in",
-            "[--notch-border-color:theme(colors.gray.800)]",
-            "[--notch-bg:theme(colors.gray.900)]",
+            "bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)]",
+            "clip-notch",
+            "animate-fade-in",
             align === "left" ? "left-0" : "right-0",
           )}
         >
-          <div className="notch-border-inner !block">
-            {/* Bracket decoration */}
-            <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-            <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+          {/* Bracket decoration */}
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
 
-            <div className="py-1">
-              {items.map((item) => (
-                <button
-                  key={item.value}
-                  onClick={() => handleSelect(item)}
-                  disabled={item.disabled}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-4 py-2.5",
-                    "text-sm text-left",
-                    "transition-colors duration-fast",
-                    // Default state
-                    "text-gray-300 hover:bg-gray-800 hover:text-white",
-                    // Disabled
-                    item.disabled &&
-                      "opacity-40 cursor-not-allowed hover:bg-transparent",
-                    // Destructive
-                    item.destructive &&
-                      "text-red-400 hover:text-red-300 hover:bg-red-500/10",
-                    // Selected
-                    selectedValue === item.value &&
-                      "text-lime-400 bg-lime-400/10",
-                  )}
-                >
-                  {item.icon && (
-                    <span className="flex-shrink-0 w-4 h-4">{item.icon}</span>
-                  )}
-                  <span className="flex-1 font-mono text-label uppercase tracking-wider">
-                    {item.label}
-                  </span>
-                  {selectedValue === item.value && (
-                    <Check className="w-4 h-4 text-lime-400" />
-                  )}
-                </button>
-              ))}
-            </div>
+          <div className="py-1">
+            {items.map((item) => (
+              <button
+                key={item.value}
+                onClick={() => handleSelect(item)}
+                disabled={item.disabled}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-2.5",
+                  "text-sm text-left",
+                  "transition-colors duration-fast",
+                  // Default state
+                  "text-gray-300 hover:bg-gray-800 hover:text-white",
+                  // Disabled
+                  item.disabled &&
+                    "opacity-40 cursor-not-allowed hover:bg-transparent",
+                  // Destructive
+                  item.destructive &&
+                    "text-red-400 hover:text-red-300 hover:bg-red-500/10",
+                  // Selected
+                  selectedValue === item.value &&
+                    "text-lime-400 bg-lime-400/10",
+                )}
+              >
+                {item.icon && (
+                  <span className="flex-shrink-0 w-4 h-4">{item.icon}</span>
+                )}
+                <span className="flex-1 font-mono text-label uppercase tracking-wider">
+                  {item.label}
+                </span>
+                {selectedValue === item.value && (
+                  <Check className="w-4 h-4 text-lime-400" />
+                )}
+              </button>
+            ))}
           </div>
         </div>
       )}
@@ -133,54 +131,36 @@ export function DropdownButton({
   size = "md",
   className,
 }: DropdownButtonProps) {
+  const variants = {
+    primary:
+      "bg-white text-black shadow-[inset_0_0_0_1px_theme(colors.white)] hover:bg-gray-100",
+    secondary:
+      "bg-gray-800 text-white shadow-[inset_0_0_0_1px_theme(colors.gray.700)] hover:bg-gray-700",
+    outline:
+      "bg-transparent text-white shadow-[inset_0_0_0_1px_theme(colors.gray.700)] hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400)] hover:text-lime-400",
+  };
+
   const sizes = {
     sm: "px-3 py-1.5 text-xs",
     md: "px-4 py-2 text-sm",
     lg: "px-5 py-2.5 text-sm",
   };
 
-  // Notch border colors for variants
-  const borderColors = {
-    primary: "[--notch-border-color:white]",
-    secondary: "[--notch-border-color:theme(colors.gray.700)]",
-    outline:
-      "[--notch-border-color:theme(colors.gray.700)] hover:[--notch-border-color:theme(colors.lime.400)]",
-  };
-
-  const bgColorsMap = {
-    primary: "[--notch-bg:white]",
-    secondary: "[--notch-bg:theme(colors.gray.800)]",
-    outline: "[--notch-bg:transparent]",
-  };
-
-  const textColorsMap = {
-    primary: "text-black",
-    secondary: "text-white",
-    outline: "text-white hover:text-lime-400",
-  };
-
   const trigger = (
-    <div
+    <button
       className={cn(
-        "notch-border-sm inline-flex",
+        "inline-flex items-center gap-2",
+        "font-mono uppercase tracking-wider",
+        "clip-notch-sm",
         "transition-all duration-fast",
-        borderColors[variant],
-        bgColorsMap[variant],
+        variants[variant],
+        sizes[size],
+        className,
       )}
     >
-      <span
-        className={cn(
-          "notch-border-sm-inner",
-          "inline-flex items-center gap-2",
-          "font-mono uppercase tracking-wider",
-          textColorsMap[variant],
-          sizes[size],
-        )}
-      >
-        {label}
-        <ChevronDown className="w-4 h-4" />
-      </span>
-    </div>
+      {label}
+      <ChevronDown className="w-4 h-4" />
+    </button>
   );
 
   return (

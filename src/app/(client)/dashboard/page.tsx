@@ -180,7 +180,7 @@ export default function ClientDashboard() {
     <div className="space-y-6">
       {/* SLA Warning Banner */}
       {slaWarnings.length > 0 && (
-        <div className="relative bg-orange-500/5 border border-orange-500/20 p-4 clip-notch">
+        <div className="relative bg-orange-500/5 shadow-[inset_0_0_0_1px_theme(colors.orange.500/0.2)] p-4 clip-notch">
           <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-orange-500" />
           <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-orange-500" />
           <div className="flex items-start gap-3">
@@ -220,7 +220,7 @@ export default function ClientDashboard() {
 
       {/* Draft Continuation Banner */}
       {drafts.length > 0 && (
-        <div className="relative bg-blue-500/5 border border-blue-500/20 p-4 clip-notch">
+        <div className="relative bg-blue-500/5 shadow-[inset_0_0_0_1px_theme(colors.blue.500/0.2)] p-4 clip-notch">
           <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-blue-500" />
           <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-blue-500" />
           <div className="flex items-center justify-between">
@@ -285,7 +285,7 @@ export default function ClientDashboard() {
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="bg-gray-900 border border-gray-800 p-6 clip-notch"
+              className="bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch"
             >
               <Skeleton className="h-4 w-24 mb-2" />
               <Skeleton className="h-8 w-16" />
@@ -352,7 +352,7 @@ export default function ClientDashboard() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Weekly Trend Chart */}
-        <div className="lg:col-span-2 bg-gray-900 border border-gray-800 p-6 clip-notch">
+        <div className="lg:col-span-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
           <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
           <h2 className="font-mono text-label uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
@@ -369,7 +369,7 @@ export default function ClientDashboard() {
         </div>
 
         {/* Type Distribution */}
-        <div className="relative bg-gray-900 border border-gray-800 p-6 clip-notch">
+        <div className="relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
           <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
           <h2 className="font-mono text-label uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
@@ -381,7 +381,7 @@ export default function ClientDashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch">
+      <div className="relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch">
         <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
         <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-lime-400" />
 
@@ -474,7 +474,7 @@ function StatCard({
   };
 
   return (
-    <div className="relative group bg-gray-900 border border-gray-800 p-6 clip-notch hover:border-gray-700 transition-colors">
+    <div className="relative group bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch hover:shadow-[inset_0_0_0_1px_theme(colors.gray.700)] transition-all">
       <div
         className={cn(
           "absolute -top-px -left-px w-2 h-2 border-l border-t",
@@ -521,7 +521,7 @@ function MetricCard({
   };
 
   return (
-    <div className="bg-gray-900 border border-gray-800 p-4 clip-notch-sm">
+    <div className="bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4 clip-notch-sm">
       <div className="flex items-center gap-3">
         <div className={cn("p-2 clip-notch-sm", colors[accentColor])}>
           <Icon className="h-5 w-5" />

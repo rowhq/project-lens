@@ -89,7 +89,7 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-lime-400/10 border border-lime-400/20 clip-notch-sm">
+          <div className="p-2 bg-lime-400/10 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.2)] clip-notch-sm">
             <Settings className="w-5 h-5 text-lime-400" />
           </div>
           <h1 className="text-2xl font-bold text-white">Settings</h1>
@@ -127,7 +127,7 @@ export default function SettingsPage() {
             </p>
             <button
               onClick={() => refetchFlags()}
-              className="flex items-center gap-2 px-3 py-1.5 text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 clip-notch-sm transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 text-gray-400 hover:text-white shadow-[inset_0_0_0_1px_theme(colors.gray.700)] hover:shadow-[inset_0_0_0_1px_theme(colors.gray.600)] clip-notch-sm transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               <span className="font-mono text-xs uppercase">Refresh</span>
@@ -138,7 +138,7 @@ export default function SettingsPage() {
             {featureFlags?.map((flag) => (
               <div
                 key={flag.id}
-                className="relative bg-gray-950 border border-gray-800 p-4 clip-notch group hover:border-gray-700 transition-colors"
+                className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4 clip-notch group hover:shadow-[inset_0_0_0_1px_theme(colors.gray.700)] transition-colors"
               >
                 <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400/30" />
                 <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400/30" />
@@ -209,7 +209,7 @@ export default function SettingsPage() {
               <select
                 value={auditFilter}
                 onChange={(e) => setAuditFilter(e.target.value)}
-                className="bg-gray-900 border border-gray-700 text-white px-3 py-2 font-mono text-sm clip-notch-sm focus:outline-none focus:border-lime-400/50"
+                className="bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-white px-3 py-2 font-mono text-sm clip-notch-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
               >
                 {resourceTypes.map((type) => (
                   <option key={type.value} value={type.value}>
@@ -221,7 +221,7 @@ export default function SettingsPage() {
             <button
               onClick={() => refetchAudit()}
               disabled={isLoadingAudit}
-              className="flex items-center gap-2 px-3 py-1.5 text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 clip-notch-sm transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 text-gray-400 hover:text-white shadow-[inset_0_0_0_1px_theme(colors.gray.700)] hover:shadow-[inset_0_0_0_1px_theme(colors.gray.600)] clip-notch-sm transition-colors"
             >
               <RefreshCw
                 className={cn("w-4 h-4", isLoadingAudit && "animate-spin")}
@@ -230,7 +230,7 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          <div className="relative bg-gray-950 border border-gray-800 clip-notch overflow-hidden">
+          <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch overflow-hidden">
             <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -321,7 +321,7 @@ export default function SettingsPage() {
       {activeTab === "system" && (
         <div className="space-y-6">
           {/* System Status */}
-          <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+          <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
             <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -330,7 +330,7 @@ export default function SettingsPage() {
             </h3>
 
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-gray-900 border border-gray-800 p-4 clip-notch-sm">
+              <div className="bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4 clip-notch-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2 h-2 bg-lime-400 rounded-full animate-pulse" />
                   <span className="font-mono text-xs uppercase text-gray-500">
@@ -340,7 +340,7 @@ export default function SettingsPage() {
                 <p className="text-white font-semibold">Connected</p>
               </div>
 
-              <div className="bg-gray-900 border border-gray-800 p-4 clip-notch-sm">
+              <div className="bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4 clip-notch-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2 h-2 bg-lime-400 rounded-full animate-pulse" />
                   <span className="font-mono text-xs uppercase text-gray-500">
@@ -350,7 +350,7 @@ export default function SettingsPage() {
                 <p className="text-white font-semibold">Operational</p>
               </div>
 
-              <div className="bg-gray-900 border border-gray-800 p-4 clip-notch-sm">
+              <div className="bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4 clip-notch-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2 h-2 bg-lime-400 rounded-full animate-pulse" />
                   <span className="font-mono text-xs uppercase text-gray-500">
@@ -363,7 +363,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Platform Info */}
-          <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+          <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
             <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -392,7 +392,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Danger Zone */}
-          <div className="relative bg-gray-950 border border-red-900/50 p-6 clip-notch">
+          <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.red.900/0.5)] p-6 clip-notch">
             <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-red-500/30" />
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-red-500/30" />
 
@@ -404,7 +404,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-900 border border-gray-800 clip-notch-sm">
+              <div className="flex items-center justify-between p-4 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm">
                 <div>
                   <p className="text-white font-medium">Clear Cache</p>
                   <p className="text-gray-500 text-sm">

@@ -57,7 +57,7 @@ function StatCard({
   };
 
   return (
-    <div className="relative bg-gray-950 border border-gray-800 p-5 clip-notch group hover:border-gray-700 transition-colors duration-fast">
+    <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-5 clip-notch group hover:shadow-[inset_0_0_0_1px_theme(colors.gray.700)] transition-colors duration-fast">
       {/* Bracket corners */}
       <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
       <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
@@ -146,7 +146,7 @@ function QuickActionCard({
         "transition-all duration-fast group",
       )}
     >
-      <div className="p-2 bg-gray-900 border border-gray-800 clip-notch-sm group-hover:border-lime-400/30 transition-colors">
+      <div className="p-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm group-hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] transition-colors">
         <Icon className="w-5 h-5 text-gray-400 group-hover:text-lime-400 transition-colors" />
       </div>
       <span className="font-mono text-sm uppercase tracking-wider text-gray-300 group-hover:text-white transition-colors">
@@ -240,7 +240,7 @@ export default function AdminDashboardPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <div className="px-4 py-2 bg-gray-950 border border-gray-800 text-gray-300 font-mono text-sm uppercase tracking-wider clip-notch-sm">
+          <div className="px-4 py-2 bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] text-gray-300 font-mono text-sm uppercase tracking-wider clip-notch-sm">
             Last 7 days
           </div>
         </div>
@@ -265,7 +265,7 @@ export default function AdminDashboardPage() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Job Trends Chart */}
-        <div className="lg:col-span-2 relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="lg:col-span-2 relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           {/* Bracket corners */}
           <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400/30" />
@@ -290,7 +290,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Job Type Distribution */}
-        <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           {/* Bracket corners */}
           <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400/30" />
@@ -304,7 +304,7 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* SLA Status */}
-        <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           {/* Bracket corners */}
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
@@ -337,7 +337,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Disputes */}
-        <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           {/* Bracket corners */}
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400/30" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400/30" />
@@ -363,7 +363,7 @@ export default function AdminDashboardPage() {
                 }) => (
                   <div
                     key={dispute.id}
-                    className="flex items-start gap-3 p-3 bg-gray-900 border border-gray-800 clip-notch-sm"
+                    className="flex items-start gap-3 p-3 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm"
                   >
                     <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -405,7 +405,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Today's Activity */}
-        <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           {/* Bracket corners */}
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
@@ -448,7 +448,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="relative bg-gray-950 border border-gray-800 clip-notch overflow-hidden">
+      <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch overflow-hidden">
         {/* Bracket corners */}
         <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400/30 z-10" />
         <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400/30 z-10" />
@@ -471,7 +471,7 @@ export default function AdminDashboardPage() {
               key={appraisal.id}
               className="px-6 py-4 flex items-center gap-4 hover:bg-gray-900 transition-colors"
             >
-              <div className="p-2 bg-lime-400/10 border border-lime-400/20 clip-notch-sm">
+              <div className="p-2 bg-lime-400/10 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.2)] clip-notch-sm">
                 <FileText className="w-4 h-4 text-lime-400" />
               </div>
               <p className="flex-1 text-gray-300">

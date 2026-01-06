@@ -489,7 +489,6 @@ function PricingCard({
   features: string[];
   popular?: boolean;
 }) {
-  // Use box-shadow inset for border (follows clip-path)
   const tierColors = {
     free: "text-emerald-400 bg-emerald-400/10 shadow-[inset_0_0_0_1px_theme(colors.emerald.400/0.3)]",
     fastest:

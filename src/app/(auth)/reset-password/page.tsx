@@ -74,7 +74,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="text-center">
         <div className="mb-6">
-          <div className="relative mx-auto mb-4 flex h-16 w-16 items-center justify-center bg-lime-500/10 border border-lime-500/30 clip-notch">
+          <div className="relative mx-auto mb-4 flex h-16 w-16 items-center justify-center bg-lime-500/10 shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.3)] clip-notch">
             <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400" />
             <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400" />
             <CheckCircle className="h-8 w-8 text-lime-400" />

@@ -14,34 +14,17 @@ function Badge({
   children,
   ...props
 }: BadgeProps) {
-  // Border colors for notch-border wrapper
-  const borderColors = {
-    default: "[--notch-border-color:var(--border)]",
-    success: "[--notch-border-color:theme(colors.green.500/0.3)]",
-    warning: "[--notch-border-color:theme(colors.yellow.500/0.3)]",
-    error: "[--notch-border-color:theme(colors.red.500/0.3)]",
-    info: "[--notch-border-color:theme(colors.blue.500/0.3)]",
-    lime: "[--notch-border-color:theme(colors.lime.400/0.3)]",
-  };
-
-  // Background colors for inner element
-  const bgColors = {
-    default: "[--notch-bg:var(--muted)]",
-    success: "[--notch-bg:theme(colors.green.500/0.1)]",
-    warning: "[--notch-bg:theme(colors.yellow.500/0.1)]",
-    error: "[--notch-bg:theme(colors.red.500/0.1)]",
-    info: "[--notch-bg:theme(colors.blue.500/0.1)]",
-    lime: "[--notch-bg:theme(colors.lime.400/0.1)]",
-  };
-
-  // Text colors
-  const textColors = {
-    default: "text-[var(--muted-foreground)]",
-    success: "text-green-400",
-    warning: "text-yellow-400",
-    error: "text-red-400",
-    info: "text-blue-400",
-    lime: "text-lime-400",
+  const variants = {
+    default:
+      "bg-[var(--muted)] text-[var(--muted-foreground)] shadow-[inset_0_0_0_1px_var(--border)]",
+    success:
+      "bg-green-500/10 text-green-400 shadow-[inset_0_0_0_1px_theme(colors.green.500/0.3)]",
+    warning:
+      "bg-yellow-500/10 text-yellow-400 shadow-[inset_0_0_0_1px_theme(colors.yellow.500/0.3)]",
+    error:
+      "bg-red-500/10 text-red-400 shadow-[inset_0_0_0_1px_theme(colors.red.500/0.3)]",
+    info: "bg-blue-500/10 text-blue-400 shadow-[inset_0_0_0_1px_theme(colors.blue.500/0.3)]",
+    lime: "bg-lime-400/10 text-lime-400 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)]",
   };
 
   const sizes = {
@@ -52,25 +35,19 @@ function Badge({
   return (
     <span
       className={cn(
-        // Notch border wrapper
-        "notch-border-sm inline-flex",
-        borderColors[variant],
-        bgColors[variant],
+        // Base styles
+        "inline-flex items-center gap-1.5",
+        "font-mono uppercase tracking-wider",
+        // Angular design
+        "clip-notch-sm",
+        // Variant and size
+        variants[variant],
+        sizes[size],
         className,
       )}
       {...props}
     >
-      <span
-        className={cn(
-          "notch-border-sm-inner",
-          "inline-flex items-center gap-1.5",
-          "font-mono uppercase tracking-wider",
-          textColors[variant],
-          sizes[size],
-        )}
-      >
-        {children}
-      </span>
+      {children}
     </span>
   );
 }

@@ -71,24 +71,17 @@ export function Tooltip({
         <div
           role="tooltip"
           className={cn(
-            // Notch border wrapper for proper border rendering
-            "absolute z-tooltip notch-border-xs",
-            "[--notch-border-color:theme(colors.gray.700)]",
-            "[--notch-bg:theme(colors.gray.900)]",
+            // Ledger style: clip-path, monospace, dark bg
+            "absolute z-tooltip px-3 py-1.5",
+            "font-mono text-label text-white",
+            "bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)]",
+            "clip-notch-xs",
             "whitespace-nowrap animate-fade-in",
             positions[position],
             className,
           )}
         >
-          <span
-            className={cn(
-              "notch-border-xs-inner",
-              "px-3 py-1.5",
-              "font-mono text-label text-white",
-            )}
-          >
-            {content}
-          </span>
+          {content}
           <div className={cn("absolute w-0 h-0 border-4", arrows[position])} />
         </div>
       )}

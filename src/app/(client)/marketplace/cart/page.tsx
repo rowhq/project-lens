@@ -81,7 +81,7 @@ export default function CartPage() {
       </div>
 
       {items.length === 0 ? (
-        <div className="bg-gray-900 clip-notch border border-gray-800 p-12 text-center">
+        <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-12 text-center">
           <ShoppingCart className="w-12 h-12 mx-auto text-gray-600 mb-4" />
           <p className="text-gray-400 mb-4">Your cart is empty</p>
           <Link
@@ -98,7 +98,7 @@ export default function CartPage() {
             {items.map((item) => (
               <div
                 key={item.listingId}
-                className="bg-gray-900 clip-notch border border-gray-800 p-4 flex gap-4"
+                className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4 flex gap-4"
               >
                 <div className="w-16 h-16 bg-gray-800 clip-notch-sm flex items-center justify-center flex-shrink-0">
                   <FileText className="w-8 h-8 text-gray-600" />

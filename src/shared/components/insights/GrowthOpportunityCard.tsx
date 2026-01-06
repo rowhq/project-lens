@@ -66,19 +66,19 @@ export function GrowthOpportunityCard({
   const riskConfig = {
     LOW: {
       bg: "bg-green-400/10",
-      border: "border-green-400/30",
+      shadow: "shadow-[inset_0_0_0_1px_theme(colors.green.400/0.3)]",
       text: "text-green-400",
       label: "Low Risk",
     },
     MEDIUM: {
       bg: "bg-yellow-400/10",
-      border: "border-yellow-400/30",
+      shadow: "shadow-[inset_0_0_0_1px_theme(colors.yellow.400/0.3)]",
       text: "text-yellow-400",
       label: "Medium Risk",
     },
     HIGH: {
       bg: "bg-red-400/10",
-      border: "border-red-400/30",
+      shadow: "shadow-[inset_0_0_0_1px_theme(colors.red.400/0.3)]",
       text: "text-red-400",
       label: "High Risk",
     },
@@ -94,7 +94,6 @@ export function GrowthOpportunityCard({
   return (
     <div
       className={cn(
-        // Use inset box-shadow for border (follows clip-path)
         "relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch overflow-hidden hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] transition-all",
         className,
       )}
@@ -119,9 +118,9 @@ export function GrowthOpportunityCard({
               </span>
               <span
                 className={cn(
-                  "px-2 py-0.5 rounded border font-mono",
+                  "px-2 py-0.5 rounded font-mono",
                   riskConfig[risk].bg,
-                  riskConfig[risk].border,
+                  riskConfig[risk].shadow,
                   riskConfig[risk].text,
                 )}
               >

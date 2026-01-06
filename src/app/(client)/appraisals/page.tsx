@@ -214,7 +214,7 @@ export default function AppraisalsPage() {
             placeholder="Search by address or reference..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-700 clip-notch bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+            className="w-full pl-10 pr-4 py-2.5 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -224,7 +224,7 @@ export default function AppraisalsPage() {
             onChange={(e) =>
               setStatusFilter(e.target.value as AppraisalStatus | "ALL")
             }
-            className="border border-gray-700 clip-notch-sm px-4 py-2.5 bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+            className="shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm px-4 py-2.5 bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
           >
             <option value="ALL">All Status</option>
             <option value="DRAFT">Draft</option>
@@ -238,7 +238,7 @@ export default function AppraisalsPage() {
           <button
             onClick={handleBulkDelete}
             disabled={isBulkDeleting}
-            className="flex items-center gap-2 px-4 py-2.5 bg-red-500/20 border border-red-500/30 text-red-400 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-red-500/30 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-500/20 shadow-[inset_0_0_0_1px_theme(colors.red.500/0.3)] text-red-400 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-red-500/30 disabled:opacity-50"
           >
             {isBulkDeleting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -255,7 +255,7 @@ export default function AppraisalsPage() {
         <SkeletonStats count={4} />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="relative bg-gray-900 p-4 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
             <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-lime-400" />
             <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
               Total Appraisals
@@ -264,7 +264,7 @@ export default function AppraisalsPage() {
               {appraisals?.items?.length || 0}
             </p>
           </div>
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="relative bg-gray-900 p-4 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
             <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-yellow-400" />
             <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
               Processing
@@ -276,7 +276,7 @@ export default function AppraisalsPage() {
               ).length || 0}
             </p>
           </div>
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="relative bg-gray-900 p-4 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
             <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-green-400" />
             <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
               Ready
@@ -287,7 +287,7 @@ export default function AppraisalsPage() {
               ).length || 0}
             </p>
           </div>
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="relative bg-gray-900 p-4 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
             <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-lime-400" />
             <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
               This Month
@@ -310,7 +310,7 @@ export default function AppraisalsPage() {
       {isLoading ? (
         <SkeletonTable rows={5} columns={7} />
       ) : (
-        <div className="relative bg-gray-900 clip-notch border border-gray-800 overflow-hidden overflow-x-auto">
+        <div className="relative bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] overflow-hidden overflow-x-auto">
           <table className="w-full min-w-[800px]">
             <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
               <tr>

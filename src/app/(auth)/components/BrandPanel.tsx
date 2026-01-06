@@ -53,7 +53,7 @@ export function BrandPanel() {
         </Link>
 
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 clip-notch-sm border border-lime-400/30 mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 clip-notch-sm shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] mb-6">
           <span className="w-1.5 h-1.5 bg-lime-400 animate-pulse" />
           <span className="font-mono text-[10px] uppercase tracking-wider text-gray-400">
             Now Live in Texas
@@ -74,7 +74,7 @@ export function BrandPanel() {
         <ul className="space-y-4">
           {valueProps.map((prop) => (
             <li key={prop.text} className="flex items-center gap-3">
-              <div className="w-8 h-8 clip-notch-sm bg-lime-400/10 border border-lime-400/30 flex items-center justify-center">
+              <div className="w-8 h-8 clip-notch-sm bg-lime-400/10 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] flex items-center justify-center">
                 <prop.icon className="w-4 h-4 text-lime-400" />
               </div>
               <span className="text-gray-300 text-sm">{prop.text}</span>

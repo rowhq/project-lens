@@ -216,7 +216,7 @@ export default function SellReportPage() {
       </div>
 
       {/* Listing Mode Toggle */}
-      <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+      <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
         <h2 className="font-semibold text-[var(--foreground)] mb-4">
           What are you selling?
         </h2>
@@ -261,7 +261,7 @@ export default function SellReportPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Select Report (only for report mode) */}
         {listingMode === "report" && (
-          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+          <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
             <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
               <FileText className="w-5 h-5" />
               Select Report
@@ -342,7 +342,7 @@ export default function SellReportPage() {
         {/* Study Category & Location (for standalone mode) */}
         {listingMode === "standalone" && (
           <>
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
                 <Layers className="w-5 h-5" />
                 Study Type
@@ -370,7 +370,7 @@ export default function SellReportPage() {
               </div>
             </div>
 
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
                 Location
@@ -385,7 +385,7 @@ export default function SellReportPage() {
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="Austin"
-                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                     required={listingMode === "standalone"}
                   />
                 </div>
@@ -398,7 +398,7 @@ export default function SellReportPage() {
                     value={county}
                     onChange={(e) => setCounty(e.target.value)}
                     placeholder="Travis"
-                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                     required={listingMode === "standalone"}
                   />
                 </div>
@@ -412,7 +412,7 @@ export default function SellReportPage() {
                     onChange={(e) => setState(e.target.value)}
                     placeholder="TX"
                     maxLength={2}
-                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   />
                 </div>
                 <div>
@@ -425,14 +425,14 @@ export default function SellReportPage() {
                     onChange={(e) => setZipCode(e.target.value)}
                     placeholder="78701"
                     maxLength={10}
-                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   />
                 </div>
               </div>
             </div>
 
             {/* Document Upload */}
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
                 <Upload className="w-5 h-5" />
                 Upload Documents
@@ -501,7 +501,7 @@ export default function SellReportPage() {
         )}
 
         {/* Listing Details */}
-        <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+        <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
           <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <Tag className="w-5 h-5" />
             Listing Details
@@ -518,7 +518,7 @@ export default function SellReportPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Detailed Residential Appraisal - Austin Downtown"
                 maxLength={200}
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
+                className="w-full px-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                 required
               />
               <p className="mt-1 text-xs text-[var(--muted-foreground)]">
@@ -533,7 +533,7 @@ export default function SellReportPage() {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                className="w-full px-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
               >
                 {PROPERTY_CATEGORIES.map((cat) => (
                   <option key={cat.value} value={cat.value}>
@@ -553,7 +553,7 @@ export default function SellReportPage() {
                 placeholder="Describe what's included in this report..."
                 rows={4}
                 maxLength={2000}
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50 resize-none"
+                className="w-full px-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] resize-none"
               />
               <p className="mt-1 text-xs text-[var(--muted-foreground)]">
                 {description.length}/2000 characters
@@ -563,7 +563,7 @@ export default function SellReportPage() {
         </div>
 
         {/* Pricing */}
-        <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+        <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
           <h2 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <DollarSign className="w-5 h-5" />
             Pricing
@@ -583,7 +583,7 @@ export default function SellReportPage() {
                 min="1"
                 max="10000"
                 step="1"
-                className="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
+                className="w-full pl-10 pr-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm text-white font-mono text-sm placeholder-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                 required
               />
             </div>
@@ -598,7 +598,7 @@ export default function SellReportPage() {
         <div className="flex items-center justify-end gap-4">
           <Link
             href="/marketplace"
-            className="px-6 py-2.5 border border-gray-700 clip-notch text-white font-mono text-sm uppercase tracking-wider hover:bg-gray-800"
+            className="px-6 py-2.5 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch text-white font-mono text-sm uppercase tracking-wider hover:bg-gray-800"
           >
             Cancel
           </Link>

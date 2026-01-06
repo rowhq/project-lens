@@ -32,7 +32,7 @@ export function MetricCard({
   sparklineColor = "#4ADE80",
   icon: Icon,
   iconColor = "text-lime-400",
-  iconBgColor = "bg-lime-400/10 border-lime-400/20",
+  iconBgColor = "bg-lime-400/10 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.2)]",
   className = "",
 }: MetricCardProps) {
   const isPositive = change !== undefined && change > 0;
@@ -47,15 +47,14 @@ export function MetricCard({
       : "text-gray-500";
 
   const trendBgColor = isPositive
-    ? "bg-lime-400/10 border-lime-400/20"
+    ? "bg-lime-400/10 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.2)]"
     : isNegative
-      ? "bg-red-400/10 border-red-400/20"
-      : "bg-gray-800 border-gray-700";
+      ? "bg-red-400/10 shadow-[inset_0_0_0_1px_theme(colors.red.400/0.2)]"
+      : "bg-gray-800 shadow-[inset_0_0_0_1px_theme(colors.gray.700)]";
 
   return (
     <div
       className={cn(
-        // Use inset box-shadow for border (follows clip-path)
         "relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-5 overflow-hidden clip-notch",
         className,
       )}
@@ -91,12 +90,7 @@ export function MetricCard({
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             {Icon && (
-              <div
-                className={cn(
-                  "p-2 clip-notch-sm shadow-[inset_0_0_0_1px]",
-                  iconBgColor,
-                )}
-              >
+              <div className={cn("p-2 clip-notch-sm", iconBgColor)}>
                 <Icon className={cn("w-4 h-4", iconColor)} />
               </div>
             )}
@@ -109,8 +103,7 @@ export function MetricCard({
           {change !== undefined && (
             <div
               className={cn(
-                // Use inset box-shadow for border (follows clip-path)
-                "flex items-center gap-1 px-2 py-0.5 clip-notch-sm shadow-[inset_0_0_0_1px]",
+                "flex items-center gap-1 px-2 py-0.5 clip-notch-sm",
                 trendBgColor,
               )}
             >

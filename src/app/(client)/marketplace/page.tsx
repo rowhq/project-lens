@@ -216,7 +216,7 @@ export default function MarketplacePage() {
             placeholder="Search by title, location, tags..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-gray-900 border border-gray-700 clip-notch text-white placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
+            className="w-full pl-12 pr-4 py-3 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch text-white placeholder-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
           />
         </div>
 
@@ -225,7 +225,7 @@ export default function MarketplacePage() {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as StudyCategory | "")}
-            className="appearance-none px-4 py-3 pr-10 bg-gray-900 border border-gray-700 clip-notch text-white focus:outline-none focus:border-lime-400/50 min-w-[180px]"
+            className="appearance-none px-4 py-3 pr-10 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch text-white focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] min-w-[180px]"
           >
             {CATEGORY_OPTIONS.map((cat) => (
               <option key={cat.value} value={cat.value}>
@@ -266,7 +266,7 @@ export default function MarketplacePage() {
             return (
               <div
                 key={listing.id}
-                className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden hover:border-lime-400/50 transition-all"
+                className="relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch overflow-hidden hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] transition-all"
               >
                 {/* L-Bracket Corners */}
                 <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
@@ -335,7 +335,7 @@ export default function MarketplacePage() {
                   <div className="flex gap-3 pt-2">
                     <Link
                       href={`/marketplace/listing/${listing.id}`}
-                      className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch text-center text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors"
+                      className="flex-1 px-4 py-2.5 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch text-center text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] transition-colors"
                     >
                       View Details
                     </Link>

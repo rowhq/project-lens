@@ -147,7 +147,7 @@ function SLAProgressTracker({
 
   return (
     <div
-      className={`clip-notch border p-6 ${isOverdue ? "bg-red-500/10 border-red-500/30" : "bg-gray-900 border-lime-400/30"}`}
+      className={`clip-notch p-6 ${isOverdue ? "bg-red-500/10 shadow-[inset_0_0_0_1px_theme(colors.red.500/0.3)]" : "bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)]"}`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -295,7 +295,7 @@ function ShareModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-gray-900 clip-notch border border-gray-800 w-full max-w-md p-6 animate-scale-in">
+      <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] w-full max-w-md p-6 animate-scale-in">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-white">Share Report</h2>
           <button
@@ -315,7 +315,7 @@ function ShareModal({
               <select
                 value={expiresInDays}
                 onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                className="w-full px-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
               >
                 <option value={1}>1 day</option>
                 <option value={7}>7 days</option>
@@ -356,7 +356,7 @@ function ShareModal({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter password"
-                  className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                  className="w-full px-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                 />
               )}
             </div>
@@ -418,7 +418,7 @@ function ShareModal({
                   setShareUrl(null);
                   onClose();
                 }}
-                className="px-4 py-2 border border-gray-700 clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider"
+                className="px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider"
               >
                 Done
               </button>
@@ -490,7 +490,7 @@ function EmailModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-gray-900 clip-notch border border-gray-800 w-full max-w-md p-6 animate-scale-in">
+      <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] w-full max-w-md p-6 animate-scale-in">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-white">Email Report</h2>
           <button
@@ -512,7 +512,7 @@ function EmailModal({
                 value={recipientEmail}
                 onChange={(e) => setRecipientEmail(e.target.value)}
                 placeholder="email@example.com"
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                className="w-full px-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
               />
             </div>
 
@@ -782,7 +782,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           </div>
         </div>
         {/* Value summary skeleton */}
-        <div className="bg-gray-900 clip-notch border border-lime-400/30 p-6">
+        <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] p-6">
           <div className="grid grid-cols-4 gap-8">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="space-y-2">
@@ -795,7 +795,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
         <div className="grid grid-cols-3 gap-6">
           {/* Property details skeleton */}
           <div className="col-span-2 space-y-6">
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <Skeleton className="h-6 w-40 mb-4" />
               <div className="grid grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -809,7 +809,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           </div>
           {/* Sidebar skeleton */}
           <div className="space-y-6">
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <Skeleton className="h-6 w-32 mb-4" />
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
@@ -925,7 +925,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
             <>
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-700 clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider"
+                className="flex items-center gap-2 px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider"
               >
                 <Share2 className="w-4 h-4" />
                 Share
@@ -947,7 +947,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="flex items-center gap-2 px-4 py-2 border border-red-500/30 clip-notch hover:bg-red-500/10 text-red-400 font-mono text-sm uppercase tracking-wider disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.red.500/0.3)] clip-notch hover:bg-red-500/10 text-red-400 font-mono text-sm uppercase tracking-wider disabled:opacity-50"
             title="Delete appraisal"
           >
             {isDeleting ? (
@@ -985,7 +985,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
       {/* Value Summary */}
       {report && (
-        <div className="relative bg-gray-900 clip-notch border border-lime-400/30 p-6">
+        <div className="relative bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] p-6">
           <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
           <div className="absolute -top-px -right-px w-3 h-3 border-r border-t border-lime-400" />
           <div className="absolute -bottom-px -left-px w-3 h-3 border-l border-b border-lime-400" />
@@ -1054,7 +1054,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-3 gap-6">
         {/* Property Details */}
         <div className="col-span-2 space-y-6">
-          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+          <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
             <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <Home className="w-5 h-5 text-lime-400" />
               Property Details
@@ -1115,7 +1115,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
           {/* AI Analysis */}
           {report?.aiAnalysis && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="text-lg font-semibold text-white mb-4">
                 AI Analysis
               </h2>
@@ -1162,7 +1162,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
           {/* Comparable Sales */}
           {report?.comps && Array.isArray(report.comps) && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="text-lg font-semibold text-white mb-4">
                 Comparable Sales
               </h2>
@@ -1236,7 +1236,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 recommendation: string;
               }>
             ).length > 0 && (
-              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">
                   Risk Assessment
                 </h2>
@@ -1278,7 +1278,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Request Info */}
-          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+          <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
             <h2 className="text-lg font-semibold text-white mb-4">
               Request Info
             </h2>
@@ -1319,7 +1319,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
           {/* On-Site Inspection Status (for AI_REPORT_WITH_ONSITE or CERTIFIED_APPRAISAL) */}
           {appraisal.jobs && appraisal.jobs.length > 0 && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <Camera className="w-5 h-5 text-lime-400" />
                 On-Site Inspection
@@ -1486,7 +1486,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           {/* Upgrade to Certified - Only show if not CERTIFIED and status is READY */}
           {appraisal.requestedType !== "CERTIFIED_APPRAISAL" &&
             appraisal.status === "READY" && (
-              <div className="bg-gradient-to-br from-lime-400/10 to-lime-400/5 clip-notch border border-lime-400/30 p-6">
+              <div className="bg-gradient-to-br from-lime-400/10 to-lime-400/5 clip-notch shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] p-6">
                 <h2 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
                   <Award className="w-5 h-5 text-lime-400" />
                   Need a Certified Appraisal?
@@ -1511,7 +1511,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
           {/* Share Report */}
           {report && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="text-lg font-semibold text-white mb-4">
                 Share Report
               </h2>
@@ -1537,7 +1537,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                     }
                   }}
                   disabled={shareMutation.isPending}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-700 clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider disabled:opacity-50"
                 >
                   {linkCopied ? (
                     <>
@@ -1574,7 +1574,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           )}
 
           {/* Need Help */}
-          <div className="bg-gray-800/50 clip-notch border border-gray-700 p-6">
+          <div className="bg-gray-800/50 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.700)] p-6">
             <h2 className="font-semibold text-white mb-2">Need Help?</h2>
             <p className="text-sm text-gray-400 mb-4">
               Have questions about this appraisal or need a different report

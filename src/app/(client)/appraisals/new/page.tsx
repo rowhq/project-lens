@@ -301,7 +301,7 @@ export default function NewAppraisalPage() {
       </div>
 
       {/* Step Content */}
-      <div className="relative bg-gray-900 clip-notch border border-gray-800 p-6">
+      <div className="relative bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
         <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
         {/* Property Step */}
         {currentStep === "property" && (
@@ -320,7 +320,7 @@ export default function NewAppraisalPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, addressQuery: e.target.value })
                     }
-                    className="w-full pl-10 pr-4 py-3 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                    className="w-full pl-10 pr-4 py-3 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   />
                 </div>
                 <button
@@ -345,10 +345,10 @@ export default function NewAppraisalPage() {
                     onClick={() =>
                       setFormData({ ...formData, selectedProperty: result })
                     }
-                    className={`w-full text-left p-4 border clip-notch-sm transition-colors ${
+                    className={`w-full text-left p-4 clip-notch-sm transition-colors ${
                       formData.selectedProperty?.id === result.id
-                        ? "border-lime-400 bg-lime-400/5"
-                        : "border-gray-700 hover:border-gray-600"
+                        ? "shadow-[inset_0_0_0_1px_theme(colors.lime.400)] bg-lime-400/5"
+                        : "shadow-[inset_0_0_0_1px_theme(colors.gray.700)] hover:shadow-[inset_0_0_0_1px_theme(colors.gray.600)]"
                     }`}
                   >
                     <p className="font-medium text-white">{result.address}</p>
@@ -374,10 +374,10 @@ export default function NewAppraisalPage() {
                         onClick={() =>
                           setFormData({ ...formData, propertyType: type.id })
                         }
-                        className={`p-4 border clip-notch text-center transition-colors ${
+                        className={`p-4 clip-notch text-center transition-colors ${
                           formData.propertyType === type.id
-                            ? "border-lime-400 bg-lime-400/5 text-lime-400"
-                            : "border-gray-700 hover:border-gray-600 text-gray-300"
+                            ? "shadow-[inset_0_0_0_1px_theme(colors.lime.400)] bg-lime-400/5 text-lime-400"
+                            : "shadow-[inset_0_0_0_1px_theme(colors.gray.700)] hover:shadow-[inset_0_0_0_1px_theme(colors.gray.600)] text-gray-300"
                         }`}
                       >
                         <Icon className="w-6 h-6 mx-auto mb-2" />
@@ -405,7 +405,7 @@ export default function NewAppraisalPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, purpose: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                className="w-full px-4 py-3 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
               >
                 <option value="">Select purpose...</option>
                 {purposes.map((p) => (
@@ -427,7 +427,7 @@ export default function NewAppraisalPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, loanNumber: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                className="w-full px-4 py-3 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
               />
             </div>
 
@@ -442,7 +442,7 @@ export default function NewAppraisalPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, borrowerName: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                className="w-full px-4 py-3 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
               />
             </div>
 
@@ -457,7 +457,7 @@ export default function NewAppraisalPage() {
                   setFormData({ ...formData, notes: e.target.value })
                 }
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50 resize-none"
+                className="w-full px-4 py-3 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] resize-none"
               />
             </div>
           </div>
@@ -472,10 +472,10 @@ export default function NewAppraisalPage() {
                 onClick={() =>
                   setFormData({ ...formData, reportType: type.id })
                 }
-                className={`w-full text-left p-6 border clip-notch transition-colors ${
+                className={`w-full text-left p-6 clip-notch transition-colors ${
                   formData.reportType === type.id
-                    ? "border-lime-400 bg-lime-400/5"
-                    : "border-gray-700 hover:border-gray-600"
+                    ? "shadow-[inset_0_0_0_1px_theme(colors.lime.400)] bg-lime-400/5"
+                    : "shadow-[inset_0_0_0_1px_theme(colors.gray.700)] hover:shadow-[inset_0_0_0_1px_theme(colors.gray.600)]"
                 }`}
               >
                 <div className="flex justify-between items-start mb-3">
@@ -561,7 +561,7 @@ export default function NewAppraisalPage() {
               )}
             </div>
 
-            <div className="bg-lime-400/10 p-4 clip-notch border border-lime-400/30">
+            <div className="bg-lime-400/10 p-4 clip-notch shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)]">
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="font-semibold text-white">

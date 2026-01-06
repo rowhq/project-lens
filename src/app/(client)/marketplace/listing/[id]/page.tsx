@@ -107,7 +107,7 @@ export default function ListingDetailPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Header */}
-          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+          <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <span className="px-2 py-1 bg-lime-400/10 text-lime-400 text-xs font-mono uppercase tracking-wider clip-notch-sm">
@@ -136,7 +136,7 @@ export default function ListingDetailPage() {
 
           {/* Description */}
           {listing.description && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="font-semibold text-white mb-3">Description</h2>
               <p className="text-gray-400 whitespace-pre-wrap">
                 {listing.description}
@@ -145,7 +145,7 @@ export default function ListingDetailPage() {
           )}
 
           {/* Property Details */}
-          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+          <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
             <h2 className="font-semibold text-white mb-4">Property Details</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="flex items-center gap-3 p-3 bg-gray-800 clip-notch-sm">
@@ -203,7 +203,7 @@ export default function ListingDetailPage() {
 
           {/* Report Details - Only show if report exists */}
           {listing.report && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="font-semibold text-white mb-4">
                 Report Information
               </h2>
@@ -259,7 +259,7 @@ export default function ListingDetailPage() {
 
           {/* Study Category - Show if no report */}
           {!listing.report && listing.studyCategory && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="font-semibold text-white mb-4 flex items-center gap-2">
                 <Layers className="w-5 h-5 text-lime-400" />
                 Study Information
@@ -289,7 +289,7 @@ export default function ListingDetailPage() {
 
           {/* Documents Section */}
           {listing.documents && listing.documents.length > 0 && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="font-semibold text-white mb-4 flex items-center gap-2">
                 <File className="w-5 h-5 text-lime-400" />
                 Included Documents ({listing.documents.length})
@@ -393,7 +393,7 @@ export default function ListingDetailPage() {
           </div>
 
           {/* Seller Info */}
-          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+          <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
             <h3 className="font-semibold text-white mb-3">Seller</h3>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gray-800 clip-notch-sm flex items-center justify-center">
@@ -407,7 +407,7 @@ export default function ListingDetailPage() {
           </div>
 
           {/* Stats */}
-          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+          <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
             <h3 className="font-semibold text-white mb-3">Listing Stats</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">

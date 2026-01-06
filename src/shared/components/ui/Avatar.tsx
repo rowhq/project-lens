@@ -47,25 +47,21 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
       >
         <div
           className={cn(
-            "notch-border-sm",
-            "[--notch-border-color:theme(colors.gray.700)]",
-            "[--notch-bg:theme(colors.gray.800)]",
+            "flex items-center justify-center clip-notch-sm bg-gray-800 text-gray-300 font-mono font-medium overflow-hidden shadow-[inset_0_0_0_1px_theme(colors.gray.700)]",
             sizes[size],
           )}
         >
-          <div className="notch-border-sm-inner text-gray-300 font-mono font-medium overflow-hidden">
-            {src ? (
-              <img
-                src={src}
-                alt={alt || name || "Avatar"}
-                className="w-full h-full object-cover"
-              />
-            ) : initials ? (
-              <span className="uppercase">{initials}</span>
-            ) : (
-              <User className="w-1/2 h-1/2" />
-            )}
-          </div>
+          {src ? (
+            <img
+              src={src}
+              alt={alt || name || "Avatar"}
+              className="w-full h-full object-cover"
+            />
+          ) : initials ? (
+            <span className="uppercase">{initials}</span>
+          ) : (
+            <User className="w-1/2 h-1/2" />
+          )}
         </div>
         {status && (
           <span

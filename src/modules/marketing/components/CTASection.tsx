@@ -32,7 +32,7 @@ export function CTASection() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-lime-400/50 to-transparent" />
 
           {/* Content */}
-          <div className="relative px-8 py-16 md:px-16 md:py-24 text-center border border-gray-800">
+          <div className="relative px-8 py-16 md:px-16 md:py-24 text-center shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
             <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
               Start Today
             </p>

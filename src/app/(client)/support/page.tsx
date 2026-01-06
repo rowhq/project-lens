@@ -94,7 +94,7 @@ export default function SupportPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <a
           href="mailto:support@truplat.com"
-          className="relative flex items-center gap-4 p-4 bg-gray-900 border border-gray-800 clip-notch hover:bg-gray-800 transition-colors group"
+          className="relative flex items-center gap-4 p-4 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch hover:bg-gray-800 transition-colors group"
         >
           <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-blue-400" />
           <div className="p-3 bg-blue-500/10 clip-notch-sm border border-blue-500/30">
@@ -108,7 +108,7 @@ export default function SupportPage() {
 
         <a
           href="tel:+15125551000"
-          className="relative flex items-center gap-4 p-4 bg-gray-900 border border-gray-800 clip-notch hover:bg-gray-800 transition-colors group"
+          className="relative flex items-center gap-4 p-4 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch hover:bg-gray-800 transition-colors group"
         >
           <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-green-400" />
           <div className="p-3 bg-green-500/10 clip-notch-sm border border-green-500/30">
@@ -122,7 +122,7 @@ export default function SupportPage() {
 
         <a
           href="#"
-          className="relative flex items-center gap-4 p-4 bg-gray-900 border border-gray-800 clip-notch hover:bg-gray-800 transition-colors group"
+          className="relative flex items-center gap-4 p-4 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch hover:bg-gray-800 transition-colors group"
         >
           <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-purple-400" />
           <div className="p-3 bg-purple-500/10 clip-notch-sm border border-purple-500/30">
@@ -139,7 +139,7 @@ export default function SupportPage() {
       </div>
 
       {/* FAQs */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+      <div className="relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch p-6">
         <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
         <div className="flex items-center gap-3 mb-6">
           <HelpCircle className="w-5 h-5 text-lime-400" />
@@ -152,7 +152,7 @@ export default function SupportPage() {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="border border-gray-800 clip-notch-sm overflow-hidden"
+              className="shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm overflow-hidden"
             >
               <button
                 onClick={() =>
@@ -176,7 +176,7 @@ export default function SupportPage() {
       </div>
 
       {/* Contact Form */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+      <div className="relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch p-6">
         <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-blue-400" />
         <div className="flex items-center gap-3 mb-6">
           <MessageSquare className="w-5 h-5 text-blue-400" />
@@ -195,7 +195,7 @@ export default function SupportPage() {
               onChange={(e) =>
                 setContactForm({ ...contactForm, subject: e.target.value })
               }
-              className="w-full px-4 py-2.5 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+              className="w-full px-4 py-2.5 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
             >
               <option value="">Select a topic</option>
               <option value="technical">Technical Issue</option>
@@ -217,7 +217,7 @@ export default function SupportPage() {
                 setContactForm({ ...contactForm, message: e.target.value })
               }
               placeholder="Describe your issue or question..."
-              className="w-full px-4 py-2.5 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 resize-none focus:outline-none focus:border-lime-400/50"
+              className="w-full px-4 py-2.5 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 resize-none focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
               rows={5}
             />
           </div>
@@ -243,7 +243,7 @@ export default function SupportPage() {
       </div>
 
       {/* Business Hours */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6 text-center">
+      <div className="relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch p-6 text-center">
         <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-gray-600" />
         <p className="text-gray-400">
           <strong className="text-white font-mono uppercase tracking-wider">

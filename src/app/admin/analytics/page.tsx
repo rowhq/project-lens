@@ -43,7 +43,7 @@ function StatCard({
   };
 
   return (
-    <div className="relative bg-gray-950 border border-gray-800 p-5 clip-notch group hover:border-gray-700 transition-colors">
+    <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-5 clip-notch group hover:shadow-[inset_0_0_0_1px_theme(colors.gray.700)] transition-colors">
       <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
       <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -221,7 +221,7 @@ export default function AnalyticsPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-lime-400/10 border border-lime-400/20 clip-notch-sm">
+            <div className="p-2 bg-lime-400/10 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.2)] clip-notch-sm">
               <BarChart3 className="w-5 h-5 text-lime-400" />
             </div>
             <h1 className="text-2xl font-bold text-white">Analytics</h1>
@@ -233,7 +233,7 @@ export default function AnalyticsPage() {
 
         <div className="flex items-center gap-3">
           {/* Date Range Selector */}
-          <div className="flex items-center bg-gray-900 border border-gray-800 clip-notch-sm">
+          <div className="flex items-center bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm">
             {dateRangeOptions.map((option) => (
               <button
                 key={option.value}
@@ -253,7 +253,7 @@ export default function AnalyticsPage() {
           {/* Export Button */}
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-400 hover:text-white clip-notch-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] hover:shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-gray-400 hover:text-white clip-notch-sm transition-colors"
           >
             <Download className="w-4 h-4" />
             <span className="font-mono text-xs uppercase">Export</span>
@@ -300,7 +300,7 @@ export default function AnalyticsPage() {
       {/* Charts Row */}
       <div className="grid grid-cols-2 gap-6 mb-8">
         {/* Revenue Chart */}
-        <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -321,7 +321,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Jobs Chart */}
-        <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -342,7 +342,7 @@ export default function AnalyticsPage() {
       {/* Second Row: Distribution + Counties */}
       <div className="grid grid-cols-3 gap-6 mb-8">
         {/* Job Type Distribution */}
-        <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -353,7 +353,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Top Counties */}
-        <div className="col-span-2 relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="col-span-2 relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -391,7 +391,7 @@ export default function AnalyticsPage() {
       {/* Third Row: Top Performers */}
       <div className="grid grid-cols-2 gap-6">
         {/* Top Appraisers */}
-        <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -404,7 +404,7 @@ export default function AnalyticsPage() {
             {topAppraisers.map((appraiser, index) => (
               <div
                 key={appraiser.name}
-                className="flex items-center gap-4 p-3 bg-gray-900 border border-gray-800 clip-notch-sm hover:border-gray-700 transition-colors"
+                className="flex items-center gap-4 p-3 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm hover:shadow-[inset_0_0_0_1px_theme(colors.gray.700)] transition-colors"
               >
                 <div
                   className={cn(
@@ -441,7 +441,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Top Organizations */}
-        <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -454,7 +454,7 @@ export default function AnalyticsPage() {
             {topOrganizations.map((org, index) => (
               <div
                 key={org.name}
-                className="flex items-center gap-4 p-3 bg-gray-900 border border-gray-800 clip-notch-sm hover:border-gray-700 transition-colors"
+                className="flex items-center gap-4 p-3 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm hover:shadow-[inset_0_0_0_1px_theme(colors.gray.700)] transition-colors"
               >
                 <div
                   className={cn(

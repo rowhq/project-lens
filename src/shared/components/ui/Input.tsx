@@ -45,12 +45,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               // Base styles
               "w-full px-4 py-3",
               "bg-[var(--input)] text-[var(--foreground)]",
-              // Use inset box-shadow instead of border (follows clip-path)
               "shadow-[inset_0_0_0_1px_var(--border)]",
               "placeholder-[var(--muted-foreground)]",
               // Angular design
               "clip-notch-sm",
-              // Focus state - use box-shadow for border effect
+              // Focus state
               "focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400)]",
               "focus:ring-1 focus:ring-lime-400/20",
               // Transition with Ledger easing

@@ -586,7 +586,7 @@ export default function InsightsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search projects..."
-              className="pl-10 pr-4 py-2.5 w-48 md:w-64 bg-gray-900 border border-gray-700 text-white clip-notch focus:outline-none focus:border-lime-400/50 text-sm placeholder-gray-500"
+              className="pl-10 pr-4 py-2.5 w-48 md:w-64 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-white clip-notch focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] text-sm placeholder-gray-500"
             />
             {searchQuery && (
               <button
@@ -603,7 +603,7 @@ export default function InsightsPage() {
               value={county}
               onChange={(e) => setCounty(e.target.value)}
               aria-label="Select county"
-              className="appearance-none pl-4 pr-10 py-2.5 bg-gray-900 border border-gray-700 text-white clip-notch focus:outline-none focus:border-lime-400/50 font-mono text-sm"
+              className="appearance-none pl-4 pr-10 py-2.5 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-white clip-notch focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] font-mono text-sm"
             >
               {COUNTIES.map((c) => (
                 <option key={c.value} value={c.value}>
@@ -617,7 +617,7 @@ export default function InsightsPage() {
           <button
             onClick={exportToCSV}
             disabled={!insightsData?.items?.length}
-            className="p-2.5 bg-gray-900 border border-gray-700 clip-notch text-gray-400 hover:text-lime-400 hover:border-lime-400/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2.5 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch text-gray-400 hover:text-lime-400 hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             title="Export to CSV"
           >
             <Download className="w-4 h-4" />
@@ -625,7 +625,7 @@ export default function InsightsPage() {
           {/* Share Button */}
           <button
             onClick={copyShareableLink}
-            className="p-2.5 bg-gray-900 border border-gray-700 clip-notch text-gray-400 hover:text-lime-400 hover:border-lime-400/50 transition-colors"
+            className="p-2.5 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch text-gray-400 hover:text-lime-400 hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] transition-colors"
             title="Copy shareable link"
           >
             <Share2 className="w-4 h-4" />
@@ -633,12 +633,12 @@ export default function InsightsPage() {
           {/* Compare Toggle */}
           <button
             onClick={() => setCompareMode(!compareMode)}
-            className={`relative p-2.5 border clip-notch transition-colors ${
+            className={`relative p-2.5 clip-notch transition-colors ${
               compareMode
-                ? "bg-lime-400/10 text-lime-400 border-lime-400/30"
+                ? "bg-lime-400/10 text-lime-400 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)]"
                 : selectedForCompare.length > 0
-                  ? "bg-blue-400/10 text-blue-400 border-blue-400/30"
-                  : "bg-gray-900 text-gray-400 border-gray-700 hover:text-lime-400 hover:border-lime-400/50"
+                  ? "bg-blue-400/10 text-blue-400 shadow-[inset_0_0_0_1px_theme(colors.blue.400/0.3)]"
+                  : "bg-gray-900 text-gray-400 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] hover:text-lime-400 hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
             }`}
             title={
               compareMode
@@ -660,7 +660,7 @@ export default function InsightsPage() {
 
       {/* Comparison Panel */}
       {compareMode && (
-        <div className="bg-gray-900 border border-gray-800 p-4 clip-notch">
+        <div className="bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4 clip-notch">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <GitCompare className="w-4 h-4 text-lime-400" />
@@ -813,10 +813,10 @@ export default function InsightsPage() {
       {/* Advanced Filters Toggle */}
       <button
         onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-        className={`flex items-center gap-2 px-4 py-2 text-sm border clip-notch transition-colors ${
+        className={`flex items-center gap-2 px-4 py-2 text-sm clip-notch transition-colors ${
           hasAdvancedFilters
-            ? "bg-lime-400/10 text-lime-400 border-lime-400/30"
-            : "bg-gray-900 text-gray-400 border-gray-700 hover:border-lime-400/50"
+            ? "bg-lime-400/10 text-lime-400 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)]"
+            : "bg-gray-900 text-gray-400 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
         }`}
       >
         <SlidersHorizontal className="w-4 h-4" />
@@ -843,7 +843,7 @@ export default function InsightsPage() {
 
       {/* Advanced Filters Panel */}
       {showAdvancedFilters && (
-        <div className="bg-gray-900 border border-gray-800 p-4 clip-notch">
+        <div className="bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4 clip-notch">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Status Filter */}
             <div>
@@ -853,7 +853,7 @@ export default function InsightsPage() {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full appearance-none px-3 py-2 bg-gray-800 border border-gray-700 text-white text-sm clip-notch focus:outline-none focus:border-lime-400/50"
+                className="w-full appearance-none px-3 py-2 bg-gray-800 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-white text-sm clip-notch focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
               >
                 {STATUS_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -871,7 +871,7 @@ export default function InsightsPage() {
               <select
                 value={appreciationRange}
                 onChange={(e) => setAppreciationRange(e.target.value)}
-                className="w-full appearance-none px-3 py-2 bg-gray-800 border border-gray-700 text-white text-sm clip-notch focus:outline-none focus:border-lime-400/50"
+                className="w-full appearance-none px-3 py-2 bg-gray-800 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-white text-sm clip-notch focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
               >
                 {APPRECIATION_PRESETS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -889,7 +889,7 @@ export default function InsightsPage() {
               <select
                 value={minCorrelation}
                 onChange={(e) => setMinCorrelation(e.target.value)}
-                className="w-full appearance-none px-3 py-2 bg-gray-800 border border-gray-700 text-white text-sm clip-notch focus:outline-none focus:border-lime-400/50"
+                className="w-full appearance-none px-3 py-2 bg-gray-800 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-white text-sm clip-notch focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
               >
                 {CORRELATION_PRESETS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -911,7 +911,7 @@ export default function InsightsPage() {
                 placeholder="2020"
                 min="2000"
                 max="2030"
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white text-sm clip-notch focus:outline-none focus:border-lime-400/50 placeholder-gray-600"
+                className="w-full px-3 py-2 bg-gray-800 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-white text-sm clip-notch focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] placeholder-gray-600"
               />
             </div>
 
@@ -927,7 +927,7 @@ export default function InsightsPage() {
                 placeholder="2025"
                 min="2000"
                 max="2030"
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white text-sm clip-notch focus:outline-none focus:border-lime-400/50 placeholder-gray-600"
+                className="w-full px-3 py-2 bg-gray-800 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-white text-sm clip-notch focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] placeholder-gray-600"
               />
             </div>
           </div>
@@ -943,7 +943,7 @@ export default function InsightsPage() {
           {selectedType !== DEFAULT_FILTERS.type && (
             <button
               onClick={() => setSelectedType(DEFAULT_FILTERS.type)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-lime-400/10 text-lime-400 text-sm border border-lime-400/30 clip-notch hover:bg-lime-400/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-lime-400/10 text-lime-400 text-sm shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] clip-notch hover:bg-lime-400/20 transition-colors"
             >
               {SIGNAL_TYPES.find((t) => t.value === selectedType)?.label ||
                 selectedType}
@@ -953,7 +953,7 @@ export default function InsightsPage() {
           {county !== DEFAULT_FILTERS.county && (
             <button
               onClick={() => setCounty(DEFAULT_FILTERS.county)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-400/10 text-blue-400 text-sm border border-blue-400/30 clip-notch hover:bg-blue-400/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-400/10 text-blue-400 text-sm shadow-[inset_0_0_0_1px_theme(colors.blue.400/0.3)] clip-notch hover:bg-blue-400/20 transition-colors"
             >
               {county} County
               <X className="w-3 h-3" />
@@ -962,7 +962,7 @@ export default function InsightsPage() {
           {bufferMiles !== DEFAULT_FILTERS.bufferMiles && (
             <button
               onClick={() => setBufferMiles(DEFAULT_FILTERS.bufferMiles)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-400/10 text-purple-400 text-sm border border-purple-400/30 clip-notch hover:bg-purple-400/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-400/10 text-purple-400 text-sm shadow-[inset_0_0_0_1px_theme(colors.purple.400/0.3)] clip-notch hover:bg-purple-400/20 transition-colors"
             >
               {bufferMiles} mi buffer
               <X className="w-3 h-3" />
@@ -971,7 +971,7 @@ export default function InsightsPage() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-400/10 text-orange-400 text-sm border border-orange-400/30 clip-notch hover:bg-orange-400/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-400/10 text-orange-400 text-sm shadow-[inset_0_0_0_1px_theme(colors.orange.400/0.3)] clip-notch hover:bg-orange-400/20 transition-colors"
             >
               &quot;{searchQuery}&quot;
               <X className="w-3 h-3" />
@@ -981,7 +981,7 @@ export default function InsightsPage() {
           {status && (
             <button
               onClick={() => setStatus("")}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-cyan-400/10 text-cyan-400 text-sm border border-cyan-400/30 clip-notch hover:bg-cyan-400/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-cyan-400/10 text-cyan-400 text-sm shadow-[inset_0_0_0_1px_theme(colors.cyan.400/0.3)] clip-notch hover:bg-cyan-400/20 transition-colors"
             >
               {STATUS_OPTIONS.find((s) => s.value === status)?.label}
               <X className="w-3 h-3" />
@@ -990,7 +990,7 @@ export default function InsightsPage() {
           {appreciationRange && (
             <button
               onClick={() => setAppreciationRange("")}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-400/10 text-emerald-400 text-sm border border-emerald-400/30 clip-notch hover:bg-emerald-400/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-400/10 text-emerald-400 text-sm shadow-[inset_0_0_0_1px_theme(colors.emerald.400/0.3)] clip-notch hover:bg-emerald-400/20 transition-colors"
             >
               {
                 APPRECIATION_PRESETS.find((a) => a.value === appreciationRange)
@@ -1002,7 +1002,7 @@ export default function InsightsPage() {
           {minCorrelation && (
             <button
               onClick={() => setMinCorrelation("")}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-400/10 text-yellow-400 text-sm border border-yellow-400/30 clip-notch hover:bg-yellow-400/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-400/10 text-yellow-400 text-sm shadow-[inset_0_0_0_1px_theme(colors.yellow.400/0.3)] clip-notch hover:bg-yellow-400/20 transition-colors"
             >
               {
                 CORRELATION_PRESETS.find((c) => c.value === minCorrelation)
@@ -1017,7 +1017,7 @@ export default function InsightsPage() {
                 setYearFrom("");
                 setYearTo("");
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-pink-400/10 text-pink-400 text-sm border border-pink-400/30 clip-notch hover:bg-pink-400/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-pink-400/10 text-pink-400 text-sm shadow-[inset_0_0_0_1px_theme(colors.pink.400/0.3)] clip-notch hover:bg-pink-400/20 transition-colors"
             >
               {yearFrom && yearTo
                 ? `${yearFrom}-${yearTo}`
@@ -1037,7 +1037,7 @@ export default function InsightsPage() {
       )}
 
       {/* Parcels Near Infrastructure Section */}
-      <div className="relative bg-lime-400/10 border border-lime-400/30 clip-notch p-6">
+      <div className="relative bg-lime-400/10 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] clip-notch p-6">
         {/* L-Bracket Corners */}
         <div className="absolute -top-px -left-px w-4 h-4 border-l-2 border-t-2 border-lime-400/50" />
         <div className="absolute -bottom-px -right-px w-4 h-4 border-r-2 border-b-2 border-lime-400/50" />
@@ -1069,7 +1069,7 @@ export default function InsightsPage() {
       </div>
 
       {/* Infrastructure Impact Overview - Stats Cards */}
-      <div className="bg-gray-900 border border-gray-800 p-6 clip-notch">
+      <div className="bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400">
             Infrastructure Impact Overview
@@ -1162,7 +1162,7 @@ export default function InsightsPage() {
 
       {/* Key Insights - Narrative Summary (only shown when we have real data) */}
       {hasRealInsights ? (
-        <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+        <div className="relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch p-6">
           {/* L-Bracket Corners */}
           <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
           <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
@@ -1196,7 +1196,7 @@ export default function InsightsPage() {
           </div>
         </div>
       ) : !insightsLoading && analysisMetrics.projectsAnalyzed === 0 ? (
-        <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+        <div className="relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch p-6">
           <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
           <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
 
@@ -1213,7 +1213,7 @@ export default function InsightsPage() {
       ) : null}
 
       {/* Growth Opportunities Section */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+      <div className="relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch p-6">
         {/* L-Bracket Corners */}
         <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
         <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
@@ -1234,7 +1234,7 @@ export default function InsightsPage() {
             </div>
           </div>
           {growthData?.opportunities && growthData.opportunities.length > 0 && (
-            <span className="px-3 py-1 bg-lime-400/10 text-lime-400 text-sm font-mono border border-lime-400/30 clip-notch">
+            <span className="px-3 py-1 bg-lime-400/10 text-lime-400 text-sm font-mono shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] clip-notch">
               {growthData.opportunities.length} properties
             </span>
           )}
@@ -1293,7 +1293,7 @@ export default function InsightsPage() {
               setSelectedType(e.target.value as InsightType | "ALL")
             }
             aria-label="Filter by infrastructure type"
-            className="appearance-none pl-10 pr-10 py-2 bg-gray-900 border border-gray-700 text-white clip-notch focus:outline-none focus:border-lime-400/50"
+            className="appearance-none pl-10 pr-10 py-2 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-white clip-notch focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
           >
             {SIGNAL_TYPES.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -1340,10 +1340,10 @@ export default function InsightsPage() {
                 role="radio"
                 aria-checked={bufferMiles === opt.value}
                 aria-label={`${opt.value} mile buffer`}
-                className={`px-3 py-1.5 text-xs font-mono border clip-notch transition-colors ${
+                className={`px-3 py-1.5 text-xs font-mono clip-notch transition-colors ${
                   bufferMiles === opt.value
-                    ? "bg-lime-400/20 text-lime-400 border-lime-400/50"
-                    : "bg-gray-900 text-gray-400 border-gray-700 hover:border-lime-400/50"
+                    ? "bg-lime-400/20 text-lime-400 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
+                    : "bg-gray-900 text-gray-400 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                 }`}
               >
                 {opt.label}
@@ -1354,7 +1354,7 @@ export default function InsightsPage() {
 
         {/* View Toggle */}
         <div
-          className="ml-auto flex items-center bg-gray-900 border border-gray-700 clip-notch p-1"
+          className="ml-auto flex items-center bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch p-1"
           role="tablist"
           aria-label="View mode"
         >
@@ -1391,7 +1391,7 @@ export default function InsightsPage() {
 
       {/* Table View */}
       {viewMode === "table" && (
-        <div className="bg-gray-900 border border-gray-800 clip-notch overflow-hidden">
+        <div className="bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch overflow-hidden">
           {insightsLoading ? (
             <div className="divide-y divide-gray-800">
               {/* Skeleton rows */}
@@ -1426,7 +1426,7 @@ export default function InsightsPage() {
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="px-4 py-2 text-sm border border-gray-700 text-gray-300 clip-notch hover:border-lime-400/50 transition-colors"
+                    className="px-4 py-2 text-sm shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-gray-300 clip-notch hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] transition-colors"
                   >
                     Clear search
                   </button>
@@ -1434,7 +1434,7 @@ export default function InsightsPage() {
                 {bufferMiles < 5 && (
                   <button
                     onClick={() => setBufferMiles(5)}
-                    className="px-4 py-2 text-sm border border-gray-700 text-gray-300 clip-notch hover:border-lime-400/50 transition-colors"
+                    className="px-4 py-2 text-sm shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-gray-300 clip-notch hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] transition-colors"
                   >
                     Expand to 5 mi buffer
                   </button>
@@ -1442,7 +1442,7 @@ export default function InsightsPage() {
                 {selectedType !== "ALL" && (
                   <button
                     onClick={() => setSelectedType("ALL")}
-                    className="px-4 py-2 text-sm border border-gray-700 text-gray-300 clip-notch hover:border-lime-400/50 transition-colors"
+                    className="px-4 py-2 text-sm shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-gray-300 clip-notch hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] transition-colors"
                   >
                     Show all types
                   </button>
@@ -1450,7 +1450,7 @@ export default function InsightsPage() {
                 {hasActiveFilters && (
                   <button
                     onClick={clearAllFilters}
-                    className="px-4 py-2 text-sm bg-lime-400/10 text-lime-400 border border-lime-400/30 clip-notch hover:bg-lime-400/20 transition-colors"
+                    className="px-4 py-2 text-sm bg-lime-400/10 text-lime-400 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] clip-notch hover:bg-lime-400/20 transition-colors"
                   >
                     Reset all filters
                   </button>
@@ -1673,12 +1673,12 @@ export default function InsightsPage() {
                                   e.stopPropagation();
                                   toggleCompare(insight.id);
                                 }}
-                                className={`w-5 h-5 border clip-notch flex items-center justify-center transition-colors ${
+                                className={`w-5 h-5 clip-notch flex items-center justify-center transition-colors ${
                                   isSelected
-                                    ? "bg-lime-400 border-lime-400 text-black"
+                                    ? "bg-lime-400 shadow-[inset_0_0_0_1px_theme(colors.lime.400)] text-black"
                                     : selectedForCompare.length >= 3
-                                      ? "border-gray-700 text-gray-700 cursor-not-allowed"
-                                      : "border-gray-600 hover:border-lime-400/50"
+                                      ? "shadow-[inset_0_0_0_1px_theme(colors.gray.700)] text-gray-700 cursor-not-allowed"
+                                      : "shadow-[inset_0_0_0_1px_theme(colors.gray.600)] hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                                 }`}
                                 disabled={
                                   !isSelected && selectedForCompare.length >= 3
@@ -1706,7 +1706,7 @@ export default function InsightsPage() {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <span className="px-2 py-1 text-xs font-mono uppercase tracking-wider bg-gray-800 text-gray-300 border border-gray-700 clip-notch">
+                            <span className="px-2 py-1 text-xs font-mono uppercase tracking-wider bg-gray-800 text-gray-300 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch">
                               {insight.type
                                 .replace(/_/g, " ")
                                 .replace(/PROJECT|CONSTRUCTION/g, "")
@@ -1787,7 +1787,7 @@ export default function InsightsPage() {
       {viewMode === "map" && (
         <div
           ref={mapViewRef}
-          className="bg-gray-900 border border-gray-800 clip-notch overflow-hidden relative"
+          className="bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch overflow-hidden relative"
         >
           <MapView
             markers={insightMarkers}
@@ -1809,7 +1809,7 @@ export default function InsightsPage() {
               className={`px-3 py-2 text-sm font-mono flex items-center gap-2 clip-notch transition-colors ${
                 showHeatmap
                   ? "bg-orange-400 text-black"
-                  : "bg-black/70 text-white hover:bg-black/80 border border-gray-600"
+                  : "bg-black/70 text-white hover:bg-black/80 shadow-[inset_0_0_0_1px_theme(colors.gray.600)]"
               }`}
             >
               <Flame className="w-4 h-4" aria-hidden="true" />

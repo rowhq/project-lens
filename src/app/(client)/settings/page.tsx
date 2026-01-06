@@ -422,7 +422,7 @@ export default function SettingsPage() {
         <div className="flex-1">
           {/* Profile Tab */}
           {activeTab === "profile" && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="text-lg font-semibold text-white mb-6">
                 Profile Information
               </h2>
@@ -483,7 +483,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handleProfileFieldChange(setFirstName, e.target.value)
                     }
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   />
                 </div>
                 <div>
@@ -496,7 +496,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handleProfileFieldChange(setLastName, e.target.value)
                     }
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   />
                 </div>
                 <div>
@@ -523,7 +523,7 @@ export default function SettingsPage() {
                       handleProfileFieldChange(setJobTitle, e.target.value)
                     }
                     placeholder="Loan Officer"
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   />
                 </div>
                 <div className="col-span-2">
@@ -538,7 +538,7 @@ export default function SettingsPage() {
                       handleProfileFieldChange(setLocation, e.target.value)
                     }
                     placeholder="Austin, TX"
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   />
                 </div>
               </div>
@@ -574,7 +574,7 @@ export default function SettingsPage() {
           {activeTab === "team" && (
             <div className="space-y-6">
               {/* Team Status */}
-              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
                     <Users className="w-6 h-6 text-lime-400" />
@@ -623,7 +623,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Invite Form */}
-              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
                 <div className="flex items-center gap-2 mb-6">
                   <UserPlus className="w-5 h-5 text-lime-400" />
                   <h2 className="text-lg font-semibold text-white">
@@ -641,7 +641,7 @@ export default function SettingsPage() {
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
                       placeholder="colleague@company.com"
-                      className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                      className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                     />
                   </div>
 
@@ -655,7 +655,7 @@ export default function SettingsPage() {
                         value={inviteFirstName}
                         onChange={(e) => setInviteFirstName(e.target.value)}
                         placeholder="John"
-                        className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                        className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                       />
                     </div>
                     <div>
@@ -667,7 +667,7 @@ export default function SettingsPage() {
                         value={inviteLastName}
                         onChange={(e) => setInviteLastName(e.target.value)}
                         placeholder="Doe"
-                        className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                        className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                       />
                     </div>
                   </div>
@@ -699,7 +699,7 @@ export default function SettingsPage() {
 
               {/* Team Page Link (if team exists) */}
               {teamStatus?.showTeamPage && (
-                <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+                <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
                   <p className="text-gray-400 mb-4">
                     Need to manage existing team members, change roles, or
                     remove members?
@@ -718,7 +718,7 @@ export default function SettingsPage() {
 
           {/* Notifications Tab */}
           {activeTab === "notifications" && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="text-lg font-semibold text-white mb-6">
                 Notification Settings
               </h2>
@@ -758,7 +758,7 @@ export default function SettingsPage() {
                     ].map((item) => (
                       <label
                         key={item.id}
-                        className="flex items-center justify-between p-4 border border-gray-800 clip-notch-sm hover:bg-gray-800 cursor-pointer"
+                        className="flex items-center justify-between p-4 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm hover:bg-gray-800 cursor-pointer"
                       >
                         <div>
                           <p className="font-medium text-white">{item.label}</p>
@@ -802,7 +802,7 @@ export default function SettingsPage() {
                     ].map((item) => (
                       <label
                         key={item.id}
-                        className="flex items-center justify-between p-4 border border-gray-800 clip-notch-sm hover:bg-gray-800 cursor-pointer"
+                        className="flex items-center justify-between p-4 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm hover:bg-gray-800 cursor-pointer"
                       >
                         <div>
                           <p className="font-medium text-white">{item.label}</p>
@@ -860,7 +860,7 @@ export default function SettingsPage() {
           {/* Security Tab */}
           {activeTab === "security" && (
             <div className="space-y-6">
-              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
                 <h2 className="text-lg font-semibold text-white mb-6">
                   Password
                 </h2>
@@ -873,7 +873,7 @@ export default function SettingsPage() {
                       type="password"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                      className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                     />
                   </div>
                   <div>
@@ -884,7 +884,7 @@ export default function SettingsPage() {
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                      className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                     />
                     <p className="text-xs text-gray-400 mt-1">
                       Must be at least 8 characters
@@ -898,7 +898,7 @@ export default function SettingsPage() {
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                      className="w-full px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                     />
                     {confirmPassword && newPassword !== confirmPassword && (
                       <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
@@ -941,12 +941,12 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">
                   Active Sessions
                 </h2>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 border border-gray-800 clip-notch-sm bg-green-500/5">
+                  <div className="flex items-center justify-between p-4 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm bg-green-500/5">
                     <div className="flex items-center gap-3">
                       <Monitor className="w-5 h-5 text-gray-400" />
                       <div>
@@ -974,7 +974,7 @@ export default function SettingsPage() {
 
           {/* Preferences Tab */}
           {activeTab === "preferences" && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6">
               <h2 className="text-lg font-semibold text-white mb-6">
                 Preferences
               </h2>
@@ -989,7 +989,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handlePreferenceChange("language", e.target.value)
                     }
-                    className="w-full max-w-xs px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full max-w-xs px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   >
                     <option value="en-US">English (US)</option>
                     <option value="es">Espanol</option>
@@ -1005,7 +1005,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handlePreferenceChange("timezone", e.target.value)
                     }
-                    className="w-full max-w-xs px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full max-w-xs px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   >
                     <option value="America/Chicago">Central Time (CT)</option>
                     <option value="America/New_York">Eastern Time (ET)</option>
@@ -1025,7 +1025,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handlePreferenceChange("dateFormat", e.target.value)
                     }
-                    className="w-full max-w-xs px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full max-w-xs px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   >
                     <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                     <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -1042,7 +1042,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handlePreferenceChange("currency", e.target.value)
                     }
-                    className="w-full max-w-xs px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full max-w-xs px-4 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)]"
                   >
                     <option value="USD">USD ($)</option>
                   </select>

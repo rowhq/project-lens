@@ -48,10 +48,9 @@ export function PropertyCard({
   const formattedAddress = `${address.street}, ${address.city}, ${address.state} ${address.zipCode}`;
 
   const cardClassName = cn(
-    // Use inset box-shadow for border (follows clip-path)
     "block bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch overflow-hidden transition-all",
     (href || onClick) &&
-      "hover:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3),inset_0_0_0_1px_theme(colors.lime.400/0.5)] cursor-pointer",
+      "hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5),0_4px_6px_-1px_rgba(0,0,0,0.1)] cursor-pointer",
     className,
   );
 
@@ -193,7 +192,6 @@ export function PropertyCardCompact({
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       className={cn(
-        // Use inset box-shadow for border (follows clip-path)
         "flex items-center gap-3 p-3 bg-gray-900 clip-notch transition-all",
         onClick && "cursor-pointer hover:bg-gray-800",
         selected

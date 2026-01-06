@@ -86,7 +86,7 @@ export default function MyListingsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="bg-gray-900 clip-notch border border-gray-800 p-4">
+        <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
               <FileText className="w-5 h-5 text-lime-400" />
@@ -101,7 +101,7 @@ export default function MyListingsPage() {
             </div>
           </div>
         </div>
-        <div className="bg-gray-900 clip-notch border border-gray-800 p-4">
+        <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
               <ShoppingCart className="w-5 h-5 text-lime-400" />
@@ -116,7 +116,7 @@ export default function MyListingsPage() {
             </div>
           </div>
         </div>
-        <div className="bg-gray-900 clip-notch border border-gray-800 p-4">
+        <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
               <DollarSign className="w-5 h-5 text-lime-400" />
@@ -131,7 +131,7 @@ export default function MyListingsPage() {
             </div>
           </div>
         </div>
-        <div className="bg-gray-900 clip-notch border border-gray-800 p-4">
+        <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
               <Download className="w-5 h-5 text-lime-400" />
@@ -182,7 +182,7 @@ export default function MyListingsPage() {
               <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
             </div>
           ) : listings?.items?.length === 0 ? (
-            <div className="text-center py-12 bg-gray-900 clip-notch border border-gray-800">
+            <div className="text-center py-12 bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
               <FileText className="w-12 h-12 mx-auto text-gray-600" />
               <p className="mt-4 text-gray-400">No listings yet</p>
               <Link
@@ -194,7 +194,7 @@ export default function MyListingsPage() {
               </Link>
             </div>
           ) : (
-            <div className="bg-gray-900 clip-notch border border-gray-800 overflow-hidden">
+            <div className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] overflow-hidden">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-700 bg-gray-800">
@@ -287,7 +287,7 @@ export default function MyListingsPage() {
               <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
             </div>
           ) : purchases?.items?.length === 0 ? (
-            <div className="text-center py-12 bg-gray-900 clip-notch border border-gray-800">
+            <div className="text-center py-12 bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
               <ShoppingCart className="w-12 h-12 mx-auto text-gray-600" />
               <p className="mt-4 text-gray-400">No purchases yet</p>
               <Link
@@ -302,7 +302,7 @@ export default function MyListingsPage() {
               {purchases?.items?.map((purchase) => (
                 <div
                   key={purchase.id}
-                  className="bg-gray-900 clip-notch border border-gray-800 p-4"
+                  className="bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4"
                 >
                   <div className="flex items-start justify-between">
                     <div>

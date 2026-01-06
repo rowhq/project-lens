@@ -38,7 +38,7 @@ export default function AuthLayout({
           <div className="hidden lg:block" />
           <Link
             href="/"
-            className="h-10 px-4 flex items-center font-mono text-sm uppercase tracking-wider text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 clip-notch-sm transition-colors duration-300"
+            className="h-10 px-4 flex items-center font-mono text-sm uppercase tracking-wider text-gray-400 hover:text-white shadow-[inset_0_0_0_1px_theme(colors.gray.700)] hover:shadow-[inset_0_0_0_1px_theme(colors.gray.600)] clip-notch-sm transition-colors duration-300"
             style={{
               transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
             }}
@@ -50,7 +50,7 @@ export default function AuthLayout({
         {/* Main Content */}
         <div className="flex-1 flex items-center justify-center px-4 py-6">
           {/* Auth Card */}
-          <div className="relative w-full max-w-md bg-gray-900 border border-gray-800 clip-notch p-6">
+          <div className="relative w-full max-w-md bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch p-6">
             {/* L-bracket corners */}
             <span className="absolute top-0 left-0 w-5 h-5 border-t-2 border-l-2 border-lime-400 pointer-events-none" />
             <span className="absolute top-0 right-0 w-5 h-5 border-t-2 border-r-2 border-lime-400 pointer-events-none" />

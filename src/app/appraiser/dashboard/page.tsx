@@ -45,7 +45,7 @@ function StatCard({
   };
 
   return (
-    <div className="relative bg-gray-950 border border-gray-800 p-4 clip-notch-sm group hover:border-gray-700 transition-colors duration-fast">
+    <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4 clip-notch-sm group hover:shadow-[inset_0_0_0_1px_theme(colors.gray.700)] transition-colors duration-fast">
       {/* Bracket corners */}
       <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-lime-400/30" />
       <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-lime-400/30" />
@@ -103,7 +103,8 @@ function JobListItem({
         <div
           className={cn(
             "w-10 h-10 flex items-center justify-center clip-notch-sm",
-            urgency?.bgClass || "bg-lime-400/10 border border-lime-400/20",
+            urgency?.bgClass ||
+              "bg-lime-400/10 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.2)]",
           )}
         >
           <MapPin
@@ -181,7 +182,7 @@ function WeeklyStatCard({
   stats: { label: string; value: string | number; color?: string }[];
 }) {
   return (
-    <div className="relative bg-gray-950 border border-gray-800 p-4 clip-notch-sm">
+    <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-4 clip-notch-sm">
       {/* Bracket corners */}
       <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-lime-400/30" />
       <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-lime-400/30" />
@@ -288,7 +289,7 @@ export default function AppraiserDashboardPage() {
   return (
     <div className="space-y-6">
       {/* Welcome Banner - Ledger Style */}
-      <div className="relative bg-gray-950 border border-lime-400/30 p-6 clip-notch overflow-hidden">
+      <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] p-6 clip-notch overflow-hidden">
         {/* Bracket corners */}
         <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400" />
         <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400" />
@@ -377,7 +378,7 @@ export default function AppraiserDashboardPage() {
 
       {/* Urgent Jobs Alert - Ledger Style */}
       {jobsDueToday.length > 0 && (
-        <div className="relative bg-gray-950 border border-amber-400/30 p-4 clip-notch">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.amber.400/0.3)] p-4 clip-notch">
           {/* Bracket corners */}
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400" />
@@ -394,7 +395,7 @@ export default function AppraiserDashboardPage() {
               <Link
                 key={job.id}
                 href={`/appraiser/jobs/${job.id}`}
-                className="flex items-center justify-between p-3 bg-gray-900 border border-gray-800 clip-notch-sm hover:border-amber-400/30 transition-colors"
+                className="flex items-center justify-between p-3 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm hover:shadow-[inset_0_0_0_1px_theme(colors.amber.400/0.3)] transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <MapPin className="w-4 h-4 text-amber-400" />
@@ -417,7 +418,7 @@ export default function AppraiserDashboardPage() {
 
       {/* Active Jobs - Ledger Style */}
       {activeJobs && activeJobs.length > 0 && (
-        <div className="relative bg-gray-950 border border-gray-800 clip-notch overflow-hidden">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch overflow-hidden">
           {/* Bracket corners */}
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400/30 z-10" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400/30 z-10" />
@@ -485,7 +486,7 @@ export default function AppraiserDashboardPage() {
         </div>
         {!availableJobs?.length ? (
           <div className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gray-900 border border-gray-800 flex items-center justify-center clip-notch">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] flex items-center justify-center clip-notch">
               <Briefcase className="w-8 h-8 text-gray-600" />
             </div>
             <p className="text-white font-medium">
@@ -559,7 +560,7 @@ export default function AppraiserDashboardPage() {
 
       {/* Profile Completion Alert - Ledger Style */}
       {profile?.verificationStatus !== "VERIFIED" && (
-        <div className="relative bg-gray-950 border border-amber-400/30 p-4 clip-notch">
+        <div className="relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.amber.400/0.3)] p-4 clip-notch">
           {/* Bracket corners */}
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400" />
