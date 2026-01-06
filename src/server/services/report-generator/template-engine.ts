@@ -119,7 +119,7 @@ class TemplateEngine {
       /* Reset & Base */
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
         color: #121212;
         line-height: 1.6;
         background: #FFFFFF;
@@ -143,7 +143,7 @@ class TemplateEngine {
         display: block;
       }
       .header-badge {
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.1em;
@@ -155,7 +155,7 @@ class TemplateEngine {
       .header .meta {
         display: flex;
         gap: 24px;
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 11px;
         color: #737373;
       }
@@ -166,7 +166,7 @@ class TemplateEngine {
       .section { margin-bottom: 32px; padding: 0 40px; page-break-inside: avoid; }
       .section:first-of-type { padding-top: 32px; }
       .section-title {
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.1em;
@@ -193,7 +193,7 @@ class TemplateEngine {
       .property-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
       .property-item { }
       .property-label {
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 10px;
         color: #737373;
         text-transform: uppercase;
@@ -215,14 +215,14 @@ class TemplateEngine {
         margin: 0 40px 32px 40px;
       }
       .valuation-estimate {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
         font-size: 48px;
         font-weight: 700;
         letter-spacing: -0.03em;
         margin-bottom: 8px;
       }
       .valuation-range {
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 13px;
         opacity: 0.9;
       }
@@ -236,12 +236,12 @@ class TemplateEngine {
       }
       .metric { }
       .metric-value {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
         font-size: 24px;
         font-weight: 600;
       }
       .metric-label {
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.05em;
@@ -253,7 +253,7 @@ class TemplateEngine {
       .comps-table {
         width: 100%;
         border-collapse: collapse;
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 11px;
       }
       .comps-table th {
@@ -273,7 +273,7 @@ class TemplateEngine {
       }
       .comps-table tr:nth-child(even) { background: #F9FAFB; }
       .comps-note {
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 10px;
         color: #737373;
         margin-top: 12px;
@@ -313,7 +313,7 @@ class TemplateEngine {
       .risk-flag.low::before { color: #22C55E; }
       .risk-content { flex: 1; }
       .risk-title {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
         font-weight: 600;
         font-size: 14px;
         margin-bottom: 4px;
@@ -336,7 +336,7 @@ class TemplateEngine {
         color: #121212;
       }
       .ai-section-title {
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.05em;
@@ -374,7 +374,7 @@ class TemplateEngine {
         background: #F8FAFC;
       }
       .evidence-caption strong {
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.05em;
@@ -416,7 +416,7 @@ class TemplateEngine {
         margin: 40px 40px 0 40px;
         padding: 20px 0;
         border-top: 2px solid #22C55E;
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 10px;
         color: #737373;
         display: flex;
@@ -439,7 +439,7 @@ class TemplateEngine {
         border: 1px solid #E5E5E5;
       }
       .trend-label {
-        font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family: 'Courier New', Courier, monospace;
         font-size: 10px;
         color: #737373;
         text-transform: uppercase;

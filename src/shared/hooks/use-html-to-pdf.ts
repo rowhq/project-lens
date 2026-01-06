@@ -23,6 +23,15 @@ export function useHtmlToPdf() {
       setError(null);
 
       try {
+        // Validate htmlContent before proceeding
+        if (!htmlContent || htmlContent.trim().length < 100) {
+          throw new Error(
+            `HTML content is empty or invalid (length: ${htmlContent?.length ?? 0})`,
+          );
+        }
+        console.log("[PDF Debug] HTML content length:", htmlContent.length);
+        console.log("[PDF Debug] HTML preview:", htmlContent.substring(0, 200));
+
         // Dynamic import to avoid SSR issues
         const html2pdf = (await import("html2pdf.js")).default;
 
@@ -45,8 +54,9 @@ export function useHtmlToPdf() {
         // CRITICAL: Wait for fonts to load before rendering
         await document.fonts.ready;
 
-        // Small delay to ensure DOM is fully painted
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        // Increased delay to ensure DOM is fully painted and fonts are rendered
+        // html2canvas needs more time with generic fonts
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         // Configure PDF generation options
         const pdfOptions = {
@@ -57,7 +67,7 @@ export function useHtmlToPdf() {
             scale: 2,
             useCORS: true,
             allowTaint: true, // Allow external images even if CORS fails
-            logging: false,
+            logging: true, // Enable logging to debug rendering issues
             windowWidth: 794, // A4 width in pixels at 96dpi
           },
           jsPDF: {
