@@ -35,10 +35,9 @@ export interface PDFResult {
  * Falls back to mock if Gotenberg is not available
  */
 class PDFGenerator {
-  private gotenbergUrl: string | null;
-
-  constructor() {
-    this.gotenbergUrl = process.env.GOTENBERG_URL || null;
+  // Read env var at runtime, not at module load time
+  private get gotenbergUrl(): string | null {
+    return process.env.GOTENBERG_URL || null;
   }
 
   /**
