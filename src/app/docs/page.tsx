@@ -314,7 +314,7 @@ export default function DocsPage() {
               Texas Market Launch
             </span>
             <span className="px-3 py-1 bg-amber-400/10 text-amber-400 font-mono text-xs uppercase tracking-wider rounded border border-amber-400/30">
-              Q1 2025
+              Q1 2026
             </span>
           </div>
         </div>
@@ -331,9 +331,9 @@ export default function DocsPage() {
           {/* One-liner */}
           <div className="bg-gradient-to-r from-lime-400/10 to-transparent border-l-4 border-lime-400 p-6 mb-8">
             <p className="text-xl text-white font-medium">
-              TruPlat es una plataforma de valuación de propiedades que combina
-              AI con appraisers licenciados para entregar reportes de valuación
-              10x más rápido y 70% más económico que el proceso tradicional.
+              TruPlat is a property valuation platform that combines AI with
+              licensed appraisers to deliver valuation reports 10x faster and
+              70% cheaper than the traditional process.
             </p>
           </div>
 
@@ -369,22 +369,20 @@ export default function DocsPage() {
               <div className="w-10 h-10 bg-lime-400/10 rounded-lg flex items-center justify-center mb-4">
                 <Clock className="w-5 h-5 text-lime-400" />
               </div>
-              <h4 className="text-lg font-semibold text-white mb-2">
-                Velocidad
-              </h4>
+              <h4 className="text-lg font-semibold text-white mb-2">Speed</h4>
               <p className="text-gray-400 text-sm">
-                AI Reports instantáneos (~30 seg) vs 2-3 semanas del proceso
-                tradicional. On-Site en 48 horas.
+                Instant AI Reports (~30 sec) vs 2-3 weeks for traditional
+                process. On-Site verification in 48 hours.
               </p>
             </div>
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <div className="w-10 h-10 bg-cyan-400/10 rounded-lg flex items-center justify-center mb-4">
                 <DollarSign className="w-5 h-5 text-cyan-400" />
               </div>
-              <h4 className="text-lg font-semibold text-white mb-2">Precio</h4>
+              <h4 className="text-lg font-semibold text-white mb-2">Price</h4>
               <p className="text-gray-400 text-sm">
-                Suscripciones desde $0/mes con AI Reports incluidos vs $400-600
-                de una valuación tradicional.
+                Subscriptions from $0/month with AI Reports included vs $400-600
+                for a traditional valuation.
               </p>
             </div>
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
@@ -392,11 +390,11 @@ export default function DocsPage() {
                 <Shield className="w-5 h-5 text-amber-400" />
               </div>
               <h4 className="text-lg font-semibold text-white mb-2">
-                Confiabilidad
+                Reliability
               </h4>
               <p className="text-gray-400 text-sm">
-                Valuaciones certificadas USPAP-compliant con appraisers
-                licenciados en Texas.
+                USPAP-compliant certified valuations with licensed appraisers in
+                Texas.
               </p>
             </div>
           </div>
@@ -406,48 +404,48 @@ export default function DocsPage() {
             <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-6">
               <h4 className="text-lg font-semibold text-red-400 mb-4 flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5" />
-                El Problema
+                The Problem
               </h4>
               <ul className="space-y-3 text-gray-300 text-sm">
                 <li className="flex items-start gap-2">
                   <span className="text-red-400 mt-1">•</span>
-                  Valuaciones tradicionales toman 2-4 semanas
+                  Traditional valuations take 2-4 weeks
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-red-400 mt-1">•</span>
-                  Costo promedio $400-600 por valuación
+                  Average cost $400-600 per valuation
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-red-400 mt-1">•</span>
-                  Escasez de appraisers licenciados (40% jubilándose en 10 años)
+                  Appraiser shortage (40% retiring in 10 years)
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-red-400 mt-1">•</span>
-                  Proceso manual, inconsistente y opaco
+                  Manual, inconsistent, and opaque process
                 </li>
               </ul>
             </div>
             <div className="bg-lime-500/5 border border-lime-500/20 rounded-lg p-6">
               <h4 className="text-lg font-semibold text-lime-400 mb-4 flex items-center gap-2">
                 <CheckCircle className="w-5 h-5" />
-                Nuestra Solución
+                Our Solution
               </h4>
               <ul className="space-y-3 text-gray-300 text-sm">
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
-                  AI Reports instantáneos (~30 seg) incluidos en suscripción
+                  Instant AI Reports (~30 sec) included in subscription
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
-                  Verified reports con fotos en 48 horas (${PRICING.ON_SITE})
+                  Verified reports with photos in 48 hours (${PRICING.ON_SITE})
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
-                  Certified appraisals USPAP en 3 días (${PRICING.CERTIFIED})
+                  USPAP Certified appraisals in 3 days (${PRICING.CERTIFIED})
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-lime-400 mt-1">•</span>
-                  Marketplace de appraisers con dispatch automático
+                  Appraiser marketplace with automated dispatch
                 </li>
               </ul>
             </div>
@@ -782,7 +780,7 @@ export default function DocsPage() {
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
               <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-lime-400" />
-                Subscription (Secondary)
+                Subscription (Primary Revenue)
               </h4>
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-2 border-b border-gray-800">
@@ -817,6 +815,10 @@ export default function DocsPage() {
                   </span>
                 </div>
               </div>
+              <p className="text-xs text-gray-500 mt-3 italic">
+                Free tier serves as acquisition funnel for paid upgrades. Users
+                hitting 5-report limit see upgrade prompts with value props.
+              </p>
             </div>
           </div>
 
@@ -1000,22 +1002,28 @@ export default function DocsPage() {
               Marketplace Model
             </h4>
             <p className="text-gray-300 text-sm mb-4">
-              Para On-Site y Certified appraisals, operamos un marketplace de
-              appraisers licenciados con dispatch automático basado en
-              ubicación, disponibilidad y rating.
+              For On-Site and Certified appraisals, we operate a marketplace of
+              licensed appraisers with automated dispatch based on location,
+              availability, and rating.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-white">
-                  {PAYOUT_RATES.ON_SITE.percentage}%
+                  ${PAYOUT_RATES.ON_SITE.base}
                 </div>
-                <div className="text-xs text-gray-500">Appraiser Take</div>
+                <div className="text-xs text-gray-500">On-Site Base</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">
+                  ${PAYOUT_RATES.CERTIFIED.base}
+                </div>
+                <div className="text-xs text-gray-500">Certified Base</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-amber-400">
-                  {100 - PAYOUT_RATES.ON_SITE.percentage}%
+                  +{PAYOUT_RATES.ON_SITE.percentage}%
                 </div>
-                <div className="text-xs text-gray-500">Platform Take</div>
+                <div className="text-xs text-gray-500">Revenue Share</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-lime-400">48hr</div>
@@ -1069,11 +1077,11 @@ export default function DocsPage() {
               <ArrowUpRight className="w-5 h-5 text-lime-400 mt-1" />
               <div>
                 <h5 className="text-white font-medium mb-1">
-                  Crecimiento poblacional Texas
+                  Texas Population Growth
                 </h5>
                 <p className="text-gray-400 text-sm">
-                  +1,000 personas/día migrando a Texas. Top estado en
-                  crecimiento inmobiliario.
+                  +1,000 people/day migrating to Texas. Top state for real
+                  estate growth.
                 </p>
               </div>
             </div>
@@ -1081,11 +1089,10 @@ export default function DocsPage() {
               <ArrowUpRight className="w-5 h-5 text-lime-400 mt-1" />
               <div>
                 <h5 className="text-white font-medium mb-1">
-                  Escasez de appraisers
+                  Appraiser Shortage
                 </h5>
                 <p className="text-gray-400 text-sm">
-                  40% de appraisers se jubilarán en 10 años. Demanda &gt;
-                  Oferta.
+                  40% of appraisers will retire in 10 years. Demand &gt; Supply.
                 </p>
               </div>
             </div>
@@ -1093,10 +1100,10 @@ export default function DocsPage() {
               <ArrowUpRight className="w-5 h-5 text-lime-400 mt-1" />
               <div>
                 <h5 className="text-white font-medium mb-1">
-                  Adopción de AI en Real Estate
+                  AI Adoption in Real Estate
                 </h5>
                 <p className="text-gray-400 text-sm">
-                  Zillow, Redfin, OpenDoor ya usan AVMs. Mercado educado.
+                  Zillow, Redfin, OpenDoor already use AVMs. Educated market.
                 </p>
               </div>
             </div>
@@ -1104,11 +1111,11 @@ export default function DocsPage() {
               <ArrowUpRight className="w-5 h-5 text-lime-400 mt-1" />
               <div>
                 <h5 className="text-white font-medium mb-1">
-                  Regulación favorable
+                  Favorable Regulation
                 </h5>
                 <p className="text-gray-400 text-sm">
-                  FHFA permite AVMs para ciertas transacciones. Tendencia hacia
-                  desregulación.
+                  FHFA allows AVMs for certain transactions. Trend towards
+                  deregulation.
                 </p>
               </div>
             </div>
@@ -1214,35 +1221,35 @@ export default function DocsPage() {
           {/* Competitive Advantage */}
           <div className="mt-8 bg-gradient-to-r from-lime-400/10 to-transparent border-l-4 border-lime-400 p-6">
             <h4 className="font-semibold text-white mb-3">
-              Ventaja Competitiva
+              Competitive Advantage
             </h4>
             <ul className="space-y-2 text-gray-300 text-sm">
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-lime-400 mt-1" />
                 <span>
-                  <strong>Único híbrido:</strong> AI + Human en una sola
-                  plataforma con upgrade path seamless
+                  <strong>Unique hybrid:</strong> AI + Human on a single
+                  platform with seamless upgrade path
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-lime-400 mt-1" />
                 <span>
-                  <strong>Marketplace de appraisers:</strong> Red propia de
-                  appraisers licenciados con dispatch automático
+                  <strong>Appraiser marketplace:</strong> Own network of
+                  licensed appraisers with automated dispatch
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-lime-400 mt-1" />
                 <span>
-                  <strong>Focus Texas:</strong> Especialización geográfica vs
-                  competidores nacionales
+                  <strong>Texas Focus:</strong> Geographic specialization vs
+                  national competitors
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-lime-400 mt-1" />
                 <span>
-                  <strong>Certified USPAP:</strong> Reportes válidos para
-                  lenders y cortes, no solo estimados
+                  <strong>USPAP Certified:</strong> Reports valid for lenders
+                  and courts, not just estimates
                 </span>
               </li>
             </ul>
@@ -1346,7 +1353,7 @@ export default function DocsPage() {
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>• Listing agents (pricing)</li>
                 <li>• Buyer agents (negotiation)</li>
-                <li>• Teams y brokerages</li>
+                <li>• Teams and brokerages</li>
               </ul>
               <div className="mt-4 pt-4 border-t border-gray-800">
                 <div className="flex justify-between text-sm">
@@ -1485,32 +1492,32 @@ export default function DocsPage() {
             <div className="flex gap-4">
               <div className="w-24 text-right">
                 <span className="text-lime-400 font-mono text-sm">Phase 1</span>
-                <div className="text-gray-500 text-xs">Q1 2025</div>
+                <div className="text-gray-500 text-xs">Q1 2026</div>
               </div>
               <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <h5 className="text-white font-medium mb-2">
                   Austin Metro Launch
                 </h5>
                 <p className="text-gray-400 text-sm">
-                  Soft launch en Austin (Travis, Williamson, Hays). 100 beta
-                  users. Focus en investors y agents. Objetivo: 500
-                  reportes/mes, PMF validation.
+                  Soft launch in Austin (Travis, Williamson, Hays). 100 beta
+                  users. Focus on investors and agents. Target: 500
+                  reports/month, PMF validation.
                 </p>
               </div>
             </div>
             <div className="flex gap-4">
               <div className="w-24 text-right">
                 <span className="text-cyan-400 font-mono text-sm">Phase 2</span>
-                <div className="text-gray-500 text-xs">Q2 2025</div>
+                <div className="text-gray-500 text-xs">Q2 2026</div>
               </div>
               <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <h5 className="text-white font-medium mb-2">
                   DFW + Houston Expansion
                 </h5>
                 <p className="text-gray-400 text-sm">
-                  Expandir a Dallas-Fort Worth y Houston metros. Recruiting de
-                  appraisers locales. Objetivo: 2,000 reportes/mes, unit
-                  economics validation.
+                  Expand to Dallas-Fort Worth and Houston metros. Recruit local
+                  appraisers. Target: 2,000 reports/month, unit economics
+                  validation.
                 </p>
               </div>
             </div>
@@ -1519,13 +1526,13 @@ export default function DocsPage() {
                 <span className="text-amber-400 font-mono text-sm">
                   Phase 3
                 </span>
-                <div className="text-gray-500 text-xs">Q3-Q4 2025</div>
+                <div className="text-gray-500 text-xs">Q3-Q4 2026</div>
               </div>
               <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <h5 className="text-white font-medium mb-2">Texas Statewide</h5>
                 <p className="text-gray-400 text-sm">
-                  Cobertura completa Texas incluyendo San Antonio, El Paso,
-                  McAllen. Objetivo: 5,000 reportes/mes, $500K MRR.
+                  Full Texas coverage including San Antonio, El Paso, McAllen.
+                  Target: 5,000 reports/month, $500K MRR.
                 </p>
               </div>
             </div>
@@ -1769,32 +1776,32 @@ export default function DocsPage() {
             <RiskCard
               title="Regulatory Risk"
               severity="high"
-              description="Cambios en regulaciones de FHFA/state boards podrían limitar uso de AVMs o requerir más supervisión humana."
-              mitigation="Enfoque en certified appraisals USPAP-compliant. Relaciones con TALCB. Flexibilidad para adaptar productos."
+              description="Changes in FHFA/state board regulations could limit AVM usage or require more human oversight."
+              mitigation="Focus on USPAP-compliant certified appraisals. Relationships with TALCB. Flexibility to adapt products."
             />
             <RiskCard
               title="Competitive Risk"
               severity="medium"
-              description="Zillow, Redfin o incumbentes podrían lanzar productos similares con más recursos."
-              mitigation="Diferenciación por certified appraisals y marketplace de appraisers. Focus Texas permite especialización."
+              description="Zillow, Redfin, or incumbents could launch similar products with more resources."
+              mitigation="Differentiation through certified appraisals and appraiser marketplace. Texas focus enables specialization."
             />
             <RiskCard
               title="Technology Risk"
               severity="medium"
-              description="Dependencia de APIs terceros (RapidCanvas, OpenAI, ATTOM). Downtime afecta operaciones."
-              mitigation="Fallbacks implementados. Múltiples proveedores de datos. SLAs con vendors críticos."
+              description="Dependency on third-party APIs (RapidCanvas, OpenAI, ATTOM). Downtime affects operations."
+              mitigation="Fallbacks implemented. Multiple data providers. SLAs with critical vendors."
             />
             <RiskCard
               title="Supply Risk (Appraisers)"
               severity="medium"
-              description="Dificultad para reclutar y retener appraisers licenciados en mercado competitivo."
-              mitigation="Payouts competitivos (50%). Herramientas que facilitan su trabajo. Flexible scheduling."
+              description="Difficulty recruiting and retaining licensed appraisers in competitive market."
+              mitigation="Competitive payouts ($75/$225 base + 50%). Tools that facilitate their work. Flexible scheduling."
             />
             <RiskCard
               title="Market Risk"
               severity="low"
-              description="Recesión inmobiliaria reduciría volumen de transacciones y demanda de valuaciones."
-              mitigation="Diversificación de use cases (tax appeals, insurance claims aumentan en downturns)."
+              description="Real estate recession would reduce transaction volume and valuation demand."
+              mitigation="Diversification of use cases (tax appeals, insurance claims increase in downturns)."
             />
           </div>
         </section>
@@ -2754,7 +2761,7 @@ export default function DocsPage() {
         {/* Footer */}
         <div className="border-t border-gray-800 pt-8 mt-16">
           <p className="text-gray-500 text-sm text-center">
-            TruPlat Product Documentation v1.0 · Last updated January 2025
+            TruPlat Product Documentation v1.0 · Last updated January 2026
           </p>
         </div>
       </div>
