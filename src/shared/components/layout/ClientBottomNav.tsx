@@ -6,7 +6,6 @@
 
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -17,7 +16,6 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { trpc } from "@/shared/lib/trpc";
 
 interface NavItem {
   name: string;
@@ -29,23 +27,6 @@ interface NavItem {
 
 export function ClientBottomNav() {
   const pathname = usePathname();
-
-  // Fetch appraisals for badge count (processing = QUEUED + RUNNING)
-  const { data: appraisals } = trpc.appraisal.list.useQuery(
-    { limit: 100 },
-    {
-      refetchInterval: 30000, // Refresh every 30 seconds
-      staleTime: 10000,
-    },
-  );
-
-  // Calculate processing count (QUEUED + RUNNING appraisals)
-  const processingCount = useMemo(() => {
-    if (!appraisals?.items) return 0;
-    return appraisals.items.filter(
-      (a) => a.status === "QUEUED" || a.status === "RUNNING",
-    ).length;
-  }, [appraisals]);
 
   const navigation: NavItem[] = [
     {
@@ -62,8 +43,6 @@ export function ClientBottomNav() {
       name: "Appraisals",
       href: "/appraisals",
       icon: FileText,
-      getBadge: () => (processingCount > 0 ? processingCount : null),
-      badgeColor: "bg-yellow-500",
     },
     {
       name: "Insights",
@@ -78,7 +57,7 @@ export function ClientBottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-10 bg-[var(--background)] safe-area-inset-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--background)] safe-area-inset-bottom border-t border-gray-800">
       {/* Top border with SVG */}
       <div className="absolute top-0 left-0 right-0 h-px">
         <svg
