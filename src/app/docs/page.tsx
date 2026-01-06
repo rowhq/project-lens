@@ -1211,10 +1211,10 @@ export default function DocsPage() {
                 </div>
               </div>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li>• Fix & flip operators (alto volumen)</li>
+                <li>• Fix & flip operators (high volume)</li>
                 <li>• Buy & hold landlords</li>
                 <li>• Wholesalers</li>
-                <li>• REITs pequeños/medianos</li>
+                <li>• Small/medium REITs</li>
               </ul>
               <div className="mt-4 pt-4 border-t border-gray-800">
                 <div className="flex justify-between text-sm">
@@ -1393,7 +1393,7 @@ export default function DocsPage() {
                     $20
                   </td>
                   <td className="py-4 text-gray-400 text-sm">
-                    $25 credit por referido, viral loops
+                    $25 credit per referral, viral loops
                   </td>
                 </tr>
                 <tr>
