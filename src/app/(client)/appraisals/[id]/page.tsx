@@ -6,7 +6,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
 import { PRICING } from "@/shared/config/constants";
 import { useToast } from "@/shared/hooks/use-toast";
-import { useHtmlToPdf } from "@/shared/hooks/use-html-to-pdf";
 import {
   ArrowLeft,
   Download,
@@ -638,35 +637,32 @@ export default function AppraisalDetailPage({ params }: PageProps) {
     }
   };
 
-  // Client-side PDF generation hook
-  const { generatePdf, isGenerating: isPdfGenerating } = useHtmlToPdf();
-
-  // Query for report HTML content (for client-side PDF generation)
-  const { data: reportHtml } = trpc.report.getHtmlContent.useQuery(
-    { reportId: appraisal?.report?.id ?? "" },
-    { enabled: !!appraisal?.report?.id && appraisal?.status === "READY" },
-  );
-
-  // Handle PDF download using client-side generation
-  const handleDownloadPdf = async () => {
-    if (!reportHtml?.htmlContent || !appraisal) return;
-
-    try {
-      await generatePdf(
-        reportHtml.htmlContent,
-        `TruPlat-${appraisal.referenceCode}`,
-      );
+  // Server-side PDF download mutation (uses Gotenberg)
+  const downloadMutation = trpc.report.download.useMutation({
+    onSuccess: (data) => {
+      // Open the signed URL in a new tab to trigger download
+      window.open(data.url, "_blank");
       toast({
         title: "PDF Downloaded",
         description: "Your report has been downloaded successfully.",
       });
-    } catch {
+    },
+    onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to generate PDF. Please try again.",
+        description:
+          error.message || "Failed to generate PDF. Please try again.",
         variant: "destructive",
       });
-    }
+    },
+  });
+
+  const isPdfGenerating = downloadMutation.isPending;
+
+  // Handle PDF download using server-side generation
+  const handleDownloadPdf = () => {
+    if (!appraisal?.report?.id) return;
+    downloadMutation.mutate({ reportId: appraisal.report.id });
   };
 
   // Handle payment success callback from Stripe
@@ -936,7 +932,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               </button>
               <button
                 onClick={handleDownloadPdf}
-                disabled={isPdfGenerating || !reportHtml?.htmlContent}
+                disabled={isPdfGenerating || !appraisal?.report?.id}
                 className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-gray-900 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50"
               >
                 {isPdfGenerating ? (
