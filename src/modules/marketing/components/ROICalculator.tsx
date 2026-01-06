@@ -48,7 +48,7 @@ export function ROICalculator() {
           transition={{ duration: 0.5 }}
           className="mx-auto max-w-2xl text-center mb-12"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 clip-notch-sm bg-lime-500/10 border border-lime-500/30 text-lime-400 font-mono text-xs uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 clip-notch-sm bg-lime-500/10 shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.3)] text-lime-400 font-mono text-xs uppercase tracking-wider mb-4">
             <Calculator className="w-4 h-4" />
             ROI Calculator
           </div>
@@ -67,7 +67,7 @@ export function ROICalculator() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative bg-gray-900 clip-notch-lg border border-gray-800 p-8"
+            className="relative bg-gray-900 clip-notch-lg shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-8"
           >
             {/* L-bracket corners */}
             <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400" />
@@ -157,7 +157,7 @@ export function ROICalculator() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="relative bg-gradient-to-br from-lime-500/10 to-lime-500/5 clip-notch-lg border border-lime-500/20 p-8"
+            className="relative bg-gradient-to-br from-lime-500/10 to-lime-500/5 clip-notch-lg shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.2)] p-8"
           >
             {/* L-bracket corners */}
             <span className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400" />
@@ -171,9 +171,9 @@ export function ROICalculator() {
 
             <div className="space-y-6">
               {/* Monthly savings */}
-              <div className="bg-gray-900 clip-notch p-4 border border-gray-800">
+              <div className="bg-gray-900 clip-notch p-4 shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 clip-notch-sm bg-lime-500/10 border border-lime-500/30 flex items-center justify-center">
+                  <div className="w-10 h-10 clip-notch-sm bg-lime-500/10 shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.3)] flex items-center justify-center">
                     <DollarSign className="w-5 h-5 text-lime-400" />
                   </div>
                   <div>
@@ -193,9 +193,9 @@ export function ROICalculator() {
               </div>
 
               {/* Annual savings */}
-              <div className="bg-gray-900 clip-notch p-4 border border-gray-800">
+              <div className="bg-gray-900 clip-notch p-4 shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 clip-notch-sm bg-lime-500/10 border border-lime-500/30 flex items-center justify-center">
+                  <div className="w-10 h-10 clip-notch-sm bg-lime-500/10 shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.3)] flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-lime-400" />
                   </div>
                   <div>
@@ -215,9 +215,9 @@ export function ROICalculator() {
               </div>
 
               {/* Hours saved */}
-              <div className="bg-gray-900 clip-notch p-4 border border-gray-800">
+              <div className="bg-gray-900 clip-notch p-4 shadow-[inset_0_0_0_1px_theme(colors.gray.800)]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 clip-notch-sm bg-lime-500/10 border border-lime-500/30 flex items-center justify-center">
+                  <div className="w-10 h-10 clip-notch-sm bg-lime-500/10 shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.3)] flex items-center justify-center">
                     <Clock className="w-5 h-5 text-lime-400" />
                   </div>
                   <div>
@@ -238,7 +238,7 @@ export function ROICalculator() {
 
               {/* Additional deals */}
               {savings.additionalDeals > 0 && (
-                <div className="text-center p-4 bg-lime-500/5 clip-notch border border-lime-500/20">
+                <div className="text-center p-4 bg-lime-500/5 clip-notch shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.2)]">
                   <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
                     With faster turnaround, you could close
                   </p>

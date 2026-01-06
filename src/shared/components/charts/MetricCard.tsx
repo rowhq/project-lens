@@ -55,7 +55,8 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "relative bg-gray-950 border border-gray-800 p-5 overflow-hidden clip-notch",
+        // Use inset box-shadow for border (follows clip-path)
+        "relative bg-gray-950 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-5 overflow-hidden clip-notch",
         className,
       )}
     >
@@ -90,7 +91,12 @@ export function MetricCard({
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             {Icon && (
-              <div className={cn("p-2 border clip-notch-sm", iconBgColor)}>
+              <div
+                className={cn(
+                  "p-2 clip-notch-sm shadow-[inset_0_0_0_1px]",
+                  iconBgColor,
+                )}
+              >
                 <Icon className={cn("w-4 h-4", iconColor)} />
               </div>
             )}
@@ -103,7 +109,8 @@ export function MetricCard({
           {change !== undefined && (
             <div
               className={cn(
-                "flex items-center gap-1 px-2 py-0.5 border clip-notch-sm",
+                // Use inset box-shadow for border (follows clip-path)
+                "flex items-center gap-1 px-2 py-0.5 clip-notch-sm shadow-[inset_0_0_0_1px]",
                 trendBgColor,
               )}
             >

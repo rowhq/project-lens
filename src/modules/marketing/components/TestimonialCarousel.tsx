@@ -48,7 +48,7 @@ function TestimonialCard({
 }) {
   return (
     <div
-      className="group relative bg-gray-900 border border-gray-800 p-6 clip-notch transition-all duration-500 hover:border-lime-500/50"
+      className="group relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 clip-notch transition-all duration-500 hover:shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.5)]"
       style={{
         transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
         opacity: isVisible ? 1 : 0,
@@ -80,7 +80,7 @@ function TestimonialCard({
 
       {/* Author */}
       <div className="flex items-center gap-3 pt-4 border-t border-gray-800">
-        <div className="w-10 h-10 clip-notch-sm bg-lime-500/10 border border-lime-500/30 flex items-center justify-center">
+        <div className="w-10 h-10 clip-notch-sm bg-lime-500/10 shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.3)] flex items-center justify-center">
           <span className="font-mono text-sm font-bold text-lime-400">
             {testimonial.name.charAt(0)}
           </span>
@@ -163,7 +163,7 @@ export function TestimonialCarousel() {
             transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
           }}
         >
-          <div className="inline-flex items-center gap-4 px-6 py-3 bg-gray-900 border border-gray-800 clip-notch-sm">
+          <div className="inline-flex items-center gap-4 px-6 py-3 bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch-sm">
             <div className="flex -space-x-2">
               {["S", "M", "J", "D"].map((initial, i) => (
                 <div

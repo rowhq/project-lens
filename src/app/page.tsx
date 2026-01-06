@@ -457,7 +457,7 @@ function StepCard({
 }) {
   return (
     <div className="text-center group">
-      <div className="relative w-14 h-14 mx-auto clip-notch-sm bg-lime-500/10 border border-lime-500/30 flex items-center justify-center text-lime-400 font-mono text-xl font-bold mb-4">
+      <div className="relative w-14 h-14 mx-auto clip-notch-sm bg-lime-500/10 shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.3)] flex items-center justify-center text-lime-400 font-mono text-xl font-bold mb-4">
         <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity" />
         <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity" />
         {number}
@@ -489,11 +489,15 @@ function PricingCard({
   features: string[];
   popular?: boolean;
 }) {
+  // Use box-shadow inset for border (follows clip-path)
   const tierColors = {
-    free: "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
-    fastest: "text-cyan-400 bg-cyan-400/10 border-cyan-400/30",
-    popular: "text-lime-400 bg-lime-400/10 border-lime-400/30",
-    premium: "text-amber-400 bg-amber-400/10 border-amber-400/30",
+    free: "text-emerald-400 bg-emerald-400/10 shadow-[inset_0_0_0_1px_theme(colors.emerald.400/0.3)]",
+    fastest:
+      "text-cyan-400 bg-cyan-400/10 shadow-[inset_0_0_0_1px_theme(colors.cyan.400/0.3)]",
+    popular:
+      "text-lime-400 bg-lime-400/10 shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)]",
+    premium:
+      "text-amber-400 bg-amber-400/10 shadow-[inset_0_0_0_1px_theme(colors.amber.400/0.3)]",
   };
 
   const tierLabels = {
@@ -518,10 +522,10 @@ function PricingCard({
       )}
 
       <div
-        className={`group relative bg-gray-900 clip-notch border transition-all duration-500 ${
+        className={`group relative bg-gray-900 clip-notch transition-all duration-500 ${
           popular
-            ? "border-lime-400 shadow-xl shadow-lime-400/10"
-            : "border-gray-800 hover:border-gray-700"
+            ? "shadow-[inset_0_0_0_1px_theme(colors.lime.400),0_25px_50px_-12px_theme(colors.lime.400/0.1)]"
+            : "shadow-[inset_0_0_0_1px_theme(colors.gray.800)] hover:shadow-[inset_0_0_0_1px_theme(colors.gray.700)]"
         }`}
         style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
       >
@@ -551,12 +555,12 @@ function PricingCard({
           {/* Header: Icon + Tier badge */}
           <div className="flex items-start justify-between mb-6">
             <div
-              className={`w-12 h-12 clip-notch-sm flex items-center justify-center border ${tierColors[tier]}`}
+              className={`w-12 h-12 clip-notch-sm flex items-center justify-center ${tierColors[tier]}`}
             >
               <Icon className="w-6 h-6" />
             </div>
             <span
-              className={`px-2 py-1 font-mono text-[10px] uppercase tracking-wider border clip-notch-sm ${tierColors[tier]}`}
+              className={`px-2 py-1 font-mono text-[10px] uppercase tracking-wider clip-notch-sm ${tierColors[tier]}`}
             >
               {tierLabels[tier]}
             </span>
@@ -645,7 +649,7 @@ function PricingCard({
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   return (
-    <details className="group clip-notch border border-gray-800 bg-gray-900">
+    <details className="group clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] bg-gray-900">
       <summary
         className="flex items-center justify-between cursor-pointer px-6 py-4 font-mono text-sm uppercase tracking-wider text-white hover:bg-gray-800/50 transition-colors duration-300"
         style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}

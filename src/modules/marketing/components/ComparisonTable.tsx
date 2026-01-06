@@ -112,7 +112,7 @@ function HeroStatCard({
 
   return (
     <div
-      className="group relative bg-gray-900 border border-gray-800 clip-notch transition-all duration-500 hover:border-lime-500/50 overflow-hidden"
+      className="group relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch transition-all duration-500 hover:shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.5)] overflow-hidden"
       style={{
         transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
         opacity: isVisible ? 1 : 0,
@@ -127,7 +127,7 @@ function HeroStatCard({
       {/* Stat content */}
       <div className="p-6 text-center">
         {/* Icon */}
-        <div className="w-10 h-10 mx-auto mb-3 bg-lime-500/10 border border-lime-500/30 clip-notch-sm flex items-center justify-center">
+        <div className="w-10 h-10 mx-auto mb-3 bg-lime-500/10 shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.3)] clip-notch-sm flex items-center justify-center">
           <Icon className="w-5 h-5 text-lime-400" />
         </div>
 
@@ -246,7 +246,7 @@ export function ComparisonTable() {
         >
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full flex items-center justify-center gap-2 py-3 border border-gray-800 bg-gray-900/50 clip-notch-sm font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-white hover:border-gray-700 transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-3 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] bg-gray-900/50 clip-notch-sm font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-white hover:shadow-[inset_0_0_0_1px_theme(colors.gray.700)] transition-colors"
             style={{
               transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
             }}
@@ -270,7 +270,7 @@ export function ComparisonTable() {
               transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
             }}
           >
-            <div className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden">
+            <div className="relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch overflow-hidden">
               {/* L-bracket corners */}
               <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400 z-10" />
               <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400 z-10" />

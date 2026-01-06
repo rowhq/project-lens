@@ -20,7 +20,7 @@ export function HeroSection() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {/* Badge */}
-        <div className="inline-flex items-center gap-3 px-4 py-2 clip-notch-sm border border-lime-400/30 mb-8">
+        <div className="inline-flex items-center gap-3 px-4 py-2 clip-notch-sm shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.3)] mb-8">
           <span className="w-1.5 h-1.5 bg-lime-400 animate-pulse" />
           <span className="font-mono text-xs uppercase tracking-wider text-gray-400">
             Now Live in Texas
@@ -59,19 +59,19 @@ export function HeroSection() {
 
         {/* Feature pills */}
         <div className="flex flex-wrap justify-center gap-4">
-          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-gray-800 bg-gray-900/50">
+          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm shadow-[inset_0_0_0_1px_theme(colors.gray.800)] bg-gray-900/50">
             <Zap className="w-4 h-4 text-lime-400" />
             <span className="font-mono text-xs uppercase tracking-wider text-white">
               30-sec AI Reports
             </span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-gray-800 bg-gray-900/50">
+          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm shadow-[inset_0_0_0_1px_theme(colors.gray.800)] bg-gray-900/50">
             <Shield className="w-4 h-4 text-lime-400" />
             <span className="font-mono text-xs uppercase tracking-wider text-white">
               USPAP Compliant
             </span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-gray-800 bg-gray-900/50">
+          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm shadow-[inset_0_0_0_1px_theme(colors.gray.800)] bg-gray-900/50">
             <Clock className="w-4 h-4 text-lime-400" />
             <span className="font-mono text-xs uppercase tracking-wider text-white">
               48hr On-Site

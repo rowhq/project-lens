@@ -43,7 +43,7 @@ export function LeadCaptureSection() {
           className="mx-auto max-w-2xl text-center"
         >
           {/* Icon */}
-          <div className="relative mx-auto w-16 h-16 bg-lime-500/10 clip-notch flex items-center justify-center mb-6 border border-lime-500/30">
+          <div className="relative mx-auto w-16 h-16 bg-lime-500/10 clip-notch flex items-center justify-center mb-6 shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.3)]">
             <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400" />
             <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400" />
             <FileText className="w-8 h-8 text-lime-400" />
@@ -108,7 +108,7 @@ export function LeadCaptureSection() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative mt-4 p-3 bg-lime-500/10 border border-lime-500/30 clip-notch-sm text-lime-400 text-sm"
+              className="relative mt-4 p-3 bg-lime-500/10 shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.3)] clip-notch-sm text-lime-400 text-sm"
             >
               <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400" />
               <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400" />

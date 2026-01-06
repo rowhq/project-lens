@@ -49,17 +49,21 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
           role="dialog"
           aria-modal="true"
           className={cn(
-            "relative bg-gray-900 text-white border border-gray-800 max-w-lg w-full max-h-[90vh] overflow-auto animate-scale-in clip-notch",
+            "notch-border max-w-lg w-full animate-scale-in",
+            "[--notch-border-color:theme(colors.gray.800)]",
+            "[--notch-bg:theme(colors.gray.900)]",
             className,
           )}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* L-bracket corners */}
-          <span className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400 pointer-events-none z-10" />
-          <span className="absolute top-0 right-0 w-4 h-4 border-t border-r border-lime-400 pointer-events-none z-10" />
-          <span className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-lime-400 pointer-events-none z-10" />
-          <span className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400 pointer-events-none z-10" />
-          {children}
+          <div className="notch-border-inner !block max-h-[90vh] overflow-auto text-white">
+            {/* L-bracket corners */}
+            <span className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400 pointer-events-none z-10" />
+            <span className="absolute top-0 right-0 w-4 h-4 border-t border-r border-lime-400 pointer-events-none z-10" />
+            <span className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-lime-400 pointer-events-none z-10" />
+            <span className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400 pointer-events-none z-10" />
+            {children}
+          </div>
         </div>
       </div>
     </div>

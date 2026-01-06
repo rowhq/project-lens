@@ -94,7 +94,8 @@ export function GrowthOpportunityCard({
   return (
     <div
       className={cn(
-        "relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden hover:border-lime-400/50 transition-all",
+        // Use inset box-shadow for border (follows clip-path)
+        "relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch overflow-hidden hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] transition-all",
         className,
       )}
     >
@@ -197,7 +198,7 @@ export function GrowthOpportunityCard({
         {property.latitude && property.longitude && (
           <Link
             href={`/map?lat=${property.latitude}&lng=${property.longitude}&zoom=15`}
-            className="flex-1 px-3 py-2 border border-gray-700 clip-notch text-center text-gray-300 font-mono text-xs uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors"
+            className="flex-1 px-3 py-2 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch text-center text-gray-300 font-mono text-xs uppercase tracking-wider hover:bg-gray-800 hover:shadow-[inset_0_0_0_1px_theme(colors.lime.400/0.5)] transition-colors"
           >
             View on Map
           </Link>
@@ -216,7 +217,7 @@ export function GrowthOpportunityCard({
 // Loading skeleton for the card
 export function GrowthOpportunityCardSkeleton() {
   return (
-    <div className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden animate-pulse">
+    <div className="relative bg-gray-900 shadow-[inset_0_0_0_1px_theme(colors.gray.800)] clip-notch overflow-hidden animate-pulse">
       {/* Header */}
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-start justify-between gap-3">

@@ -45,12 +45,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               // Base styles
               "w-full px-4 py-3",
               "bg-[var(--input)] text-[var(--foreground)]",
-              "border border-[var(--border)]",
+              // Use inset box-shadow instead of border (follows clip-path)
+              "shadow-[inset_0_0_0_1px_var(--border)]",
               "placeholder-[var(--muted-foreground)]",
               // Angular design
               "clip-notch-sm",
-              // Focus state
-              "focus:outline-none focus:border-lime-400",
+              // Focus state - use box-shadow for border effect
+              "focus:outline-none focus:shadow-[inset_0_0_0_1px_theme(colors.lime.400)]",
               "focus:ring-1 focus:ring-lime-400/20",
               // Transition with Ledger easing
               "transition-all duration-300",
@@ -59,7 +60,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               rightIcon && "pr-10",
               // Error state
               error &&
-                "border-red-500 focus:border-red-500 focus:ring-red-500/20",
+                "shadow-[inset_0_0_0_1px_theme(colors.red.500)] focus:shadow-[inset_0_0_0_1px_theme(colors.red.500)] focus:ring-red-500/20",
               className,
             )}
             {...props}

@@ -48,19 +48,19 @@ export function CTASection() {
 
             {/* Benefits - Ledger style badges */}
             <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700 clip-notch-sm">
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm">
                 <Zap className="w-4 h-4 text-lime-400" />
                 <span className="font-mono text-xs uppercase tracking-wider text-gray-300">
                   5-min AI Reports
                 </span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700 clip-notch-sm">
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm">
                 <Clock className="w-4 h-4 text-lime-400" />
                 <span className="font-mono text-xs uppercase tracking-wider text-gray-300">
                   48hr On-Site
                 </span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700 clip-notch-sm">
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 shadow-[inset_0_0_0_1px_theme(colors.gray.700)] clip-notch-sm">
                 <Shield className="w-4 h-4 text-lime-400" />
                 <span className="font-mono text-xs uppercase tracking-wider text-gray-300">
                   Bank-Ready

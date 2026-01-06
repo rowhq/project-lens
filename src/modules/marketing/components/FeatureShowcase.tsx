@@ -125,7 +125,7 @@ export function FeatureShowcase() {
               <motion.div
                 key={feature.title}
                 variants={itemVariants}
-                className="group relative bg-gray-900 clip-notch border border-gray-800 p-6 hover:border-lime-500/50 transition-all"
+                className="group relative bg-gray-900 clip-notch shadow-[inset_0_0_0_1px_theme(colors.gray.800)] p-6 hover:shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.5)] transition-all"
                 style={{
                   transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
                 }}
@@ -135,7 +135,7 @@ export function FeatureShowcase() {
                 <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity" />
 
                 <div className="relative">
-                  <div className="w-12 h-12 bg-lime-500/10 border border-lime-500/30 clip-notch-sm flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 bg-lime-500/10 shadow-[inset_0_0_0_1px_theme(colors.lime.500/0.3)] clip-notch-sm flex items-center justify-center mb-4">
                     <Icon className="w-6 h-6 text-lime-400" />
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-2">
