@@ -4,9 +4,42 @@
  */
 
 import { prisma } from "@/server/db/prisma";
-import type { Job, Property, AppraiserProfile, User } from "@prisma/client";
+import type {
+  Job,
+  Property,
+  AppraiserProfile,
+  User,
+  AppraiserLicenseType,
+  JobType,
+} from "@prisma/client";
 import { geofencing } from "./geofencing";
 import type { MatchedAppraiser, DispatchOptions } from "./index";
+
+/**
+ * License types that can perform CERTIFIED_APPRAISAL jobs
+ * Only CERTIFIED_RESIDENTIAL and CERTIFIED_GENERAL appraisers can sign USPAP-compliant appraisals
+ */
+const CERTIFIED_ELIGIBLE_LICENSES: AppraiserLicenseType[] = [
+  "CERTIFIED_RESIDENTIAL",
+  "CERTIFIED_GENERAL",
+];
+
+/**
+ * Check if an appraiser's license type is eligible for a specific job type
+ */
+function isLicenseEligibleForJob(
+  licenseType: AppraiserLicenseType,
+  jobType: JobType,
+): boolean {
+  // For CERTIFIED_APPRAISAL jobs, only certified appraisers can do the work
+  if (jobType === "CERTIFIED_APPRAISAL") {
+    return CERTIFIED_ELIGIBLE_LICENSES.includes(licenseType);
+  }
+
+  // For ONSITE_PHOTOS (On-Site Verification), any licensed appraiser can do it
+  // This includes TRAINEE (under supervision), LICENSED, CERTIFIED_RESIDENTIAL, CERTIFIED_GENERAL
+  return true;
+}
 
 /**
  * Matcher configuration
@@ -36,7 +69,7 @@ class AppraiserMatcher {
    */
   async findMatches(
     job: JobWithProperty,
-    options: DispatchOptions = {}
+    options: DispatchOptions = {},
   ): Promise<MatchedAppraiser[]> {
     const radius = options.maxRadius || MATCHER_CONFIG.defaultRadius;
 
@@ -66,7 +99,7 @@ class AppraiserMatcher {
         {
           lat: appraiser.homeBaseLat || 0,
           lng: appraiser.homeBaseLng || 0,
-        }
+        },
       );
 
       if (distance > radius) continue;
@@ -77,13 +110,16 @@ class AppraiserMatcher {
           lat: job.property.latitude!,
           lng: job.property.longitude!,
         },
-        appraiser
+        appraiser,
       );
 
       if (!inServiceArea) continue;
 
-      // Check bank panel requirement (removed - not in schema)
-      // Bank panel validation would be handled separately if needed
+      // Check license eligibility for job type
+      // CERTIFIED_APPRAISAL requires CERTIFIED_RESIDENTIAL or CERTIFIED_GENERAL license
+      // ONSITE_PHOTOS can be done by any licensed appraiser
+      if (!isLicenseEligibleForJob(appraiser.licenseType, job.jobType))
+        continue;
 
       // Check availability
       const isAvailable = await this.checkAvailability(appraiser.userId, job);
@@ -124,7 +160,7 @@ class AppraiserMatcher {
    */
   private async checkAvailability(
     appraiserId: string,
-    job: JobWithProperty
+    job: JobWithProperty,
   ): Promise<boolean> {
     // Check current workload
     const activeJobs = await prisma.job.count({
@@ -157,12 +193,20 @@ class AppraiserMatcher {
     const dayName = dayNames[dayOfWeek];
 
     // Check schedule from appraiser's preferredSchedule
-    const schedule = profile?.preferredSchedule as Record<string, unknown> | null;
+    const schedule = profile?.preferredSchedule as Record<
+      string,
+      unknown
+    > | null;
 
     if (schedule) {
       // Check date-specific overrides first
       const dateStr = now.toISOString().split("T")[0];
-      const dateOverrides = schedule.dateOverrides as Record<string, { isAvailable?: boolean; startTime?: string; endTime?: string }> | undefined;
+      const dateOverrides = schedule.dateOverrides as
+        | Record<
+            string,
+            { isAvailable?: boolean; startTime?: string; endTime?: string }
+          >
+        | undefined;
 
       if (dateOverrides && dateOverrides[dateStr]) {
         const override = dateOverrides[dateStr];
@@ -176,7 +220,9 @@ class AppraiserMatcher {
       }
 
       // Check weekly schedule
-      const daySchedule = schedule[dayName] as { isAvailable?: boolean; startTime?: string; endTime?: string } | undefined;
+      const daySchedule = schedule[dayName] as
+        | { isAvailable?: boolean; startTime?: string; endTime?: string }
+        | undefined;
 
       if (daySchedule) {
         if (!daySchedule.isAvailable) return false;
@@ -211,7 +257,7 @@ class AppraiserMatcher {
   private calculateScore(
     appraiser: AppraiserProfile & { user: User },
     distance: number,
-    options: DispatchOptions
+    options: DispatchOptions,
   ): number {
     const weights = MATCHER_CONFIG.weights;
     let score = 0;
@@ -228,9 +274,8 @@ class AppraiserMatcher {
 
     // Completion rate score
     const totalJobs = appraiser.completedJobs + appraiser.cancelledJobs;
-    const completionRate = totalJobs > 0
-      ? (appraiser.completedJobs / totalJobs) * 100
-      : 90;
+    const completionRate =
+      totalJobs > 0 ? (appraiser.completedJobs / totalJobs) * 100 : 90;
     score += completionRate * weights.completionRate;
 
     // Availability score (based on current workload - simplified)
@@ -267,7 +312,7 @@ class AppraiserMatcher {
    */
   async findBestMatch(
     job: JobWithProperty,
-    options: DispatchOptions = {}
+    options: DispatchOptions = {},
   ): Promise<MatchedAppraiser | null> {
     const matches = await this.findMatches(job, options);
     return matches[0] || null;
@@ -279,7 +324,7 @@ class AppraiserMatcher {
   async calculateCoverage(
     lat: number,
     lng: number,
-    radius: number
+    radius: number,
   ): Promise<{
     totalAppraisers: number;
     avgDistance: number;
@@ -301,7 +346,7 @@ class AppraiserMatcher {
         {
           lat: appraiser.homeBaseLat || 0,
           lng: appraiser.homeBaseLng || 0,
-        }
+        },
       );
 
       if (distance <= radius) {
