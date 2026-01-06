@@ -1,6 +1,8 @@
 /**
  * Client Layout Wrapper
  * Client component to handle mobile menu state
+ * Desktop: Sidebar navigation
+ * Mobile: Bottom navigation (matching mobile-first design)
  * Ledger-style design
  */
 
@@ -8,6 +10,7 @@
 
 import { useState } from "react";
 import { ClientSidebar } from "./ClientSidebar";
+import { ClientBottomNav } from "./ClientBottomNav";
 import { PageHeader } from "./PageHeader";
 import { LedgerFooterSimple } from "./LedgerFooter";
 
@@ -41,11 +44,18 @@ export function ClientLayoutWrapper({ children }: ClientLayoutWrapperProps) {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] 2xl:mx-auto">
+          <div className="p-4 md:p-6 lg:p-8 pb-20 lg:pb-8 max-w-[1600px] 2xl:mx-auto">
             {children}
           </div>
-          <LedgerFooterSimple />
+          <div className="hidden lg:block">
+            <LedgerFooterSimple />
+          </div>
         </main>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden">
+        <ClientBottomNav />
       </div>
     </div>
   );

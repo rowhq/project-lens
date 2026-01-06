@@ -300,6 +300,19 @@ body {
   );
 }
 
+/* Extra small notch for badges */
+.clip-notch-xs {
+  --clip-size-xs: 2px;
+  clip-path: polygon(
+    0 var(--clip-size-xs),
+    var(--clip-size-xs) 0,
+    100% 0,
+    100% calc(100% - var(--clip-size-xs)),
+    calc(100% - var(--clip-size-xs)) 100%,
+    0 100%
+  );
+}
+
 /* Top-left corner only */
 .clip-corner-tl {
   clip-path: polygon(
@@ -1149,6 +1162,11 @@ body {
 
 .text-pretty {
   text-wrap: pretty;
+}
+
+/* Safe area for iOS devices with home indicator */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Transition utilities with Ledger easing */
