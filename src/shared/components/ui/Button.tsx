@@ -100,10 +100,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         }}
         {...props}
       >
-        {/* Optional L-bracket corners for outline variant */}
-        {(withBrackets || variant === "outline") && (
-          <LedgerCorners color="gray" size="sm" />
-        )}
+        {/* Optional L-bracket corners - only when explicitly requested */}
+        {withBrackets && <LedgerCorners color="gray" size="sm" />}
 
         {/* Content */}
         <span className="relative z-10 flex items-center gap-2">
