@@ -365,11 +365,17 @@ class TemplateEngine {
         border: 1px solid #E5E5E5;
         overflow: hidden;
       }
-      .evidence-img {
+      .evidence-placeholder {
         width: 100%;
         height: 180px;
-        object-fit: cover;
         background: #F1F5F9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748B;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
       }
       .evidence-caption {
         padding: 12px;
@@ -694,6 +700,8 @@ class TemplateEngine {
 
   /**
    * Render evidence photos
+   * NOTE: Using placeholders instead of <img> because external URLs
+   * cause 400 errors when html2canvas tries to load them for PDF generation
    */
   private renderEvidence(data: ReportData): string {
     return `
@@ -704,7 +712,9 @@ class TemplateEngine {
             .map(
               (e) => `
             <div class="evidence-item">
-              <img src="${e.fileUrl}" alt="${e.category || "Evidence"}" class="evidence-img" />
+              <div class="evidence-placeholder">
+                ${(e.category || "PHOTO").replace(/_/g, " ")}
+              </div>
               <div class="evidence-caption">
                 <strong>${(e.category || "PHOTO").replace(/_/g, " ")}</strong>
                 ${e.notes ? `<br/>${e.notes}` : ""}
