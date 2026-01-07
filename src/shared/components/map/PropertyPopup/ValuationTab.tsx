@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
-import { PRICING } from "@/shared/config/constants";
 import {
-  DollarSign,
+  ArrowUpRight,
   TrendingUp,
   Home,
   AlertCircle,
@@ -13,6 +12,7 @@ import {
   Loader2,
   Sparkles,
   FileText,
+  Zap,
 } from "lucide-react";
 import type { ParcelProperties } from "@/shared/lib/parcel-api";
 
@@ -131,49 +131,57 @@ export function ValuationTab({ parcel, onClose }: ValuationTabProps) {
           report.
         </p>
 
-        {/* Price/Free indicator */}
+        {/* Plan status indicator */}
         <div className="mb-6">
           {isFree ? (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 clip-notch-sm">
               <CheckCircle className="w-4 h-4 text-green-400" />
-              <span className="text-green-400 font-mono text-sm">FREE</span>
+              <span className="text-green-400 font-mono text-sm">INCLUDED</span>
               <span className="text-gray-400 text-xs">
-                ({freeRemaining} remaining)
+                ({freeRemaining} remaining this month)
               </span>
             </div>
           ) : (
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 clip-notch-sm">
-              <DollarSign className="w-4 h-4 text-yellow-400" />
-              <span className="text-yellow-400 font-mono text-sm">
-                ${PRICING.AI_REPORT}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/30 clip-notch-sm">
+              <ArrowUpRight className="w-4 h-4 text-amber-400" />
+              <span className="text-amber-400 font-mono text-sm">
+                UPGRADE REQUIRED
               </span>
               <span className="text-gray-400 text-xs">
-                (free limit reached)
+                (monthly limit reached)
               </span>
             </div>
           )}
         </div>
 
         {/* Generate Button */}
-        <button
-          onClick={handleGenerateReport}
-          disabled={isLoading}
-          className="px-8 py-3 bg-lime-400 text-gray-900 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 transition-colors inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Generating Report...
-            </>
-          ) : (
-            <>
-              <DollarSign className="w-5 h-5" />
-              {isFree
-                ? "Generate Free Report"
-                : `Generate Report - $${PRICING.AI_REPORT}`}
-            </>
-          )}
-        </button>
+        {isFree ? (
+          <button
+            onClick={handleGenerateReport}
+            disabled={isLoading}
+            className="px-8 py-3 bg-lime-400 text-gray-900 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 transition-colors inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Generating Report...
+              </>
+            ) : (
+              <>
+                <Zap className="w-5 h-5" />
+                Generate Report
+              </>
+            )}
+          </button>
+        ) : (
+          <button
+            onClick={() => router.push("/pricing")}
+            className="px-8 py-3 bg-amber-500 text-gray-900 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-amber-400 transition-colors inline-flex items-center gap-2"
+          >
+            <ArrowUpRight className="w-5 h-5" />
+            Upgrade Plan
+          </button>
+        )}
 
         {/* Error message */}
         {hasError && (

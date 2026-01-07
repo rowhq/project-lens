@@ -226,8 +226,8 @@ export const mapRouter = createTRPCRouter({
         });
       }
 
-      // Create appraisal request with base price
-      const price = PRICING.AI_REPORT;
+      // Create appraisal request - AI Reports are included in subscription
+      const price = 0;
       const appraisal = await ctx.prisma.appraisalRequest.create({
         data: {
           organizationId: ctx.organization!.id,

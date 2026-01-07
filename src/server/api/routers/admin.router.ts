@@ -203,7 +203,7 @@ export const adminRouter = createTRPCRouter({
         ]);
 
         return [
-          { name: "AI Only", value: aiOnly },
+          { name: "AI Report", value: aiOnly },
           { name: "On-Site", value: onSite },
           { name: "Certified", value: certified },
         ];
@@ -1589,7 +1589,7 @@ export const adminRouter = createTRPCRouter({
     payoutSummary: adminProcedure.query(async ({ ctx }) => {
       const pendingPayouts = await ctx.prisma.payment.findMany({
         where: {
-          type: "PAYOUT",
+          type: "JOB_PAYOUT",
           status: "PENDING",
         },
         include: {
@@ -1637,11 +1637,11 @@ export const adminRouter = createTRPCRouter({
       )
       .mutation(async ({ ctx, input }) => {
         const whereClause: {
-          type: "PAYOUT";
+          type: "JOB_PAYOUT";
           status: "PENDING";
           userId?: { in: string[] };
         } = {
-          type: "PAYOUT",
+          type: "JOB_PAYOUT",
           status: "PENDING",
         };
 

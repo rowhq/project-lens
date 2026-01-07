@@ -161,9 +161,21 @@ export default function DisputesPage() {
             Avg Resolution Time
           </p>
           <p className="text-2xl font-bold text-green-400">
-            {disputes?.filter((d) => d.status === "RESOLVED").length
-              ? "< 3 days"
-              : "N/A"}
+            {(() => {
+              const resolved = disputes?.filter(
+                (d) => d.status === "RESOLVED" && d.resolvedAt,
+              );
+              if (!resolved?.length) return "N/A";
+              const totalDays = resolved.reduce((sum, d) => {
+                const created = new Date(d.createdAt).getTime();
+                const resolvedAt = new Date(d.resolvedAt!).getTime();
+                return sum + (resolvedAt - created) / (1000 * 60 * 60 * 24);
+              }, 0);
+              const avgDays = totalDays / resolved.length;
+              return avgDays < 1
+                ? `${Math.round(avgDays * 24)}h`
+                : `${avgDays.toFixed(1)}d`;
+            })()}
           </p>
         </div>
       </div>

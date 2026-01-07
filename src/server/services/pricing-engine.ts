@@ -66,8 +66,9 @@ export interface GetPricingRulesFilters {
 // ============================================
 
 // Default prices if no rules found (fallback) - uses centralized config
+// Note: AI_REPORT is 0 because it's included in subscription plans
 const DEFAULT_PRICES: Record<ReportType, number> = {
-  AI_REPORT: PRICING.AI_REPORT,
+  AI_REPORT: 0, // Included in subscription
   AI_REPORT_WITH_ONSITE: PRICING.ON_SITE,
   CERTIFIED_APPRAISAL: PRICING.CERTIFIED,
 };

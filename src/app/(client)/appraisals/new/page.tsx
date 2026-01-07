@@ -37,7 +37,7 @@ const reportTypes = [
     label: "AI Report",
     description:
       "Instant automated valuation using AI and comparable sales data",
-    price: PRICING.AI_REPORT,
+    price: 0, // Included in subscription plan
     time: "5 minutes",
     features: [
       "Comparable sales analysis",

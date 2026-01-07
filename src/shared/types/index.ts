@@ -80,8 +80,12 @@ export type LicenseLevel = "TRAINEE" | "LICENSED" | "CERTIFIED" | "GENERAL";
 // Verification statuses
 export type VerificationStatus = "PENDING" | "VERIFIED" | "REJECTED";
 
-// Subscription tiers
-export type SubscriptionTier = "STARTER" | "PROFESSIONAL" | "ENTERPRISE";
+// Subscription tiers (matches Prisma OrganizationPlan enum)
+export type SubscriptionTier =
+  | "FREE_TRIAL"
+  | "STARTER"
+  | "PROFESSIONAL"
+  | "ENTERPRISE";
 
 // API response types
 export interface ApiResponse<T> {

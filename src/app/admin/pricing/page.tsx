@@ -233,13 +233,8 @@ export default function PricingPage() {
     return rule?.basePrice ? Number(rule.basePrice) : defaultPrice;
   };
 
+  // Add-on services only - AI Reports are included in subscription plans
   const products: ProductState[] = [
-    {
-      id: "ai_report",
-      name: "AI Report",
-      basePrice: getProductPrice("ai_report", PRICING.AI_REPORT),
-      turnaround: "5 minutes",
-    },
     {
       id: "on_site",
       name: "On-Site Verification",
@@ -365,31 +360,8 @@ export default function PricingPage() {
       percentage: rule.appraiserPayoutPercent || 50,
     }));
 
-  // Fallback for empty payout data
-  const displayPayoutRates =
-    payoutRates.length > 0
-      ? payoutRates
-      : [
-          {
-            id: "1",
-            jobType: "On-Site Verification",
-            basePayout: 75,
-            percentage: 50,
-          },
-          {
-            id: "2",
-            jobType: "Certified Appraisal",
-            basePayout: 225,
-            percentage: 50,
-          },
-          { id: "3", jobType: "Rush On-Site", basePayout: 100, percentage: 45 },
-          {
-            id: "4",
-            jobType: "Rush Certified",
-            basePayout: 300,
-            percentage: 45,
-          },
-        ];
+  // Use actual payout rates from DB (no fallback with fake data)
+  const displayPayoutRates = payoutRates;
 
   const handleSaveProduct = (productId: string) => {
     updateProductPrice.mutate({
@@ -479,10 +451,25 @@ export default function PricingPage() {
         </nav>
       </div>
 
-      {/* Product Prices */}
+      {/* Add-on Services Pricing */}
       {activeTab === "products" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Info banner */}
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-blue-400">Add-on Services</p>
+                <p className="text-sm text-blue-300/80">
+                  These services require a licensed appraiser and are charged
+                  per request. AI Reports are included in subscription plans and
+                  not listed here.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {products.map((product) => (
               <div
                 key={product.id}
@@ -1040,16 +1027,10 @@ export default function PricingPage() {
           </div>
 
           <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
-            <div className="px-6 py-4 border-b border-[var(--border)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="px-6 py-4 border-b border-[var(--border)]">
               <h3 className="font-semibold text-[var(--foreground)]">
                 Job Type Payout Rates
               </h3>
-              {payoutRates.length === 0 && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-500/10 text-blue-400 rounded text-xs font-medium">
-                  <Info className="w-3 h-3" />
-                  Default values shown
-                </span>
-              )}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[500px]">
@@ -1071,6 +1052,23 @@ export default function PricingPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)]">
+                  {displayPayoutRates.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-6 py-12 text-center text-[var(--muted-foreground)]"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <Info className="w-8 h-8 text-[var(--muted-foreground)]/50" />
+                          <p>No payout rates configured</p>
+                          <p className="text-sm">
+                            Create pricing rules with payout percentages to
+                            define appraiser compensation.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : null}
                   {displayPayoutRates.map((rate) => (
                     <tr key={rate.id}>
                       <td className="px-6 py-4 font-medium text-[var(--foreground)]">

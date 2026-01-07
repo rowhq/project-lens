@@ -189,9 +189,11 @@ export default function DocsPage() {
   // PDF/Infra: ~$0.02
   // Total: ~$0.85, using $1 as conservative buffer
   const aiReportCost = 1;
-  const aiReportPrice = PRICING.AI_REPORT;
+  // AI Reports are included in subscription plans, not sold separately
+  // Professional plan ($99/mo) includes 50 reports = ~$2/report effective value
+  const aiReportEffectiveValue = 2; // $99 ÷ 50 reports
   const aiReportMargin = (
-    ((aiReportPrice - aiReportCost) / aiReportPrice) *
+    ((aiReportEffectiveValue - aiReportCost) / aiReportEffectiveValue) *
     100
   ).toFixed(0);
 
@@ -795,16 +797,17 @@ export default function DocsPage() {
                     <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4 text-cyan-400" />
                       <span className="text-white">AI Report</span>
+                      <span className="text-xs text-gray-500">(per plan)</span>
                     </div>
                   </td>
                   <td className="text-right text-white font-mono">
-                    ${aiReportPrice}
+                    ~${aiReportEffectiveValue}
                   </td>
                   <td className="text-right text-gray-400 font-mono">
                     ${aiReportCost}
                   </td>
                   <td className="text-right text-lime-400 font-mono">
-                    ${aiReportPrice - aiReportCost}
+                    ~${aiReportEffectiveValue - aiReportCost}
                   </td>
                   <td className="text-right">
                     <span className="px-2 py-1 bg-lime-400/10 text-lime-400 rounded text-sm font-mono">

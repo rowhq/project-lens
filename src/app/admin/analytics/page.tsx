@@ -127,7 +127,7 @@ export default function AnalyticsPage() {
   const jobTypeData = useMemo(() => {
     if (!jobTypeDistribution) {
       return [
-        { name: "AI Only", value: 0 },
+        { name: "AI Report", value: 0 },
         { name: "On-Site", value: 0 },
         { name: "Certified", value: 0 },
       ];
@@ -188,7 +188,7 @@ export default function AnalyticsPage() {
       ["KPI Metrics", ""],
       ["Total Revenue", `$${totalRevenue.toLocaleString()}`],
       ["Total Jobs", totalJobs.toString()],
-      ["Avg Turnaround", `${avgTurnaround} hours`],
+      ["Avg Turnaround", `${avgTurnaround} days`],
       ["Satisfaction Score", `${satisfactionScore}%`],
       ["", ""],
       ["Job Type Distribution", ""],
@@ -292,7 +292,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Revenue Chart */}
         <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
@@ -334,7 +334,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Second Row: Distribution + Counties */}
-      <div className="grid grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Job Type Distribution */}
         <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
@@ -347,7 +347,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Top Counties */}
-        <div className="col-span-2 relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="lg:col-span-2 relative bg-gray-950 border border-gray-800 p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -383,7 +383,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Third Row: Top Performers */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Appraisers */}
         <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
