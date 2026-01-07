@@ -18,6 +18,7 @@ import {
   XCircle,
   Upload,
   X,
+  Database,
 } from "lucide-react";
 
 type TabType = "insights" | "owners" | "engineers";
@@ -141,6 +142,27 @@ export default function AdminInsightsPage() {
       utils.insights.searchEngineers.invalidate();
       utils.insights.getStats.invalidate();
       setDeleteConfirmId(null);
+    },
+  });
+
+  // Seed demo data mutation
+  const seedDemoDataMutation = trpc.admin.seedDemoData.useMutation({
+    onSuccess: (data) => {
+      utils.insights.listInsights.invalidate();
+      utils.insights.searchOwners.invalidate();
+      utils.insights.searchEngineers.invalidate();
+      utils.insights.getStats.invalidate();
+      toast({
+        title: "Demo Data Seeded",
+        description: data.message,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Seed Failed",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -494,17 +516,36 @@ export default function AdminInsightsPage() {
             Manage investment insights, property owners, and engineers
           </p>
         </div>
-        <button
-          onClick={() => {
-            resetForm();
-            setEditingId(null);
-            setShowAddModal(true);
-          }}
-          className="px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add New
-        </button>
+        <div className="flex gap-2">
+          {/* Seed Demo Data - only show if all counts are 0 */}
+          {stats?.totalInsights === 0 &&
+            stats?.totalPropertyOwners === 0 &&
+            stats?.totalEngineers === 0 && (
+              <button
+                onClick={() => seedDemoDataMutation.mutate()}
+                disabled={seedDemoDataMutation.isPending}
+                className="px-4 py-2 bg-purple-500 text-white font-mono text-sm uppercase tracking-wider clip-notch hover:bg-purple-400 flex items-center gap-2 disabled:opacity-50"
+              >
+                {seedDemoDataMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Database className="w-4 h-4" />
+                )}
+                Seed Demo Data
+              </button>
+            )}
+          <button
+            onClick={() => {
+              resetForm();
+              setEditingId(null);
+              setShowAddModal(true);
+            }}
+            className="px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add New
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
