@@ -8,156 +8,206 @@ import { createTRPCRouter, adminProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { createTransfer } from "@/shared/lib/stripe";
 
+// Helper to calculate date range
+function getDateRangeStart(
+  range: "7d" | "30d" | "90d" | "ytd" | undefined,
+): Date {
+  const now = new Date();
+  if (!range || range === "30d") {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 30);
+    return start;
+  }
+  if (range === "7d") {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 7);
+    return start;
+  }
+  if (range === "90d") {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 90);
+    return start;
+  }
+  // YTD - start of current year
+  return new Date(now.getFullYear(), 0, 1);
+}
+
+const dateRangeSchema = z.object({
+  dateRange: z.enum(["7d", "30d", "90d", "ytd"]).optional(),
+});
+
 export const adminRouter = createTRPCRouter({
   /**
    * Dashboard stats
    */
   dashboard: createTRPCRouter({
-    stats: adminProcedure.query(async ({ ctx }) => {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const thisWeek = new Date(today);
-      thisWeek.setDate(today.getDate() - 7);
-      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    stats: adminProcedure
+      .input(dateRangeSchema.optional())
+      .query(async ({ ctx, input }) => {
+        const rangeStart = getDateRangeStart(input?.dateRange);
+        const now = new Date();
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
 
-      const [
-        totalOrganizations,
-        totalAppraisers,
-        verifiedAppraisers,
-        pendingVerifications,
-        activeJobs,
-        slaBreach,
-        todayAppraisals,
-        weeklyAppraisals,
-        monthlyRevenue,
-        openDisputes,
-      ] = await Promise.all([
-        ctx.prisma.organization.count(),
-        ctx.prisma.appraiserProfile.count(),
-        ctx.prisma.appraiserProfile.count({
-          where: { verificationStatus: "VERIFIED" },
-        }),
-        ctx.prisma.appraiserProfile.count({
-          where: { verificationStatus: "PENDING" },
-        }),
-        ctx.prisma.job.count({
-          where: { status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] } },
-        }),
-        ctx.prisma.job.count({
-          where: {
-            status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] },
-            slaDueAt: { lt: now },
-          },
-        }),
-        ctx.prisma.appraisalRequest.count({
-          where: { createdAt: { gte: today } },
-        }),
-        ctx.prisma.appraisalRequest.count({
-          where: { createdAt: { gte: thisWeek } },
-        }),
-        ctx.prisma.payment.aggregate({
-          where: {
-            type: "CHARGE",
-            status: "COMPLETED",
-            createdAt: { gte: thisMonth },
-          },
-          _sum: { amount: true },
-        }),
-        ctx.prisma.dispute.count({
-          where: { status: { in: ["OPEN", "UNDER_REVIEW", "ESCALATED"] } },
-        }),
-      ]);
-
-      return {
-        organizations: totalOrganizations,
-        appraisers: {
-          total: totalAppraisers,
-          verified: verifiedAppraisers,
-          pending: pendingVerifications,
-        },
-        jobs: {
-          active: activeJobs,
+        const [
+          totalOrganizations,
+          totalAppraisers,
+          verifiedAppraisers,
+          pendingVerifications,
+          activeJobs,
           slaBreach,
-        },
-        appraisals: {
-          today: todayAppraisals,
-          thisWeek: weeklyAppraisals,
-        },
-        revenue: {
-          thisMonth: Number(monthlyRevenue._sum.amount || 0),
-        },
-        disputes: openDisputes,
-      };
-    }),
+          periodAppraisals,
+          completedJobsInRange,
+          periodRevenue,
+          openDisputes,
+        ] = await Promise.all([
+          ctx.prisma.organization.count(),
+          ctx.prisma.appraiserProfile.count(),
+          ctx.prisma.appraiserProfile.count({
+            where: { verificationStatus: "VERIFIED" },
+          }),
+          ctx.prisma.appraiserProfile.count({
+            where: { verificationStatus: "PENDING" },
+          }),
+          ctx.prisma.job.count({
+            where: {
+              status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] },
+            },
+          }),
+          ctx.prisma.job.count({
+            where: {
+              status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] },
+              slaDueAt: { lt: now },
+            },
+          }),
+          ctx.prisma.appraisalRequest.count({
+            where: { createdAt: { gte: rangeStart } },
+          }),
+          ctx.prisma.job.count({
+            where: {
+              status: "COMPLETED",
+              completedAt: { gte: rangeStart },
+            },
+          }),
+          ctx.prisma.payment.aggregate({
+            where: {
+              type: "CHARGE",
+              status: "COMPLETED",
+              createdAt: { gte: rangeStart },
+            },
+            _sum: { amount: true },
+          }),
+          ctx.prisma.dispute.count({
+            where: { status: { in: ["OPEN", "UNDER_REVIEW", "ESCALATED"] } },
+          }),
+        ]);
 
-    weeklyTrend: adminProcedure.query(async ({ ctx }) => {
-      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      // Get jobs and payments from last 30 days
-      const [jobs, payments] = await Promise.all([
-        ctx.prisma.job.findMany({
-          where: { createdAt: { gte: thirtyDaysAgo } },
-          select: { createdAt: true, status: true },
-        }),
-        ctx.prisma.payment.findMany({
-          where: {
-            type: "CHARGE",
-            status: "COMPLETED",
-            createdAt: { gte: thirtyDaysAgo },
+        return {
+          organizations: totalOrganizations,
+          appraisers: {
+            total: totalAppraisers,
+            verified: verifiedAppraisers,
+            pending: pendingVerifications,
           },
-          select: { createdAt: true, amount: true },
-        }),
-      ]);
+          jobs: {
+            active: activeJobs,
+            completed: completedJobsInRange,
+            slaBreach,
+          },
+          appraisals: {
+            period: periodAppraisals,
+          },
+          revenue: {
+            period: Number(periodRevenue._sum.amount || 0),
+          },
+          disputes: openDisputes,
+        };
+      }),
 
-      // Group by day of week
-      const dayData: Record<string, { jobs: number; revenue: number }> = {
-        Mon: { jobs: 0, revenue: 0 },
-        Tue: { jobs: 0, revenue: 0 },
-        Wed: { jobs: 0, revenue: 0 },
-        Thu: { jobs: 0, revenue: 0 },
-        Fri: { jobs: 0, revenue: 0 },
-        Sat: { jobs: 0, revenue: 0 },
-        Sun: { jobs: 0, revenue: 0 },
-      };
+    weeklyTrend: adminProcedure
+      .input(dateRangeSchema.optional())
+      .query(async ({ ctx, input }) => {
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const rangeStart = getDateRangeStart(input?.dateRange);
 
-      jobs.forEach((job) => {
-        const dayName = days[new Date(job.createdAt).getDay()];
-        dayData[dayName].jobs += 1;
-      });
+        // Get jobs and payments within the selected date range
+        const [jobs, payments] = await Promise.all([
+          ctx.prisma.job.findMany({
+            where: { createdAt: { gte: rangeStart } },
+            select: { createdAt: true, status: true },
+          }),
+          ctx.prisma.payment.findMany({
+            where: {
+              type: "CHARGE",
+              status: "COMPLETED",
+              createdAt: { gte: rangeStart },
+            },
+            select: { createdAt: true, amount: true },
+          }),
+        ]);
 
-      payments.forEach((payment) => {
-        const dayName = days[new Date(payment.createdAt).getDay()];
-        dayData[dayName].revenue += Number(payment.amount);
-      });
+        // Group by day of week
+        const dayData: Record<string, { jobs: number; revenue: number }> = {
+          Mon: { jobs: 0, revenue: 0 },
+          Tue: { jobs: 0, revenue: 0 },
+          Wed: { jobs: 0, revenue: 0 },
+          Thu: { jobs: 0, revenue: 0 },
+          Fri: { jobs: 0, revenue: 0 },
+          Sat: { jobs: 0, revenue: 0 },
+          Sun: { jobs: 0, revenue: 0 },
+        };
 
-      return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => ({
-        name: day,
-        jobs: dayData[day].jobs,
-        revenue: Math.round(dayData[day].revenue),
-      }));
-    }),
+        jobs.forEach((job) => {
+          const dayName = days[new Date(job.createdAt).getDay()];
+          dayData[dayName].jobs += 1;
+        });
 
-    jobTypeDistribution: adminProcedure.query(async ({ ctx }) => {
-      const [aiOnly, onSite, certified] = await Promise.all([
-        ctx.prisma.appraisalRequest.count({
-          where: { requestedType: "AI_REPORT" },
-        }),
-        ctx.prisma.appraisalRequest.count({
-          where: { requestedType: "AI_REPORT_WITH_ONSITE" },
-        }),
-        ctx.prisma.appraisalRequest.count({
-          where: { requestedType: "CERTIFIED_APPRAISAL" },
-        }),
-      ]);
+        payments.forEach((payment) => {
+          const dayName = days[new Date(payment.createdAt).getDay()];
+          dayData[dayName].revenue += Number(payment.amount);
+        });
 
-      return [
-        { name: "AI Only", value: aiOnly },
-        { name: "On-Site", value: onSite },
-        { name: "Certified", value: certified },
-      ];
-    }),
+        return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => ({
+          name: day,
+          jobs: dayData[day].jobs,
+          revenue: Math.round(dayData[day].revenue),
+        }));
+      }),
+
+    jobTypeDistribution: adminProcedure
+      .input(dateRangeSchema.optional())
+      .query(async ({ ctx, input }) => {
+        const rangeStart = getDateRangeStart(input?.dateRange);
+        const [aiOnly, onSite, certified] = await Promise.all([
+          ctx.prisma.appraisalRequest.count({
+            where: {
+              requestedType: "AI_REPORT",
+              createdAt: { gte: rangeStart },
+            },
+          }),
+          ctx.prisma.appraisalRequest.count({
+            where: {
+              requestedType: "AI_REPORT_WITH_ONSITE",
+              createdAt: { gte: rangeStart },
+            },
+          }),
+          ctx.prisma.appraisalRequest.count({
+            where: {
+              requestedType: "CERTIFIED_APPRAISAL",
+              createdAt: { gte: rangeStart },
+            },
+          }),
+        ]);
+
+        return [
+          { name: "AI Only", value: aiOnly },
+          { name: "On-Site", value: onSite },
+          { name: "Certified", value: certified },
+        ];
+      }),
 
     recentActivity: adminProcedure.query(async ({ ctx }) => {
       const [recentAppraisals, recentJobs, recentDisputes] = await Promise.all([
@@ -260,25 +310,28 @@ export const adminRouter = createTRPCRouter({
     topCounties: adminProcedure
       .input(z.object({ limit: z.number().min(1).max(20).default(5) }))
       .query(async ({ ctx, input }) => {
-        // Use raw SQL for proper grouping and ordering
-        const counties = await ctx.prisma.$queryRaw<
-          Array<{ county: string | null; count: bigint }>
-        >`
-          SELECT county, COUNT(*) as count
-          FROM "Property"
-          WHERE county IS NOT NULL
-          GROUP BY county
-          ORDER BY count DESC
-          LIMIT ${input.limit}
-        `;
+        // Use Prisma groupBy for safe querying
+        const counties = await ctx.prisma.property.groupBy({
+          by: ["county"],
+          where: {
+            county: { not: "" },
+          },
+          _count: { id: true },
+        });
 
-        const total = counties.reduce((sum, c) => sum + Number(c.count), 0);
+        // Sort and limit after query
+        const sorted = counties
+          .filter((c): c is typeof c & { county: string } => c.county !== null)
+          .sort((a, b) => (b._count?.id ?? 0) - (a._count?.id ?? 0))
+          .slice(0, input.limit);
 
-        return counties.map((c) => ({
+        const total = sorted.reduce((sum, c) => sum + (c._count?.id ?? 0), 0);
+
+        return sorted.map((c) => ({
           county: c.county || "Unknown",
-          count: Number(c.count),
+          count: c._count?.id ?? 0,
           percentage:
-            total > 0 ? Math.round((Number(c.count) / total) * 100) : 0,
+            total > 0 ? Math.round(((c._count?.id ?? 0) / total) * 100) : 0,
         }));
       }),
 
@@ -397,7 +450,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           userId: z.string(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -414,15 +471,29 @@ export const adminRouter = createTRPCRouter({
           },
         });
 
-        // Cancel any active jobs
-        await ctx.prisma.job.updateMany({
+        // Cancel any active jobs (including DISPATCHED for complete cleanup)
+        const affectedJobs = await ctx.prisma.job.updateMany({
           where: {
             assignedAppraiserId: input.userId,
-            status: { in: ["ACCEPTED", "IN_PROGRESS"] },
+            status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] },
           },
           data: {
             status: "PENDING_DISPATCH",
             assignedAppraiserId: null,
+          },
+        });
+
+        // Create audit log
+        await ctx.prisma.auditLog.create({
+          data: {
+            action: "APPRAISER_SUSPENDED",
+            resource: "User",
+            resourceId: input.userId,
+            userId: ctx.user.id,
+            metadata: {
+              reason: input.reason,
+              affectedJobsCount: affectedJobs.count,
+            },
           },
         });
 
@@ -440,6 +511,16 @@ export const adminRouter = createTRPCRouter({
         await ctx.prisma.appraiserProfile.update({
           where: { userId: input.userId },
           data: { verificationStatus: "VERIFIED" },
+        });
+
+        // Create audit log
+        await ctx.prisma.auditLog.create({
+          data: {
+            action: "APPRAISER_REACTIVATED",
+            resource: "User",
+            resourceId: input.userId,
+            userId: ctx.user.id,
+          },
         });
 
         return { success: true };
@@ -621,7 +702,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           id: z.string(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -631,11 +716,13 @@ export const adminRouter = createTRPCRouter({
           data: { status: "SUSPENDED" },
         });
 
-        // Cancel any active jobs
+        // Cancel any active jobs (including PENDING_DISPATCH for complete cleanup)
         await ctx.prisma.job.updateMany({
           where: {
             organizationId: input.id,
-            status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] },
+            status: {
+              in: ["PENDING_DISPATCH", "DISPATCHED", "ACCEPTED", "IN_PROGRESS"],
+            },
           },
           data: { status: "CANCELLED" },
         });
@@ -762,7 +849,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           jobId: z.string(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -887,7 +978,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           jobId: z.string(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -930,7 +1025,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           jobId: z.string(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
           requiredPhotos: z.array(z.string()).optional(),
         }),
       )
@@ -977,7 +1076,11 @@ export const adminRouter = createTRPCRouter({
         z.object({
           jobId: z.string(),
           appraiserId: z.string().nullable(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -1085,7 +1188,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           jobIds: z.array(z.string()),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -1307,6 +1414,24 @@ export const adminRouter = createTRPCRouter({
         }),
       )
       .mutation(async ({ ctx, input }) => {
+        // Check for duplicate rule with same conditions
+        const existing = await ctx.prisma.pricingRule.findFirst({
+          where: {
+            ruleType: input.ruleType,
+            propertyType: input.propertyType ?? null,
+            jobType: input.jobType ?? null,
+            county: input.county ?? null,
+            isActive: true,
+          },
+        });
+
+        if (existing) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "A pricing rule with these conditions already exists",
+          });
+        }
+
         return ctx.prisma.pricingRule.create({
           data: input,
         });

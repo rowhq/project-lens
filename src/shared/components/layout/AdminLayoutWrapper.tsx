@@ -8,6 +8,7 @@
 
 import { useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
+import { AdminBottomNav } from "./AdminBottomNav";
 import { PageHeader } from "./PageHeader";
 import { LedgerFooterSimple } from "./LedgerFooter";
 import { AlertTriangle } from "lucide-react";
@@ -60,11 +61,18 @@ export function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps) {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-[var(--background)]">
-          <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] 2xl:mx-auto">
+          <div className="p-4 md:p-6 lg:p-8 pb-20 lg:pb-8 max-w-[1600px] 2xl:mx-auto">
             {children}
           </div>
-          <LedgerFooterSimple />
+          <div className="hidden lg:block">
+            <LedgerFooterSimple />
+          </div>
         </main>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden">
+        <AdminBottomNav />
       </div>
     </div>
   );

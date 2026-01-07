@@ -33,7 +33,7 @@ export const disputeRouter = createTRPCRouter({
         description: z.string().min(10).max(5000),
         relatedJobId: z.string().optional(),
         relatedReportId: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Verify related entities belong to organization
@@ -55,7 +55,10 @@ export const disputeRouter = createTRPCRouter({
           !report ||
           report.appraisalRequest?.organizationId !== ctx.organization!.id
         ) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Report not found" });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Report not found",
+          });
         }
       }
 
@@ -106,7 +109,8 @@ export const disputeRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const isAdmin = ctx.user.role === "ADMIN" || ctx.user.role === "SUPER_ADMIN";
+      const isAdmin =
+        ctx.user.role === "ADMIN" || ctx.user.role === "SUPER_ADMIN";
 
       const dispute = await ctx.prisma.dispute.findUnique({
         where: { id: input.id },
@@ -125,7 +129,13 @@ export const disputeRouter = createTRPCRouter({
             where: isAdmin ? {} : { isInternal: false },
             include: {
               author: {
-                select: { id: true, firstName: true, lastName: true, avatarUrl: true, role: true },
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  avatarUrl: true,
+                  role: true,
+                },
               },
             },
             orderBy: { createdAt: "asc" },
@@ -158,7 +168,7 @@ export const disputeRouter = createTRPCRouter({
           .optional(),
         limit: z.number().min(1).max(100).default(20),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const disputes = await ctx.prisma.dispute.findMany({
@@ -192,7 +202,7 @@ export const disputeRouter = createTRPCRouter({
         disputeId: z.string(),
         content: z.string().min(1).max(2000),
         isInternal: z.boolean().default(false),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const dispute = await ctx.prisma.dispute.findUnique({
@@ -205,7 +215,8 @@ export const disputeRouter = createTRPCRouter({
 
       // Check access
       const isOrgMember = dispute.organizationId === ctx.organization?.id;
-      const isAdmin = ctx.user.role === "ADMIN" || ctx.user.role === "SUPER_ADMIN";
+      const isAdmin =
+        ctx.user.role === "ADMIN" || ctx.user.role === "SUPER_ADMIN";
 
       if (!isOrgMember && !isAdmin) {
         throw new TRPCError({ code: "FORBIDDEN" });
@@ -228,7 +239,13 @@ export const disputeRouter = createTRPCRouter({
         },
         include: {
           author: {
-            select: { id: true, firstName: true, lastName: true, avatarUrl: true, role: true },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+              role: true,
+            },
           },
         },
       });
@@ -243,7 +260,7 @@ export const disputeRouter = createTRPCRouter({
         disputeId: z.string(),
         limit: z.number().min(1).max(100).default(50),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const dispute = await ctx.prisma.dispute.findUnique({
@@ -256,7 +273,8 @@ export const disputeRouter = createTRPCRouter({
 
       // Check access
       const isOrgMember = dispute.organizationId === ctx.organization?.id;
-      const isAdmin = ctx.user.role === "ADMIN" || ctx.user.role === "SUPER_ADMIN";
+      const isAdmin =
+        ctx.user.role === "ADMIN" || ctx.user.role === "SUPER_ADMIN";
 
       if (!isOrgMember && !isAdmin) {
         throw new TRPCError({ code: "FORBIDDEN" });
@@ -274,7 +292,13 @@ export const disputeRouter = createTRPCRouter({
         where: whereClause,
         include: {
           author: {
-            select: { id: true, firstName: true, lastName: true, avatarUrl: true, role: true },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+              role: true,
+            },
           },
         },
         orderBy: { createdAt: "asc" },
@@ -300,7 +324,7 @@ export const disputeRouter = createTRPCRouter({
         disputeId: z.string(),
         resolution: z.string().min(1),
         refundAmount: z.number().min(0).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const dispute = await ctx.prisma.dispute.findUnique({
@@ -403,7 +427,7 @@ export const disputeRouter = createTRPCRouter({
       z.object({
         disputeId: z.string(),
         reason: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       return ctx.prisma.dispute.update({
@@ -437,15 +461,27 @@ export const disputeRouter = createTRPCRouter({
           .enum(["OPEN", "UNDER_REVIEW", "RESOLVED", "ESCALATED", "CLOSED"])
           .optional(),
         priority: z.number().optional(),
+        search: z.string().optional(),
         limit: z.number().min(1).max(100).default(20),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const disputes = await ctx.prisma.dispute.findMany({
         where: {
           ...(input.status && { status: input.status }),
           ...(input.priority && { priority: input.priority }),
+          ...(input.search && {
+            OR: [
+              { subject: { contains: input.search, mode: "insensitive" } },
+              { description: { contains: input.search, mode: "insensitive" } },
+              {
+                organization: {
+                  name: { contains: input.search, mode: "insensitive" },
+                },
+              },
+            ],
+          }),
         },
         include: {
           organization: { select: { id: true, name: true } },

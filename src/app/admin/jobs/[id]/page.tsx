@@ -267,7 +267,7 @@ export default function AdminJobDetailPage({ params }: PageProps) {
         <div className="flex items-center gap-4">
           <Link
             href="/admin/jobs"
-            className="p-2 hover:bg-[var(--secondary)] rounded-lg"
+            className="p-2.5 hover:bg-[var(--secondary)] rounded-lg"
           >
             <ArrowLeft className="w-5 h-5 text-[var(--muted-foreground)]" />
           </Link>
