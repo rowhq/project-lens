@@ -80,6 +80,10 @@ const DEFAULT_PLATFORM_FEE_PERCENT = 30; // 30% platform fee
 // Default county multiplier
 const DEFAULT_COUNTY_MULTIPLIER = 1.0;
 
+// Payout safety caps (absolute min/max regardless of rules)
+const MIN_PAYOUT_AMOUNT = 25; // Minimum $25 payout
+const MAX_PAYOUT_AMOUNT = 5000; // Maximum $5000 payout per job
+
 // ============================================
 // Helper Functions
 // ============================================
@@ -388,10 +392,19 @@ export async function calculateJobPayout(
   }
 
   // Calculate amounts
-  const payoutAmount =
+  let payoutAmount =
     Math.round(((basePrice * payoutPercent) / 100) * 100) / 100;
-  const platformFee =
+  let platformFee =
     Math.round(((basePrice * platformFeePercent) / 100) * 100) / 100;
+
+  // Apply safety caps
+  if (payoutAmount < MIN_PAYOUT_AMOUNT) {
+    payoutAmount = MIN_PAYOUT_AMOUNT;
+    platformFee = Math.max(0, basePrice - payoutAmount);
+  } else if (payoutAmount > MAX_PAYOUT_AMOUNT) {
+    payoutAmount = MAX_PAYOUT_AMOUNT;
+    platformFee = Math.max(0, basePrice - payoutAmount);
+  }
 
   return {
     payoutAmount,

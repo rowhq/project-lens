@@ -1,49 +1,11 @@
 "use client";
 
-// Web Speech API type declarations
-interface SpeechRecognitionEvent extends Event {
-  resultIndex: number;
-  results: SpeechRecognitionResultList;
-}
-
-interface SpeechRecognitionResultList {
-  length: number;
-  [index: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionResult {
-  isFinal: boolean;
-  length: number;
-  [index: number]: SpeechRecognitionAlternative;
-}
-
-interface SpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
-}
-
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  onresult: ((event: SpeechRecognitionEvent) => void) | null;
-  onerror: ((event: Event) => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-}
-
-declare global {
-  interface Window {
-    SpeechRecognition?: new () => SpeechRecognition;
-    webkitSpeechRecognition?: new () => SpeechRecognition;
-  }
-}
-
-import { use, useState } from "react";
+import { use, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
+import { TIMEOUT_CONFIG } from "@/shared/lib/request-timeout";
 import {
   useLiveCountdown,
   getUrgencyConfig,
@@ -89,6 +51,9 @@ export default function JobDetailPage({ params }: PageProps) {
   const [isListening, setIsListening] = useState(false);
 
   const { data: job, isLoading, refetch } = trpc.job.getById.useQuery({ id });
+
+  // Timeout warning for long operations
+  const operationStartRef = useRef<number | null>(null);
 
   // Live countdown
   const countdown = useLiveCountdown(job?.slaDueAt || null);
@@ -169,6 +134,40 @@ export default function JobDetailPage({ params }: PageProps) {
     },
   });
 
+  // Track when mutations start to show slow operation warnings
+  useEffect(() => {
+    const isAnyMutationPending =
+      acceptJob.isPending ||
+      startJob.isPending ||
+      submitJob.isPending ||
+      cancelJob.isPending;
+
+    if (isAnyMutationPending) {
+      if (!operationStartRef.current) {
+        operationStartRef.current = Date.now();
+        // Show warning after 10 seconds
+        const timeoutId = setTimeout(() => {
+          if (operationStartRef.current) {
+            toast({
+              title: "Taking longer than expected",
+              description: "Please wait, the operation is still in progress...",
+            });
+          }
+        }, TIMEOUT_CONFIG.SHORT);
+
+        return () => clearTimeout(timeoutId);
+      }
+    } else {
+      operationStartRef.current = null;
+    }
+  }, [
+    acceptJob.isPending,
+    startJob.isPending,
+    submitJob.isPending,
+    cancelJob.isPending,
+    toast,
+  ]);
+
   // Voice to text for notes
   const toggleVoiceInput = () => {
     if (
@@ -195,7 +194,8 @@ export default function JobDetailPage({ params }: PageProps) {
     recognition.continuous = true;
     recognition.interimResults = true;
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
       let transcript = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;

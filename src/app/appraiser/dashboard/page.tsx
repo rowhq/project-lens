@@ -14,6 +14,7 @@ import {
   AlertCircle,
   TrendingUp,
   Zap,
+  AlertTriangle,
 } from "lucide-react";
 import {
   StreakBanner,
@@ -285,6 +286,43 @@ export default function AppraiserDashboardPage() {
     });
   }, [activeJobs, now]);
 
+  // Calculate license expiry warning (90/60/30 days)
+  const licenseExpiryWarning = useMemo(() => {
+    if (!profile?.licenseExpiry || now === null) return null;
+    const expiryDate = new Date(profile.licenseExpiry);
+    const daysUntilExpiry = Math.ceil(
+      (expiryDate.getTime() - now) / (1000 * 60 * 60 * 24),
+    );
+
+    if (daysUntilExpiry <= 0) {
+      return {
+        level: "expired",
+        days: 0,
+        message:
+          "Your license has expired! You cannot accept jobs until renewed.",
+      };
+    } else if (daysUntilExpiry <= 30) {
+      return {
+        level: "critical",
+        days: daysUntilExpiry,
+        message: `Your license expires in ${daysUntilExpiry} days. Renew immediately to avoid service interruption.`,
+      };
+    } else if (daysUntilExpiry <= 60) {
+      return {
+        level: "warning",
+        days: daysUntilExpiry,
+        message: `Your license expires in ${daysUntilExpiry} days. Plan to renew soon.`,
+      };
+    } else if (daysUntilExpiry <= 90) {
+      return {
+        level: "notice",
+        days: daysUntilExpiry,
+        message: `Your license expires in ${daysUntilExpiry} days.`,
+      };
+    }
+    return null;
+  }, [profile, now]);
+
   return (
     <div className="space-y-6">
       {/* Welcome Banner - Ledger Style */}
@@ -345,6 +383,95 @@ export default function AppraiserDashboardPage() {
           <ChevronRight className="w-4 h-4" />
         </Link>
       </div>
+
+      {/* License Expiry Warning Banner */}
+      {licenseExpiryWarning && (
+        <div
+          className={cn(
+            "relative p-4 clip-notch",
+            licenseExpiryWarning.level === "expired"
+              ? "bg-red-500/10 border border-red-500/50"
+              : licenseExpiryWarning.level === "critical"
+                ? "bg-red-500/10 border border-red-500/30"
+                : licenseExpiryWarning.level === "warning"
+                  ? "bg-amber-500/10 border border-amber-500/30"
+                  : "bg-blue-500/10 border border-blue-500/30",
+          )}
+        >
+          {/* Bracket corners */}
+          <div
+            className={cn(
+              "absolute top-0 left-0 w-3 h-3 border-t border-l",
+              licenseExpiryWarning.level === "expired" ||
+                licenseExpiryWarning.level === "critical"
+                ? "border-red-500"
+                : licenseExpiryWarning.level === "warning"
+                  ? "border-amber-500"
+                  : "border-blue-500",
+            )}
+          />
+          <div
+            className={cn(
+              "absolute bottom-0 right-0 w-3 h-3 border-b border-r",
+              licenseExpiryWarning.level === "expired" ||
+                licenseExpiryWarning.level === "critical"
+                ? "border-red-500"
+                : licenseExpiryWarning.level === "warning"
+                  ? "border-amber-500"
+                  : "border-blue-500",
+            )}
+          />
+
+          <div className="flex items-start gap-3">
+            <AlertTriangle
+              className={cn(
+                "w-5 h-5 flex-shrink-0 mt-0.5",
+                licenseExpiryWarning.level === "expired" ||
+                  licenseExpiryWarning.level === "critical"
+                  ? "text-red-500"
+                  : licenseExpiryWarning.level === "warning"
+                    ? "text-amber-500"
+                    : "text-blue-500",
+              )}
+            />
+            <div>
+              <p
+                className={cn(
+                  "font-mono text-sm uppercase tracking-wider",
+                  licenseExpiryWarning.level === "expired" ||
+                    licenseExpiryWarning.level === "critical"
+                    ? "text-red-500"
+                    : licenseExpiryWarning.level === "warning"
+                      ? "text-amber-500"
+                      : "text-blue-500",
+                )}
+              >
+                {licenseExpiryWarning.level === "expired"
+                  ? "License Expired"
+                  : "License Expiry Notice"}
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                {licenseExpiryWarning.message}
+              </p>
+              <Link
+                href="/appraiser/profile"
+                className={cn(
+                  "inline-flex items-center gap-1 mt-2 font-mono text-sm uppercase tracking-wider transition-colors",
+                  licenseExpiryWarning.level === "expired" ||
+                    licenseExpiryWarning.level === "critical"
+                    ? "text-red-500 hover:text-red-400"
+                    : licenseExpiryWarning.level === "warning"
+                      ? "text-amber-500 hover:text-amber-400"
+                      : "text-blue-500 hover:text-blue-400",
+                )}
+              >
+                Update License
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Streak Banner */}
       <StreakBanner

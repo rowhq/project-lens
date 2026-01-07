@@ -20,17 +20,29 @@ import { Button } from "@/shared/components/ui/Button";
 type Step = "personal" | "license" | "coverage" | "banking";
 
 const steps: { id: Step; label: string; icon: React.ReactNode }[] = [
-  { id: "personal", label: "Personal Info", icon: <User className="w-5 h-5" /> },
+  {
+    id: "personal",
+    label: "Personal Info",
+    icon: <User className="w-5 h-5" />,
+  },
   { id: "license", label: "License", icon: <FileCheck className="w-5 h-5" /> },
   { id: "coverage", label: "Coverage", icon: <MapPin className="w-5 h-5" /> },
   { id: "banking", label: "Banking", icon: <CreditCard className="w-5 h-5" /> },
 ];
 
-const texasCities = [
-  "Houston", "San Antonio", "Dallas", "Austin", "Fort Worth",
-  "El Paso", "Arlington", "Corpus Christi", "Plano", "Laredo",
-  "Lubbock", "Irving", "Garland", "Amarillo", "Grand Prairie",
-  "McKinney", "Frisco", "Brownsville", "Killeen", "Pasadena",
+// Texas cities loaded dynamically from API
+// Fallback cities in case API fails
+const fallbackCities = [
+  "Houston",
+  "San Antonio",
+  "Dallas",
+  "Austin",
+  "Fort Worth",
+  "El Paso",
+  "Arlington",
+  "Corpus Christi",
+  "Plano",
+  "Laredo",
 ];
 
 const licenseTypes = [
@@ -45,6 +57,18 @@ export default function AppraiserOnboardingPage() {
   const [currentStep, setCurrentStep] = useState<Step>("personal");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState("TX");
+
+  // Fetch service areas from API
+  const { data: serviceAreas } = trpc.appraiser.serviceAreas.getCities.useQuery(
+    { state: selectedState },
+    { staleTime: 5 * 60 * 1000 }, // Cache for 5 minutes
+  );
+  const { data: supportedStates } =
+    trpc.appraiser.serviceAreas.getStates.useQuery();
+
+  // Use API cities or fallback
+  const availableCities = serviceAreas?.cities || fallbackCities;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -54,7 +78,11 @@ export default function AppraiserOnboardingPage() {
     yearsExperience: 0,
 
     // License
-    licenseType: "LICENSED" as "TRAINEE" | "LICENSED" | "CERTIFIED_RESIDENTIAL" | "CERTIFIED_GENERAL",
+    licenseType: "LICENSED" as
+      | "TRAINEE"
+      | "LICENSED"
+      | "CERTIFIED_RESIDENTIAL"
+      | "CERTIFIED_GENERAL",
     licenseNumber: "",
     licenseExpiry: "",
     licenseFileUrl: "",
@@ -104,7 +132,7 @@ export default function AppraiserOnboardingPage() {
 
   const handleInputChange = (
     field: keyof typeof formData,
-    value: string | number | string[]
+    value: string | number | string[],
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setError(null);
@@ -119,7 +147,9 @@ export default function AppraiserOnboardingPage() {
     }));
   };
 
-  const handleLicenseUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLicenseUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -178,6 +208,13 @@ export default function AppraiserOnboardingPage() {
       case "personal":
         if (!formData.phone) {
           setError("Phone number is required");
+          return false;
+        }
+        // Validate phone number format (US format)
+        const phoneRegex =
+          /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+        if (!phoneRegex.test(formData.phone.replace(/\s/g, ""))) {
+          setError("Please enter a valid phone number (e.g., (555) 555-5555)");
           return false;
         }
         if (formData.yearsExperience < 0) {
@@ -268,8 +305,12 @@ export default function AppraiserOnboardingPage() {
       <div className="max-w-2xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Appraiser Onboarding</h1>
-          <p className="text-[var(--muted-foreground)] mt-1">Complete your profile to start accepting jobs</p>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">
+            Appraiser Onboarding
+          </h1>
+          <p className="text-[var(--muted-foreground)] mt-1">
+            Complete your profile to start accepting jobs
+          </p>
         </div>
 
         {/* Progress Steps */}
@@ -286,15 +327,17 @@ export default function AppraiserOnboardingPage() {
                       isCompleted
                         ? "bg-green-500 text-white"
                         : isActive
-                        ? "bg-[var(--primary)] text-black font-medium"
-                        : "bg-[var(--muted)] text-[var(--muted-foreground)]"
+                          ? "bg-[var(--primary)] text-black font-medium"
+                          : "bg-[var(--muted)] text-[var(--muted-foreground)]"
                     }`}
                   >
                     {isCompleted ? <Check className="w-5 h-5" /> : step.icon}
                   </div>
                   <span
                     className={`text-xs mt-1 ${
-                      isActive ? "font-medium text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
+                      isActive
+                        ? "font-medium text-[var(--foreground)]"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
                     {step.label}
@@ -303,7 +346,9 @@ export default function AppraiserOnboardingPage() {
                 {index < steps.length - 1 && (
                   <div
                     className={`w-12 h-0.5 mx-2 ${
-                      index < currentStepIndex ? "bg-green-500" : "bg-[var(--muted)]"
+                      index < currentStepIndex
+                        ? "bg-green-500"
+                        : "bg-[var(--muted)]"
                     }`}
                   />
                 )}
@@ -326,7 +371,9 @@ export default function AppraiserOnboardingPage() {
           {currentStep === "personal" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-[var(--foreground)]">Personal Information</h2>
+                <h2 className="text-lg font-semibold text-[var(--foreground)]">
+                  Personal Information
+                </h2>
                 <p className="text-[var(--muted-foreground)] text-sm mt-1">
                   Tell us about yourself and your experience
                 </p>
@@ -354,7 +401,10 @@ export default function AppraiserOnboardingPage() {
                   min="0"
                   value={formData.yearsExperience}
                   onChange={(e) =>
-                    handleInputChange("yearsExperience", parseInt(e.target.value) || 0)
+                    handleInputChange(
+                      "yearsExperience",
+                      parseInt(e.target.value) || 0,
+                    )
                   }
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--card)] text-[var(--foreground)]"
                 />
@@ -379,7 +429,9 @@ export default function AppraiserOnboardingPage() {
           {currentStep === "license" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-[var(--foreground)]">License Information</h2>
+                <h2 className="text-lg font-semibold text-[var(--foreground)]">
+                  License Information
+                </h2>
                 <p className="text-[var(--muted-foreground)] text-sm mt-1">
                   Provide your real estate appraiser license details
                 </p>
@@ -391,7 +443,9 @@ export default function AppraiserOnboardingPage() {
                 </label>
                 <select
                   value={formData.licenseType}
-                  onChange={(e) => handleInputChange("licenseType", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("licenseType", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--card)] text-[var(--foreground)]"
                 >
                   {licenseTypes.map((type) => (
@@ -409,7 +463,9 @@ export default function AppraiserOnboardingPage() {
                 <input
                   type="text"
                   value={formData.licenseNumber}
-                  onChange={(e) => handleInputChange("licenseNumber", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("licenseNumber", e.target.value)
+                  }
                   placeholder="TX-12345"
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--card)] text-[var(--foreground)]"
                 />
@@ -422,7 +478,9 @@ export default function AppraiserOnboardingPage() {
                 <input
                   type="date"
                   value={formData.licenseExpiry}
-                  onChange={(e) => handleInputChange("licenseExpiry", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("licenseExpiry", e.target.value)
+                  }
                   min={new Date().toISOString().split("T")[0]}
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--card)] text-[var(--foreground)]"
                 />
@@ -432,9 +490,11 @@ export default function AppraiserOnboardingPage() {
                 <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Upload License Document
                 </label>
-                <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg ${
-                  uploadError ? "border-red-500" : "border-[var(--border)]"
-                }`}>
+                <div
+                  className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg ${
+                    uploadError ? "border-red-500" : "border-[var(--border)]"
+                  }`}
+                >
                   <div className="space-y-1 text-center">
                     {uploadError ? (
                       <div className="flex flex-col items-center gap-2 text-red-400">
@@ -464,7 +524,9 @@ export default function AppraiserOnboardingPage() {
                             style={{ width: `${uploadProgress}%` }}
                           />
                         </div>
-                        <p className="text-sm text-[var(--muted-foreground)] mt-2">Uploading...</p>
+                        <p className="text-sm text-[var(--muted-foreground)] mt-2">
+                          Uploading...
+                        </p>
                       </div>
                     ) : (
                       <>
@@ -481,7 +543,9 @@ export default function AppraiserOnboardingPage() {
                           </label>
                           <p className="pl-1">or drag and drop</p>
                         </div>
-                        <p className="text-xs text-[var(--muted-foreground)]">PDF, JPG, or PNG up to 10MB</p>
+                        <p className="text-xs text-[var(--muted-foreground)]">
+                          PDF, JPG, or PNG up to 10MB
+                        </p>
                       </>
                     )}
                   </div>
@@ -494,7 +558,9 @@ export default function AppraiserOnboardingPage() {
           {currentStep === "coverage" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-[var(--foreground)]">Service Coverage</h2>
+                <h2 className="text-lg font-semibold text-[var(--foreground)]">
+                  Service Coverage
+                </h2>
                 <p className="text-[var(--muted-foreground)] text-sm mt-1">
                   Define your service area and coverage radius
                 </p>
@@ -507,7 +573,9 @@ export default function AppraiserOnboardingPage() {
                 <input
                   type="text"
                   value={formData.homeBaseAddress}
-                  onChange={(e) => handleInputChange("homeBaseAddress", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("homeBaseAddress", e.target.value)
+                  }
                   placeholder="Enter your home base address"
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--card)] text-[var(--foreground)]"
                 />
@@ -528,7 +596,10 @@ export default function AppraiserOnboardingPage() {
                     step="5"
                     value={formData.coverageRadiusMiles}
                     onChange={(e) =>
-                      handleInputChange("coverageRadiusMiles", parseInt(e.target.value))
+                      handleInputChange(
+                        "coverageRadiusMiles",
+                        parseInt(e.target.value),
+                      )
                     }
                     className="flex-1"
                   />
@@ -542,11 +613,42 @@ export default function AppraiserOnboardingPage() {
                 <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
                   Serviced Cities *
                 </label>
+
+                {/* State Selector */}
+                {supportedStates && supportedStates.length > 1 && (
+                  <div className="mb-3">
+                    <label className="block text-xs text-[var(--muted-foreground)] mb-1">
+                      Select State
+                    </label>
+                    <select
+                      value={selectedState}
+                      onChange={(e) => {
+                        setSelectedState(e.target.value);
+                        // Clear selected cities when state changes
+                        setFormData((prev) => ({
+                          ...prev,
+                          servicedCities: [],
+                        }));
+                      }}
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--card)] text-[var(--foreground)]"
+                    >
+                      {supportedStates
+                        .filter((s) => s.active)
+                        .map((state) => (
+                          <option key={state.code} value={state.code}>
+                            {state.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+
                 <p className="text-xs text-[var(--muted-foreground)] mb-3">
-                  Select the Texas cities you can service
+                  Select the {serviceAreas?.stateName || "Texas"} cities you can
+                  service
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {texasCities.map((city) => {
+                <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto p-1">
+                  {availableCities.map((city) => {
                     const isSelected = formData.servicedCities.includes(city);
                     return (
                       <button
@@ -565,7 +667,8 @@ export default function AppraiserOnboardingPage() {
                   })}
                 </div>
                 <p className="text-xs text-[var(--muted-foreground)] mt-2">
-                  {formData.servicedCities.length} cities selected
+                  {formData.servicedCities.length} of {availableCities.length}{" "}
+                  cities selected
                 </p>
               </div>
             </div>
@@ -575,7 +678,9 @@ export default function AppraiserOnboardingPage() {
           {currentStep === "banking" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-[var(--foreground)]">Banking & Payouts</h2>
+                <h2 className="text-lg font-semibold text-[var(--foreground)]">
+                  Banking & Payouts
+                </h2>
                 <p className="text-[var(--muted-foreground)] text-sm mt-1">
                   Connect your bank account to receive payouts
                 </p>
@@ -584,16 +689,21 @@ export default function AppraiserOnboardingPage() {
               {profileCreated && (
                 <div className="p-4 bg-green-500/20 border border-green-500/30 rounded-lg flex items-center gap-3 mb-4">
                   <Check className="w-5 h-5 text-green-400" />
-                  <p className="text-green-400">Profile submitted for verification!</p>
+                  <p className="text-green-400">
+                    Profile submitted for verification!
+                  </p>
                 </div>
               )}
 
               <div className="p-6 bg-[var(--secondary)] rounded-lg border border-[var(--border)] text-center">
                 <CreditCard className="w-12 h-12 text-[var(--muted-foreground)] mx-auto mb-4" />
-                <h3 className="font-medium text-[var(--foreground)] mb-2">Secure Payments via Stripe</h3>
+                <h3 className="font-medium text-[var(--foreground)] mb-2">
+                  Secure Payments via Stripe
+                </h3>
                 <p className="text-sm text-[var(--muted-foreground)] mb-4">
-                  We use Stripe Connect for secure, fast payouts directly to your bank account.
-                  Your banking information is never stored on our servers.
+                  We use Stripe Connect for secure, fast payouts directly to
+                  your bank account. Your banking information is never stored on
+                  our servers.
                 </p>
 
                 {stripeConnected ? (
@@ -626,11 +736,19 @@ export default function AppraiserOnboardingPage() {
               </div>
 
               <div className="p-4 bg-[var(--primary)]/20 rounded-lg border border-[var(--primary)]/30">
-                <h4 className="font-medium text-[var(--primary)] mb-2">What happens next?</h4>
+                <h4 className="font-medium text-[var(--primary)] mb-2">
+                  What happens next?
+                </h4>
                 <ul className="text-sm text-[var(--primary)]/80 space-y-1">
-                  <li>1. Your application will be reviewed within 24-48 hours</li>
-                  <li>2. We&apos;ll verify your license with the state board</li>
-                  <li>3. Once approved, you&apos;ll receive job notifications</li>
+                  <li>
+                    1. Your application will be reviewed within 24-48 hours
+                  </li>
+                  <li>
+                    2. We&apos;ll verify your license with the state board
+                  </li>
+                  <li>
+                    3. Once approved, you&apos;ll receive job notifications
+                  </li>
                 </ul>
               </div>
             </div>

@@ -53,6 +53,11 @@ interface AdvancedFilters {
   jobType: string | null;
 }
 
+interface HistoryFilters {
+  startDate: string | null;
+  endDate: string | null;
+}
+
 // Swipeable Job Card Component
 const SwipeableJobCard = ({
   job,
@@ -343,6 +348,10 @@ export default function AppraiserJobsPage() {
     minPayout: null,
     jobType: null,
   });
+  const [historyFilters, setHistoryFilters] = useState<HistoryFilters>({
+    startDate: null,
+    endDate: null,
+  });
   const [acceptingJobId, setAcceptingJobId] = useState<string | null>(null);
 
   // Client-side timestamp for hydration safety
@@ -372,10 +381,13 @@ export default function AppraiserJobsPage() {
   const hasActiveFilters =
     advancedFilters.maxDistance !== null ||
     advancedFilters.minPayout !== null ||
-    advancedFilters.jobType !== null;
+    advancedFilters.jobType !== null ||
+    historyFilters.startDate !== null ||
+    historyFilters.endDate !== null;
 
   const clearFilters = () => {
     setAdvancedFilters({ maxDistance: null, minPayout: null, jobType: null });
+    setHistoryFilters({ startDate: null, endDate: null });
   };
 
   // tRPC utils for invalidation
@@ -405,7 +417,11 @@ export default function AppraiserJobsPage() {
   });
 
   const { data: completedJobs } = trpc.job.history.useQuery(
-    { limit: 20 },
+    {
+      limit: 20,
+      startDate: historyFilters.startDate ?? undefined,
+      endDate: historyFilters.endDate ?? undefined,
+    },
     {
       enabled: filter === "completed",
       staleTime: 5 * 60 * 1000,
@@ -606,6 +622,123 @@ export default function AppraiserJobsPage() {
           <span className="flex items-center gap-1">
             Swipe left to skip <span className="text-red-400">→</span>
           </span>
+        </div>
+      )}
+
+      {/* History Filters Panel */}
+      {showFilters && filter === "completed" && (
+        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-[var(--foreground)]">
+              Date Range Filter
+            </h3>
+            {(historyFilters.startDate || historyFilters.endDate) && (
+              <button
+                onClick={() =>
+                  setHistoryFilters({ startDate: null, endDate: null })
+                }
+                className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              >
+                Clear dates
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-2">
+                From Date
+              </label>
+              <input
+                type="date"
+                value={historyFilters.startDate ?? ""}
+                onChange={(e) =>
+                  setHistoryFilters({
+                    ...historyFilters,
+                    startDate: e.target.value || null,
+                  })
+                }
+                className="w-full px-3 py-2.5 bg-[var(--muted)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:ring-2 focus:ring-[var(--primary)]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-2">
+                To Date
+              </label>
+              <input
+                type="date"
+                value={historyFilters.endDate ?? ""}
+                onChange={(e) =>
+                  setHistoryFilters({
+                    ...historyFilters,
+                    endDate: e.target.value || null,
+                  })
+                }
+                max={new Date().toISOString().split("T")[0]}
+                className="w-full px-3 py-2.5 bg-[var(--muted)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:ring-2 focus:ring-[var(--primary)]"
+              />
+            </div>
+          </div>
+          {/* Quick Date Presets */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                setHistoryFilters({
+                  startDate: thirtyDaysAgo.toISOString().split("T")[0],
+                  endDate: today.toISOString().split("T")[0],
+                });
+              }}
+              className="px-3 py-1.5 text-sm bg-[var(--muted)] hover:bg-[var(--secondary)] rounded-lg text-[var(--foreground)]"
+            >
+              Last 30 Days
+            </button>
+            <button
+              onClick={() => {
+                const today = new Date();
+                const ninetyDaysAgo = new Date(today);
+                ninetyDaysAgo.setDate(today.getDate() - 90);
+                setHistoryFilters({
+                  startDate: ninetyDaysAgo.toISOString().split("T")[0],
+                  endDate: today.toISOString().split("T")[0],
+                });
+              }}
+              className="px-3 py-1.5 text-sm bg-[var(--muted)] hover:bg-[var(--secondary)] rounded-lg text-[var(--foreground)]"
+            >
+              Last 90 Days
+            </button>
+            <button
+              onClick={() => {
+                const today = new Date();
+                const firstDayOfMonth = new Date(
+                  today.getFullYear(),
+                  today.getMonth(),
+                  1,
+                );
+                setHistoryFilters({
+                  startDate: firstDayOfMonth.toISOString().split("T")[0],
+                  endDate: today.toISOString().split("T")[0],
+                });
+              }}
+              className="px-3 py-1.5 text-sm bg-[var(--muted)] hover:bg-[var(--secondary)] rounded-lg text-[var(--foreground)]"
+            >
+              This Month
+            </button>
+            <button
+              onClick={() => {
+                const today = new Date();
+                const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+                setHistoryFilters({
+                  startDate: firstDayOfYear.toISOString().split("T")[0],
+                  endDate: today.toISOString().split("T")[0],
+                });
+              }}
+              className="px-3 py-1.5 text-sm bg-[var(--muted)] hover:bg-[var(--secondary)] rounded-lg text-[var(--foreground)]"
+            >
+              This Year
+            </button>
+          </div>
         </div>
       )}
 

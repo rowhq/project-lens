@@ -7,9 +7,15 @@ import { prisma } from "@/server/db/prisma";
 import { matcher } from "./matcher";
 import { geofencing } from "./geofencing";
 import { slaMonitor } from "./sla-monitor";
-import { sendJobAssignment } from "@/shared/lib/resend";
-import { sendPushNotification } from "@/server/api/routers/notifications.router";
+import {
+  sendNotificationWithRetry,
+  queueNotification,
+  startQueueProcessor,
+} from "./notification-queue";
 import type { Job, AppraiserProfile, User, Property } from "@prisma/client";
+
+// Start the notification queue processor
+startQueueProcessor();
 
 export interface DispatchResult {
   success: boolean;
@@ -44,7 +50,7 @@ class DispatchEngine {
    */
   async dispatch(
     jobId: string,
-    options: DispatchOptions = {}
+    options: DispatchOptions = {},
   ): Promise<DispatchResult> {
     const job = await prisma.job.findUnique({
       where: { id: jobId },
@@ -127,11 +133,14 @@ class DispatchEngine {
    */
   async autoAssign(
     jobId: string,
-    options: DispatchOptions = {}
+    options: DispatchOptions = {},
   ): Promise<DispatchResult> {
     const dispatchResult = await this.dispatch(jobId, options);
 
-    if (!dispatchResult.success || dispatchResult.matchedAppraisers.length === 0) {
+    if (
+      !dispatchResult.success ||
+      dispatchResult.matchedAppraisers.length === 0
+    ) {
       return dispatchResult;
     }
 
@@ -169,7 +178,7 @@ class DispatchEngine {
   async reassign(
     jobId: string,
     newAppraiserId: string | null,
-    reason: string
+    reason: string,
   ): Promise<{ success: boolean; message: string }> {
     const job = await prisma.job.findUnique({
       where: { id: jobId },
@@ -308,12 +317,17 @@ class DispatchEngine {
 
   /**
    * Notify matched appraisers about available job
+   * Uses retry queue for failed notifications
    */
   private async notifyAppraisers(
     job: Job & { property: Property },
-    appraisers: MatchedAppraiser[]
-  ): Promise<void> {
-    // Create notifications for each appraiser
+    appraisers: MatchedAppraiser[],
+  ): Promise<{ sent: number; queued: number; failed: number }> {
+    let sent = 0;
+    let queued = 0;
+    const failed = 0;
+
+    // Create in-app notifications for each appraiser
     const notifications = appraisers.map((appraiser) => ({
       userId: appraiser.userId,
       type: "JOB_AVAILABLE",
@@ -332,33 +346,50 @@ class DispatchEngine {
       data: notifications,
     });
 
-    // Send email and push notifications to appraisers
+    // Send email and push notifications to appraisers with retry support
     for (const appraiser of appraisers) {
-      try {
-        // Send email notification
-        await sendJobAssignment({
-          email: appraiser.profile.user.email || "",
-          appraiserName: appraiser.profile.user.firstName,
-          propertyAddress: job.property.addressFull,
-          jobId: job.id,
-          deadline: job.slaDueAt || new Date(Date.now() + 48 * 60 * 60 * 1000),
-          payout: Number(job.payoutAmount),
-        });
+      const payload = {
+        userId: appraiser.userId,
+        userEmail: appraiser.profile.user.email || "",
+        userName: appraiser.profile.user.firstName || "Appraiser",
+        job,
+        type: "JOB_AVAILABLE" as const,
+      };
 
-        // Send push notification
-        await sendPushNotification(prisma, appraiser.userId, {
-          title: "New Job Available",
-          body: `$${Number(job.payoutAmount)} - ${job.property.addressLine1}, ${job.property.city}`,
-          icon: "/icons/icon-192x192.png",
-          data: {
-            url: `/appraiser/jobs/${job.id}`,
-            jobId: job.id,
-          },
-        });
-      } catch (error) {
-        console.error(`Failed to send job notification to ${appraiser.userId}:`, error);
+      // Try to send notification
+      const result = await sendNotificationWithRetry(payload);
+
+      if (result.success) {
+        sent++;
+      } else {
+        // Queue for retry
+        queueNotification(payload);
+        queued++;
+        console.log(
+          `Notification to ${appraiser.userId} queued for retry: ${result.error}`,
+        );
       }
     }
+
+    // Log notification results
+    if (queued > 0 || failed > 0) {
+      await prisma.job.update({
+        where: { id: job.id },
+        data: {
+          statusHistory: {
+            push: {
+              status: "NOTIFICATION_SUMMARY",
+              timestamp: new Date().toISOString(),
+              sent,
+              queued,
+              failed,
+            },
+          },
+        },
+      });
+    }
+
+    return { sent, queued, failed };
   }
 }
 

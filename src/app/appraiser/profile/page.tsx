@@ -18,8 +18,11 @@ import {
   Bell,
   BellOff,
   Loader2,
+  Sun,
+  SunMedium,
 } from "lucide-react";
 import { usePushNotifications } from "@/shared/hooks/use-push-notifications";
+import { useHighContrastMode } from "@/shared/hooks/useHighContrastMode";
 import { MapView } from "@/shared/components/common/MapView";
 
 export default function AppraiserProfilePage() {
@@ -29,6 +32,7 @@ export default function AppraiserProfilePage() {
     "profile" | "license" | "service" | "notifications"
   >("profile");
   const pushNotifications = usePushNotifications();
+  const highContrast = useHighContrastMode();
 
   // Form state for editable fields - null means use profile value
   const [editedCoverageRadius, setEditedCoverageRadius] = useState<
@@ -574,6 +578,65 @@ export default function AppraiserProfilePage() {
                   </div>
                 </div>
               </>
+            )}
+          </div>
+
+          {/* Display Settings */}
+          <div className="mt-6 pt-6 border-t border-[var(--border)]">
+            <h3 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+              <Sun className="w-5 h-5 text-[var(--muted-foreground)]" />
+              Display Settings
+            </h3>
+
+            <div className="p-4 bg-[var(--secondary)] rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      highContrast.enabled
+                        ? "bg-yellow-500/20"
+                        : "bg-[var(--muted)]"
+                    }`}
+                  >
+                    <SunMedium
+                      className={`w-5 h-5 ${
+                        highContrast.enabled
+                          ? "text-yellow-400"
+                          : "text-[var(--muted-foreground)]"
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <p className="font-medium text-[var(--foreground)]">
+                      High Contrast Mode
+                    </p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      Enhanced visibility for outdoor use and bright sunlight
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={highContrast.toggle}
+                  className={`relative w-14 h-7 rounded-full transition-colors ${
+                    highContrast.enabled ? "bg-yellow-500" : "bg-[var(--muted)]"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-transform ${
+                      highContrast.enabled ? "translate-x-8" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {highContrast.enabled && (
+              <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-sm text-yellow-300">
+                  <strong>High Contrast Active:</strong> Colors and fonts are
+                  optimized for outdoor visibility. Toggle off when indoors.
+                </p>
+              </div>
             )}
           </div>
         </div>

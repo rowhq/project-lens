@@ -1504,3 +1504,103 @@ body {
     font-size: calc(0.7495rem + 0.8368vw);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HIGH CONTRAST MODE - For outdoor/bright sunlight visibility
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.high-contrast {
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --card: #0A0A0A;
+  --card-foreground: #FFFFFF;
+  --primary: #00FF00;
+  --primary-foreground: #000000;
+  --muted: #1A1A1A;
+  --muted-foreground: #CCCCCC;
+  --border: #444444;
+  --accent: #00FF00;
+  --accent-foreground: #000000;
+
+  /* High contrast lime */
+  --color-lime-500: #00FF00;
+  --color-lime-400: #33FF33;
+  --color-lime-glow: rgba(0, 255, 0, 0.4);
+}
+
+/* Enhanced text visibility */
+.high-contrast body {
+  -webkit-font-smoothing: auto;
+  text-rendering: optimizeLegibility;
+}
+
+.high-contrast * {
+  text-shadow: none;
+}
+
+/* Stronger text colors */
+.high-contrast .text-gray-300,
+.high-contrast .text-gray-400,
+.high-contrast .text-gray-500 {
+  color: #CCCCCC !important;
+}
+
+.high-contrast .text-muted-foreground {
+  color: #AAAAAA !important;
+}
+
+/* Enhanced borders */
+.high-contrast .border,
+.high-contrast [class*="border-gray"] {
+  border-color: #666666 !important;
+}
+
+/* Larger touch targets */
+.high-contrast button,
+.high-contrast a,
+.high-contrast [role="button"] {
+  min-height: 48px;
+  font-weight: 600;
+}
+
+/* Enhanced focus states */
+.high-contrast :focus-visible {
+  outline: 3px solid #00FF00;
+  outline-offset: 3px;
+}
+
+/* High contrast backgrounds */
+.high-contrast .bg-gray-800,
+.high-contrast .bg-gray-900 {
+  background-color: #0A0A0A !important;
+}
+
+.high-contrast .bg-lime-500,
+.high-contrast .bg-lime-400 {
+  background-color: #00FF00 !important;
+  color: #000000 !important;
+}
+
+/* Enhanced status indicators */
+.high-contrast .text-green-400,
+.high-contrast .text-green-500,
+.high-contrast .text-lime-400,
+.high-contrast .text-lime-500 {
+  color: #00FF00 !important;
+}
+
+.high-contrast .text-red-400,
+.high-contrast .text-red-500 {
+  color: #FF4444 !important;
+}
+
+.high-contrast .text-yellow-400,
+.high-contrast .text-yellow-500,
+.high-contrast .text-amber-400 {
+  color: #FFCC00 !important;
+}
+
+/* Larger icons in high contrast */
+.high-contrast svg {
+  stroke-width: 2.5;
+}
