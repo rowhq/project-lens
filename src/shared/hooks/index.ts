@@ -1,6 +1,11 @@
 // Utility hooks
 export { useDebounce } from "./useDebounce";
-export { useMediaQuery, useIsMobile, useIsTablet, useIsDesktop } from "./useMediaQuery";
+export {
+  useMediaQuery,
+  useIsMobile,
+  useIsTablet,
+  useIsDesktop,
+} from "./useMediaQuery";
 export { useLocalStorage } from "./useLocalStorage";
 
 // User & Auth hooks
@@ -12,3 +17,5 @@ export { useJobs, useJob } from "./useJobs";
 
 // UI hooks
 export { useNotifications } from "./useNotifications";
+export { useKeyboardShortcuts, formatShortcut } from "./use-keyboard-shortcuts";
+export type { KeyboardShortcut } from "./use-keyboard-shortcuts";

@@ -27,6 +27,31 @@ import { deleteFile } from "@/shared/lib/storage";
 // Note: Email sending and job dispatch are now handled by the Stripe webhook
 // to prevent race conditions between webhook and confirmPayment
 
+// Timeout helper for processAppraisal (25s to stay within Vercel's 30s limit)
+const PROCESS_TIMEOUT_MS = 25000;
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  timeoutError: string,
+): Promise<T> {
+  let timeoutId: NodeJS.Timeout;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(timeoutError));
+    }, timeoutMs);
+  });
+
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timeoutId!);
+    return result;
+  } catch (error) {
+    clearTimeout(timeoutId!);
+    throw error;
+  }
+}
+
 export const appraisalRouter = createTRPCRouter({
   /**
    * Get usage status - free reports remaining this month
@@ -389,11 +414,11 @@ export const appraisalRouter = createTRPCRouter({
         ctx.organization!.id,
       );
 
-      // In production, if payment required and Stripe not configured, throw error
-      if (requiresPayment && process.env.NODE_ENV === "production") {
+      // Block if monthly limit exceeded - AI Reports are included in plan, not sold separately
+      if (requiresPayment) {
         throw new TRPCError({
-          code: "PAYMENT_REQUIRED",
-          message: `Monthly free report limit (${usageStatus.limit}) exceeded. Payment required.`,
+          code: "FORBIDDEN",
+          message: `Monthly AI Report limit (${usageStatus.limit}) reached. Please upgrade your plan for more reports.`,
         });
       }
 
@@ -412,14 +437,11 @@ export const appraisalRouter = createTRPCRouter({
         },
       });
 
-      // Determine if this is a free report or paid
-      const isFreeReport = !requiresPayment;
-      const price = isFreeReport ? 0 : PRICING.AI_REPORT;
-
       // Generate reference code
       const refCode = `APR-${Date.now().toString(36).toUpperCase()}`;
 
       // Create appraisal directly in QUEUED status
+      // AI Reports are always included in plan (no charge)
       const appraisal = await ctx.prisma.appraisalRequest.create({
         data: {
           referenceCode: refCode,
@@ -428,42 +450,38 @@ export const appraisalRouter = createTRPCRouter({
           propertyId: property.id,
           purpose: input.purpose,
           requestedType: "AI_REPORT",
-          notes: input.notes
-            ? `${input.notes}\n\n[${isFreeReport ? "FREE REPORT" : "PAID REPORT"}]`
-            : `[${isFreeReport ? "FREE REPORT" : "PAID REPORT"}]`,
+          notes: input.notes || undefined,
           status: "QUEUED",
-          statusMessage: isFreeReport
-            ? `Free report (${usageStatus.used + 1}/${usageStatus.limit} this month)`
-            : "Processing paid report",
-          price,
+          statusMessage: `Report ${usageStatus.used + 1}/${usageStatus.limit === -1 ? "∞" : usageStatus.limit} this month`,
+          price: 0, // AI Reports included in plan
         },
       });
 
-      // Create payment record (even for free, to track usage)
+      // Create usage tracking record
       await ctx.prisma.payment.create({
         data: {
           organizationId: ctx.organization!.id,
           userId: ctx.user.id,
           type: "CHARGE",
-          amount: price,
+          amount: 0,
           currency: "USD",
-          description: isFreeReport
-            ? `[FREE] AI Report - ${property.addressFull}`
-            : `AI Report - ${property.addressFull}`,
+          description: `AI Report - ${property.addressFull}`,
           relatedAppraisalId: appraisal.id,
           status: "COMPLETED",
-          statusMessage: isFreeReport
-            ? "Free monthly allowance"
-            : "Paid report",
+          statusMessage: "Included in plan",
         },
       });
 
-      // Process synchronously (required for Vercel serverless)
+      // Process synchronously with timeout (required for Vercel serverless)
       try {
         console.log(
-          `[QuickAIReport] Starting processAppraisal for ${appraisal.id}`,
+          `[QuickAIReport] Starting processAppraisal for ${appraisal.id} (timeout: ${PROCESS_TIMEOUT_MS}ms)`,
         );
-        const result = await processAppraisal(appraisal.id);
+        const result = await withTimeout(
+          processAppraisal(appraisal.id),
+          PROCESS_TIMEOUT_MS,
+          `Processing timeout exceeded (${PROCESS_TIMEOUT_MS}ms)`,
+        );
         console.log(
           `[QuickAIReport] processAppraisal result:`,
           JSON.stringify(result),
@@ -538,8 +556,8 @@ export const appraisalRouter = createTRPCRouter({
       return {
         appraisalId: appraisal.id,
         referenceCode: refCode,
-        price,
-        isFreeReport,
+        price: 0, // AI Reports included in plan
+        isFreeReport: true, // Always free (included in plan)
         usageAfter: {
           used: usageStatus.used + 1,
           limit: usageStatus.limit,

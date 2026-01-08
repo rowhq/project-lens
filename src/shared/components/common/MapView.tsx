@@ -8,135 +8,32 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { Layers, Map as MapIcon, Satellite, RotateCcw } from "lucide-react";
 
-export interface MapMarker {
-  id: string;
-  longitude: number;
-  latitude: number;
-  label?: string;
-  color?: string;
-  popup?: string;
-  onClick?: () => void;
-}
+// Import from extracted modules
+import {
+  type MapViewProps,
+  type MapMarker,
+  type BaseLayerStyle,
+  DEFAULT_CENTER,
+  DEFAULT_ZOOM,
+  BASE_STYLES,
+} from "./map/types";
+import { createMarkerElement, toHeatmapGeoJSON } from "./map/utils";
+import {
+  MapLoading,
+  FitAllButton,
+  BaseLayerSwitcher,
+  LayerControlsPanel,
+} from "./map/MapControls";
 
-export interface HeatmapPoint {
-  lat: number;
-  lng: number;
-  intensity?: number; // 0-1 value, defaults to 0.5
-}
-
-export type BaseLayerStyle = "streets" | "satellite" | "hybrid";
-
-export interface MapViewProps {
-  center?: [number, number]; // [longitude, latitude]
-  zoom?: number;
-  markers?: MapMarker[];
-  heatmapData?: HeatmapPoint[];
-  showHeatmap?: boolean;
-  heatmapRadius?: number;
-  heatmapIntensity?: number;
-  heatmapOpacity?: number;
-  className?: string;
-  style?: React.CSSProperties;
-  interactive?: boolean;
-  showNavigation?: boolean;
-  showScale?: boolean;
-  showLayerControls?: boolean;
-  showBaseLayerSwitcher?: boolean;
-  defaultBaseLayer?: BaseLayerStyle;
-  onMapClick?: (lngLat: { lng: number; lat: number }) => void;
-  onMarkerClick?: (marker: MapMarker) => void;
-  fitBounds?: [[number, number], [number, number]]; // [[sw], [ne]]
-  padding?: number;
-}
-
-// Default to center of Texas
-const DEFAULT_CENTER: [number, number] = [-99.9018, 31.9686];
-const DEFAULT_ZOOM = 6;
-
-// Free tile sources - no API key required
-const BASE_STYLES: Record<BaseLayerStyle, maplibregl.StyleSpecification> = {
-  streets: {
-    version: 8,
-    sources: {
-      "osm-tiles": {
-        type: "raster",
-        tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-        tileSize: 256,
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      },
-    },
-    layers: [
-      {
-        id: "osm-tiles",
-        type: "raster",
-        source: "osm-tiles",
-        minzoom: 0,
-        maxzoom: 19,
-      },
-    ],
-  },
-  satellite: {
-    version: 8,
-    sources: {
-      "satellite-tiles": {
-        type: "raster",
-        tiles: [
-          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        ],
-        tileSize: 256,
-        attribution: "&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
-      },
-    },
-    layers: [
-      {
-        id: "satellite-tiles",
-        type: "raster",
-        source: "satellite-tiles",
-        minzoom: 0,
-        maxzoom: 19,
-      },
-    ],
-  },
-  hybrid: {
-    version: 8,
-    sources: {
-      "satellite-tiles": {
-        type: "raster",
-        tiles: [
-          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        ],
-        tileSize: 256,
-      },
-      "labels-tiles": {
-        type: "raster",
-        tiles: [
-          "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-        ],
-        tileSize: 256,
-        attribution: "&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
-      },
-    },
-    layers: [
-      {
-        id: "satellite-tiles",
-        type: "raster",
-        source: "satellite-tiles",
-        minzoom: 0,
-        maxzoom: 19,
-      },
-      {
-        id: "labels-tiles",
-        type: "raster",
-        source: "labels-tiles",
-        minzoom: 0,
-        maxzoom: 19,
-      },
-    ],
-  },
-};
+// Re-export types and StaticMapView for backwards compatibility
+export type {
+  MapMarker,
+  HeatmapPoint,
+  BaseLayerStyle,
+  MapViewProps,
+} from "./map/types";
+export { StaticMapView } from "./map/StaticMapView";
 
 export function MapView({
   center = DEFAULT_CENTER,
@@ -167,20 +64,7 @@ export function MapView({
   const [baseLayer, setBaseLayer] = useState<BaseLayerStyle>(defaultBaseLayer);
 
   // Convert heatmap data to GeoJSON
-  const heatmapGeoJSON: GeoJSON.FeatureCollection = {
-    type: "FeatureCollection",
-    features: heatmapData.map((point, index) => ({
-      type: "Feature" as const,
-      properties: {
-        intensity: point.intensity ?? 0.5,
-      },
-      geometry: {
-        type: "Point" as const,
-        coordinates: [point.lng, point.lat],
-      },
-      id: index,
-    })),
-  };
+  const heatmapGeoJSON = toHeatmapGeoJSON(heatmapData);
 
   // Initialize map
   useEffect(() => {
@@ -215,12 +99,11 @@ export function MapView({
 
     // Handle load
     map.current.on("load", () => {
-      // Force resize to ensure map fills container correctly
       map.current?.resize();
       setIsLoaded(true);
     });
 
-    // Multiple resize calls to handle CSS layout settling at different stages
+    // Multiple resize calls to handle CSS layout settling
     const resizeDelays = [50, 100, 200, 500];
     const timeouts = resizeDelays.map((delay) =>
       setTimeout(() => {
@@ -228,7 +111,7 @@ export function MapView({
       }, delay),
     );
 
-    // Also resize on idle callback for smoother handling
+    // Also resize on idle callback
     if (typeof requestIdleCallback !== "undefined") {
       requestIdleCallback(() => {
         map.current?.resize();
@@ -251,17 +134,11 @@ export function MapView({
     }
 
     return () => {
-      // Clean up timeouts
       timeouts.forEach((t) => clearTimeout(t));
-
-      // Clean up resize observer
       resizeObserver.disconnect();
-
-      // Clean up markers
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current.clear();
 
-      // Clean up map
       if (map.current) {
         map.current.remove();
         map.current = null;
@@ -305,7 +182,6 @@ export function MapView({
   useEffect(() => {
     if (!map.current || !isLoaded) return;
 
-    // Track which markers to keep
     const currentMarkerIds = new Set(markers.map((m) => m.id));
 
     // Remove markers that are no longer needed
@@ -321,10 +197,8 @@ export function MapView({
       let marker = markersRef.current.get(markerData.id);
 
       if (marker) {
-        // Update existing marker position
         marker.setLngLat([markerData.longitude, markerData.latitude]);
       } else {
-        // Create new marker
         const el = createMarkerElement(markerData);
 
         marker = new maplibregl.Marker({
@@ -334,7 +208,6 @@ export function MapView({
           .setLngLat([markerData.longitude, markerData.latitude])
           .addTo(map.current!);
 
-        // Add popup if provided
         if (markerData.popup) {
           const popup = new maplibregl.Popup({
             offset: 25,
@@ -344,7 +217,6 @@ export function MapView({
           marker.setPopup(popup);
         }
 
-        // Add click handler
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           if (markerData.onClick) {
@@ -367,7 +239,7 @@ export function MapView({
     const HEATMAP_SOURCE_ID = "heatmap-source";
     const HEATMAP_LAYER_ID = "heatmap-layer";
 
-    // Remove existing heatmap layer and source if they exist
+    // Remove existing heatmap layer and source
     if (map.current.getLayer(HEATMAP_LAYER_ID)) {
       map.current.removeLayer(HEATMAP_LAYER_ID);
     }
@@ -377,19 +249,16 @@ export function MapView({
 
     // Only add heatmap if we have data and it should be shown
     if (showHeatmap && heatmapGeoJSON.features.length > 0) {
-      // Add source
       map.current.addSource(HEATMAP_SOURCE_ID, {
         type: "geojson",
         data: heatmapGeoJSON,
       });
 
-      // Add heatmap layer
       map.current.addLayer({
         id: HEATMAP_LAYER_ID,
         type: "heatmap",
         source: HEATMAP_SOURCE_ID,
         paint: {
-          // Increase weight based on intensity property
           "heatmap-weight": [
             "interpolate",
             ["linear"],
@@ -399,7 +268,6 @@ export function MapView({
             1,
             1,
           ],
-          // Increase intensity as zoom level increases
           "heatmap-intensity": [
             "interpolate",
             ["linear"],
@@ -409,7 +277,6 @@ export function MapView({
             9,
             heatmapIntensity * 2,
           ],
-          // Color ramp for heatmap - from transparent to red
           "heatmap-color": [
             "interpolate",
             ["linear"],
@@ -427,7 +294,6 @@ export function MapView({
             1,
             "rgba(185, 28, 28, 0.9)", // red-700
           ],
-          // Adjust heatmap radius by zoom level
           "heatmap-radius": [
             "interpolate",
             ["linear"],
@@ -437,7 +303,6 @@ export function MapView({
             9,
             heatmapRadius * 2,
           ],
-          // Transition from heatmap to circle layer by zoom level
           "heatmap-opacity": heatmapOpacity,
         },
       });
@@ -466,7 +331,7 @@ export function MapView({
     });
   }, [markers, padding]);
 
-  // Compute final height - prefer explicit height from style prop
+  // Compute final height
   const containerHeight = style?.height ?? 300;
 
   return (
@@ -484,199 +349,28 @@ export function MapView({
         className="rounded-lg"
       />
 
-      {/* Loading state */}
-      {!isLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)] rounded-lg">
-          <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-            <svg
-              className="animate-spin h-5 w-5"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-            <span>Loading map...</span>
-          </div>
-        </div>
-      )}
+      <MapLoading isLoaded={isLoaded} />
 
-      {/* Fit all button */}
-      {isLoaded && markers.length > 1 && (
-        <button
-          onClick={fitToMarkers}
-          className="absolute top-2 left-2 z-10 bg-[var(--card)] border border-[var(--border)] px-3 py-1.5 rounded-md shadow-md text-sm font-medium text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
-          title="Fit to all markers"
-        >
-          Fit All
-        </button>
-      )}
+      <FitAllButton
+        isLoaded={isLoaded}
+        markerCount={markers.length}
+        onFit={fitToMarkers}
+      />
 
-      {/* Base layer switcher */}
-      {isLoaded && showBaseLayerSwitcher && (
-        <div className="absolute bottom-6 left-2 z-10 flex gap-1 bg-[var(--card)] border border-[var(--border)] p-1 rounded-lg shadow-lg">
-          <button
-            onClick={() => handleBaseLayerChange("streets")}
-            className={`p-2 rounded-md transition-colors ${
-              baseLayer === "streets"
-                ? "bg-blue-500 text-white"
-                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
-            }`}
-            title="Streets"
-          >
-            <MapIcon className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => handleBaseLayerChange("satellite")}
-            className={`p-2 rounded-md transition-colors ${
-              baseLayer === "satellite"
-                ? "bg-blue-500 text-white"
-                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
-            }`}
-            title="Satellite"
-          >
-            <Satellite className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => handleBaseLayerChange("hybrid")}
-            className={`p-2 rounded-md transition-colors ${
-              baseLayer === "hybrid"
-                ? "bg-blue-500 text-white"
-                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
-            }`}
-            title="Hybrid"
-          >
-            <Layers className="h-4 w-4" />
-          </button>
-          <div className="w-px bg-[var(--border)]" />
-          <button
-            onClick={handleResetView}
-            className="p-2 rounded-md text-[var(--muted-foreground)] hover:bg-[var(--secondary)] transition-colors"
-            title="Reset View"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+      <BaseLayerSwitcher
+        isLoaded={isLoaded}
+        show={showBaseLayerSwitcher}
+        baseLayer={baseLayer}
+        onLayerChange={handleBaseLayerChange}
+        onResetView={handleResetView}
+      />
 
-      {/* Layer controls panel */}
-      {isLoaded && showLayerControls && (
-        <div className="absolute top-2 right-14 z-10 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg p-3 min-w-[180px]">
-          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--border)]">
-            <Layers className="h-4 w-4 text-[var(--primary)]" />
-            <span className="font-medium text-sm text-[var(--foreground)]">
-              Layers
-            </span>
-          </div>
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm text-[var(--foreground)] cursor-pointer">
-              <input type="checkbox" checked disabled className="rounded" />
-              <span>Markers</span>
-            </label>
-            {showHeatmap !== undefined && (
-              <label className="flex items-center gap-2 text-sm text-[var(--foreground)] cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showHeatmap}
-                  disabled
-                  className="rounded"
-                />
-                <span>Heatmap</span>
-              </label>
-            )}
-          </div>
-        </div>
-      )}
+      <LayerControlsPanel
+        isLoaded={isLoaded}
+        show={showLayerControls}
+        showHeatmap={showHeatmap}
+      />
     </div>
-  );
-}
-
-function createMarkerElement(marker: MapMarker): HTMLElement {
-  const el = document.createElement("div");
-  el.className = "maplibre-marker";
-
-  const color = marker.color || "#EF4444"; // Default red
-
-  el.innerHTML = `
-    <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M16 0C7.163 0 0 7.163 0 16c0 10.667 16 24 16 24s16-13.333 16-24C32 7.163 24.837 0 16 0z" fill="${color}"/>
-      <circle cx="16" cy="14" r="6" fill="white"/>
-    </svg>
-    ${marker.label ? `<span class="marker-label">${marker.label}</span>` : ""}
-  `;
-
-  el.style.cursor = "pointer";
-  el.style.position = "relative";
-
-  // Add label styling if present
-  if (marker.label) {
-    const style = document.createElement("style");
-    style.textContent = `
-      .marker-label {
-        position: absolute;
-        top: -24px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: white;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 500;
-        white-space: nowrap;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-      }
-    `;
-    el.appendChild(style);
-  }
-
-  return el;
-}
-
-// Static map component using OpenStreetMap static API
-export function StaticMapView({
-  longitude,
-  latitude,
-  zoom = 15,
-  width = 600,
-  height = 400,
-  marker = true,
-  className = "",
-}: {
-  longitude: number;
-  latitude: number;
-  zoom?: number;
-  width?: number;
-  height?: number;
-  marker?: boolean;
-  className?: string;
-}) {
-  // Use OpenStreetMap static map service (free)
-  const markerParam = marker
-    ? `&markers=${longitude},${latitude},red-pushpin`
-    : "";
-  const url = `https://staticmap.openstreetmap.de/staticmap.php?center=${latitude},${longitude}&zoom=${zoom}&size=${width}x${height}&maptype=osmarenderer${markerParam}`;
-
-  return (
-    <img
-      src={url}
-      alt="Map location"
-      className={`rounded-lg ${className}`}
-      width={width}
-      height={height}
-      loading="lazy"
-    />
   );
 }
 

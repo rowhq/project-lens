@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Upload, X, File, Image as ImageIcon, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Upload,
+  X,
+  File,
+  Image as ImageIcon,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { cn, formatFileSize } from "@/shared/lib/utils";
 
 interface UploadedFile {
@@ -104,13 +112,17 @@ export function FileUpload({
               };
             }
             return f;
-          })
+          }),
         );
       } catch (error) {
         // Mark files as errored
         setFiles((prev) =>
           prev.map((f) => {
-            if (fileEntries.some((fe) => fe.id === f.id && f.status === "uploading")) {
+            if (
+              fileEntries.some(
+                (fe) => fe.id === f.id && f.status === "uploading",
+              )
+            ) {
               return {
                 ...f,
                 status: "error" as const,
@@ -118,11 +130,11 @@ export function FileUpload({
               };
             }
             return f;
-          })
+          }),
         );
       }
     },
-    [files.length, maxFiles, maxSize, accept, onUpload]
+    [files.length, maxFiles, maxSize, accept, onUpload],
   );
 
   const handleDrop = useCallback(
@@ -135,7 +147,7 @@ export function FileUpload({
       const droppedFiles = Array.from(e.dataTransfer.files);
       processFiles(droppedFiles);
     },
-    [disabled, processFiles]
+    [disabled, processFiles],
   );
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,11 +175,11 @@ export function FileUpload({
         onDrop={handleDrop}
         onClick={() => !disabled && inputRef.current?.click()}
         className={cn(
-          "relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all",
+          "relative border-2 border-dashed clip-notch p-8 text-center cursor-pointer transition-all",
           isDragging
             ? "border-brand-500 bg-brand-50"
             : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50",
-          disabled && "opacity-50 cursor-not-allowed"
+          disabled && "opacity-50 cursor-not-allowed",
         )}
       >
         <input
@@ -179,12 +191,18 @@ export function FileUpload({
           disabled={disabled}
           className="hidden"
         />
-        <Upload className={cn("w-10 h-10 mx-auto mb-3", isDragging ? "text-brand-500" : "text-neutral-400")} />
+        <Upload
+          className={cn(
+            "w-10 h-10 mx-auto mb-3",
+            isDragging ? "text-brand-500" : "text-neutral-400",
+          )}
+        />
         <p className="text-sm font-medium text-neutral-700">
           {isDragging ? "Drop files here" : "Click to upload or drag and drop"}
         </p>
         <p className="text-xs text-neutral-500 mt-1">
-          {accept === "image/*" ? "PNG, JPG, HEIC" : accept} up to {formatFileSize(maxSize)}
+          {accept === "image/*" ? "PNG, JPG, HEIC" : accept} up to{" "}
+          {formatFileSize(maxSize)}
         </p>
       </div>
 

@@ -7,11 +7,13 @@ import { LedgerCorners } from "./Decorations";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "outline" | "ghost" | "danger" | "lime";
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "icon";
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   withBrackets?: boolean;
+  /** Required when using icon-only buttons (no children) for accessibility */
+  "aria-label"?: string;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -33,7 +35,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const variants = {
       primary: cn(
         "bg-[var(--foreground)] text-[var(--background)]",
-        "hover:bg-lime-500 hover:text-gray-900",
+        "hover:bg-lime-500 hover:!text-black",
         "border border-[var(--foreground)] hover:border-lime-500",
         "focus:ring-[var(--foreground)]/30",
       ),
@@ -45,7 +47,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ),
       outline: cn(
         "bg-transparent text-[var(--foreground)]",
-        "hover:bg-lime-500 hover:text-gray-900",
+        "hover:bg-lime-500 hover:!text-black",
         "border border-[var(--border)] hover:border-lime-500",
         "focus:ring-lime-500/30",
       ),
@@ -61,19 +63,20 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         "focus:ring-red-500/30",
       ),
       lime: cn(
-        "bg-lime-500 text-gray-900",
+        "bg-lime-500 !text-black",
         "hover:bg-lime-400",
         "border border-lime-500 hover:border-lime-400",
         "focus:ring-lime-500/30",
       ),
     };
 
-    // Sizes: lg (56px/16px - standard), md (48px/14px), sm (32px/12px)
+    // Sizes: lg (56px/16px - standard), md (48px/14px), sm (32px/12px), icon (square)
     // All buttons get clip-notch for Ledger style
     const sizes = {
       sm: "h-8 px-4 text-xs clip-notch-sm", // 32px height, 12px font
       md: "h-12 px-5 text-sm clip-notch", // 48px height, 14px font
       lg: "h-14 px-6 text-base clip-notch", // 56px height, 16px font (standard)
+      icon: "h-10 w-10 p-0 clip-notch-sm", // 40px square for icon-only buttons
     };
 
     return (

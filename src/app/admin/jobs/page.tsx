@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
+import { useDebounce } from "@/shared/hooks/useDebounce";
 import {
   Search,
   Filter,
@@ -41,6 +42,7 @@ type JobStatus =
 export default function AdminJobsPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [statusFilter, setStatusFilter] = useState<JobStatus>("ALL");
   const [slaBreach, setSlaBreach] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -50,17 +52,19 @@ export default function AdminJobsPage() {
   const [showBulkCancelDialog, setShowBulkCancelDialog] = useState(false);
   const [showBulkApproveDialog, setShowBulkApproveDialog] = useState(false);
   const [bulkReason, setBulkReason] = useState("");
+  const [pageLimit, setPageLimit] = useState(25);
 
   const {
     data: jobsData,
     isLoading,
     refetch,
   } = trpc.admin.jobs.list.useQuery({
-    limit: 50,
+    limit: pageLimit,
     status: statusFilter === "ALL" ? undefined : statusFilter,
     slaBreach: slaBreach || undefined,
   });
   const jobs = jobsData?.items;
+  const hasMore = jobsData?.nextCursor !== undefined;
 
   const cancelJob = trpc.admin.jobs.cancel.useMutation({
     onSuccess: () => {
@@ -176,18 +180,20 @@ export default function AdminJobsPage() {
     (job) =>
       job.property?.addressFull
         ?.toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      job.property?.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        .includes(debouncedSearchQuery.toLowerCase()) ||
+      job.property?.city
+        ?.toLowerCase()
+        .includes(debouncedSearchQuery.toLowerCase()) ||
       job.organization?.name
         ?.toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
+        .includes(debouncedSearchQuery.toLowerCase()) ||
       job.assignedAppraiser?.firstName
         ?.toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
+        .includes(debouncedSearchQuery.toLowerCase()) ||
       job.assignedAppraiser?.lastName
         ?.toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      job.id.toLowerCase().includes(searchQuery.toLowerCase()),
+        .includes(debouncedSearchQuery.toLowerCase()) ||
+      job.id.toLowerCase().includes(debouncedSearchQuery.toLowerCase()),
   );
 
   const handleCancel = (jobId: string) => {
@@ -389,7 +395,7 @@ export default function AdminJobsPage() {
 
       {/* Jobs Table */}
       <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden overflow-x-auto">
-        <table className="w-full min-w-[700px]">
+        <table className="w-full">
           <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
             <tr>
               <th className="px-4 py-3 text-left">
@@ -409,13 +415,13 @@ export default function AdminJobsPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Property
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+              <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Organization
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+              <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Appraiser
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+              <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 SLA Due
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
@@ -471,27 +477,27 @@ export default function AdminJobsPage() {
                       </button>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-start gap-2">
+                      <div className="flex items-start gap-2 max-w-xs">
                         <MapPin className="w-4 h-4 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="font-medium text-[var(--foreground)] text-sm">
+                        <div className="min-w-0">
+                          <p className="font-medium text-[var(--foreground)] text-sm truncate">
                             {job.property?.addressFull || "Address not set"}
                           </p>
-                          <p className="text-xs text-[var(--muted-foreground)]">
+                          <p className="text-xs text-[var(--muted-foreground)] truncate">
                             {job.property?.city}, {job.property?.county}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-[var(--muted-foreground)]" />
-                        <span className="text-sm text-[var(--foreground)]">
+                    <td className="hidden md:table-cell px-6 py-4">
+                      <div className="flex items-center gap-2 max-w-[180px]">
+                        <Building2 className="w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0" />
+                        <span className="text-sm text-[var(--foreground)] truncate">
                           {job.organization?.name || "N/A"}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="hidden lg:table-cell px-6 py-4">
                       {job.assignedAppraiser ? (
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-[var(--muted-foreground)]" />
@@ -506,7 +512,7 @@ export default function AdminJobsPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="hidden md:table-cell px-6 py-4">
                       {job.slaDueAt ? (
                         <div
                           className={`flex items-center gap-2 ${
@@ -515,7 +521,14 @@ export default function AdminJobsPage() {
                         >
                           <Calendar className="w-4 h-4" />
                           <span className="text-sm">
-                            {new Date(job.slaDueAt).toLocaleDateString()}
+                            {new Date(job.slaDueAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              },
+                            )}
                           </span>
                           {breach && (
                             <AlertTriangle className="w-4 h-4 text-red-400" />
@@ -541,7 +554,7 @@ export default function AdminJobsPage() {
                           onClick={() =>
                             setActiveMenu(activeMenu === job.id ? null : job.id)
                           }
-                          className="p-2 hover:bg-[var(--muted)] rounded-lg"
+                          className="p-2.5 hover:bg-[var(--muted)] rounded-lg"
                         >
                           <MoreVertical className="w-4 h-4 text-[var(--muted-foreground)]" />
                         </button>
@@ -578,6 +591,24 @@ export default function AdminJobsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {filteredJobs && filteredJobs.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-3 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Showing {filteredJobs.length} job
+            {filteredJobs.length !== 1 ? "s" : ""}
+          </p>
+          {hasMore && (
+            <button
+              onClick={() => setPageLimit((prev) => prev + 25)}
+              className="px-4 py-2 text-sm font-medium text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-colors"
+            >
+              Load More
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Cancel Dialog */}
       {cancellingJob && (

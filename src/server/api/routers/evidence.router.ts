@@ -4,7 +4,11 @@
  */
 
 import { z } from "zod";
-import { createTRPCRouter, appraiserProcedure, protectedProcedure } from "../trpc";
+import {
+  createTRPCRouter,
+  appraiserProcedure,
+  protectedProcedure,
+} from "../trpc";
 import { TRPCError } from "@trpc/server";
 import crypto from "crypto";
 import * as storage from "@/shared/lib/storage";
@@ -23,7 +27,7 @@ export const evidenceRouter = createTRPCRouter({
         fileType: z.string(),
         fileSize: z.number().max(50 * 1024 * 1024), // Max 50MB
         category: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Verify job is assigned to this appraiser
@@ -50,7 +54,8 @@ export const evidenceRouter = createTRPCRouter({
       if (!storage.isValidEvidenceType(input.fileType)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Invalid file type. Only JPEG, PNG, WebP, and HEIC images are allowed.",
+          message:
+            "Invalid file type. Only JPEG, PNG, WebP, and HEIC images are allowed.",
         });
       }
 
@@ -94,14 +99,20 @@ export const evidenceRouter = createTRPCRouter({
         fileName: z.string(),
         fileSize: z.number(),
         mimeType: z.string(),
-        mediaType: z.enum(["PHOTO", "VIDEO", "DOCUMENT", "FLOOR_PLAN", "AUDIO"]),
+        mediaType: z.enum([
+          "PHOTO",
+          "VIDEO",
+          "DOCUMENT",
+          "FLOOR_PLAN",
+          "AUDIO",
+        ]),
         category: z.string().optional(),
         latitude: z.number().optional(),
         longitude: z.number().optional(),
         capturedAt: z.string(),
         exifData: z.record(z.string(), z.any()).optional(),
         notes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const job = await ctx.prisma.job.findUnique({
@@ -117,7 +128,9 @@ export const evidenceRouter = createTRPCRouter({
       const capturedAt = new Date(input.capturedAt);
       const now = new Date();
       const maxAgeHours = 72; // Allow photos up to 72 hours old
-      const oldestAllowed = new Date(now.getTime() - maxAgeHours * 60 * 60 * 1000);
+      const oldestAllowed = new Date(
+        now.getTime() - maxAgeHours * 60 * 60 * 1000,
+      );
 
       let timestampSuspicious = false;
       let locationSuspicious = false;
@@ -132,12 +145,17 @@ export const evidenceRouter = createTRPCRouter({
       }
 
       // Validate geolocation if provided
-      if (input.latitude && input.longitude && job.property.latitude && job.property.longitude) {
+      if (
+        input.latitude &&
+        input.longitude &&
+        job.property.latitude &&
+        job.property.longitude
+      ) {
         const distanceFromProperty = calculateDistanceMiles(
           input.latitude,
           input.longitude,
           job.property.latitude,
-          job.property.longitude
+          job.property.longitude,
         );
         // Flag if photo taken more than 0.5 miles from property
         if (distanceFromProperty > 0.5) {
@@ -145,10 +163,22 @@ export const evidenceRouter = createTRPCRouter({
         }
       }
 
-      // Generate integrity hash
+      // Generate integrity hash (content-based with multiple factors)
+      // Includes: file key, size, timestamp, location, device info for stronger verification
+      const hashInput = [
+        input.fileKey,
+        input.fileSize.toString(),
+        input.capturedAt,
+        input.latitude?.toFixed(6) || "no-lat",
+        input.longitude?.toFixed(6) || "no-lng",
+        input.mimeType,
+        ctx.user.id, // Include uploader ID
+        input.exifData ? JSON.stringify(input.exifData) : "no-exif",
+      ].join("|");
+
       const integrityHash = crypto
         .createHash("sha256")
-        .update(`${input.fileKey}-${input.fileSize}-${input.capturedAt}`)
+        .update(hashInput)
         .digest("hex");
 
       // Get the public URL for the file
@@ -160,9 +190,18 @@ export const evidenceRouter = createTRPCRouter({
         _flags: {
           timestampSuspicious,
           locationSuspicious,
-          distanceFromPropertyMiles: input.latitude && input.longitude && job.property.latitude && job.property.longitude
-            ? calculateDistanceMiles(input.latitude, input.longitude, job.property.latitude, job.property.longitude)
-            : null,
+          distanceFromPropertyMiles:
+            input.latitude &&
+            input.longitude &&
+            job.property.latitude &&
+            job.property.longitude
+              ? calculateDistanceMiles(
+                  input.latitude,
+                  input.longitude,
+                  job.property.latitude,
+                  job.property.longitude,
+                )
+              : null,
         },
       };
 
@@ -215,7 +254,8 @@ export const evidenceRouter = createTRPCRouter({
       // Check access
       const isAssigned = job.assignedAppraiserId === ctx.user.id;
       const isOrgMember = job.organizationId === ctx.organization?.id;
-      const isAdmin = ctx.user.role === "ADMIN" || ctx.user.role === "SUPER_ADMIN";
+      const isAdmin =
+        ctx.user.role === "ADMIN" || ctx.user.role === "SUPER_ADMIN";
 
       if (!isAssigned && !isOrgMember && !isAdmin) {
         throw new TRPCError({ code: "FORBIDDEN" });
@@ -247,7 +287,7 @@ export const evidenceRouter = createTRPCRouter({
             acc[c.category || "uncategorized"] = c._count.id;
             return acc;
           },
-          {} as Record<string, number>
+          {} as Record<string, number>,
         ),
       };
     }),
@@ -271,7 +311,10 @@ export const evidenceRouter = createTRPCRouter({
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
-      if (evidence.job.status === "SUBMITTED" || evidence.job.status === "COMPLETED") {
+      if (
+        evidence.job.status === "SUBMITTED" ||
+        evidence.job.status === "COMPLETED"
+      ) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Cannot delete evidence after submission",
@@ -314,7 +357,8 @@ export const evidenceRouter = createTRPCRouter({
       // Check access
       const isAssigned = evidence.job.assignedAppraiserId === ctx.user.id;
       const isOrgMember = evidence.job.organizationId === ctx.organization?.id;
-      const isAdmin = ctx.user.role === "ADMIN" || ctx.user.role === "SUPER_ADMIN";
+      const isAdmin =
+        ctx.user.role === "ADMIN" || ctx.user.role === "SUPER_ADMIN";
 
       if (!isAssigned && !isOrgMember && !isAdmin) {
         throw new TRPCError({ code: "FORBIDDEN" });
@@ -362,9 +406,10 @@ export const evidenceRouter = createTRPCRouter({
         hasGeotag: !!evidence.latitude && !!evidence.longitude,
         hasExif: !!evidence.exifData,
         capturedAt: evidence.capturedAt,
-        geolocation: evidence.latitude && evidence.longitude
-          ? { latitude: evidence.latitude, longitude: evidence.longitude }
-          : null,
+        geolocation:
+          evidence.latitude && evidence.longitude
+            ? { latitude: evidence.latitude, longitude: evidence.longitude }
+            : null,
       };
     }),
 

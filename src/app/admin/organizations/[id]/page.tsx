@@ -31,13 +31,16 @@ export default function OrganizationDetailPage() {
   const { toast } = useToast();
   const orgId = params.id as string;
 
-  const [activeTab, setActiveTab] = useState<"overview" | "members" | "payments" | "activity">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "members" | "payments" | "activity"
+  >("overview");
   const [showSuspendModal, setShowSuspendModal] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [suspendReason, setSuspendReason] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<string>("");
 
-  const { data, isLoading, refetch } = trpc.admin.organizations.getById.useQuery({ id: orgId });
+  const { data, isLoading, refetch } =
+    trpc.admin.organizations.getById.useQuery({ id: orgId });
   const updatePlan = trpc.admin.organizations.updatePlan.useMutation({
     onSuccess: () => {
       refetch();
@@ -93,7 +96,9 @@ export default function OrganizationDetailPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-[var(--muted-foreground)]">Loading organization...</div>
+        <div className="text-[var(--muted-foreground)]">
+          Loading organization...
+        </div>
       </div>
     );
   }
@@ -136,7 +141,7 @@ export default function OrganizationDetailPage() {
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.back()}
-          className="p-2 hover:bg-[var(--muted)] rounded-lg"
+          className="p-2.5 hover:bg-[var(--muted)] rounded-lg"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -146,13 +151,19 @@ export default function OrganizationDetailPage() {
               <Building className="w-6 h-6 text-blue-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-[var(--foreground)]">{org.name}</h1>
-              <p className="text-[var(--muted-foreground)]">{org.billingEmail || org.slug}</p>
+              <h1 className="text-2xl font-bold text-[var(--foreground)]">
+                {org.name}
+              </h1>
+              <p className="text-[var(--muted-foreground)]">
+                {org.billingEmail || org.slug}
+              </p>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${planColors[org.plan]}`}>
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-medium ${planColors[org.plan]}`}
+          >
             {org.plan.replace("_", " ")}
           </span>
           {isSuspended && (
@@ -164,21 +175,27 @@ export default function OrganizationDetailPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
           <div className="flex items-center gap-2 text-[var(--muted-foreground)] mb-1">
             <Users className="w-4 h-4" />
             <span className="text-sm">Members</span>
           </div>
-          <p className="text-2xl font-bold text-[var(--foreground)]">{org.users.length}</p>
-          <p className="text-xs text-[var(--muted-foreground)]">of {org.seats} seats</p>
+          <p className="text-2xl font-bold text-[var(--foreground)]">
+            {org.users.length}
+          </p>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            of {org.seats} seats
+          </p>
         </div>
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
           <div className="flex items-center gap-2 text-[var(--muted-foreground)] mb-1">
             <FileText className="w-4 h-4" />
             <span className="text-sm">Requests</span>
           </div>
-          <p className="text-2xl font-bold text-[var(--foreground)]">{org._count.appraisalRequests}</p>
+          <p className="text-2xl font-bold text-[var(--foreground)]">
+            {org._count.appraisalRequests}
+          </p>
           <div className="flex items-center gap-1 text-xs">
             {stats.growthPercent >= 0 ? (
               <>
@@ -191,7 +208,9 @@ export default function OrganizationDetailPage() {
                 <span className="text-red-400">{stats.growthPercent}%</span>
               </>
             )}
-            <span className="text-[var(--muted-foreground)]">vs last month</span>
+            <span className="text-[var(--muted-foreground)]">
+              vs last month
+            </span>
           </div>
         </div>
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
@@ -199,7 +218,9 @@ export default function OrganizationDetailPage() {
             <DollarSign className="w-4 h-4" />
             <span className="text-sm">Monthly Value</span>
           </div>
-          <p className="text-2xl font-bold text-green-400">${planPrices[org.plan]}</p>
+          <p className="text-2xl font-bold text-green-400">
+            ${planPrices[org.plan]}
+          </p>
           <p className="text-xs text-[var(--muted-foreground)]">subscription</p>
         </div>
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
@@ -214,7 +235,11 @@ export default function OrganizationDetailPage() {
             })}
           </p>
           <p className="text-xs text-[var(--muted-foreground)]">
-            {Math.floor((new Date().getTime() - new Date(org.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days
+            {Math.floor(
+              (new Date().getTime() - new Date(org.createdAt).getTime()) /
+                (1000 * 60 * 60 * 24),
+            )}{" "}
+            days
           </p>
         </div>
       </div>
@@ -279,35 +304,51 @@ export default function OrganizationDetailPage() {
       {activeTab === "overview" && (
         <div className="grid grid-cols-2 gap-6">
           <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-            <h3 className="font-semibold text-[var(--foreground)] mb-4">Organization Details</h3>
+            <h3 className="font-semibold text-[var(--foreground)] mb-4">
+              Organization Details
+            </h3>
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-[var(--muted-foreground)]" />
                 <div>
-                  <p className="text-sm text-[var(--muted-foreground)]">Billing Email</p>
-                  <p className="text-[var(--foreground)]">{org.billingEmail || "-"}</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Billing Email
+                  </p>
+                  <p className="text-[var(--foreground)]">
+                    {org.billingEmail || "-"}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-[var(--muted-foreground)]" />
                 <div>
-                  <p className="text-sm text-[var(--muted-foreground)]">Phone</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Phone
+                  </p>
                   <p className="text-[var(--foreground)]">{org.phone || "-"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <MapPin className="w-4 h-4 text-[var(--muted-foreground)]" />
                 <div>
-                  <p className="text-sm text-[var(--muted-foreground)]">Address</p>
-                  <p className="text-[var(--foreground)]">{org.address || "-"}</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Address
+                  </p>
+                  <p className="text-[var(--foreground)]">
+                    {org.address || "-"}
+                  </p>
                 </div>
               </div>
               {org.stripeCustomerId && (
                 <div className="flex items-center gap-3">
                   <CreditCard className="w-4 h-4 text-[var(--muted-foreground)]" />
                   <div>
-                    <p className="text-sm text-[var(--muted-foreground)]">Stripe Customer</p>
-                    <p className="text-[var(--foreground)] font-mono text-sm">{org.stripeCustomerId}</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      Stripe Customer
+                    </p>
+                    <p className="text-[var(--foreground)] font-mono text-sm">
+                      {org.stripeCustomerId}
+                    </p>
                   </div>
                 </div>
               )}
@@ -315,11 +356,17 @@ export default function OrganizationDetailPage() {
           </div>
 
           <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-            <h3 className="font-semibold text-[var(--foreground)] mb-4">Subscription</h3>
+            <h3 className="font-semibold text-[var(--foreground)] mb-4">
+              Subscription
+            </h3>
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-[var(--muted-foreground)]">Current Plan</p>
-                <p className="text-xl font-bold text-[var(--foreground)]">{org.plan.replace("_", " ")}</p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Current Plan
+                </p>
+                <p className="text-xl font-bold text-[var(--foreground)]">
+                  {org.plan.replace("_", " ")}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-[var(--muted-foreground)]">Seats</p>
@@ -329,9 +376,15 @@ export default function OrganizationDetailPage() {
               </div>
               {org.trialEndsAt && (
                 <div>
-                  <p className="text-sm text-[var(--muted-foreground)]">Trial Ends</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Trial Ends
+                  </p>
                   <p className="text-[var(--foreground)]">
-                    {new Date(org.trialEndsAt).toLocaleDateString()}
+                    {new Date(org.trialEndsAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </p>
                 </div>
               )}
@@ -371,7 +424,9 @@ export default function OrganizationDetailPage() {
                       <p className="font-medium text-[var(--foreground)]">
                         {user.firstName} {user.lastName}
                       </p>
-                      <p className="text-sm text-[var(--muted-foreground)]">{user.email}</p>
+                      <p className="text-sm text-[var(--muted-foreground)]">
+                        {user.email}
+                      </p>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -385,19 +440,27 @@ export default function OrganizationDetailPage() {
                         user.status === "ACTIVE"
                           ? "bg-green-500/20 text-green-400"
                           : user.status === "SUSPENDED"
-                          ? "bg-red-500/20 text-red-400"
-                          : "bg-yellow-500/20 text-yellow-400"
+                            ? "bg-red-500/20 text-red-400"
+                            : "bg-yellow-500/20 text-yellow-400"
                       }`}
                     >
                       {user.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-[var(--muted-foreground)]">
-                    {new Date(user.createdAt).toLocaleDateString()}
+                    {new Date(user.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </td>
                   <td className="px-6 py-4 text-sm text-[var(--muted-foreground)]">
                     {user.lastLoginAt
-                      ? new Date(user.lastLoginAt).toLocaleDateString()
+                      ? new Date(user.lastLoginAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
                       : "Never"}
                   </td>
                 </tr>
@@ -440,7 +503,11 @@ export default function OrganizationDetailPage() {
                 {payments.map((payment) => (
                   <tr key={payment.id} className="hover:bg-[var(--secondary)]">
                     <td className="px-6 py-4 text-sm text-[var(--foreground)]">
-                      {new Date(payment.createdAt).toLocaleDateString()}
+                      {new Date(payment.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -448,8 +515,8 @@ export default function OrganizationDetailPage() {
                           payment.type === "CHARGE"
                             ? "bg-blue-500/20 text-blue-400"
                             : payment.type === "REFUND"
-                            ? "bg-orange-500/20 text-orange-400"
-                            : "bg-gray-500/20 text-gray-400"
+                              ? "bg-orange-500/20 text-orange-400"
+                              : "bg-gray-500/20 text-gray-400"
                         }`}
                       >
                         {payment.type}
@@ -464,10 +531,10 @@ export default function OrganizationDetailPage() {
                           payment.status === "COMPLETED"
                             ? "bg-green-500/20 text-green-400"
                             : payment.status === "PENDING"
-                            ? "bg-yellow-500/20 text-yellow-400"
-                            : payment.status === "FAILED"
-                            ? "bg-red-500/20 text-red-400"
-                            : "bg-gray-500/20 text-gray-400"
+                              ? "bg-yellow-500/20 text-yellow-400"
+                              : payment.status === "FAILED"
+                                ? "bg-red-500/20 text-red-400"
+                                : "bg-gray-500/20 text-gray-400"
                         }`}
                       >
                         {payment.status}
@@ -488,7 +555,9 @@ export default function OrganizationDetailPage() {
       {activeTab === "activity" && (
         <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
           <div className="px-6 py-4 border-b border-[var(--border)]">
-            <h3 className="font-semibold text-[var(--foreground)]">Recent Appraisal Requests</h3>
+            <h3 className="font-semibold text-[var(--foreground)]">
+              Recent Appraisal Requests
+            </h3>
           </div>
           {recentAppraisals.length === 0 ? (
             <div className="p-8 text-center text-[var(--muted-foreground)]">
@@ -536,17 +605,21 @@ export default function OrganizationDetailPage() {
                           request.status === "READY"
                             ? "bg-green-500/20 text-green-400"
                             : request.status === "RUNNING"
-                            ? "bg-blue-500/20 text-blue-400"
-                            : request.status === "FAILED"
-                            ? "bg-red-500/20 text-red-400"
-                            : "bg-yellow-500/20 text-yellow-400"
+                              ? "bg-blue-500/20 text-blue-400"
+                              : request.status === "FAILED"
+                                ? "bg-red-500/20 text-red-400"
+                                : "bg-yellow-500/20 text-yellow-400"
                         }`}
                       >
                         {request.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-[var(--muted-foreground)]">
-                      {new Date(request.createdAt).toLocaleDateString()}
+                      {new Date(request.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </td>
                   </tr>
                 ))}
@@ -565,13 +638,17 @@ export default function OrganizationDetailPage() {
                 <AlertTriangle className="w-5 h-5 text-red-400" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-[var(--foreground)]">Suspend Organization</h2>
-                <p className="text-sm text-[var(--muted-foreground)]">{org.name}</p>
+                <h2 className="text-lg font-semibold text-[var(--foreground)]">
+                  Suspend Organization
+                </h2>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  {org.name}
+                </p>
               </div>
             </div>
             <p className="text-sm text-[var(--muted-foreground)] mb-4">
-              This will suspend all users and cancel active jobs. The organization will not be able to
-              access the platform.
+              This will suspend all users and cancel active jobs. The
+              organization will not be able to access the platform.
             </p>
             <div className="mb-4">
               <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
@@ -593,7 +670,9 @@ export default function OrganizationDetailPage() {
                 Cancel
               </button>
               <button
-                onClick={() => suspend.mutate({ id: orgId, reason: suspendReason })}
+                onClick={() =>
+                  suspend.mutate({ id: orgId, reason: suspendReason })
+                }
                 disabled={!suspendReason.trim() || suspend.isPending}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
@@ -609,35 +688,39 @@ export default function OrganizationDetailPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[var(--card)] rounded-lg w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">Change Subscription Plan</h2>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">
+                Change Subscription Plan
+              </h2>
               <button
                 onClick={() => setShowPlanModal(false)}
-                className="p-2 hover:bg-[var(--muted)] rounded-lg"
+                className="p-2.5 hover:bg-[var(--muted)] rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-3 mb-6">
-              {["FREE_TRIAL", "STARTER", "PROFESSIONAL", "ENTERPRISE"].map((plan) => (
-                <button
-                  key={plan}
-                  onClick={() => setSelectedPlan(plan)}
-                  className={`w-full p-4 rounded-lg border text-left transition-colors ${
-                    selectedPlan === plan
-                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                      : "border-[var(--border)] hover:border-[var(--primary)]/50"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-[var(--foreground)]">
-                      {plan.replace("_", " ")}
-                    </span>
-                    <span className="text-[var(--muted-foreground)]">
-                      ${planPrices[plan]}/mo
-                    </span>
-                  </div>
-                </button>
-              ))}
+              {["FREE_TRIAL", "STARTER", "PROFESSIONAL", "ENTERPRISE"].map(
+                (plan) => (
+                  <button
+                    key={plan}
+                    onClick={() => setSelectedPlan(plan)}
+                    className={`w-full p-4 rounded-lg border text-left transition-colors ${
+                      selectedPlan === plan
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                        : "border-[var(--border)] hover:border-[var(--primary)]/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-[var(--foreground)]">
+                        {plan.replace("_", " ")}
+                      </span>
+                      <span className="text-[var(--muted-foreground)]">
+                        ${planPrices[plan]}/mo
+                      </span>
+                    </div>
+                  </button>
+                ),
+              )}
             </div>
             <div className="flex gap-3">
               <button
@@ -647,7 +730,16 @@ export default function OrganizationDetailPage() {
                 Cancel
               </button>
               <button
-                onClick={() => updatePlan.mutate({ id: orgId, plan: selectedPlan as "FREE_TRIAL" | "STARTER" | "PROFESSIONAL" | "ENTERPRISE" })}
+                onClick={() =>
+                  updatePlan.mutate({
+                    id: orgId,
+                    plan: selectedPlan as
+                      | "FREE_TRIAL"
+                      | "STARTER"
+                      | "PROFESSIONAL"
+                      | "ENTERPRISE",
+                  })
+                }
                 disabled={selectedPlan === org.plan || updatePlan.isPending}
                 className="flex-1 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 disabled:opacity-50"
               >

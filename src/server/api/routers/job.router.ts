@@ -221,6 +221,39 @@ export const jobRouter = createTRPCRouter({
         urgency: input.scopePreset === "RUSH_INSPECTION" ? "URGENT" : "NORMAL",
       });
 
+      // Handle dispatch failure
+      if (!dispatchResult.success) {
+        // Log the failure for monitoring
+        await ctx.prisma.auditLog.create({
+          data: {
+            userId: ctx.user.id,
+            resource: "JOB",
+            resourceId: job.id,
+            action: "DISPATCH_FAILED",
+            metadata: {
+              message: dispatchResult.message,
+              matchedAppraisers: dispatchResult.matchedAppraisers.length,
+            },
+          },
+        });
+
+        // Update job status to reflect dispatch issue if no appraisers found
+        if (dispatchResult.matchedAppraisers.length === 0) {
+          await ctx.prisma.job.update({
+            where: { id: job.id },
+            data: {
+              statusHistory: {
+                push: {
+                  status: "NO_APPRAISERS_AVAILABLE",
+                  timestamp: new Date().toISOString(),
+                  message: dispatchResult.message,
+                },
+              },
+            },
+          });
+        }
+      }
+
       // Fetch updated job with dispatch status
       const updatedJob = await ctx.prisma.job.findUnique({
         where: { id: job.id },
@@ -357,11 +390,27 @@ export const jobRouter = createTRPCRouter({
         (appraiserProfile.skippedJobs as Record<string, string>) || {};
       skippedJobs[input.jobId] = new Date().toISOString();
 
-      // Clean up old entries (older than 7 days)
-      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-      for (const [jobId, timestamp] of Object.entries(skippedJobs)) {
-        if (new Date(timestamp).getTime() < weekAgo) {
-          delete skippedJobs[jobId];
+      // Optimized cleanup: Only run when object is large or probabilistically
+      // This avoids O(n) cleanup on every single skip operation
+      const entryCount = Object.keys(skippedJobs).length;
+      const shouldCleanup = entryCount > 50 || Math.random() < 0.1; // 10% chance or > 50 entries
+
+      if (shouldCleanup) {
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const entries = Object.entries(skippedJobs);
+        let cleanedCount = 0;
+
+        for (const [jobId, timestamp] of entries) {
+          if (new Date(timestamp).getTime() < weekAgo) {
+            delete skippedJobs[jobId];
+            cleanedCount++;
+          }
+        }
+
+        if (cleanedCount > 0) {
+          console.log(
+            `[SkippedJobs] Cleaned ${cleanedCount} old entries for user ${ctx.user.id}`,
+          );
         }
       }
 
@@ -597,6 +646,8 @@ export const jobRouter = createTRPCRouter({
       z.object({
         limit: z.number().min(1).max(100).default(20),
         cursor: z.string().optional(),
+        startDate: z.string().optional(), // ISO date string
+        endDate: z.string().optional(), // ISO date string
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -606,6 +657,17 @@ export const jobRouter = createTRPCRouter({
           status: {
             in: ["COMPLETED", "CANCELLED"],
           },
+          // Date range filter
+          ...(input.startDate || input.endDate
+            ? {
+                completedAt: {
+                  ...(input.startDate && { gte: new Date(input.startDate) }),
+                  ...(input.endDate && {
+                    lte: new Date(input.endDate + "T23:59:59.999Z"),
+                  }),
+                },
+              }
+            : {}),
         },
         include: {
           property: true,

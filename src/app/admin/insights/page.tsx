@@ -18,6 +18,7 @@ import {
   XCircle,
   Upload,
   X,
+  Database,
 } from "lucide-react";
 
 type TabType = "insights" | "owners" | "engineers";
@@ -51,6 +52,13 @@ export default function AdminInsightsPage() {
 
   // Import states
   const [importing, setImporting] = useState(false);
+  const [importPreview, setImportPreview] = useState<{
+    type: "owners" | "engineers" | "insights";
+    data: Record<string, string>[];
+    headers: string[];
+    errors: string[];
+    valid: boolean;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
@@ -134,6 +142,27 @@ export default function AdminInsightsPage() {
       utils.insights.searchEngineers.invalidate();
       utils.insights.getStats.invalidate();
       setDeleteConfirmId(null);
+    },
+  });
+
+  // Seed demo data mutation
+  const seedDemoDataMutation = trpc.admin.seedDemoData.useMutation({
+    onSuccess: (data) => {
+      utils.insights.listInsights.invalidate();
+      utils.insights.searchOwners.invalidate();
+      utils.insights.searchEngineers.invalidate();
+      utils.insights.getStats.invalidate();
+      toast({
+        title: "Demo Data Seeded",
+        description: data.message,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Seed Failed",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -274,6 +303,74 @@ export default function AdminInsightsPage() {
     }
   };
 
+  // Required headers for each import type
+  const REQUIRED_HEADERS: Record<
+    "owners" | "engineers" | "insights",
+    string[]
+  > = {
+    owners: ["ownername", "owner_name", "owner"], // At least one of these
+    engineers: ["companyname", "company_name", "company"], // At least one of these
+    insights: ["title", "description", "county"],
+  };
+
+  const SUGGESTED_HEADERS: Record<
+    "owners" | "engineers" | "insights",
+    string[]
+  > = {
+    owners: [
+      "ownername/owner_name/owner",
+      "address/addressline1",
+      "city",
+      "county",
+      "state",
+      "zipcode/zip",
+      "phone",
+      "email",
+    ],
+    engineers: [
+      "companyname/company_name/company",
+      "contactname/contact_name",
+      "phone",
+      "email",
+      "address/addressline1",
+      "city",
+      "county",
+    ],
+    insights: [
+      "title",
+      "description",
+      "type",
+      "source",
+      "county",
+      "latitude",
+      "longitude",
+      "estimatedvalue",
+    ],
+  };
+
+  const validateCSVHeaders = (
+    headers: string[],
+    type: "owners" | "engineers" | "insights",
+  ): { valid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    const required = REQUIRED_HEADERS[type];
+
+    // Check if at least one required header variant exists
+    const hasRequired = required.some((h) => headers.includes(h));
+
+    if (!hasRequired) {
+      errors.push(
+        `Missing required column. Expected one of: ${required.join(", ")}`,
+      );
+    }
+
+    if (headers.length < 2) {
+      errors.push("CSV must have at least 2 columns");
+    }
+
+    return { valid: errors.length === 0, errors };
+  };
+
   const handleFileImport = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "owners" | "engineers" | "insights",
@@ -281,75 +378,122 @@ export default function AdminInsightsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setImporting(true);
-
     try {
       const text = await file.text();
       const lines = text.split("\n");
-      const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+
+      if (lines.length < 2) {
+        toast({
+          title: "Invalid CSV",
+          description: "CSV file must have headers and at least one data row",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const headers = lines[0]
+        .split(",")
+        .map((h) => h.trim().toLowerCase().replace(/['"]/g, ""));
+
+      // Validate headers
+      const validation = validateCSVHeaders(headers, type);
 
       const data = lines
         .slice(1)
         .filter((line) => line.trim())
         .map((line) => {
-          const values = line.split(",");
+          // Handle quoted values with commas
+          const values: string[] = [];
+          let current = "";
+          let inQuotes = false;
+
+          for (const char of line) {
+            if (char === '"' || char === "'") {
+              inQuotes = !inQuotes;
+            } else if (char === "," && !inQuotes) {
+              values.push(current.trim());
+              current = "";
+            } else {
+              current += char;
+            }
+          }
+          values.push(current.trim());
+
           const obj: Record<string, string> = {};
           headers.forEach((h, i) => {
-            obj[h] = values[i]?.trim() || "";
+            obj[h] = values[i]?.trim().replace(/^["']|["']$/g, "") || "";
           });
           return obj;
         });
 
-      if (type === "owners") {
-        const owners = data.map((row) => ({
-          parcelId:
-            row.parcelid ||
-            row.parcel_id ||
-            `P-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          county: row.county || "Travis",
-          addressLine1: row.address || row.addressline1 || "",
-          city: row.city || "",
-          state: row.state || "TX",
-          zipCode: row.zipcode || row.zip || "",
-          ownerName: row.ownername || row.owner_name || row.owner || "",
-          ownerType: row.ownertype || row.owner_type || "individual",
-          phone: row.phone || undefined,
-          email: row.email || undefined,
-          dataSource: "CSV Import",
-        }));
-        importOwnersMutation.mutate({ owners });
-      } else if (type === "engineers") {
-        const engineers = data.map((row) => ({
-          companyName: row.companyname || row.company_name || row.company || "",
-          contactName:
-            row.contactname || row.contact_name || row.contact || undefined,
-          phone: row.phone || "",
-          email: row.email || undefined,
-          website: row.website || undefined,
-          addressLine1: row.address || row.addressline1 || "",
-          city: row.city || "",
-          county: row.county || "Travis",
-          state: row.state || "TX",
-          zipCode: row.zipcode || row.zip || "",
-          specialties: (row.specialties || row.specialty || "")
-            .split(";")
-            .filter(Boolean),
-        }));
-        importEngineersMutation.mutate({ engineers });
-      }
+      // Set preview data
+      setImportPreview({
+        type,
+        data,
+        headers,
+        errors: validation.errors,
+        valid: validation.valid,
+      });
     } catch {
       toast({
         title: "Error",
-        description: "Failed to parse CSV file",
+        description:
+          "Failed to parse CSV file. Make sure it's a valid CSV format.",
         variant: "destructive",
       });
-      setImporting(false);
     }
 
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  };
+
+  const confirmImport = () => {
+    if (!importPreview || !importPreview.valid) return;
+
+    setImporting(true);
+    const { type, data } = importPreview;
+
+    if (type === "owners") {
+      const owners = data.map((row) => ({
+        parcelId:
+          row.parcelid ||
+          row.parcel_id ||
+          `P-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        county: row.county || "Travis",
+        addressLine1: row.address || row.addressline1 || "",
+        city: row.city || "",
+        state: row.state || "TX",
+        zipCode: row.zipcode || row.zip || "",
+        ownerName: row.ownername || row.owner_name || row.owner || "",
+        ownerType: row.ownertype || row.owner_type || "individual",
+        phone: row.phone || undefined,
+        email: row.email || undefined,
+        dataSource: "CSV Import",
+      }));
+      importOwnersMutation.mutate({ owners });
+    } else if (type === "engineers") {
+      const engineers = data.map((row) => ({
+        companyName: row.companyname || row.company_name || row.company || "",
+        contactName:
+          row.contactname || row.contact_name || row.contact || undefined,
+        phone: row.phone || "",
+        email: row.email || undefined,
+        website: row.website || undefined,
+        addressLine1: row.address || row.addressline1 || "",
+        city: row.city || "",
+        county: row.county || "Travis",
+        state: row.state || "TX",
+        zipCode: row.zipcode || row.zip || "",
+        specialties: (row.specialties || row.specialty || "")
+          .split(";")
+          .filter(Boolean),
+      }));
+      importEngineersMutation.mutate({ engineers });
+    }
+
+    setImportPreview(null);
   };
 
   const INSIGHT_TYPES = [
@@ -372,17 +516,36 @@ export default function AdminInsightsPage() {
             Manage investment insights, property owners, and engineers
           </p>
         </div>
-        <button
-          onClick={() => {
-            resetForm();
-            setEditingId(null);
-            setShowAddModal(true);
-          }}
-          className="px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add New
-        </button>
+        <div className="flex gap-2">
+          {/* Seed Demo Data - only show if all counts are 0 */}
+          {stats?.totalInsights === 0 &&
+            stats?.totalPropertyOwners === 0 &&
+            stats?.totalEngineers === 0 && (
+              <button
+                onClick={() => seedDemoDataMutation.mutate()}
+                disabled={seedDemoDataMutation.isPending}
+                className="px-4 py-2 bg-purple-500 text-white font-mono text-sm uppercase tracking-wider clip-notch hover:bg-purple-400 flex items-center gap-2 disabled:opacity-50"
+              >
+                {seedDemoDataMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Database className="w-4 h-4" />
+                )}
+                Seed Demo Data
+              </button>
+            )}
+          <button
+            onClick={() => {
+              resetForm();
+              setEditingId(null);
+              setShowAddModal(true);
+            }}
+            className="px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add New
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -814,6 +977,164 @@ export default function AdminInsightsPage() {
           </button>
         </div>
       </div>
+
+      {/* CSV Import Preview Modal */}
+      {importPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="bg-gray-900 border border-gray-800 clip-notch w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-gray-800">
+              <div>
+                <h2 className="text-xl font-bold text-white">
+                  Import Preview -{" "}
+                  {importPreview.type.charAt(0).toUpperCase() +
+                    importPreview.type.slice(1)}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {importPreview.data.length} rows found
+                </p>
+              </div>
+              <button
+                onClick={() => setImportPreview(null)}
+                className="p-2 text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Validation Errors */}
+            {importPreview.errors.length > 0 && (
+              <div className="mx-6 mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-red-400">
+                      Validation Errors
+                    </p>
+                    <ul className="text-sm text-red-300 mt-1 space-y-1">
+                      {importPreview.errors.map((error, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-red-400 mt-0.5">-</span>
+                          <span>{error}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Suggested headers:{" "}
+                      {SUGGESTED_HEADERS[importPreview.type].join(", ")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Headers Found */}
+            <div className="mx-6 mt-4 p-3 bg-gray-800/50 rounded-lg">
+              <p className="text-xs text-gray-500 mb-2">Detected columns:</p>
+              <div className="flex flex-wrap gap-2">
+                {importPreview.headers.map((h) => (
+                  <span
+                    key={h}
+                    className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded font-mono"
+                  >
+                    {h}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Data Preview */}
+            <div className="flex-1 overflow-auto m-6">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-gray-800">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-mono text-gray-500 uppercase">
+                      #
+                    </th>
+                    {importPreview.headers.slice(0, 6).map((h) => (
+                      <th
+                        key={h}
+                        className="px-3 py-2 text-left text-xs font-mono text-gray-500 uppercase truncate max-w-[150px]"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                    {importPreview.headers.length > 6 && (
+                      <th className="px-3 py-2 text-left text-xs font-mono text-gray-500">
+                        +{importPreview.headers.length - 6} more
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800">
+                  {importPreview.data.slice(0, 10).map((row, i) => (
+                    <tr key={i} className="hover:bg-gray-800/50">
+                      <td className="px-3 py-2 text-gray-600">{i + 1}</td>
+                      {importPreview.headers.slice(0, 6).map((h) => (
+                        <td
+                          key={h}
+                          className="px-3 py-2 text-gray-300 truncate max-w-[150px]"
+                          title={row[h]}
+                        >
+                          {row[h] || <span className="text-gray-600">-</span>}
+                        </td>
+                      ))}
+                      {importPreview.headers.length > 6 && (
+                        <td className="px-3 py-2 text-gray-600">...</td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {importPreview.data.length > 10 && (
+                <p className="text-center text-gray-600 text-sm py-4">
+                  ... and {importPreview.data.length - 10} more rows
+                </p>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-between p-6 border-t border-gray-800 bg-gray-900">
+              <p className="text-sm text-gray-500">
+                {importPreview.valid ? (
+                  <span className="text-lime-400 flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4" />
+                    Ready to import
+                  </span>
+                ) : (
+                  <span className="text-red-400">
+                    Fix errors before importing
+                  </span>
+                )}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setImportPreview(null)}
+                  className="px-4 py-2 border border-gray-700 text-gray-400 hover:text-white clip-notch-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmImport}
+                  disabled={!importPreview.valid || importing}
+                  className="px-4 py-2 bg-lime-500 text-black font-medium clip-notch-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {importing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Import {importPreview.data.length} rows
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Modal */}
       {showAddModal && (

@@ -30,6 +30,8 @@ export type { SelectProps, SelectOption } from "./Select";
 // Form Components
 export { Checkbox } from "./Checkbox";
 export { RadioGroup, RadioGroupItem } from "./RadioGroup";
+export { DatePicker } from "./DatePicker";
+export type { DatePickerProps } from "./DatePicker";
 
 // Feedback Components
 export { Alert } from "./Alert";
@@ -62,4 +64,8 @@ export {
 } from "./Loading";
 
 // Error Handling
-export { ErrorBoundary, WithErrorBoundary, ErrorFallback } from "./ErrorBoundary";
+export {
+  ErrorBoundary,
+  WithErrorBoundary,
+  ErrorFallback,
+} from "./ErrorBoundary";

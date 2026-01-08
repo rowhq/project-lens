@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
+import {
+  getData,
+  setData,
+  STORES,
+  useOnlineStatus,
+} from "@/shared/lib/offline-storage";
 import {
   DollarSign,
   TrendingUp,
@@ -21,10 +27,34 @@ import {
   Trophy,
   Flame,
   Edit3,
+  WifiOff,
+  RefreshCw,
+  Star,
 } from "lucide-react";
 import { AreaChart } from "@/shared/components/charts";
 
 const MONTHLY_GOAL_KEY = "appraiser_monthly_goal";
+
+// Types for cached data
+interface CachedEarnings {
+  totalEarnings: number;
+  todayEarnings: number;
+  monthlyEarnings: number;
+  weeklyEarnings: number;
+  pendingPayout: number;
+  completedJobsToday: number;
+  completedJobsThisMonth: number;
+  completedJobsThisWeek: number;
+  rating: number | null;
+  completedJobs: number;
+}
+
+interface CachedPayout {
+  id: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+}
 
 export default function EarningsPage() {
   const { toast } = useToast();
@@ -33,6 +63,32 @@ export default function EarningsPage() {
   const [monthlyGoal, setMonthlyGoal] = useState(5000);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [goalInput, setGoalInput] = useState("5000");
+
+  // Offline support
+  const isOnline = useOnlineStatus();
+  const [cachedEarnings, setCachedEarnings] = useState<CachedEarnings | null>(
+    null,
+  );
+  const [cachedPayouts, setCachedPayouts] = useState<{
+    items: CachedPayout[];
+  } | null>(null);
+
+  // Load cached data on mount
+  useEffect(() => {
+    const loadCachedData = async () => {
+      try {
+        const [earningsCache, payoutsCache] = await Promise.all([
+          getData<CachedEarnings>(STORES.EARNINGS, "summary"),
+          getData<{ items: CachedPayout[] }>(STORES.EARNINGS, "history"),
+        ]);
+        if (earningsCache) setCachedEarnings(earningsCache);
+        if (payoutsCache) setCachedPayouts(payoutsCache);
+      } catch (error) {
+        console.error("Failed to load cached earnings:", error);
+      }
+    };
+    loadCachedData();
+  }, []);
 
   // Load monthly goal from localStorage
   useEffect(() => {
@@ -44,10 +100,66 @@ export default function EarningsPage() {
   }, []);
 
   // Fixed: Use nested router path - appraiser.earnings.summary (no date params - it calculates internally)
-  const { data: earnings } = trpc.appraiser.earnings.summary.useQuery();
+  const {
+    data: earnings,
+    isLoading: earningsLoading,
+    isError: earningsError,
+    refetch: refetchEarnings,
+    dataUpdatedAt,
+  } = trpc.appraiser.earnings.summary.useQuery(undefined, {
+    enabled: isOnline,
+  });
 
   // Fixed: Use nested router path - appraiser.earnings.history
-  const { data: payouts } = trpc.appraiser.earnings.history.useQuery({ limit: 10 });
+  const {
+    data: payouts,
+    isLoading: payoutsLoading,
+    isError: payoutsError,
+    refetch: refetchPayouts,
+  } = trpc.appraiser.earnings.history.useQuery(
+    { limit: 10 },
+    { enabled: isOnline },
+  );
+
+  // Combined loading state
+  const isLoading = earningsLoading || payoutsLoading;
+
+  // Cache data when fetched successfully
+  useEffect(() => {
+    if (earnings && isOnline) {
+      setData(STORES.EARNINGS, "summary", earnings, 4 * 60 * 60 * 1000); // Cache for 4 hours
+    }
+  }, [earnings, isOnline]);
+
+  useEffect(() => {
+    if (payouts && isOnline) {
+      setData(STORES.EARNINGS, "history", payouts, 4 * 60 * 60 * 1000); // Cache for 4 hours
+    }
+  }, [payouts, isOnline]);
+
+  // Derive isUsingCache from online status and query state (no setState needed)
+  const isUsingCache = !isOnline || !!earningsError;
+
+  // Effective data (use API data if available, fallback to cache)
+  const effectiveEarnings = earnings || cachedEarnings;
+  const effectivePayouts = payouts || cachedPayouts;
+
+  // Manual refresh function
+  const handleRefresh = useCallback(async () => {
+    if (!isOnline) {
+      toast({
+        title: "Offline",
+        description: "Cannot refresh while offline. Showing cached data.",
+        variant: "destructive",
+      });
+      return;
+    }
+    await Promise.all([refetchEarnings(), refetchPayouts()]);
+    toast({
+      title: "Refreshed",
+      description: "Earnings data has been updated.",
+    });
+  }, [isOnline, refetchEarnings, refetchPayouts, toast]);
 
   // Get payout settings (Stripe Connect status)
   const { data: payoutSettings } = trpc.billing.payout.settings.useQuery();
@@ -98,7 +210,10 @@ export default function EarningsPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `earnings-${selectedMonth.getFullYear()}-${selectedMonth.getMonth() + 1}.csv`);
+      link.setAttribute(
+        "download",
+        `earnings-${selectedMonth.getFullYear()}-${selectedMonth.getMonth() + 1}.csv`,
+      );
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -111,7 +226,8 @@ export default function EarningsPage() {
     } catch {
       toast({
         title: "Export failed",
-        description: "There was an error exporting your data. Please try again.",
+        description:
+          "There was an error exporting your data. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -124,8 +240,18 @@ export default function EarningsPage() {
   };
 
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   const navigateMonth = (direction: "prev" | "next") => {
@@ -141,57 +267,88 @@ export default function EarningsPage() {
   };
 
   // Calculate average per job
-  const avgPerJob = earnings?.completedJobsThisMonth && earnings.completedJobsThisMonth > 0
-    ? earnings.monthlyEarnings / earnings.completedJobsThisMonth
-    : 0;
+  const avgPerJob =
+    effectiveEarnings?.completedJobsThisMonth &&
+    effectiveEarnings.completedJobsThisMonth > 0
+      ? effectiveEarnings.monthlyEarnings /
+        effectiveEarnings.completedJobsThisMonth
+      : 0;
 
   // Save monthly goal
   const saveMonthlyGoal = () => {
     const newGoal = Number(goalInput);
-    if (!isNaN(newGoal) && newGoal > 0) {
-      setMonthlyGoal(newGoal);
-      localStorage.setItem(MONTHLY_GOAL_KEY, String(newGoal));
-      setIsEditingGoal(false);
+    if (isNaN(newGoal) || newGoal < 100) {
       toast({
-        title: "Goal updated",
-        description: `Your monthly goal is now $${newGoal.toLocaleString()}`,
+        title: "Invalid goal",
+        description: "Please enter a goal of at least $100",
+        variant: "destructive",
       });
+      return;
     }
+    if (newGoal > 1000000) {
+      toast({
+        title: "Invalid goal",
+        description: "Goal cannot exceed $1,000,000",
+        variant: "destructive",
+      });
+      return;
+    }
+    setMonthlyGoal(newGoal);
+    localStorage.setItem(MONTHLY_GOAL_KEY, String(newGoal));
+    setIsEditingGoal(false);
+    toast({
+      title: "Goal updated",
+      description: `Your monthly goal is now $${newGoal.toLocaleString()}`,
+    });
   };
 
   // Calculate earnings projections
   const projections = useMemo(() => {
     const now = new Date();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysInMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+    ).getDate();
     const dayOfMonth = now.getDate();
     const daysRemaining = daysInMonth - dayOfMonth;
     const daysElapsed = dayOfMonth;
 
-    const currentMonthlyEarnings = earnings?.monthlyEarnings || 0;
-    const jobsThisMonth = earnings?.completedJobsThisMonth || 0;
+    const currentMonthlyEarnings = effectiveEarnings?.monthlyEarnings || 0;
+    const jobsThisMonth = effectiveEarnings?.completedJobsThisMonth || 0;
 
     // Calculate daily average based on days worked (not calendar days)
-    const dailyAverage = daysElapsed > 0 ? currentMonthlyEarnings / daysElapsed : 0;
+    const dailyAverage =
+      daysElapsed > 0 ? currentMonthlyEarnings / daysElapsed : 0;
     const jobsPerDay = daysElapsed > 0 ? jobsThisMonth / daysElapsed : 0;
 
     // Project to end of month
-    const projectedMonthlyTotal = currentMonthlyEarnings + (dailyAverage * daysRemaining);
-    const projectedJobsTotal = jobsThisMonth + Math.round(jobsPerDay * daysRemaining);
+    const projectedMonthlyTotal =
+      currentMonthlyEarnings + dailyAverage * daysRemaining;
+    const projectedJobsTotal =
+      jobsThisMonth + Math.round(jobsPerDay * daysRemaining);
 
     // Weekly projections
-    const weeklyAverage = earnings?.weeklyEarnings || 0;
+    const weeklyAverage = effectiveEarnings?.weeklyEarnings || 0;
     const projectedWeeklyRate = weeklyAverage; // Based on current week
 
     // Goal progress
-    const goalProgress = monthlyGoal > 0 ? (currentMonthlyEarnings / monthlyGoal) * 100 : 0;
+    const goalProgress =
+      monthlyGoal > 0 ? (currentMonthlyEarnings / monthlyGoal) * 100 : 0;
     const onTrackForGoal = projectedMonthlyTotal >= monthlyGoal;
     const amountToGoal = monthlyGoal - currentMonthlyEarnings;
-    const dailyNeededForGoal = daysRemaining > 0 ? amountToGoal / daysRemaining : 0;
+    const dailyNeededForGoal =
+      daysRemaining > 0 ? amountToGoal / daysRemaining : 0;
 
     // Compare to last week
-    const weeklyGrowth = earnings?.weeklyEarnings && (earnings?.monthlyEarnings || 0) > 0
-      ? ((earnings.weeklyEarnings / (earnings.monthlyEarnings / 4)) - 1) * 100
-      : 0;
+    const weeklyGrowth =
+      effectiveEarnings?.weeklyEarnings &&
+      (effectiveEarnings?.monthlyEarnings || 0) > 0
+        ? (effectiveEarnings.weeklyEarnings /
+            (effectiveEarnings.monthlyEarnings / 4) -
+            1) *
+          100
+        : 0;
 
     return {
       daysRemaining,
@@ -207,7 +364,7 @@ export default function EarningsPage() {
       dailyNeededForGoal: Math.max(0, dailyNeededForGoal),
       weeklyGrowth,
     };
-  }, [earnings, monthlyGoal]);
+  }, [effectiveEarnings, monthlyGoal]);
 
   // Calculate daily earnings from payout history (last 30 days)
   const dailyEarningsData = useMemo(() => {
@@ -226,7 +383,7 @@ export default function EarningsPage() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    payouts?.items?.forEach((payout) => {
+    effectivePayouts?.items?.forEach((payout) => {
       const date = new Date(payout.createdAt);
       if (date >= thirtyDaysAgo && payout.status === "COMPLETED") {
         const dayName = days[date.getDay()];
@@ -241,24 +398,35 @@ export default function EarningsPage() {
       earnings: Math.round(dayData[day].earnings),
       jobs: dayData[day].jobs,
     }));
-  }, [payouts]);
+  }, [effectivePayouts]);
+
+  // Format time ago for stale data indicator
+  const formatTimeAgo = useCallback((timestamp: number): string => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  }, []);
 
   const stats = [
     {
       label: "Total Earned",
-      value: `$${earnings?.totalEarnings?.toLocaleString() || "0"}`,
+      value: `$${effectiveEarnings?.totalEarnings?.toLocaleString() || "0"}`,
       icon: DollarSign,
       color: "bg-green-500/10 text-green-500",
     },
     {
       label: "This Month",
-      value: `$${earnings?.monthlyEarnings?.toLocaleString() || "0"}`,
+      value: `$${effectiveEarnings?.monthlyEarnings?.toLocaleString() || "0"}`,
       icon: Briefcase,
       color: "bg-[var(--primary)]/10 text-[var(--primary)]",
     },
     {
       label: "Pending Payout",
-      value: `$${earnings?.pendingPayout?.toLocaleString() || "0"}`,
+      value: `$${effectiveEarnings?.pendingPayout?.toLocaleString() || "0"}`,
       icon: Clock,
       color: "bg-yellow-500/10 text-yellow-500",
     },
@@ -270,26 +438,154 @@ export default function EarningsPage() {
     },
   ];
 
+  // Loading Skeleton
+  if (isLoading && !effectiveEarnings) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-8 w-32 bg-[var(--muted)] rounded mb-2" />
+            <div className="h-4 w-48 bg-[var(--muted)] rounded" />
+          </div>
+          <div className="h-10 w-24 bg-[var(--muted)] rounded" />
+        </div>
+
+        {/* Month Selector Skeleton */}
+        <div className="flex items-center justify-center gap-4">
+          <div className="h-10 w-10 bg-[var(--muted)] rounded" />
+          <div className="h-6 w-40 bg-[var(--muted)] rounded" />
+          <div className="h-10 w-10 bg-[var(--muted)] rounded" />
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4"
+            >
+              <div className="w-10 h-10 bg-[var(--muted)] rounded-lg mb-3" />
+              <div className="h-8 w-20 bg-[var(--muted)] rounded mb-2" />
+              <div className="h-4 w-16 bg-[var(--muted)] rounded" />
+            </div>
+          ))}
+        </div>
+
+        {/* Goal Progress Skeleton */}
+        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+          <div className="h-6 w-32 bg-[var(--muted)] rounded mb-4" />
+          <div className="h-3 w-full bg-[var(--muted)] rounded-full mb-3" />
+          <div className="h-10 w-full bg-[var(--muted)] rounded" />
+        </div>
+
+        {/* Projections Skeleton */}
+        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+          <div className="h-6 w-40 bg-[var(--muted)] rounded mb-4" />
+          <div className="grid grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 bg-[var(--muted)] rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error State
+  if (earningsError && payoutsError && !effectiveEarnings) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+          <DollarSign className="w-8 h-8 text-red-400" />
+        </div>
+        <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
+          Failed to Load Earnings
+        </h2>
+        <p className="text-[var(--muted-foreground)] mb-6 max-w-md">
+          There was an error loading your earnings data. Please check your
+          connection and try again.
+        </p>
+        <button
+          onClick={handleRefresh}
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 ">
+      {/* Offline Banner */}
+      {(!isOnline || isUsingCache) && (
+        <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <WifiOff className="w-5 h-5 text-yellow-400" />
+            <div>
+              <p className="font-medium text-yellow-400">
+                {!isOnline ? "You're offline" : "Showing cached data"}
+              </p>
+              <p className="text-sm text-yellow-400/80">
+                {!isOnline
+                  ? "Viewing cached earnings data. Connect to the internet to see latest updates."
+                  : "Unable to fetch latest data. Showing previously cached information."}
+              </p>
+            </div>
+          </div>
+          {isOnline && (
+            <button
+              onClick={handleRefresh}
+              className="flex items-center gap-2 px-3 py-1.5 bg-yellow-500 text-black font-medium rounded-lg hover:bg-yellow-400"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Retry
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Earnings</h1>
-          <p className="text-[var(--muted-foreground)]">Track your income and payouts</p>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">
+            Earnings
+          </h1>
+          <p className="text-[var(--muted-foreground)]">
+            Track your income and payouts
+            {dataUpdatedAt && !isUsingCache && (
+              <span className="text-xs ml-2 opacity-60">
+                <span className="mx-1.5">|</span>Updated{" "}
+                {formatTimeAgo(dataUpdatedAt)}
+              </span>
+            )}
+          </p>
         </div>
-        <button
-          onClick={handleExport}
-          disabled={isExporting}
-          className="flex items-center gap-2 px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)] disabled:opacity-50"
-        >
-          {isExporting ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Download className="w-4 h-4" />
+        <div className="flex items-center gap-2">
+          {isOnline && !isUsingCache && (
+            <button
+              onClick={handleRefresh}
+              className="p-2 hover:bg-[var(--secondary)] rounded-lg text-[var(--muted-foreground)]"
+              title="Refresh data"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
           )}
-          {isExporting ? "Exporting..." : "Export"}
-        </button>
+          <button
+            onClick={handleExport}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)] disabled:opacity-50"
+          >
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            {isExporting ? "Exporting..." : "Export"}
+          </button>
+        </div>
       </div>
 
       {/* Month Selector */}
@@ -313,16 +609,25 @@ export default function EarningsPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
-              <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center mb-3`}>
+            <div
+              key={stat.label}
+              className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4"
+            >
+              <div
+                className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center mb-3`}
+              >
                 <Icon className="w-5 h-5" />
               </div>
-              <p className="text-2xl font-bold text-[var(--foreground)]">{stat.value}</p>
-              <p className="text-sm text-[var(--muted-foreground)]">{stat.label}</p>
+              <p className="text-2xl font-bold text-[var(--foreground)]">
+                {stat.value}
+              </p>
+              <p className="text-sm text-[var(--muted-foreground)]">
+                {stat.label}
+              </p>
             </div>
           );
         })}
@@ -376,7 +681,7 @@ export default function EarningsPage() {
           <div className="flex items-end justify-between mb-2">
             <div>
               <p className="text-2xl font-bold text-[var(--foreground)]">
-                ${earnings?.monthlyEarnings?.toLocaleString() || "0"}
+                ${effectiveEarnings?.monthlyEarnings?.toLocaleString() || "0"}
               </p>
               <p className="text-sm text-[var(--muted-foreground)]">
                 of ${monthlyGoal.toLocaleString()} goal
@@ -395,11 +700,13 @@ export default function EarningsPage() {
         </div>
 
         {/* Goal Status */}
-        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-          projections.onTrackForGoal
-            ? "bg-green-500/20 text-green-400"
-            : "bg-yellow-500/20 text-yellow-400"
-        }`}>
+        <div
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+            projections.onTrackForGoal
+              ? "bg-green-500/20 text-green-400"
+              : "bg-yellow-500/20 text-yellow-400"
+          }`}
+        >
           {projections.onTrackForGoal ? (
             <>
               <Trophy className="w-5 h-5" />
@@ -409,7 +716,8 @@ export default function EarningsPage() {
             <>
               <Flame className="w-5 h-5" />
               <span className="font-medium">
-                Earn ${projections.dailyNeededForGoal.toFixed(0)}/day to hit your goal
+                Earn ${projections.dailyNeededForGoal.toFixed(0)}/day to hit
+                your goal
               </span>
             </>
           )}
@@ -420,12 +728,16 @@ export default function EarningsPage() {
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)]">
         <div className="px-4 py-3 border-b border-[var(--border)] flex items-center gap-2">
           <Zap className="w-5 h-5 text-yellow-400" />
-          <h2 className="font-semibold text-[var(--foreground)]">Earnings Projections</h2>
+          <h2 className="font-semibold text-[var(--foreground)]">
+            Earnings Projections
+          </h2>
         </div>
         <div className="p-4 grid grid-cols-2 gap-4">
           {/* Projected Monthly Total */}
           <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl p-4 border border-green-500/20">
-            <p className="text-sm text-[var(--muted-foreground)] mb-1">Projected This Month</p>
+            <p className="text-sm text-[var(--muted-foreground)] mb-1">
+              Projected This Month
+            </p>
             <p className="text-2xl font-bold text-green-400">
               ${projections.projectedMonthlyTotal.toFixed(0).toLocaleString()}
             </p>
@@ -436,7 +748,9 @@ export default function EarningsPage() {
 
           {/* Daily Average */}
           <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-xl p-4 border border-blue-500/20">
-            <p className="text-sm text-[var(--muted-foreground)] mb-1">Daily Average</p>
+            <p className="text-sm text-[var(--muted-foreground)] mb-1">
+              Daily Average
+            </p>
             <p className="text-2xl font-bold text-blue-400">
               ${projections.dailyAverage.toFixed(0)}
             </p>
@@ -447,7 +761,9 @@ export default function EarningsPage() {
 
           {/* Days Remaining */}
           <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/20">
-            <p className="text-sm text-[var(--muted-foreground)] mb-1">Days Remaining</p>
+            <p className="text-sm text-[var(--muted-foreground)] mb-1">
+              Days Remaining
+            </p>
             <p className="text-2xl font-bold text-purple-400">
               {projections.daysRemaining}
             </p>
@@ -458,7 +774,9 @@ export default function EarningsPage() {
 
           {/* Amount to Goal */}
           <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 rounded-xl p-4 border border-orange-500/20">
-            <p className="text-sm text-[var(--muted-foreground)] mb-1">Needed for Goal</p>
+            <p className="text-sm text-[var(--muted-foreground)] mb-1">
+              Needed for Goal
+            </p>
             <p className="text-2xl font-bold text-orange-400">
               ${projections.amountToGoal.toFixed(0).toLocaleString()}
             </p>
@@ -473,11 +791,17 @@ export default function EarningsPage() {
           <div className="bg-[var(--secondary)] rounded-lg p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[var(--muted-foreground)]" />
-              <span className="text-sm text-[var(--foreground)]">This Week vs Average</span>
+              <span className="text-sm text-[var(--foreground)]">
+                This Week vs Average
+              </span>
             </div>
-            <div className={`flex items-center gap-1 font-medium ${
-              projections.weeklyGrowth >= 0 ? "text-green-400" : "text-red-400"
-            }`}>
+            <div
+              className={`flex items-center gap-1 font-medium ${
+                projections.weeklyGrowth >= 0
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
+            >
               {projections.weeklyGrowth >= 0 ? (
                 <ArrowUp className="w-4 h-4" />
               ) : (
@@ -491,7 +815,9 @@ export default function EarningsPage() {
 
       {/* Earnings Chart */}
       <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
-        <h2 className="font-semibold text-[var(--foreground)] mb-4">Daily Earnings</h2>
+        <h2 className="font-semibold text-[var(--foreground)] mb-4">
+          Daily Earnings
+        </h2>
         <AreaChart
           data={dailyEarningsData}
           series={[
@@ -506,13 +832,17 @@ export default function EarningsPage() {
       {/* Payout Methods */}
       <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
         <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
-          <h2 className="font-semibold text-[var(--foreground)]">Payout Method</h2>
+          <h2 className="font-semibold text-[var(--foreground)]">
+            Payout Method
+          </h2>
           <button
             onClick={handleChangePayoutMethod}
             disabled={setupPayoutLink.isPending}
             className="text-[var(--primary)] text-sm hover:underline disabled:opacity-50 flex items-center gap-1"
           >
-            {setupPayoutLink.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
+            {setupPayoutLink.isPending && (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            )}
             {setupPayoutLink.isPending ? "Loading..." : "Change"}
           </button>
         </div>
@@ -525,13 +855,21 @@ export default function EarningsPage() {
               <div>
                 {payoutSettings?.payoutEnabled ? (
                   <>
-                    <p className="font-medium text-[var(--foreground)]">Stripe Connect Account</p>
-                    <p className="text-sm text-[var(--muted-foreground)]">Payouts enabled - weekly on Monday</p>
+                    <p className="font-medium text-[var(--foreground)]">
+                      Stripe Connect Account
+                    </p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      Payouts enabled - weekly on Monday
+                    </p>
                   </>
                 ) : (
                   <>
-                    <p className="font-medium text-[var(--foreground)]">No payout method configured</p>
-                    <p className="text-sm text-[var(--muted-foreground)]">Set up your bank account to receive payouts</p>
+                    <p className="font-medium text-[var(--foreground)]">
+                      No payout method configured
+                    </p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      Set up your bank account to receive payouts
+                    </p>
                   </>
                 )}
               </div>
@@ -556,17 +894,22 @@ export default function EarningsPage() {
       {/* Recent Payouts */}
       <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
         <div className="px-4 py-3 border-b border-[var(--border)]">
-          <h2 className="font-semibold text-[var(--foreground)]">Payout History</h2>
+          <h2 className="font-semibold text-[var(--foreground)]">
+            Payout History
+          </h2>
         </div>
-        {!payouts?.items?.length ? (
+        {!effectivePayouts?.items?.length ? (
           <div className="p-8 text-center text-[var(--muted-foreground)]">
             <DollarSign className="w-8 h-8 mx-auto mb-2 text-[var(--muted)]" />
             <p>No payouts yet</p>
           </div>
         ) : (
           <div className="divide-y divide-[var(--border)]">
-            {payouts.items.map((payout) => (
-              <div key={payout.id} className="px-4 py-3 flex items-center justify-between">
+            {effectivePayouts.items.map((payout) => (
+              <div
+                key={payout.id}
+                className="px-4 py-3 flex items-center justify-between"
+              >
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center ${
@@ -608,24 +951,43 @@ export default function EarningsPage() {
       {/* Job Stats Summary */}
       <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
         <div className="px-4 py-3 border-b border-[var(--border)]">
-          <h2 className="font-semibold text-[var(--foreground)]">Performance Summary</h2>
+          <h2 className="font-semibold text-[var(--foreground)]">
+            Performance Summary
+          </h2>
         </div>
         <div className="p-4 grid grid-cols-2 gap-4">
           <div className="text-center p-4 bg-[var(--secondary)] rounded-lg">
-            <p className="text-3xl font-bold text-[var(--foreground)]">{earnings?.completedJobsThisMonth || 0}</p>
-            <p className="text-sm text-[var(--muted-foreground)]">Jobs this month</p>
+            <p className="text-3xl font-bold text-[var(--foreground)]">
+              {effectiveEarnings?.completedJobsThisMonth || 0}
+            </p>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              Jobs this month
+            </p>
           </div>
           <div className="text-center p-4 bg-[var(--secondary)] rounded-lg">
-            <p className="text-3xl font-bold text-[var(--foreground)]">{earnings?.completedJobsThisWeek || 0}</p>
-            <p className="text-sm text-[var(--muted-foreground)]">Jobs this week</p>
+            <p className="text-3xl font-bold text-[var(--foreground)]">
+              {effectiveEarnings?.completedJobsThisWeek || 0}
+            </p>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              Jobs this week
+            </p>
           </div>
           <div className="text-center p-4 bg-[var(--secondary)] rounded-lg">
-            <p className="text-3xl font-bold text-[var(--foreground)]">{earnings?.completedJobs || 0}</p>
-            <p className="text-sm text-[var(--muted-foreground)]">Total jobs completed</p>
+            <p className="text-3xl font-bold text-[var(--foreground)]">
+              {effectiveEarnings?.completedJobs || 0}
+            </p>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              Total jobs completed
+            </p>
           </div>
           <div className="text-center p-4 bg-[var(--secondary)] rounded-lg">
-            <p className="text-3xl font-bold text-yellow-500">{earnings?.rating?.toFixed(1) || "5.0"} ★</p>
-            <p className="text-sm text-[var(--muted-foreground)]">Average rating</p>
+            <p className="text-3xl font-bold text-yellow-500 flex items-center justify-center gap-1">
+              {effectiveEarnings?.rating?.toFixed(1) || "5.0"}
+              <Star className="w-6 h-6 fill-current" />
+            </p>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              Average rating
+            </p>
           </div>
         </div>
       </div>

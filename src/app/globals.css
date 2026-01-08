@@ -112,7 +112,7 @@
   --muted-foreground: #71717A;
   --border: #E4E4E7;
   --input: #FAFAFA;
-  --ring: #16A34A;
+  --ring: #4ADE80;
 
   /* Component Colors - Light */
   --card: #FFFFFF;
@@ -123,15 +123,15 @@
   --primary-foreground: #FFFFFF;
   --secondary: #F4F4F5;
   --secondary-foreground: #0A0A0A;
-  --accent: #16A34A;
-  --accent-foreground: #FFFFFF;
+  --accent: #4ADE80;
+  --accent-foreground: #000000;
 
-  /* Lime colors adjusted for light mode - darker for better contrast */
-  --color-lime-500: #16A34A;
-  --color-lime-400: #15803D;
-  --color-lime-600: #166534;
-  --color-lime-700: #14532D;
-  --color-lime-glow: rgba(22, 163, 74, 0.2);
+  /* Lime colors - SAME as dark mode for consistent brand color */
+  --color-lime-500: #4ADE80;
+  --color-lime-400: #86EFAC;
+  --color-lime-600: #22C55E;
+  --color-lime-700: #15803D;
+  --color-lime-glow: rgba(74, 222, 128, 0.2);
 
   /* Gray Scale for Light Mode - not inverted, proper light mode grays */
   --color-gray-950: #09090B;
@@ -552,6 +552,26 @@ body {
   }
 }
 
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes audioBar {
+  0%, 100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
 @keyframes clipReveal {
   from {
     clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
@@ -592,6 +612,15 @@ body {
 
 .animate-slide-in-left {
   animation: slideInLeft 0.25s var(--ease-out-expo);
+}
+
+.animate-slide-out-left {
+  animation: slideOutLeft 0.2s var(--ease-out-expo) forwards;
+}
+
+.animate-audio-bar {
+  animation: audioBar 0.5s ease-in-out infinite;
+  transform-origin: bottom;
 }
 
 .animate-clip-reveal {
@@ -670,90 +699,99 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   LIGHT MODE - TAILWIND CLASS OVERRIDES
-   Override Tailwind's fixed lime colors with darker variants for contrast
+   LIGHT MODE - LIME COLOR STRATEGY
+   Use the SAME bright green (#4ADE80) as dark mode.
+   For text on white backgrounds: use black/foreground (not green - poor contrast)
+   For buttons with green background: use black text
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Lime text colors - use darker green for readability */
+/*
+ * LIME TEXT COLORS
+ * In light mode, lime text on white background has poor contrast.
+ * Use foreground (black) instead for active/highlighted text.
+ * Only buttons and specific elements should show the lime color.
+ */
 .light .text-lime-400,
 .light .text-lime-500 {
-  color: #15803D !important;
+  color: var(--foreground) !important;
 }
 
 .light .text-lime-300 {
-  color: #16A34A !important;
+  color: var(--foreground) !important;
 }
 
-/* Lime background colors */
+/* LIME BACKGROUND COLORS - Keep the bright green */
 .light .bg-lime-400,
 .light .bg-lime-500 {
-  background-color: #16A34A !important;
+  background-color: #4ADE80 !important;
+  color: #000000 !important;
 }
 
 .light .bg-lime-400\/5,
 .light .bg-lime-500\/5 {
-  background-color: rgba(22, 163, 74, 0.08) !important;
+  background-color: rgba(74, 222, 128, 0.08) !important;
 }
 
 .light .bg-lime-400\/10,
 .light .bg-lime-500\/10 {
-  background-color: rgba(22, 163, 74, 0.12) !important;
+  background-color: rgba(74, 222, 128, 0.12) !important;
 }
 
 .light .bg-lime-400\/20,
 .light .bg-lime-500\/20 {
-  background-color: rgba(22, 163, 74, 0.15) !important;
+  background-color: rgba(74, 222, 128, 0.18) !important;
 }
 
-/* Lime border colors */
+/* LIME BORDER COLORS - Keep the bright green */
 .light .border-lime-400,
 .light .border-lime-500 {
-  border-color: #16A34A !important;
+  border-color: #4ADE80 !important;
 }
 
 .light .border-lime-400\/30,
 .light .border-lime-500\/30 {
-  border-color: rgba(22, 163, 74, 0.4) !important;
+  border-color: rgba(74, 222, 128, 0.4) !important;
 }
 
 .light .border-lime-400\/50 {
-  border-color: rgba(22, 163, 74, 0.5) !important;
+  border-color: rgba(74, 222, 128, 0.5) !important;
 }
 
-/* Lime hover states */
+/* LIME HOVER STATES */
 .light .hover\:text-lime-400:hover,
 .light .hover\:text-lime-500:hover {
-  color: #15803D !important;
+  color: var(--foreground) !important;
 }
 
 .light .hover\:bg-lime-400:hover,
 .light .hover\:bg-lime-500:hover {
-  background-color: #16A34A !important;
+  background-color: #4ADE80 !important;
+  color: #000000 !important;
 }
 
 .light .hover\:bg-lime-400\/10:hover {
-  background-color: rgba(22, 163, 74, 0.12) !important;
+  background-color: rgba(74, 222, 128, 0.12) !important;
 }
 
 .light .hover\:border-lime-400:hover,
 .light .hover\:border-lime-500:hover {
-  border-color: #16A34A !important;
+  border-color: #4ADE80 !important;
 }
 
 .light .hover\:border-lime-400\/50:hover {
-  border-color: rgba(22, 163, 74, 0.5) !important;
+  border-color: rgba(74, 222, 128, 0.5) !important;
 }
 
-/* Focus ring */
+/* Focus ring - keep bright green */
 .light .focus\:ring-lime-400,
 .light .focus\:ring-lime-500 {
-  --tw-ring-color: #16A34A !important;
+  --tw-ring-color: #4ADE80 !important;
 }
 
 /* Shadow/glow effects */
 .light .shadow-lime-500\/20,
 .light .shadow-lime-400\/20 {
-  --tw-shadow-color: rgba(22, 163, 74, 0.2) !important;
+  --tw-shadow-color: rgba(74, 222, 128, 0.25) !important;
 }
 
 /* Yellow/Amber colors - darker for light mode contrast */
@@ -802,13 +840,13 @@ body {
   background-size: 200% 100%;
 }
 
-/* Glow effects for light mode - subtle shadows instead */
+/* Glow effects for light mode - using same bright green */
 .light .glow-lime {
-  box-shadow: 0 0 20px rgba(22, 163, 74, 0.15);
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
 }
 
 .light .glow-lime-lg {
-  box-shadow: 0 0 30px rgba(22, 163, 74, 0.2);
+  box-shadow: 0 0 30px rgba(74, 222, 128, 0.25);
 }
 
 .light .glow-white {
@@ -984,21 +1022,21 @@ body {
   color: #A1A1AA !important;
 }
 
-/* Green/Success colors - darker for light mode */
+/* Green/Success colors - use foreground for text, same bright green for backgrounds */
 .light .text-green-400,
 .light .text-green-500 {
-  color: #16A34A !important;
+  color: var(--foreground) !important;
 }
 
 .light .bg-green-500\/10,
 .light .bg-green-500\/20,
 .light .bg-green-400\/20 {
-  background-color: rgba(22, 163, 74, 0.12) !important;
+  background-color: rgba(74, 222, 128, 0.12) !important;
 }
 
 .light .border-green-500\/30,
 .light .border-green-400\/30 {
-  border-color: rgba(22, 163, 74, 0.4) !important;
+  border-color: rgba(74, 222, 128, 0.4) !important;
 }
 
 /* Blue/Info colors - darker for light mode */
@@ -1117,9 +1155,9 @@ body {
   background-clip: text;
 }
 
-/* Light mode gradient uses darker greens */
+/* Light mode gradient - same bright green as dark mode */
 .light .text-gradient-lime {
-  background: linear-gradient(135deg, #16A34A 0%, #22C55E 100%);
+  background: linear-gradient(135deg, #4ADE80 0%, #86EFAC 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1494,4 +1532,104 @@ body {
   html {
     font-size: calc(0.7495rem + 0.8368vw);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HIGH CONTRAST MODE - For outdoor/bright sunlight visibility
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.high-contrast {
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --card: #0A0A0A;
+  --card-foreground: #FFFFFF;
+  --primary: #00FF00;
+  --primary-foreground: #000000;
+  --muted: #1A1A1A;
+  --muted-foreground: #CCCCCC;
+  --border: #444444;
+  --accent: #00FF00;
+  --accent-foreground: #000000;
+
+  /* High contrast lime */
+  --color-lime-500: #00FF00;
+  --color-lime-400: #33FF33;
+  --color-lime-glow: rgba(0, 255, 0, 0.4);
+}
+
+/* Enhanced text visibility */
+.high-contrast body {
+  -webkit-font-smoothing: auto;
+  text-rendering: optimizeLegibility;
+}
+
+.high-contrast * {
+  text-shadow: none;
+}
+
+/* Stronger text colors */
+.high-contrast .text-gray-300,
+.high-contrast .text-gray-400,
+.high-contrast .text-gray-500 {
+  color: #CCCCCC !important;
+}
+
+.high-contrast .text-muted-foreground {
+  color: #AAAAAA !important;
+}
+
+/* Enhanced borders */
+.high-contrast .border,
+.high-contrast [class*="border-gray"] {
+  border-color: #666666 !important;
+}
+
+/* Larger touch targets */
+.high-contrast button,
+.high-contrast a,
+.high-contrast [role="button"] {
+  min-height: 48px;
+  font-weight: 600;
+}
+
+/* Enhanced focus states */
+.high-contrast :focus-visible {
+  outline: 3px solid #00FF00;
+  outline-offset: 3px;
+}
+
+/* High contrast backgrounds */
+.high-contrast .bg-gray-800,
+.high-contrast .bg-gray-900 {
+  background-color: #0A0A0A !important;
+}
+
+.high-contrast .bg-lime-500,
+.high-contrast .bg-lime-400 {
+  background-color: #00FF00 !important;
+  color: #000000 !important;
+}
+
+/* Enhanced status indicators */
+.high-contrast .text-green-400,
+.high-contrast .text-green-500,
+.high-contrast .text-lime-400,
+.high-contrast .text-lime-500 {
+  color: #00FF00 !important;
+}
+
+.high-contrast .text-red-400,
+.high-contrast .text-red-500 {
+  color: #FF4444 !important;
+}
+
+.high-contrast .text-yellow-400,
+.high-contrast .text-yellow-500,
+.high-contrast .text-amber-400 {
+  color: #FFCC00 !important;
+}
+
+/* Larger icons in high contrast */
+.high-contrast svg {
+  stroke-width: 2.5;
 }

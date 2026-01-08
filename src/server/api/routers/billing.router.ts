@@ -21,8 +21,9 @@ const PRICE_IDS = {
 };
 
 // Use centralized pricing from constants (single source of truth)
+// Note: AI_REPORT is 0 because it's included in subscription plans
 const PRODUCT_PRICES = {
-  AI_REPORT: PRICING_CENTS.AI_REPORT,
+  AI_REPORT: 0, // Included in subscription
   AI_REPORT_WITH_ONSITE: PRICING_CENTS.ON_SITE,
   CERTIFIED_APPRAISAL: PRICING_CENTS.CERTIFIED,
 };
@@ -630,6 +631,18 @@ export const billingRouter = createTRPCRouter({
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Payment not found",
+          });
+        }
+
+        // Security: Verify admin can only refund payments from their organization
+        // SUPER_ADMIN can refund any organization, regular ADMIN only their own
+        if (
+          ctx.user.role !== "SUPER_ADMIN" &&
+          payment.organizationId !== ctx.organization?.id
+        ) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only refund payments from your organization",
           });
         }
 

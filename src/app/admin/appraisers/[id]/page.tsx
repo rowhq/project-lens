@@ -147,7 +147,7 @@ export default function AppraiserDetailPage() {
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.back()}
-          className="p-2 hover:bg-[var(--muted)] rounded-lg"
+          className="p-2.5 hover:bg-[var(--muted)] rounded-lg"
         >
           <ArrowLeft className="w-5 h-5 text-[var(--muted-foreground)]" />
         </button>
@@ -214,7 +214,11 @@ export default function AppraiserDetailPage() {
                     Member Since
                   </p>
                   <p className="font-medium text-[var(--foreground)]">
-                    {new Date(profile.createdAt).toLocaleDateString()}
+                    {new Date(profile.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </p>
                 </div>
               </div>
@@ -278,7 +282,10 @@ export default function AppraiserDetailPage() {
                   </p>
                   <p className="font-medium text-[var(--foreground)]">
                     {profile.licenseExpiry
-                      ? new Date(profile.licenseExpiry).toLocaleDateString()
+                      ? new Date(profile.licenseExpiry).toLocaleDateString(
+                          "en-US",
+                          { month: "short", day: "numeric", year: "numeric" },
+                        )
                       : "Not provided"}
                   </p>
                 </div>

@@ -8,156 +8,206 @@ import { createTRPCRouter, adminProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { createTransfer } from "@/shared/lib/stripe";
 
+// Helper to calculate date range
+function getDateRangeStart(
+  range: "7d" | "30d" | "90d" | "ytd" | undefined,
+): Date {
+  const now = new Date();
+  if (!range || range === "30d") {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 30);
+    return start;
+  }
+  if (range === "7d") {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 7);
+    return start;
+  }
+  if (range === "90d") {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 90);
+    return start;
+  }
+  // YTD - start of current year
+  return new Date(now.getFullYear(), 0, 1);
+}
+
+const dateRangeSchema = z.object({
+  dateRange: z.enum(["7d", "30d", "90d", "ytd"]).optional(),
+});
+
 export const adminRouter = createTRPCRouter({
   /**
    * Dashboard stats
    */
   dashboard: createTRPCRouter({
-    stats: adminProcedure.query(async ({ ctx }) => {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const thisWeek = new Date(today);
-      thisWeek.setDate(today.getDate() - 7);
-      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    stats: adminProcedure
+      .input(dateRangeSchema.optional())
+      .query(async ({ ctx, input }) => {
+        const rangeStart = getDateRangeStart(input?.dateRange);
+        const now = new Date();
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
 
-      const [
-        totalOrganizations,
-        totalAppraisers,
-        verifiedAppraisers,
-        pendingVerifications,
-        activeJobs,
-        slaBreach,
-        todayAppraisals,
-        weeklyAppraisals,
-        monthlyRevenue,
-        openDisputes,
-      ] = await Promise.all([
-        ctx.prisma.organization.count(),
-        ctx.prisma.appraiserProfile.count(),
-        ctx.prisma.appraiserProfile.count({
-          where: { verificationStatus: "VERIFIED" },
-        }),
-        ctx.prisma.appraiserProfile.count({
-          where: { verificationStatus: "PENDING" },
-        }),
-        ctx.prisma.job.count({
-          where: { status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] } },
-        }),
-        ctx.prisma.job.count({
-          where: {
-            status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] },
-            slaDueAt: { lt: now },
-          },
-        }),
-        ctx.prisma.appraisalRequest.count({
-          where: { createdAt: { gte: today } },
-        }),
-        ctx.prisma.appraisalRequest.count({
-          where: { createdAt: { gte: thisWeek } },
-        }),
-        ctx.prisma.payment.aggregate({
-          where: {
-            type: "CHARGE",
-            status: "COMPLETED",
-            createdAt: { gte: thisMonth },
-          },
-          _sum: { amount: true },
-        }),
-        ctx.prisma.dispute.count({
-          where: { status: { in: ["OPEN", "UNDER_REVIEW", "ESCALATED"] } },
-        }),
-      ]);
-
-      return {
-        organizations: totalOrganizations,
-        appraisers: {
-          total: totalAppraisers,
-          verified: verifiedAppraisers,
-          pending: pendingVerifications,
-        },
-        jobs: {
-          active: activeJobs,
+        const [
+          totalOrganizations,
+          totalAppraisers,
+          verifiedAppraisers,
+          pendingVerifications,
+          activeJobs,
           slaBreach,
-        },
-        appraisals: {
-          today: todayAppraisals,
-          thisWeek: weeklyAppraisals,
-        },
-        revenue: {
-          thisMonth: Number(monthlyRevenue._sum.amount || 0),
-        },
-        disputes: openDisputes,
-      };
-    }),
+          periodAppraisals,
+          completedJobsInRange,
+          periodRevenue,
+          openDisputes,
+        ] = await Promise.all([
+          ctx.prisma.organization.count(),
+          ctx.prisma.appraiserProfile.count(),
+          ctx.prisma.appraiserProfile.count({
+            where: { verificationStatus: "VERIFIED" },
+          }),
+          ctx.prisma.appraiserProfile.count({
+            where: { verificationStatus: "PENDING" },
+          }),
+          ctx.prisma.job.count({
+            where: {
+              status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] },
+            },
+          }),
+          ctx.prisma.job.count({
+            where: {
+              status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] },
+              slaDueAt: { lt: now },
+            },
+          }),
+          ctx.prisma.appraisalRequest.count({
+            where: { createdAt: { gte: rangeStart } },
+          }),
+          ctx.prisma.job.count({
+            where: {
+              status: "COMPLETED",
+              completedAt: { gte: rangeStart },
+            },
+          }),
+          ctx.prisma.payment.aggregate({
+            where: {
+              type: "CHARGE",
+              status: "COMPLETED",
+              createdAt: { gte: rangeStart },
+            },
+            _sum: { amount: true },
+          }),
+          ctx.prisma.dispute.count({
+            where: { status: { in: ["OPEN", "UNDER_REVIEW", "ESCALATED"] } },
+          }),
+        ]);
 
-    weeklyTrend: adminProcedure.query(async ({ ctx }) => {
-      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      // Get jobs and payments from last 30 days
-      const [jobs, payments] = await Promise.all([
-        ctx.prisma.job.findMany({
-          where: { createdAt: { gte: thirtyDaysAgo } },
-          select: { createdAt: true, status: true },
-        }),
-        ctx.prisma.payment.findMany({
-          where: {
-            type: "CHARGE",
-            status: "COMPLETED",
-            createdAt: { gte: thirtyDaysAgo },
+        return {
+          organizations: totalOrganizations,
+          appraisers: {
+            total: totalAppraisers,
+            verified: verifiedAppraisers,
+            pending: pendingVerifications,
           },
-          select: { createdAt: true, amount: true },
-        }),
-      ]);
+          jobs: {
+            active: activeJobs,
+            completed: completedJobsInRange,
+            slaBreach,
+          },
+          appraisals: {
+            period: periodAppraisals,
+          },
+          revenue: {
+            period: Number(periodRevenue._sum.amount || 0),
+          },
+          disputes: openDisputes,
+        };
+      }),
 
-      // Group by day of week
-      const dayData: Record<string, { jobs: number; revenue: number }> = {
-        Mon: { jobs: 0, revenue: 0 },
-        Tue: { jobs: 0, revenue: 0 },
-        Wed: { jobs: 0, revenue: 0 },
-        Thu: { jobs: 0, revenue: 0 },
-        Fri: { jobs: 0, revenue: 0 },
-        Sat: { jobs: 0, revenue: 0 },
-        Sun: { jobs: 0, revenue: 0 },
-      };
+    weeklyTrend: adminProcedure
+      .input(dateRangeSchema.optional())
+      .query(async ({ ctx, input }) => {
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const rangeStart = getDateRangeStart(input?.dateRange);
 
-      jobs.forEach((job) => {
-        const dayName = days[new Date(job.createdAt).getDay()];
-        dayData[dayName].jobs += 1;
-      });
+        // Get jobs and payments within the selected date range
+        const [jobs, payments] = await Promise.all([
+          ctx.prisma.job.findMany({
+            where: { createdAt: { gte: rangeStart } },
+            select: { createdAt: true, status: true },
+          }),
+          ctx.prisma.payment.findMany({
+            where: {
+              type: "CHARGE",
+              status: "COMPLETED",
+              createdAt: { gte: rangeStart },
+            },
+            select: { createdAt: true, amount: true },
+          }),
+        ]);
 
-      payments.forEach((payment) => {
-        const dayName = days[new Date(payment.createdAt).getDay()];
-        dayData[dayName].revenue += Number(payment.amount);
-      });
+        // Group by day of week
+        const dayData: Record<string, { jobs: number; revenue: number }> = {
+          Mon: { jobs: 0, revenue: 0 },
+          Tue: { jobs: 0, revenue: 0 },
+          Wed: { jobs: 0, revenue: 0 },
+          Thu: { jobs: 0, revenue: 0 },
+          Fri: { jobs: 0, revenue: 0 },
+          Sat: { jobs: 0, revenue: 0 },
+          Sun: { jobs: 0, revenue: 0 },
+        };
 
-      return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => ({
-        name: day,
-        jobs: dayData[day].jobs,
-        revenue: Math.round(dayData[day].revenue),
-      }));
-    }),
+        jobs.forEach((job) => {
+          const dayName = days[new Date(job.createdAt).getDay()];
+          dayData[dayName].jobs += 1;
+        });
 
-    jobTypeDistribution: adminProcedure.query(async ({ ctx }) => {
-      const [aiOnly, onSite, certified] = await Promise.all([
-        ctx.prisma.appraisalRequest.count({
-          where: { requestedType: "AI_REPORT" },
-        }),
-        ctx.prisma.appraisalRequest.count({
-          where: { requestedType: "AI_REPORT_WITH_ONSITE" },
-        }),
-        ctx.prisma.appraisalRequest.count({
-          where: { requestedType: "CERTIFIED_APPRAISAL" },
-        }),
-      ]);
+        payments.forEach((payment) => {
+          const dayName = days[new Date(payment.createdAt).getDay()];
+          dayData[dayName].revenue += Number(payment.amount);
+        });
 
-      return [
-        { name: "AI Only", value: aiOnly },
-        { name: "On-Site", value: onSite },
-        { name: "Certified", value: certified },
-      ];
-    }),
+        return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => ({
+          name: day,
+          jobs: dayData[day].jobs,
+          revenue: Math.round(dayData[day].revenue),
+        }));
+      }),
+
+    jobTypeDistribution: adminProcedure
+      .input(dateRangeSchema.optional())
+      .query(async ({ ctx, input }) => {
+        const rangeStart = getDateRangeStart(input?.dateRange);
+        const [aiOnly, onSite, certified] = await Promise.all([
+          ctx.prisma.appraisalRequest.count({
+            where: {
+              requestedType: "AI_REPORT",
+              createdAt: { gte: rangeStart },
+            },
+          }),
+          ctx.prisma.appraisalRequest.count({
+            where: {
+              requestedType: "AI_REPORT_WITH_ONSITE",
+              createdAt: { gte: rangeStart },
+            },
+          }),
+          ctx.prisma.appraisalRequest.count({
+            where: {
+              requestedType: "CERTIFIED_APPRAISAL",
+              createdAt: { gte: rangeStart },
+            },
+          }),
+        ]);
+
+        return [
+          { name: "AI Report", value: aiOnly },
+          { name: "On-Site", value: onSite },
+          { name: "Certified", value: certified },
+        ];
+      }),
 
     recentActivity: adminProcedure.query(async ({ ctx }) => {
       const [recentAppraisals, recentJobs, recentDisputes] = await Promise.all([
@@ -260,25 +310,28 @@ export const adminRouter = createTRPCRouter({
     topCounties: adminProcedure
       .input(z.object({ limit: z.number().min(1).max(20).default(5) }))
       .query(async ({ ctx, input }) => {
-        // Use raw SQL for proper grouping and ordering
-        const counties = await ctx.prisma.$queryRaw<
-          Array<{ county: string | null; count: bigint }>
-        >`
-          SELECT county, COUNT(*) as count
-          FROM "Property"
-          WHERE county IS NOT NULL
-          GROUP BY county
-          ORDER BY count DESC
-          LIMIT ${input.limit}
-        `;
+        // Use Prisma groupBy for safe querying
+        const counties = await ctx.prisma.property.groupBy({
+          by: ["county"],
+          where: {
+            county: { not: "" },
+          },
+          _count: { id: true },
+        });
 
-        const total = counties.reduce((sum, c) => sum + Number(c.count), 0);
+        // Sort and limit after query
+        const sorted = counties
+          .filter((c): c is typeof c & { county: string } => c.county !== null)
+          .sort((a, b) => (b._count?.id ?? 0) - (a._count?.id ?? 0))
+          .slice(0, input.limit);
 
-        return counties.map((c) => ({
+        const total = sorted.reduce((sum, c) => sum + (c._count?.id ?? 0), 0);
+
+        return sorted.map((c) => ({
           county: c.county || "Unknown",
-          count: Number(c.count),
+          count: c._count?.id ?? 0,
           percentage:
-            total > 0 ? Math.round((Number(c.count) / total) * 100) : 0,
+            total > 0 ? Math.round(((c._count?.id ?? 0) / total) * 100) : 0,
         }));
       }),
 
@@ -397,7 +450,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           userId: z.string(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -414,15 +471,29 @@ export const adminRouter = createTRPCRouter({
           },
         });
 
-        // Cancel any active jobs
-        await ctx.prisma.job.updateMany({
+        // Cancel any active jobs (including DISPATCHED for complete cleanup)
+        const affectedJobs = await ctx.prisma.job.updateMany({
           where: {
             assignedAppraiserId: input.userId,
-            status: { in: ["ACCEPTED", "IN_PROGRESS"] },
+            status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] },
           },
           data: {
             status: "PENDING_DISPATCH",
             assignedAppraiserId: null,
+          },
+        });
+
+        // Create audit log
+        await ctx.prisma.auditLog.create({
+          data: {
+            action: "APPRAISER_SUSPENDED",
+            resource: "User",
+            resourceId: input.userId,
+            userId: ctx.user.id,
+            metadata: {
+              reason: input.reason,
+              affectedJobsCount: affectedJobs.count,
+            },
           },
         });
 
@@ -440,6 +511,16 @@ export const adminRouter = createTRPCRouter({
         await ctx.prisma.appraiserProfile.update({
           where: { userId: input.userId },
           data: { verificationStatus: "VERIFIED" },
+        });
+
+        // Create audit log
+        await ctx.prisma.auditLog.create({
+          data: {
+            action: "APPRAISER_REACTIVATED",
+            resource: "User",
+            resourceId: input.userId,
+            userId: ctx.user.id,
+          },
         });
 
         return { success: true };
@@ -621,7 +702,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           id: z.string(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -631,11 +716,13 @@ export const adminRouter = createTRPCRouter({
           data: { status: "SUSPENDED" },
         });
 
-        // Cancel any active jobs
+        // Cancel any active jobs (including PENDING_DISPATCH for complete cleanup)
         await ctx.prisma.job.updateMany({
           where: {
             organizationId: input.id,
-            status: { in: ["DISPATCHED", "ACCEPTED", "IN_PROGRESS"] },
+            status: {
+              in: ["PENDING_DISPATCH", "DISPATCHED", "ACCEPTED", "IN_PROGRESS"],
+            },
           },
           data: { status: "CANCELLED" },
         });
@@ -762,7 +849,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           jobId: z.string(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -887,7 +978,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           jobId: z.string(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -930,7 +1025,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           jobId: z.string(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
           requiredPhotos: z.array(z.string()).optional(),
         }),
       )
@@ -977,7 +1076,11 @@ export const adminRouter = createTRPCRouter({
         z.object({
           jobId: z.string(),
           appraiserId: z.string().nullable(),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -1085,7 +1188,11 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           jobIds: z.array(z.string()),
-          reason: z.string(),
+          reason: z
+            .string()
+            .min(5, "Reason must be at least 5 characters")
+            .max(1000)
+            .trim(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -1307,6 +1414,24 @@ export const adminRouter = createTRPCRouter({
         }),
       )
       .mutation(async ({ ctx, input }) => {
+        // Check for duplicate rule with same conditions
+        const existing = await ctx.prisma.pricingRule.findFirst({
+          where: {
+            ruleType: input.ruleType,
+            propertyType: input.propertyType ?? null,
+            jobType: input.jobType ?? null,
+            county: input.county ?? null,
+            isActive: true,
+          },
+        });
+
+        if (existing) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "A pricing rule with these conditions already exists",
+          });
+        }
+
         return ctx.prisma.pricingRule.create({
           data: input,
         });
@@ -1464,7 +1589,7 @@ export const adminRouter = createTRPCRouter({
     payoutSummary: adminProcedure.query(async ({ ctx }) => {
       const pendingPayouts = await ctx.prisma.payment.findMany({
         where: {
-          type: "PAYOUT",
+          type: "JOB_PAYOUT",
           status: "PENDING",
         },
         include: {
@@ -1512,11 +1637,11 @@ export const adminRouter = createTRPCRouter({
       )
       .mutation(async ({ ctx, input }) => {
         const whereClause: {
-          type: "PAYOUT";
+          type: "JOB_PAYOUT";
           status: "PENDING";
           userId?: { in: string[] };
         } = {
-          type: "PAYOUT",
+          type: "JOB_PAYOUT",
           status: "PENDING",
         };
 
@@ -1737,4 +1862,437 @@ export const adminRouter = createTRPCRouter({
 
       return { items: logs, nextCursor };
     }),
+
+  /**
+   * Seed demo data for Insights, PropertyOwners, and Engineers
+   */
+  seedDemoData: adminProcedure.mutation(async ({ ctx }) => {
+    const results = {
+      insights: 0,
+      propertyOwners: 0,
+      engineers: 0,
+    };
+
+    // Investment Insights
+    const insights = [
+      {
+        type: "MUNICIPAL_BOND" as const,
+        title: "Harris County Infrastructure Bond",
+        description:
+          "Harris County approved a $1.2 billion bond for flood control improvements, road repairs, and park renovations.",
+        source: "Harris County Bond Office",
+        sourceUrl: "https://www.harriscountytx.gov/bonds",
+        latitude: 29.7604,
+        longitude: -95.3698,
+        city: "Houston",
+        county: "Harris",
+        state: "TX",
+        zipCode: "77002",
+        impactRadiusMiles: 25,
+        estimatedValue: 1200000000,
+        fundingAmount: 1200000000,
+        expectedROI: 12.5,
+        parcelsAffected: 4250,
+        avgValueChange: 18.4,
+        announcedAt: new Date("2024-08-15"),
+        expectedStart: new Date("2025-03-01"),
+        expectedEnd: new Date("2028-12-31"),
+        status: "ACTIVE" as const,
+        tags: ["infrastructure", "flood-control", "transportation"],
+      },
+      {
+        type: "SCHOOL_CONSTRUCTION" as const,
+        title: "Frisco ISD New Elementary School",
+        description:
+          "Frisco ISD breaking ground on a new 850-student elementary school in the Panther Creek development.",
+        source: "Frisco ISD Board",
+        sourceUrl: "https://www.friscoisd.org/construction",
+        latitude: 33.1507,
+        longitude: -96.8236,
+        city: "Frisco",
+        county: "Collin",
+        state: "TX",
+        zipCode: "75034",
+        impactRadiusMiles: 5,
+        estimatedValue: 45000000,
+        fundingAmount: 45000000,
+        expectedROI: 15.3,
+        parcelsAffected: 1247,
+        avgValueChange: 22.3,
+        announcedAt: new Date("2024-06-01"),
+        expectedStart: new Date("2025-01-15"),
+        expectedEnd: new Date("2026-08-01"),
+        status: "ACTIVE" as const,
+        tags: ["education", "residential-growth", "family-friendly"],
+      },
+      {
+        type: "ROAD_PROJECT" as const,
+        title: "I-35 Expansion - Austin Central",
+        description:
+          "TxDOT approved $4.9 billion I-35 expansion through central Austin with managed lanes.",
+        source: "Texas Department of Transportation",
+        sourceUrl: "https://my35.org/",
+        latitude: 30.2672,
+        longitude: -97.7431,
+        city: "Austin",
+        county: "Travis",
+        state: "TX",
+        zipCode: "78701",
+        impactRadiusMiles: 30,
+        estimatedValue: 4900000000,
+        fundingAmount: 4900000000,
+        expectedROI: 11.2,
+        parcelsAffected: 8920,
+        avgValueChange: 26.8,
+        announcedAt: new Date("2024-03-15"),
+        expectedStart: new Date("2025-09-01"),
+        expectedEnd: new Date("2033-12-31"),
+        status: "ACTIVE" as const,
+        tags: ["transportation", "highway", "major-infrastructure"],
+      },
+      {
+        type: "DEVELOPMENT_PERMIT" as const,
+        title: "The Domain North Expansion",
+        description:
+          "Major mixed-use development approved north of The Domain. 2.5 million sq ft of office, retail, and residential space.",
+        source: "Austin Planning Commission",
+        sourceUrl: "https://austin.gov/planning/domain-north",
+        latitude: 30.4021,
+        longitude: -97.7239,
+        city: "Austin",
+        county: "Travis",
+        state: "TX",
+        zipCode: "78758",
+        impactRadiusMiles: 3,
+        estimatedValue: 850000000,
+        expectedROI: 18.5,
+        parcelsAffected: 1560,
+        avgValueChange: 34.2,
+        announcedAt: new Date("2024-09-10"),
+        expectedStart: new Date("2025-04-01"),
+        expectedEnd: new Date("2029-12-31"),
+        status: "ACTIVE" as const,
+        tags: ["mixed-use", "office", "residential", "retail"],
+      },
+      {
+        type: "TAX_INCENTIVE" as const,
+        title: "Tesla Gigafactory Tax Abatement Extension",
+        description:
+          "Travis County extended property tax abatement for Tesla Gigafactory through 2035.",
+        source: "Travis County Commissioners Court",
+        sourceUrl: "https://www.traviscountytx.gov/tesla",
+        latitude: 30.2236,
+        longitude: -97.6159,
+        city: "Austin",
+        county: "Travis",
+        state: "TX",
+        zipCode: "78725",
+        impactRadiusMiles: 10,
+        estimatedValue: 10000000000,
+        fundingAmount: 150000000,
+        expectedROI: 25.0,
+        parcelsAffected: 4560,
+        avgValueChange: 52.3,
+        announcedAt: new Date("2024-08-20"),
+        expectedStart: new Date("2024-09-01"),
+        expectedEnd: new Date("2035-12-31"),
+        status: "ACTIVE" as const,
+        tags: ["manufacturing", "jobs", "automotive", "tech"],
+      },
+      {
+        type: "INFRASTRUCTURE" as const,
+        title: "San Antonio Water System Expansion",
+        description:
+          "SAWS approved $2.1 billion infrastructure upgrade including new water treatment plant.",
+        source: "San Antonio Water System",
+        sourceUrl: "https://www.saws.org/infrastructure",
+        latitude: 29.4241,
+        longitude: -98.4936,
+        city: "San Antonio",
+        county: "Bexar",
+        state: "TX",
+        zipCode: "78205",
+        impactRadiusMiles: 35,
+        estimatedValue: 2100000000,
+        fundingAmount: 2100000000,
+        expectedROI: 9.2,
+        parcelsAffected: 12500,
+        avgValueChange: 13.2,
+        announcedAt: new Date("2024-04-01"),
+        expectedStart: new Date("2025-01-15"),
+        expectedEnd: new Date("2032-12-31"),
+        status: "ACTIVE" as const,
+        tags: ["water", "utilities", "long-term-growth"],
+      },
+    ];
+
+    for (const insight of insights) {
+      const id = insight.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "-")
+        .slice(0, 20);
+      await ctx.prisma.investmentInsight.upsert({
+        where: { id },
+        update: insight,
+        create: { id, ...insight },
+      });
+      results.insights++;
+    }
+
+    // Property Owners
+    const propertyOwners = [
+      {
+        parcelId: "HC-2024-001234",
+        county: "Harris",
+        addressLine1: "1234 Westheimer Rd",
+        city: "Houston",
+        state: "TX",
+        zipCode: "77006",
+        ownerName: "Westheimer Properties LLC",
+        ownerType: "corporation",
+        phone: "(713) 555-0101",
+        email: "info@westheimerprop.com",
+        latitude: 29.7423,
+        longitude: -95.4019,
+        lotSizeSqft: 45000,
+        zoning: "MU-3",
+        landUse: "Commercial",
+        assessedValue: 2850000,
+        taxAmount: 68400,
+        dataSource: "harris_county_cad",
+      },
+      {
+        parcelId: "TC-2024-001111",
+        county: "Travis",
+        addressLine1: "1111 South Congress Ave",
+        city: "Austin",
+        state: "TX",
+        zipCode: "78704",
+        ownerName: "SoCo Development Partners",
+        ownerType: "partnership",
+        phone: "(512) 555-0111",
+        email: "dev@socopartners.com",
+        latitude: 30.2469,
+        longitude: -97.7501,
+        lotSizeSqft: 32000,
+        zoning: "CS-MU-V-CO",
+        landUse: "Mixed Use",
+        assessedValue: 6200000,
+        taxAmount: 136400,
+        dataSource: "tcad_public_records",
+      },
+      {
+        parcelId: "CC-2024-004444",
+        county: "Collin",
+        addressLine1: "4444 Legacy Dr",
+        city: "Plano",
+        state: "TX",
+        zipCode: "75024",
+        ownerName: "Legacy Business Park LP",
+        ownerType: "partnership",
+        phone: "(972) 555-0444",
+        email: "leasing@legacybp.com",
+        latitude: 33.0762,
+        longitude: -96.8086,
+        lotSizeSqft: 520000,
+        zoning: "PD-O",
+        landUse: "Office",
+        assessedValue: 42000000,
+        taxAmount: 882000,
+        dataSource: "collin_cad",
+      },
+      {
+        parcelId: "BC-2024-006666",
+        county: "Bexar",
+        addressLine1: "6666 Broadway",
+        city: "San Antonio",
+        state: "TX",
+        zipCode: "78209",
+        ownerName: "Broadway Retail Partners",
+        ownerType: "partnership",
+        phone: "(210) 555-0666",
+        email: "retail@broadwaysa.com",
+        latitude: 29.4832,
+        longitude: -98.4623,
+        lotSizeSqft: 68000,
+        zoning: "C-3",
+        landUse: "Commercial",
+        assessedValue: 5400000,
+        taxAmount: 118800,
+        dataSource: "bcad_records",
+      },
+      {
+        parcelId: "DC-2024-008888",
+        county: "Dallas",
+        addressLine1: "8888 Main St",
+        city: "Dallas",
+        state: "TX",
+        zipCode: "75201",
+        ownerName: "Downtown Dallas Properties Inc",
+        ownerType: "corporation",
+        phone: "(214) 555-0888",
+        email: "info@downtowndallas.com",
+        latitude: 32.7827,
+        longitude: -96.7968,
+        lotSizeSqft: 42000,
+        zoning: "CA-1(A)",
+        landUse: "Commercial",
+        assessedValue: 32000000,
+        taxAmount: 736000,
+        dataSource: "dcad_records",
+      },
+    ];
+
+    for (const owner of propertyOwners) {
+      await ctx.prisma.propertyOwner.upsert({
+        where: {
+          parcelId_county: {
+            parcelId: owner.parcelId,
+            county: owner.county,
+          },
+        },
+        update: {},
+        create: owner,
+      });
+      results.propertyOwners++;
+    }
+
+    // Engineers
+    const engineers = [
+      {
+        companyName: "Texas Geotechnical Engineering Inc",
+        contactName: "Dr. Robert Martinez",
+        phone: "(713) 555-2001",
+        email: "rmartinez@texasgeotech.com",
+        website: "https://www.texasgeotech.com",
+        addressLine1: "4500 Post Oak Blvd Suite 300",
+        city: "Houston",
+        county: "Harris",
+        state: "TX",
+        zipCode: "77027",
+        latitude: 29.7499,
+        longitude: -95.4605,
+        serviceRadiusMiles: 75,
+        specialties: ["soil", "geotechnical", "environmental"],
+        licenseNumber: "PE-87234",
+        licenseState: "TX",
+        certifications: ["PG", "ENV-SP"],
+        rating: 4.8,
+        reviewCount: 127,
+        isVerified: true,
+        isActive: true,
+      },
+      {
+        companyName: "Central Texas Soil Consultants",
+        contactName: "James Wilson, PG",
+        phone: "(512) 555-3001",
+        email: "jwilson@centraltexassoil.com",
+        website: "https://www.centraltexassoil.com",
+        addressLine1: "8000 Research Blvd Suite 200",
+        city: "Austin",
+        county: "Travis",
+        state: "TX",
+        zipCode: "78758",
+        latitude: 30.3755,
+        longitude: -97.7239,
+        serviceRadiusMiles: 80,
+        specialties: ["soil", "geotechnical", "environmental"],
+        licenseNumber: "PG-4521",
+        licenseState: "TX",
+        certifications: ["PG", "RG"],
+        rating: 4.6,
+        reviewCount: 94,
+        isVerified: true,
+        isActive: true,
+      },
+      {
+        companyName: "North Texas Geotechnical Services",
+        contactName: "William Brown, PE, PG",
+        phone: "(214) 555-4001",
+        email: "wbrown@ntxgeotech.com",
+        website: "https://www.ntxgeotech.com",
+        addressLine1: "5001 LBJ Fwy Suite 800",
+        city: "Dallas",
+        county: "Dallas",
+        state: "TX",
+        zipCode: "75244",
+        latitude: 32.9207,
+        longitude: -96.8209,
+        serviceRadiusMiles: 70,
+        specialties: ["geotechnical", "soil", "structural"],
+        licenseNumber: "PE-76234",
+        licenseState: "TX",
+        certifications: ["PG", "D.GE"],
+        rating: 4.7,
+        reviewCount: 143,
+        isVerified: true,
+        isActive: true,
+      },
+      {
+        companyName: "Alamo Geotechnical Engineers",
+        contactName: "Carlos Garcia, PE",
+        phone: "(210) 555-5001",
+        email: "cgarcia@alamogeotech.com",
+        website: "https://www.alamogeotech.com",
+        addressLine1: "100 NE Loop 410 Suite 500",
+        city: "San Antonio",
+        county: "Bexar",
+        state: "TX",
+        zipCode: "78216",
+        latitude: 29.5155,
+        longitude: -98.4636,
+        serviceRadiusMiles: 75,
+        specialties: ["geotechnical", "soil", "environmental"],
+        licenseNumber: "PE-84321",
+        licenseState: "TX",
+        certifications: ["PG", "GE"],
+        rating: 4.6,
+        reviewCount: 78,
+        isVerified: true,
+        isActive: true,
+      },
+      {
+        companyName: "Plano Engineering Associates",
+        contactName: "Kevin Wright, PE",
+        phone: "(972) 555-6001",
+        email: "kwright@planoeng.com",
+        website: "https://www.planoeng.com",
+        addressLine1: "5000 Legacy Dr Suite 250",
+        city: "Plano",
+        county: "Collin",
+        state: "TX",
+        zipCode: "75024",
+        latitude: 33.0762,
+        longitude: -96.8086,
+        serviceRadiusMiles: 45,
+        specialties: ["civil", "structural", "drainage"],
+        licenseNumber: "PE-91234",
+        licenseState: "TX",
+        certifications: ["LEED AP", "CFM"],
+        rating: 4.8,
+        reviewCount: 121,
+        isVerified: true,
+        isActive: true,
+      },
+    ];
+
+    for (const engineer of engineers) {
+      const id = engineer.companyName
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "-")
+        .slice(0, 25);
+      await ctx.prisma.engineerDirectory.upsert({
+        where: { id },
+        update: {},
+        create: { id, ...engineer },
+      });
+      results.engineers++;
+    }
+
+    return {
+      success: true,
+      message: `Seeded ${results.insights} insights, ${results.propertyOwners} property owners, ${results.engineers} engineers`,
+      ...results,
+    };
+  }),
 });

@@ -5,6 +5,7 @@
 
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -72,6 +73,28 @@ export function AppraiserSidebar({
   onClose,
 }: AppraiserSidebarProps) {
   const pathname = usePathname();
+  const [isClosing, setIsClosing] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  // Handle open/close with animation
+  useEffect(() => {
+    if (isMobileOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShouldRender(true);
+
+      setIsClosing(false);
+    }
+  }, [isMobileOpen]);
+
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    // Wait for animation to complete before calling onClose
+    setTimeout(() => {
+      setShouldRender(false);
+      setIsClosing(false);
+      onClose?.();
+    }, 200); // Match animation duration
+  }, [onClose]);
 
   // Fetch job counts for badges
   const { data: availableJobs } = trpc.job.available.useQuery(
@@ -100,7 +123,8 @@ export function AppraiserSidebar({
   }) => (
     <Link
       href={href}
-      onClick={onClose}
+      onClick={isMobileOpen ? handleClose : undefined}
+      aria-current={isActive ? "page" : undefined}
       className={cn(
         "group relative flex items-center gap-3 px-3 py-2.5",
         "text-sm font-mono uppercase tracking-wider",
@@ -141,7 +165,7 @@ export function AppraiserSidebar({
         {/* Mobile close button */}
         {isMobileOpen && (
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="lg:hidden p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
             aria-label="Close menu"
           >
@@ -155,7 +179,7 @@ export function AppraiserSidebar({
         <div className="grid grid-cols-2 gap-3">
           <Link
             href="/appraiser/jobs"
-            onClick={onClose}
+            onClick={isMobileOpen ? handleClose : undefined}
             className={cn(
               "flex flex-col items-center p-3",
               "bg-[var(--card)] border border-[var(--border)]",
@@ -173,7 +197,7 @@ export function AppraiserSidebar({
           </Link>
           <Link
             href="/appraiser/jobs?tab=active"
-            onClick={onClose}
+            onClick={isMobileOpen ? handleClose : undefined}
             className={cn(
               "flex flex-col items-center p-3",
               "bg-[var(--card)] border border-[var(--border)]",
@@ -193,13 +217,14 @@ export function AppraiserSidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4">
+      <nav className="flex-1 px-3 py-4" aria-label="Main navigation">
         {navigation.map((item) => {
+          // Precise active state detection
           const isActive =
             item.href === "/appraiser/jobs"
               ? pathname === "/appraiser/jobs" ||
                 pathname.startsWith("/appraiser/jobs/")
-              : pathname.startsWith(item.href);
+              : pathname === item.href;
 
           // Add badges for jobs
           let badge: number | undefined;
@@ -246,17 +271,25 @@ export function AppraiserSidebar({
       </aside>
 
       {/* Mobile Sidebar Overlay */}
-      {isMobileOpen && (
+      {shouldRender && (
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden"
-            onClick={onClose}
+            className={cn(
+              "fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden transition-opacity duration-200",
+              isClosing ? "opacity-0" : "opacity-100",
+            )}
+            onClick={handleClose}
             aria-hidden="true"
           />
 
           {/* Mobile Sidebar */}
-          <aside className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-[var(--border)] bg-[var(--background)] lg:hidden animate-slide-in-left">
+          <aside
+            className={cn(
+              "fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-[var(--border)] bg-[var(--background)] lg:hidden",
+              isClosing ? "animate-slide-out-left" : "animate-slide-in-left",
+            )}
+          >
             {sidebarContent}
           </aside>
         </>

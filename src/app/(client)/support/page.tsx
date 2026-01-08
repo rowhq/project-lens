@@ -85,7 +85,7 @@ export default function SupportPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Help & Support</h1>
-        <p className="text-gray-400 mt-1">
+        <p className="text-[var(--muted-foreground)] mt-1">
           Get help with TruPlat or contact our support team
         </p>
       </div>
@@ -94,7 +94,7 @@ export default function SupportPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <a
           href="mailto:support@truplat.com"
-          className="relative flex items-center gap-4 p-4 bg-gray-900 border border-gray-800 clip-notch hover:bg-gray-800 transition-colors group"
+          className="relative flex items-center gap-4 p-4 bg-[var(--card)] border border-[var(--border)] clip-notch hover:bg-[var(--secondary)] transition-colors group"
         >
           <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-blue-400" />
           <div className="p-3 bg-blue-500/10 clip-notch-sm border border-blue-500/30">
@@ -102,13 +102,15 @@ export default function SupportPage() {
           </div>
           <div>
             <p className="font-medium text-white">Email Support</p>
-            <p className="text-sm text-gray-400">support@truplat.com</p>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              support@truplat.com
+            </p>
           </div>
         </a>
 
         <a
           href="tel:+15125551000"
-          className="relative flex items-center gap-4 p-4 bg-gray-900 border border-gray-800 clip-notch hover:bg-gray-800 transition-colors group"
+          className="relative flex items-center gap-4 p-4 bg-[var(--card)] border border-[var(--border)] clip-notch hover:bg-[var(--secondary)] transition-colors group"
         >
           <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-green-400" />
           <div className="p-3 bg-green-500/10 clip-notch-sm border border-green-500/30">
@@ -116,13 +118,15 @@ export default function SupportPage() {
           </div>
           <div>
             <p className="font-medium text-white">Phone Support</p>
-            <p className="text-sm text-gray-400">(512) 555-1000</p>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              (512) 555-1000
+            </p>
           </div>
         </a>
 
         <a
           href="#"
-          className="relative flex items-center gap-4 p-4 bg-gray-900 border border-gray-800 clip-notch hover:bg-gray-800 transition-colors group"
+          className="relative flex items-center gap-4 p-4 bg-[var(--card)] border border-[var(--border)] clip-notch hover:bg-[var(--secondary)] transition-colors group"
         >
           <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-purple-400" />
           <div className="p-3 bg-purple-500/10 clip-notch-sm border border-purple-500/30">
@@ -131,15 +135,17 @@ export default function SupportPage() {
           <div className="flex items-center gap-2">
             <div>
               <p className="font-medium text-white">Documentation</p>
-              <p className="text-sm text-gray-400">View guides</p>
+              <p className="text-sm text-[var(--muted-foreground)]">
+                View guides
+              </p>
             </div>
-            <ExternalLink className="w-4 h-4 text-gray-500" />
+            <ExternalLink className="w-4 h-4 text-[var(--muted-foreground)]" />
           </div>
         </a>
       </div>
 
       {/* FAQs */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+      <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch p-6">
         <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
         <div className="flex items-center gap-3 mb-6">
           <HelpCircle className="w-5 h-5 text-lime-400" />
@@ -152,23 +158,25 @@ export default function SupportPage() {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="border border-gray-800 clip-notch-sm overflow-hidden"
+              className="border border-[var(--border)] clip-notch-sm overflow-hidden"
             >
               <button
                 onClick={() =>
                   setExpandedFaq(expandedFaq === index ? null : index)
                 }
-                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-800 transition-colors"
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-[var(--secondary)] transition-colors"
               >
                 <span className="font-medium text-white">{faq.question}</span>
                 {expandedFaq === index ? (
-                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                  <ChevronUp className="w-4 h-4 text-[var(--muted-foreground)]" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                  <ChevronDown className="w-4 h-4 text-[var(--muted-foreground)]" />
                 )}
               </button>
               {expandedFaq === index && (
-                <div className="px-4 pb-4 text-gray-400">{faq.answer}</div>
+                <div className="px-4 pb-4 text-[var(--muted-foreground)]">
+                  {faq.answer}
+                </div>
               )}
             </div>
           ))}
@@ -176,7 +184,7 @@ export default function SupportPage() {
       </div>
 
       {/* Contact Form */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+      <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch p-6">
         <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-blue-400" />
         <div className="flex items-center gap-3 mb-6">
           <MessageSquare className="w-5 h-5 text-blue-400" />
@@ -187,7 +195,7 @@ export default function SupportPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
+            <label className="block text-sm font-mono uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
               Subject
             </label>
             <select
@@ -195,7 +203,7 @@ export default function SupportPage() {
               onChange={(e) =>
                 setContactForm({ ...contactForm, subject: e.target.value })
               }
-              className="w-full px-4 py-2.5 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+              className="w-full px-4 py-2.5 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
             >
               <option value="">Select a topic</option>
               <option value="technical">Technical Issue</option>
@@ -208,7 +216,7 @@ export default function SupportPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
+            <label className="block text-sm font-mono uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
               Message
             </label>
             <textarea
@@ -217,7 +225,7 @@ export default function SupportPage() {
                 setContactForm({ ...contactForm, message: e.target.value })
               }
               placeholder="Describe your issue or question..."
-              className="w-full px-4 py-2.5 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 resize-none focus:outline-none focus:border-lime-400/50"
+              className="w-full px-4 py-2.5 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm placeholder:text-[var(--muted-foreground)] resize-none focus:outline-none focus:border-lime-400/50"
               rows={5}
             />
           </div>
@@ -225,7 +233,7 @@ export default function SupportPage() {
           <button
             type="submit"
             disabled={createTicket.isPending}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 transition-colors disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 transition-colors disabled:bg-[var(--muted)] disabled:text-[var(--muted-foreground)] disabled:cursor-not-allowed"
           >
             {createTicket.isPending ? (
               <>
@@ -243,15 +251,15 @@ export default function SupportPage() {
       </div>
 
       {/* Business Hours */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6 text-center">
-        <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-gray-600" />
-        <p className="text-gray-400">
+      <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch p-6 text-center">
+        <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-[var(--border)]" />
+        <p className="text-[var(--muted-foreground)]">
           <strong className="text-white font-mono uppercase tracking-wider">
             Support Hours:
           </strong>{" "}
           Monday - Friday, 8am - 6pm CT
         </p>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-[var(--muted-foreground)] mt-1">
           Emergency support available 24/7 for Enterprise customers
         </p>
       </div>

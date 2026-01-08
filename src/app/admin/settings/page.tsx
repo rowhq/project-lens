@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Loader2,
   RefreshCw,
+  ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
@@ -38,6 +39,11 @@ export default function SettingsPage() {
     "flags",
   );
   const [auditFilter, setAuditFilter] = useState<string>("");
+  const [auditCursor, setAuditCursor] = useState<string | undefined>(undefined);
+  const [cursorHistory, setCursorHistory] = useState<(string | undefined)[]>(
+    [],
+  );
+  const [isSeedingMarketplace, setIsSeedingMarketplace] = useState(false);
 
   // Queries
   const { data: featureFlags, refetch: refetchFlags } =
@@ -47,9 +53,63 @@ export default function SettingsPage() {
     refetch: refetchAudit,
     isLoading: isLoadingAudit,
   } = trpc.admin.auditLogs.useQuery({
-    limit: 50,
+    limit: 20,
     resource: auditFilter || undefined,
+    cursor: auditCursor,
   });
+
+  // Pagination handlers
+  const handleNextPage = () => {
+    if (auditLogs?.nextCursor) {
+      setCursorHistory((prev) => [...prev, auditCursor]);
+      setAuditCursor(auditLogs.nextCursor);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (cursorHistory.length > 0) {
+      const newHistory = [...cursorHistory];
+      const prevCursor = newHistory.pop();
+      setCursorHistory(newHistory);
+      setAuditCursor(prevCursor);
+    }
+  };
+
+  const handleResetPagination = () => {
+    setAuditCursor(undefined);
+    setCursorHistory([]);
+  };
+
+  const handleSeedMarketplace = async () => {
+    setIsSeedingMarketplace(true);
+    try {
+      const response = await fetch("/api/admin/seed-marketplace", {
+        method: "POST",
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Marketplace seeded",
+          description: `Created ${data.created} listings, ${data.updated} already existed. Total: ${data.total}`,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to seed marketplace",
+          variant: "destructive",
+        });
+      }
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to seed marketplace",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSeedingMarketplace(false);
+    }
+  };
 
   // Mutations
   const toggleFlag = trpc.admin.featureFlags.toggle.useMutation({
@@ -208,7 +268,10 @@ export default function SettingsPage() {
               <Filter className="w-4 h-4 text-gray-500" />
               <select
                 value={auditFilter}
-                onChange={(e) => setAuditFilter(e.target.value)}
+                onChange={(e) => {
+                  setAuditFilter(e.target.value);
+                  handleResetPagination();
+                }}
                 className="bg-gray-900 border border-gray-700 text-white px-3 py-2 font-mono text-sm clip-notch-sm focus:outline-none focus:border-lime-400/50"
               >
                 {resourceTypes.map((type) => (
@@ -313,6 +376,42 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
+
+            {/* Pagination Controls */}
+            {auditLogs?.items && auditLogs.items.length > 0 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-800 bg-gray-900/30">
+                <div className="text-xs text-gray-500 font-mono">
+                  Page {cursorHistory.length + 1} | {auditLogs.items.length}{" "}
+                  items
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePrevPage}
+                    disabled={cursorHistory.length === 0}
+                    className={cn(
+                      "px-3 py-1.5 font-mono text-xs uppercase border clip-notch-sm transition-colors",
+                      cursorHistory.length === 0
+                        ? "border-gray-800 text-gray-600 cursor-not-allowed"
+                        : "border-gray-700 text-gray-400 hover:text-white hover:border-gray-600",
+                    )}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={!auditLogs.nextCursor}
+                    className={cn(
+                      "px-3 py-1.5 font-mono text-xs uppercase border clip-notch-sm transition-colors",
+                      !auditLogs.nextCursor
+                        ? "border-gray-800 text-gray-600 cursor-not-allowed"
+                        : "border-gray-700 text-gray-400 hover:text-white hover:border-gray-600",
+                    )}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -325,39 +424,76 @@ export default function SettingsPage() {
             <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
-            <h3 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4">
-              System Status
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-mono text-sm uppercase tracking-wider text-gray-400">
+                System Status
+              </h3>
+              <span className="text-xs text-gray-600 font-mono">
+                Checked: {new Date().toLocaleTimeString()}
+              </span>
+            </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-gray-900 border border-gray-800 p-4 clip-notch-sm">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="w-2 h-2 bg-lime-400 rounded-full animate-pulse" />
+                  <span
+                    className={cn(
+                      "w-2 h-2 rounded-full",
+                      featureFlags
+                        ? "bg-lime-400 animate-pulse"
+                        : isLoadingAudit
+                          ? "bg-yellow-400"
+                          : "bg-red-400",
+                    )}
+                  />
                   <span className="font-mono text-xs uppercase text-gray-500">
                     Database
                   </span>
                 </div>
-                <p className="text-white font-semibold">Connected</p>
+                <p className="text-white font-semibold">
+                  {featureFlags
+                    ? "Connected"
+                    : isLoadingAudit
+                      ? "Checking..."
+                      : "Error"}
+                </p>
               </div>
 
               <div className="bg-gray-900 border border-gray-800 p-4 clip-notch-sm">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="w-2 h-2 bg-lime-400 rounded-full animate-pulse" />
+                  <span
+                    className={cn(
+                      "w-2 h-2 rounded-full",
+                      featureFlags || auditLogs
+                        ? "bg-lime-400 animate-pulse"
+                        : isLoadingAudit
+                          ? "bg-yellow-400"
+                          : "bg-red-400",
+                    )}
+                  />
                   <span className="font-mono text-xs uppercase text-gray-500">
                     API
                   </span>
                 </div>
-                <p className="text-white font-semibold">Operational</p>
+                <p className="text-white font-semibold">
+                  {featureFlags || auditLogs
+                    ? "Operational"
+                    : isLoadingAudit
+                      ? "Checking..."
+                      : "Error"}
+                </p>
               </div>
 
               <div className="bg-gray-900 border border-gray-800 p-4 clip-notch-sm">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="w-2 h-2 bg-lime-400 rounded-full animate-pulse" />
+                  <span className="w-2 h-2 bg-gray-500 rounded-full" />
                   <span className="font-mono text-xs uppercase text-gray-500">
                     Workers
                   </span>
                 </div>
-                <p className="text-white font-semibold">Running</p>
+                <p className="text-gray-400 font-semibold text-sm">
+                  N/A (Serverless)
+                </p>
               </div>
             </div>
           </div>
@@ -423,6 +559,45 @@ export default function SettingsPage() {
                   className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white font-mono text-sm uppercase clip-notch-sm transition-colors"
                 >
                   Clear
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Seed Data Section */}
+          <div className="relative bg-gray-950 border border-lime-900/50 p-6 clip-notch">
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
+
+            <div className="flex items-center gap-2 mb-4">
+              <ShoppingBag className="w-4 h-4 text-lime-400" />
+              <h3 className="font-mono text-sm uppercase tracking-wider text-lime-400">
+                Seed Data
+              </h3>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gray-900 border border-gray-800 clip-notch-sm">
+                <div>
+                  <p className="text-white font-medium">Seed Marketplace</p>
+                  <p className="text-gray-500 text-sm">
+                    Populate marketplace with 21 sample listings (Environmental,
+                    Surveys, Civil, Geotechnical, etc.)
+                  </p>
+                </div>
+                <button
+                  onClick={handleSeedMarketplace}
+                  disabled={isSeedingMarketplace}
+                  className="px-4 py-2 bg-lime-400/10 hover:bg-lime-400/20 text-lime-400 font-mono text-sm uppercase clip-notch-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isSeedingMarketplace ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Seeding...
+                    </>
+                  ) : (
+                    "Seed"
+                  )}
                 </button>
               </div>
 

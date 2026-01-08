@@ -21,17 +21,21 @@ export const SLA_CONFIG = {
   },
 } as const;
 
-// Pricing (base prices in USD - single source of truth)
+// Add-on service pricing (USD) - charged per service
+// Note: AI Reports are INCLUDED in subscription plans, not sold separately
 export const PRICING = {
-  AI_REPORT: 99,
-  ON_SITE: 249,
-  CERTIFIED: 499,
+  ON_SITE: 249, // On-Site Verification add-on
+  CERTIFIED: 499, // Certified Appraisal add-on
   RUSH_MULTIPLIER: 1.5,
 } as const;
 
-// Prices in cents for Stripe
+// Internal cost reference (not customer-facing pricing)
+export const INTERNAL_COSTS = {
+  AI_REPORT_COGS: 1, // ~$1 per AI report (API + compute)
+} as const;
+
+// Prices in cents for Stripe (add-on services only)
 export const PRICING_CENTS = {
-  AI_REPORT: PRICING.AI_REPORT * 100,
   ON_SITE: PRICING.ON_SITE * 100,
   CERTIFIED: PRICING.CERTIFIED * 100,
 } as const;
@@ -50,6 +54,12 @@ export const PAYOUT_RATES = {
 
 // Subscription plans
 export const SUBSCRIPTION_PLANS = {
+  FREE_TRIAL: {
+    name: "Free Trial",
+    price: 0,
+    reportsPerMonth: 5,
+    features: ["AI Reports", "Email Support", "Basic Analytics"],
+  },
   STARTER: {
     name: "Starter",
     price: 0,
@@ -131,10 +141,33 @@ export const PROPERTY_TYPE_LABELS: Record<string, string> = {
 };
 
 // Report type labels
+// Maps to Prisma ReportType enum: AI_REPORT, AI_REPORT_WITH_ONSITE, CERTIFIED_APPRAISAL
 export const REPORT_TYPE_LABELS: Record<string, string> = {
   AI_REPORT: "AI Report",
+  AI_REPORT_WITH_ONSITE: "AI Report + On-Site",
   ON_SITE: "On-Site Verification",
   CERTIFIED: "Certified Appraisal",
+  CERTIFIED_APPRAISAL: "Certified Appraisal",
+};
+
+// Job type labels
+// Maps to Prisma JobType enum: ONSITE_PHOTOS, CERTIFIED_APPRAISAL
+// Note: AI Reports don't create jobs - they're generated instantly
+export const JOB_TYPE_LABELS: Record<string, string> = {
+  ONSITE_PHOTOS: "On-Site Verification",
+  CERTIFIED_APPRAISAL: "Certified Appraisal",
+};
+
+/**
+ * ReportType to JobType mapping:
+ * - AI_REPORT → No job (AI-only, instant)
+ * - AI_REPORT_WITH_ONSITE → ONSITE_PHOTOS job
+ * - CERTIFIED_APPRAISAL → CERTIFIED_APPRAISAL job
+ */
+export const REPORT_TO_JOB_TYPE: Record<string, string | null> = {
+  AI_REPORT: null,
+  AI_REPORT_WITH_ONSITE: "ONSITE_PHOTOS",
+  CERTIFIED_APPRAISAL: "CERTIFIED_APPRAISAL",
 };
 
 // Status labels and colors

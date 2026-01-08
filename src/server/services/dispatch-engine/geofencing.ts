@@ -1,6 +1,73 @@
 /**
  * Geofencing Service
  * Handles geographic calculations and service area validation
+ *
+ * =====================================================================
+ * SCALABILITY NOTE: PostGIS Migration Required for Production Scale
+ * =====================================================================
+ *
+ * Current Implementation:
+ * - Geographic queries are performed in-memory using Haversine formula
+ * - All appraisers are loaded from database and filtered in Node.js
+ * - Works well for small datasets (<1000 appraisers)
+ *
+ * Recommended Future Implementation with PostGIS:
+ *
+ * 1. Add PostGIS extension to PostgreSQL:
+ *    CREATE EXTENSION postgis;
+ *
+ * 2. Add geography column to AppraiserProfile:
+ *    ALTER TABLE "AppraiserProfile"
+ *    ADD COLUMN location geography(Point, 4326);
+ *
+ *    UPDATE "AppraiserProfile"
+ *    SET location = ST_SetSRID(ST_MakePoint("homeBaseLng", "homeBaseLat"), 4326);
+ *
+ *    CREATE INDEX idx_appraiser_location
+ *    ON "AppraiserProfile" USING GIST(location);
+ *
+ * 3. Similarly for Property and Job tables:
+ *    ALTER TABLE "Property"
+ *    ADD COLUMN location geography(Point, 4326);
+ *
+ *    CREATE INDEX idx_property_location
+ *    ON "Property" USING GIST(location);
+ *
+ * 4. Replace in-memory filtering with spatial queries:
+ *
+ *    -- Find appraisers within X miles of a property
+ *    SELECT a.*
+ *    FROM "AppraiserProfile" a
+ *    WHERE ST_DWithin(
+ *      a.location,
+ *      ST_SetSRID(ST_MakePoint(-97.7431, 30.2672), 4326),
+ *      40234  -- 25 miles in meters
+ *    )
+ *    AND a."verificationStatus" = 'VERIFIED';
+ *
+ *    -- Calculate exact distance
+ *    SELECT
+ *      a.*,
+ *      ST_Distance(a.location, property.location) / 1609.34 AS distance_miles
+ *    FROM "AppraiserProfile" a
+ *    CROSS JOIN (
+ *      SELECT location FROM "Property" WHERE id = $propertyId
+ *    ) property;
+ *
+ * 5. Benefits of PostGIS:
+ *    - Index-based spatial queries (orders of magnitude faster)
+ *    - Scales to millions of records
+ *    - Accurate geographic calculations
+ *    - Support for complex geofencing (polygons, service areas)
+ *    - Proximity searches become O(log n) instead of O(n)
+ *
+ * 6. Prisma Integration:
+ *    - Use raw queries or Prisma extension for PostGIS
+ *    - Consider prisma-postgis-extension for type safety
+ *
+ * Migration Priority: HIGH for >10,000 appraisers or >1,000 concurrent jobs
+ * Estimated Effort: 2-3 days for implementation + testing
+ * =====================================================================
  */
 
 import type { AppraiserProfile } from "@prisma/client";
@@ -48,9 +115,14 @@ class GeofencingService {
    */
   async calculateDistance(
     point1: Coordinates,
-    point2: Coordinates
+    point2: Coordinates,
   ): Promise<number> {
-    return calculateDistanceMiles(point1.lat, point1.lng, point2.lat, point2.lng);
+    return calculateDistanceMiles(
+      point1.lat,
+      point1.lng,
+      point2.lat,
+      point2.lng,
+    );
   }
 
   /**
@@ -58,7 +130,7 @@ class GeofencingService {
    */
   async isWithinServiceArea(
     point: Coordinates,
-    appraiser: AppraiserProfile
+    appraiser: AppraiserProfile,
   ): Promise<boolean> {
     // Check coverage radius
     const serviceRadius = appraiser.coverageRadiusMiles || 25; // Default 25 miles
@@ -146,7 +218,7 @@ class GeofencingService {
    */
   async calculateMeetingPoint(
     point1: Coordinates,
-    point2: Coordinates
+    point2: Coordinates,
   ): Promise<Coordinates> {
     // Simple midpoint calculation
     return {
@@ -161,7 +233,7 @@ class GeofencingService {
   async estimateTravelTime(
     from: Coordinates,
     to: Coordinates,
-    trafficFactor: number = 1.0
+    trafficFactor: number = 1.0,
   ): Promise<number> {
     const distance = await this.calculateDistance(from, to);
 
@@ -201,29 +273,31 @@ class GeofencingService {
   /**
    * Get metro area for coordinates
    */
-  async getMetroArea(
-    point: Coordinates
-  ): Promise<string | null> {
-    const metroAreas: Record<string, { center: Coordinates; radius: number }> = {
-      "Austin-Round Rock": { center: { lat: 30.2672, lng: -97.7431 }, radius: 40 },
-      "Houston-The Woodlands-Sugar Land": {
-        center: { lat: 29.7604, lng: -95.3698 },
-        radius: 50,
-      },
-      "Dallas-Fort Worth-Arlington": {
-        center: { lat: 32.7767, lng: -96.797 },
-        radius: 50,
-      },
-      "San Antonio-New Braunfels": {
-        center: { lat: 29.4241, lng: -98.4936 },
-        radius: 35,
-      },
-      "El Paso": { center: { lat: 31.7619, lng: -106.485 }, radius: 25 },
-      "McAllen-Edinburg-Mission": {
-        center: { lat: 26.2034, lng: -98.2307 },
-        radius: 25,
-      },
-    };
+  async getMetroArea(point: Coordinates): Promise<string | null> {
+    const metroAreas: Record<string, { center: Coordinates; radius: number }> =
+      {
+        "Austin-Round Rock": {
+          center: { lat: 30.2672, lng: -97.7431 },
+          radius: 40,
+        },
+        "Houston-The Woodlands-Sugar Land": {
+          center: { lat: 29.7604, lng: -95.3698 },
+          radius: 50,
+        },
+        "Dallas-Fort Worth-Arlington": {
+          center: { lat: 32.7767, lng: -96.797 },
+          radius: 50,
+        },
+        "San Antonio-New Braunfels": {
+          center: { lat: 29.4241, lng: -98.4936 },
+          radius: 35,
+        },
+        "El Paso": { center: { lat: 31.7619, lng: -106.485 }, radius: 25 },
+        "McAllen-Edinburg-Mission": {
+          center: { lat: 26.2034, lng: -98.2307 },
+          radius: 25,
+        },
+      };
 
     for (const [metro, data] of Object.entries(metroAreas)) {
       const distance = await this.calculateDistance(point, data.center);

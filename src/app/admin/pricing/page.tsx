@@ -16,6 +16,9 @@ import {
   Settings,
   Percent,
   Loader2,
+  Calculator,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 
 interface ProductState {
@@ -59,6 +62,13 @@ export default function PricingPage() {
     jobType: "",
     county: "",
   });
+
+  // Price calculator state
+  const [calcBasePrice, setCalcBasePrice] = useState<number>(150);
+  const [calcPropertyType, setCalcPropertyType] = useState<string>("");
+  const [calcJobType, setCalcJobType] = useState<string>("");
+  const [calcCounty, setCalcCounty] = useState<string>("");
+  const [showCalculator, setShowCalculator] = useState(false);
 
   // Payout configuration state
   const [payoutSchedule, setPayoutSchedule] = useState<
@@ -223,13 +233,8 @@ export default function PricingPage() {
     return rule?.basePrice ? Number(rule.basePrice) : defaultPrice;
   };
 
+  // Add-on services only - AI Reports are included in subscription plans
   const products: ProductState[] = [
-    {
-      id: "ai_report",
-      name: "AI Report",
-      basePrice: getProductPrice("ai_report", PRICING.AI_REPORT),
-      turnaround: "5 minutes",
-    },
     {
       id: "on_site",
       name: "On-Site Verification",
@@ -261,6 +266,90 @@ export default function PricingPage() {
       originalRule: rule,
     }));
 
+  // Detect conflicting rules (same conditions)
+  const findConflicts = () => {
+    const conflicts: { rule1: string; rule2: string; overlap: string }[] = [];
+    for (let i = 0; i < pricingRules.length; i++) {
+      for (let j = i + 1; j < pricingRules.length; j++) {
+        const r1 = pricingRules[i].originalRule;
+        const r2 = pricingRules[j].originalRule;
+
+        // Check if rules have overlapping conditions
+        const samePropertyType =
+          r1.propertyType && r1.propertyType === r2.propertyType;
+        const sameJobType = r1.jobType && r1.jobType === r2.jobType;
+        const sameCounty = r1.county && r1.county === r2.county;
+
+        if (samePropertyType || sameJobType || sameCounty) {
+          const overlaps: string[] = [];
+          if (samePropertyType) overlaps.push(`Property: ${r1.propertyType}`);
+          if (sameJobType) overlaps.push(`Job: ${r1.jobType}`);
+          if (sameCounty) overlaps.push(`County: ${r1.county}`);
+
+          conflicts.push({
+            rule1: pricingRules[i].name,
+            rule2: pricingRules[j].name,
+            overlap: overlaps.join(", "),
+          });
+        }
+      }
+    }
+    return conflicts;
+  };
+
+  const ruleConflicts = findConflicts();
+
+  // Calculate price with rules applied
+  const calculatePrice = (
+    basePrice: number,
+    propertyType: string,
+    jobType: string,
+    county: string,
+  ) => {
+    let price = basePrice;
+    const appliedRules: { name: string; effect: string }[] = [];
+
+    // Apply multipliers first
+    pricingRules
+      .filter((r) => r.type === "MULTIPLIER")
+      .forEach((rule) => {
+        const r = rule.originalRule;
+        const matchesProperty =
+          !r.propertyType || r.propertyType === propertyType;
+        const matchesJob = !r.jobType || r.jobType === jobType;
+        const matchesCounty =
+          !r.county || r.county.toLowerCase() === county.toLowerCase();
+
+        if (matchesProperty && matchesJob && matchesCounty) {
+          const effect = price * (rule.value - 1);
+          price = price * rule.value;
+          appliedRules.push({
+            name: rule.name,
+            effect: `×${rule.value} (+$${effect.toFixed(2)})`,
+          });
+        }
+      });
+
+    // Then apply flat amounts
+    pricingRules
+      .filter((r) => r.type === "FLAT")
+      .forEach((rule) => {
+        const r = rule.originalRule;
+        const matchesProperty =
+          !r.propertyType || r.propertyType === propertyType;
+        const matchesJob = !r.jobType || r.jobType === jobType;
+        const matchesCounty =
+          !r.county || r.county.toLowerCase() === county.toLowerCase();
+
+        if (matchesProperty && matchesJob && matchesCounty) {
+          price += rule.value;
+          appliedRules.push({ name: rule.name, effect: `+$${rule.value}` });
+        }
+      });
+
+    return { finalPrice: price, appliedRules };
+  };
+
   // Transform payout rules from DB
   const payoutRates = (pricingRulesData || [])
     .filter((rule) => rule.ruleType === "payout" || rule.appraiserPayoutPercent)
@@ -271,31 +360,8 @@ export default function PricingPage() {
       percentage: rule.appraiserPayoutPercent || 50,
     }));
 
-  // Fallback for empty payout data
-  const displayPayoutRates =
-    payoutRates.length > 0
-      ? payoutRates
-      : [
-          {
-            id: "1",
-            jobType: "On-Site Verification",
-            basePayout: 75,
-            percentage: 50,
-          },
-          {
-            id: "2",
-            jobType: "Certified Appraisal",
-            basePayout: 225,
-            percentage: 50,
-          },
-          { id: "3", jobType: "Rush On-Site", basePayout: 100, percentage: 45 },
-          {
-            id: "4",
-            jobType: "Rush Certified",
-            basePayout: 300,
-            percentage: 45,
-          },
-        ];
+  // Use actual payout rates from DB (no fallback with fake data)
+  const displayPayoutRates = payoutRates;
 
   const handleSaveProduct = (productId: string) => {
     updateProductPrice.mutate({
@@ -385,10 +451,25 @@ export default function PricingPage() {
         </nav>
       </div>
 
-      {/* Product Prices */}
+      {/* Add-on Services Pricing */}
       {activeTab === "products" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-3 gap-6">
+          {/* Info banner */}
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-blue-400">Add-on Services</p>
+                <p className="text-sm text-blue-300/80">
+                  These services require a licensed appraiser and are charged
+                  per request. AI Reports are included in subscription plans and
+                  not listed here.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {products.map((product) => (
               <div
                 key={product.id}
@@ -403,7 +484,7 @@ export default function PricingPage() {
                       setEditingProductId(product.id);
                       setEditingProductPrice(product.basePrice);
                     }}
-                    className="p-2 hover:bg-[var(--muted)] rounded-lg"
+                    className="p-2.5 hover:bg-[var(--muted)] rounded-lg"
                   >
                     <Edit className="w-4 h-4 text-[var(--muted-foreground)]" />
                   </button>
@@ -420,6 +501,8 @@ export default function PricingPage() {
                         </span>
                         <input
                           type="number"
+                          min="0"
+                          step="0.01"
                           value={editingProductPrice}
                           onChange={(e) =>
                             setEditingProductPrice(
@@ -470,7 +553,41 @@ export default function PricingPage() {
       {/* Pricing Rules */}
       {activeTab === "rules" && (
         <div className="space-y-6">
-          <div className="flex justify-end">
+          {/* Conflict Warnings */}
+          {ruleConflicts.length > 0 && (
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
+                <div className="space-y-2">
+                  <p className="font-medium text-orange-400">
+                    Potential Rule Conflicts Detected ({ruleConflicts.length})
+                  </p>
+                  <ul className="text-sm text-orange-300 space-y-1">
+                    {ruleConflicts.map((conflict, i) => (
+                      <li key={i}>
+                        <strong>{conflict.rule1}</strong> and{" "}
+                        <strong>{conflict.rule2}</strong> overlap on:{" "}
+                        {conflict.overlap}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-xs text-orange-300/80">
+                    Overlapping rules will both be applied. Review to ensure
+                    this is intended behavior.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-4 sm:justify-between">
+            <button
+              onClick={() => setShowCalculator(!showCalculator)}
+              className="flex items-center gap-2 px-4 py-2 border border-[var(--border)] text-[var(--foreground)] rounded-lg hover:bg-[var(--secondary)]"
+            >
+              <Calculator className="w-4 h-4" />
+              {showCalculator ? "Hide Calculator" : "Price Calculator"}
+            </button>
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90"
@@ -480,23 +597,151 @@ export default function PricingPage() {
             </button>
           </div>
 
-          <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
-            <table className="w-full">
+          {/* Price Calculator */}
+          {showCalculator && (
+            <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+              <h3 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+                <Calculator className="w-5 h-5 text-[var(--primary)]" />
+                Price Calculator
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                    Base Price
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[var(--muted-foreground)]">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={calcBasePrice}
+                      onChange={(e) =>
+                        setCalcBasePrice(parseFloat(e.target.value) || 0)
+                      }
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                    Property Type
+                  </label>
+                  <select
+                    value={calcPropertyType}
+                    onChange={(e) => setCalcPropertyType(e.target.value)}
+                    className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
+                  >
+                    <option value="">Any</option>
+                    <option value="SINGLE_FAMILY">Single Family</option>
+                    <option value="MULTI_FAMILY">Multi Family</option>
+                    <option value="CONDO">Condo</option>
+                    <option value="TOWNHOUSE">Townhouse</option>
+                    <option value="COMMERCIAL">Commercial</option>
+                    <option value="LAND">Land</option>
+                    <option value="MIXED_USE">Mixed Use</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                    Job Type
+                  </label>
+                  <select
+                    value={calcJobType}
+                    onChange={(e) => setCalcJobType(e.target.value)}
+                    className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
+                  >
+                    <option value="">Any</option>
+                    <option value="ONSITE_PHOTOS">On-Site Photos</option>
+                    <option value="CERTIFIED_APPRAISAL">
+                      Certified Appraisal
+                    </option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                    County
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Harris"
+                    value={calcCounty}
+                    onChange={(e) => setCalcCounty(e.target.value)}
+                    className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
+                  />
+                </div>
+              </div>
+
+              {/* Calculation Result */}
+              {(() => {
+                const result = calculatePrice(
+                  calcBasePrice,
+                  calcPropertyType,
+                  calcJobType,
+                  calcCounty,
+                );
+                return (
+                  <div className="bg-[var(--secondary)] rounded-lg p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div className="space-y-2">
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                          Base Price
+                        </p>
+                        <p className="text-lg font-medium text-[var(--foreground)]">
+                          ${calcBasePrice.toFixed(2)}
+                        </p>
+                        {result.appliedRules.length > 0 ? (
+                          <ul className="text-sm text-[var(--muted-foreground)] space-y-1">
+                            {result.appliedRules.map((r, i) => (
+                              <li key={i}>
+                                {r.name}: {r.effect}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-[var(--muted-foreground)]">
+                            No rules applied
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                          Final Price
+                        </p>
+                        <p className="text-3xl font-bold text-[var(--primary)]">
+                          ${result.finalPrice.toFixed(2)}
+                        </p>
+                        {result.appliedRules.length > 0 && (
+                          <p className="text-sm text-[var(--muted-foreground)]">
+                            +${(result.finalPrice - calcBasePrice).toFixed(2)}{" "}
+                            from rules
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-x-auto">
+            <table className="w-full min-w-[600px]">
               <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                     Rule Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                  <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                     Type
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                     Value
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                     Condition
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                  <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase"></th>
@@ -518,7 +763,7 @@ export default function PricingPage() {
                       <td className="px-6 py-4 font-medium text-[var(--foreground)]">
                         {rule.name}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="hidden sm:table-cell px-6 py-4">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
                             rule.type === "MULTIPLIER"
@@ -578,10 +823,10 @@ export default function PricingPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 font-mono text-sm text-[var(--muted-foreground)]">
+                      <td className="hidden md:table-cell px-6 py-4 font-mono text-sm text-[var(--muted-foreground)]">
                         {rule.condition}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="hidden sm:table-cell px-6 py-4">
                         <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-medium">
                           Active
                         </span>
@@ -597,13 +842,13 @@ export default function PricingPage() {
                                   : { basePrice: rule.value }),
                               });
                             }}
-                            className="p-2 hover:bg-[var(--muted)] rounded-lg"
+                            className="p-2.5 hover:bg-[var(--muted)] rounded-lg"
                           >
                             <Edit className="w-4 h-4 text-[var(--muted-foreground)]" />
                           </button>
                           <button
                             onClick={() => setShowDeleteConfirm(rule.id)}
-                            className="p-2 hover:bg-red-500/10 rounded-lg"
+                            className="p-2.5 hover:bg-red-500/10 rounded-lg"
                           >
                             <Trash2 className="w-4 h-4 text-red-400" />
                           </button>
@@ -632,7 +877,7 @@ export default function PricingPage() {
       {/* Appraiser Payouts */}
       {activeTab === "payouts" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
               <h3 className="font-semibold text-[var(--foreground)] mb-4">
                 Payout Configuration
@@ -665,6 +910,8 @@ export default function PricingPage() {
                     <span className="text-[var(--muted-foreground)]">$</span>
                     <input
                       type="number"
+                      min="0"
+                      step="0.01"
                       value={minPayoutAmount}
                       onChange={(e) => {
                         setMinPayoutAmount(parseFloat(e.target.value) || 0);
@@ -785,132 +1032,153 @@ export default function PricingPage() {
                 Job Type Payout Rates
               </h3>
             </div>
-            <table className="w-full">
-              <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
-                    Job Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
-                    Base Payout
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
-                    % of Price
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
-                    Platform Fee
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {displayPayoutRates.map((rate) => (
-                  <tr key={rate.id}>
-                    <td className="px-6 py-4 font-medium text-[var(--foreground)]">
-                      {rate.jobType}
-                    </td>
-                    <td className="px-6 py-4">
-                      {editingPayoutRate?.id === rate.id ? (
-                        <div className="flex items-center gap-1">
-                          <span className="text-[var(--muted-foreground)]">
-                            $
-                          </span>
-                          <input
-                            type="number"
-                            value={editingPayoutRate.basePayout}
-                            onChange={(e) =>
-                              setEditingPayoutRate({
-                                ...editingPayoutRate,
-                                basePayout: parseFloat(e.target.value) || 0,
-                              })
-                            }
-                            className="w-20 px-2 py-1 border border-[var(--border)] rounded bg-[var(--background)] text-[var(--foreground)]"
-                          />
-                        </div>
-                      ) : (
-                        <span className="text-[var(--foreground)]">
-                          ${rate.basePayout}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      {editingPayoutRate?.id === rate.id ? (
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={editingPayoutRate.percentage}
-                            onChange={(e) =>
-                              setEditingPayoutRate({
-                                ...editingPayoutRate,
-                                percentage: parseFloat(e.target.value) || 0,
-                              })
-                            }
-                            className="w-16 px-2 py-1 border border-[var(--border)] rounded bg-[var(--background)] text-[var(--foreground)]"
-                          />
-                          <span className="text-[var(--muted-foreground)]">
-                            %
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-[var(--foreground)]">
-                          {rate.percentage}%
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-[var(--muted-foreground)]">
-                      {editingPayoutRate?.id === rate.id
-                        ? `${100 - editingPayoutRate.percentage}%`
-                        : `${100 - rate.percentage}%`}
-                    </td>
-                    <td className="px-6 py-4">
-                      {editingPayoutRate?.id === rate.id ? (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              updatePayoutRate.mutate({
-                                id: rate.id,
-                                basePayout: editingPayoutRate.basePayout,
-                                percentage: editingPayoutRate.percentage,
-                              });
-                              setEditingPayoutRate(null);
-                            }}
-                            disabled={updatePayoutRate.isPending}
-                            className="p-1 text-green-400 hover:bg-green-500/10 rounded disabled:opacity-50"
-                          >
-                            {updatePayoutRate.isPending ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Check className="w-4 h-4" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => setEditingPayoutRate(null)}
-                            className="p-1 text-red-400 hover:bg-red-500/10 rounded"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() =>
-                            setEditingPayoutRate({
-                              id: rate.id,
-                              basePayout: rate.basePayout,
-                              percentage: rate.percentage,
-                            })
-                          }
-                          className="p-2 hover:bg-[var(--muted)] rounded-lg"
-                        >
-                          <Edit className="w-4 h-4 text-[var(--muted-foreground)]" />
-                        </button>
-                      )}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px]">
+                <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                      Job Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                      Base Payout
+                    </th>
+                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                      % of Price
+                    </th>
+                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+                      Platform Fee
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {displayPayoutRates.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-6 py-12 text-center text-[var(--muted-foreground)]"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <Info className="w-8 h-8 text-[var(--muted-foreground)]/50" />
+                          <p>No payout rates configured</p>
+                          <p className="text-sm">
+                            Create pricing rules with payout percentages to
+                            define appraiser compensation.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : null}
+                  {displayPayoutRates.map((rate) => (
+                    <tr key={rate.id}>
+                      <td className="px-6 py-4 font-medium text-[var(--foreground)]">
+                        {rate.jobType}
+                      </td>
+                      <td className="px-6 py-4">
+                        {editingPayoutRate?.id === rate.id ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-[var(--muted-foreground)]">
+                              $
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={editingPayoutRate.basePayout}
+                              onChange={(e) =>
+                                setEditingPayoutRate({
+                                  ...editingPayoutRate,
+                                  basePayout: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                              className="w-20 px-2 py-1 border border-[var(--border)] rounded bg-[var(--background)] text-[var(--foreground)]"
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-[var(--foreground)]">
+                            ${rate.basePayout}
+                          </span>
+                        )}
+                      </td>
+                      <td className="hidden sm:table-cell px-6 py-4">
+                        {editingPayoutRate?.id === rate.id ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={editingPayoutRate.percentage}
+                              onChange={(e) =>
+                                setEditingPayoutRate({
+                                  ...editingPayoutRate,
+                                  percentage: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                              className="w-16 px-2 py-1 border border-[var(--border)] rounded bg-[var(--background)] text-[var(--foreground)]"
+                            />
+                            <span className="text-[var(--muted-foreground)]">
+                              %
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[var(--foreground)]">
+                            {rate.percentage}%
+                          </span>
+                        )}
+                      </td>
+                      <td className="hidden sm:table-cell px-6 py-4 text-[var(--muted-foreground)]">
+                        {editingPayoutRate?.id === rate.id
+                          ? `${100 - editingPayoutRate.percentage}%`
+                          : `${100 - rate.percentage}%`}
+                      </td>
+                      <td className="px-6 py-4">
+                        {editingPayoutRate?.id === rate.id ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                updatePayoutRate.mutate({
+                                  id: rate.id,
+                                  basePayout: editingPayoutRate.basePayout,
+                                  percentage: editingPayoutRate.percentage,
+                                });
+                                setEditingPayoutRate(null);
+                              }}
+                              disabled={updatePayoutRate.isPending}
+                              className="p-1 text-green-400 hover:bg-green-500/10 rounded disabled:opacity-50"
+                            >
+                              {updatePayoutRate.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Check className="w-4 h-4" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => setEditingPayoutRate(null)}
+                              className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              setEditingPayoutRate({
+                                id: rate.id,
+                                basePayout: rate.basePayout,
+                                percentage: rate.percentage,
+                              })
+                            }
+                            className="p-2.5 hover:bg-[var(--muted)] rounded-lg"
+                          >
+                            <Edit className="w-4 h-4 text-[var(--muted-foreground)]" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -925,7 +1193,7 @@ export default function PricingPage() {
               </h2>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-2 hover:bg-[var(--muted)] rounded-lg"
+                className="p-2.5 hover:bg-[var(--muted)] rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -970,6 +1238,7 @@ export default function PricingPage() {
                   </label>
                   <input
                     type="number"
+                    min="0"
                     step="0.01"
                     placeholder={
                       newRule.type === "MULTIPLIER" ? "e.g., 1.25" : "e.g., 50"

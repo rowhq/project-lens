@@ -6,16 +6,17 @@ import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
 import { useCartStore } from "@/shared/lib/cart-store";
 import {
-  Search,
   FileText,
   MapPin,
   Eye,
   ShoppingCart,
-  ChevronDown,
   Loader2,
   Calendar,
   CheckCircle,
 } from "lucide-react";
+import { SearchInput } from "@/shared/components/ui/SearchInput";
+import { FilterSelect } from "@/shared/components/ui/FilterSelect";
+import { EmptyState } from "@/shared/components/ui/EmptyState";
 
 // Category configuration with badge-style colors (transparent bg, colored border/text)
 const CATEGORY_CONFIG: Record<
@@ -90,7 +91,7 @@ const CATEGORY_CONFIG: Record<
   },
   OTHER: {
     label: "Other",
-    textColor: "text-gray-400",
+    textColor: "text-[var(--muted-foreground)]",
     bgColor: "bg-gray-400/10",
     borderColor: "border-gray-400/30",
   },
@@ -113,25 +114,39 @@ export default function MarketplacePage() {
   const addItem = useCartStore((state) => state.addItem);
   const hasItem = useCartStore((state) => state.hasItem);
 
-  const { data: listings, isLoading } = trpc.marketplace.list.useQuery({
-    limit: 20,
-    studyCategory: (category || undefined) as
-      | "APPRAISAL_REPORT"
-      | "SOIL_STUDY"
-      | "DRAINAGE_STUDY"
-      | "CIVIL_ENGINEERING"
-      | "ENVIRONMENTAL"
-      | "GEOTECHNICAL"
-      | "STRUCTURAL"
-      | "FLOOD_RISK"
-      | "ZONING_ANALYSIS"
-      | "SURVEY"
-      | "TITLE_REPORT"
-      | "OTHER"
-      | undefined,
-    search: search || undefined,
-    sortBy: "newest",
-  });
+  const {
+    data: listingsData,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = trpc.marketplace.list.useInfiniteQuery(
+    {
+      limit: 12,
+      studyCategory: (category || undefined) as
+        | "APPRAISAL_REPORT"
+        | "SOIL_STUDY"
+        | "DRAINAGE_STUDY"
+        | "CIVIL_ENGINEERING"
+        | "ENVIRONMENTAL"
+        | "GEOTECHNICAL"
+        | "STRUCTURAL"
+        | "FLOOD_RISK"
+        | "ZONING_ANALYSIS"
+        | "SURVEY"
+        | "TITLE_REPORT"
+        | "OTHER"
+        | undefined,
+      search: search || undefined,
+      sortBy: "newest",
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    },
+  );
+
+  // Flatten pages into single array
+  const listings = listingsData?.pages.flatMap((page) => page.items) ?? [];
 
   const handleAddToCart = (
     e: React.MouseEvent,
@@ -200,7 +215,7 @@ export default function MarketplacePage() {
         <h1 className="text-3xl font-bold text-[var(--foreground)]">
           DD Marketplace
         </h1>
-        <p className="text-gray-400 mt-1">
+        <p className="text-[var(--muted-foreground)] mt-1">
           Purchase unused Due Diligence assets - Phase I ESAs, surveys, civil
           plans, and more
         </p>
@@ -209,32 +224,20 @@ export default function MarketplacePage() {
       {/* Search and Filter */}
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search */}
-        <div className="flex-1 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search by title, location, tags..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-gray-900 border border-gray-700 clip-notch text-white placeholder-gray-500 focus:outline-none focus:border-lime-400/50"
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Search by title, location, tags..."
+          showShortcut
+          debounceMs={300}
+        />
 
         {/* Category Filter */}
-        <div className="relative">
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value as StudyCategory | "")}
-            className="appearance-none px-4 py-3 pr-10 bg-gray-900 border border-gray-700 clip-notch text-white focus:outline-none focus:border-lime-400/50 min-w-[180px]"
-          >
-            {CATEGORY_OPTIONS.map((cat) => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-        </div>
+        <FilterSelect
+          value={category}
+          onChange={(value) => setCategory(value as StudyCategory | "")}
+          options={CATEGORY_OPTIONS}
+        />
       </div>
 
       {/* Listings Grid */}
@@ -242,121 +245,152 @@ export default function MarketplacePage() {
         <div className="flex justify-center py-16">
           <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
         </div>
-      ) : listings?.items?.length === 0 ? (
-        <div className="text-center py-16">
-          <FileText className="w-16 h-16 mx-auto text-gray-600" />
-          <p className="mt-4 text-xl text-gray-400">No listings found</p>
-          <p className="text-gray-500">Try adjusting your search or filters</p>
-        </div>
+      ) : listings.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title="No listings found"
+          description="Try adjusting your search or filters"
+          action={{
+            label: "Clear Filters",
+            onClick: () => {
+              setSearch("");
+              setCategory("");
+            },
+          }}
+        />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {listings?.items?.map((listing) => {
-            const categoryConfig = getCategoryConfig(listing.studyCategory);
-            const propertyData = listing.report?.appraisalRequest?.property;
-            const location = propertyData
-              ? `${propertyData.city}, ${propertyData.state}`
-              : listing.city && listing.state
-                ? `${listing.city}, ${listing.state}`
-                : listing.county
-                  ? `${listing.county} County, TX`
-                  : "Texas";
-            const inCart = hasItem(listing.id);
-            const dateCreated = formatDate(listing.createdAt);
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {listings.map((listing) => {
+              const categoryConfig = getCategoryConfig(listing.studyCategory);
+              const propertyData = listing.report?.appraisalRequest?.property;
+              const location = propertyData
+                ? `${propertyData.city}, ${propertyData.state}`
+                : listing.city && listing.state
+                  ? `${listing.city}, ${listing.state}`
+                  : listing.county
+                    ? `${listing.county} County, TX`
+                    : "Texas";
+              const inCart = hasItem(listing.id);
+              const dateCreated = formatDate(listing.createdAt);
 
-            return (
-              <div
-                key={listing.id}
-                className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden hover:border-lime-400/50 transition-all"
-              >
-                {/* L-Bracket Corners */}
-                <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-                <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
-
-                {/* Category Header - Badge style */}
+              return (
                 <div
-                  className={`px-4 py-2 border-b ${categoryConfig.borderColor} ${categoryConfig.bgColor}`}
+                  key={listing.id}
+                  className="relative bg-[var(--card)] border border-[var(--border)] clip-notch overflow-hidden hover:border-lime-400/50 transition-all"
                 >
-                  <span
-                    className={`font-mono text-sm uppercase tracking-wider ${categoryConfig.textColor}`}
+                  {/* L-Bracket Corners */}
+                  <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+                  <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)]" />
+
+                  {/* Category Header - Badge style */}
+                  <div
+                    className={`px-4 py-2 border-b ${categoryConfig.borderColor} ${categoryConfig.bgColor}`}
                   >
-                    {categoryConfig.label}
-                  </span>
-                </div>
-
-                {/* Content */}
-                <div className="p-5 space-y-3">
-                  {/* Title */}
-                  <h3 className="text-lg font-semibold text-white line-clamp-2 min-h-[3.5rem]">
-                    {listing.title}
-                  </h3>
-
-                  {/* Description - truncated */}
-                  {listing.description && (
-                    <p className="text-sm text-gray-400 line-clamp-2">
-                      {listing.description}
-                    </p>
-                  )}
-
-                  {/* Meta info row */}
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {location}
+                    <span
+                      className={`font-mono text-sm uppercase tracking-wider ${categoryConfig.textColor}`}
+                    >
+                      {categoryConfig.label}
                     </span>
-                    {dateCreated && (
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {dateCreated}
-                      </span>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-5 space-y-3">
+                    {/* Title */}
+                    <h3 className="text-lg font-semibold text-white line-clamp-2 min-h-[3.5rem]">
+                      {listing.title}
+                    </h3>
+
+                    {/* Description - truncated */}
+                    {listing.description && (
+                      <p className="text-sm text-[var(--muted-foreground)] line-clamp-2">
+                        {listing.description}
+                      </p>
                     )}
-                  </div>
 
-                  {/* Stats row */}
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Eye className="w-4 h-4" />
-                      {listing.viewCount || 0} views
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4" />
-                      {listing._count?.purchases || 0} sold
-                    </span>
-                  </div>
+                    {/* Meta info row */}
+                    <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {location}
+                      </span>
+                      {dateCreated && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {dateCreated}
+                        </span>
+                      )}
+                    </div>
 
-                  {/* Price */}
-                  <div className="pt-3 border-t border-gray-800">
-                    <span className="text-2xl font-bold text-white font-mono">
-                      ${Number(listing.price).toLocaleString()}
-                    </span>
-                    <span className="text-gray-500 text-sm ml-2">USD</span>
-                  </div>
+                    {/* Stats row */}
+                    <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        {listing.viewCount || 0} views
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" />
+                        {listing._count?.purchases || 0} sold
+                      </span>
+                    </div>
 
-                  {/* Action Buttons - Brand aligned */}
-                  <div className="flex gap-3 pt-2">
-                    <Link
-                      href={`/marketplace/listing/${listing.id}`}
-                      className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch text-center text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors"
-                    >
-                      View Details
-                    </Link>
-                    <button
-                      onClick={(e) => handleAddToCart(e, listing)}
-                      disabled={inCart}
-                      className={`flex-1 px-4 py-2.5 clip-notch font-mono text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                        inCart
-                          ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                          : "bg-lime-400 text-black hover:bg-lime-300"
-                      }`}
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      {inCart ? "In Cart" : "Add to Cart"}
-                    </button>
+                    {/* Price */}
+                    <div className="pt-3 border-t border-[var(--border)]">
+                      <span className="text-2xl font-bold text-white font-mono">
+                        ${Number(listing.price).toLocaleString()}
+                      </span>
+                      <span className="text-[var(--muted-foreground)] text-sm ml-2">
+                        USD
+                      </span>
+                    </div>
+
+                    {/* Action Buttons - Brand aligned */}
+                    <div className="flex gap-3 pt-2">
+                      <Link
+                        href={`/marketplace/listing/${listing.id}`}
+                        className="flex-1 px-4 py-2.5 border border-[var(--border)] clip-notch text-center text-[var(--foreground)] font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] hover:border-lime-400/50 transition-colors"
+                      >
+                        View Details
+                      </Link>
+                      <button
+                        onClick={(e) => handleAddToCart(e, listing)}
+                        disabled={inCart}
+                        className={`flex-1 px-4 py-2.5 clip-notch font-mono text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
+                          inCart
+                            ? "bg-gray-700 text-[var(--muted-foreground)] cursor-not-allowed"
+                            : "bg-lime-400 text-black hover:bg-lime-300"
+                        }`}
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                        {inCart ? "In Cart" : "Add to Cart"}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+
+          {/* Load More Button */}
+          {hasNextPage && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="px-6 py-3 border border-[var(--border)] text-[var(--foreground)] font-mono text-sm uppercase tracking-wider clip-notch hover:bg-[var(--muted)] hover:border-lime-400/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Load More"
+                )}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

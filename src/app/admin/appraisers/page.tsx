@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
+import { useDebounce } from "@/shared/hooks/useDebounce";
 import {
   Search,
   Filter,
@@ -27,8 +28,10 @@ type VerificationStatus =
 export default function AppraisersPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [statusFilter, setStatusFilter] = useState<VerificationStatus>("ALL");
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [pageLimit, setPageLimit] = useState(25);
 
   // Fixed: Use nested router path - admin.appraisers.list
   const {
@@ -36,13 +39,14 @@ export default function AppraisersPage() {
     isLoading,
     refetch,
   } = trpc.admin.appraisers.list.useQuery({
-    limit: 50,
+    limit: pageLimit,
     status:
       statusFilter === "ALL"
         ? undefined
         : (statusFilter as "PENDING" | "VERIFIED" | "EXPIRED" | "REVOKED"),
   });
   const appraisers = appraisersData?.items;
+  const hasMore = appraisersData?.nextCursor !== undefined;
 
   // Fixed: Use appraiser.license.verify for status updates
   const updateStatus = trpc.appraiser.license.verify.useMutation({
@@ -124,10 +128,18 @@ export default function AppraisersPage() {
 
   const filteredAppraisers = appraisers?.filter(
     (a) =>
-      a.user?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.user?.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.licenseNumber?.toLowerCase().includes(searchQuery.toLowerCase()),
+      a.user?.firstName
+        ?.toLowerCase()
+        .includes(debouncedSearchQuery.toLowerCase()) ||
+      a.user?.lastName
+        ?.toLowerCase()
+        .includes(debouncedSearchQuery.toLowerCase()) ||
+      a.user?.email
+        ?.toLowerCase()
+        .includes(debouncedSearchQuery.toLowerCase()) ||
+      a.licenseNumber
+        ?.toLowerCase()
+        .includes(debouncedSearchQuery.toLowerCase()),
   );
 
   return (
@@ -267,19 +279,19 @@ export default function AppraisersPage() {
 
       {/* Appraisers Table */}
       <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden overflow-x-auto">
-        <table className="w-full min-w-[600px]">
+        <table className="w-full">
           <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Appraiser
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+              <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 License
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+              <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Location
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+              <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Stats
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
@@ -343,22 +355,22 @@ export default function AppraisersPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="hidden md:table-cell px-6 py-4">
                       <p className="font-mono text-sm text-[var(--foreground)]">
                         {appraiser.licenseNumber || "-"}
                       </p>
                       <p className="text-xs text-[var(--muted-foreground)]">
-                        {appraiser.licenseType?.replace("_", " ")} •{" "}
+                        {appraiser.licenseType?.replace("_", " ")} |{" "}
                         {appraiser.licenseState}
                       </p>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="hidden lg:table-cell px-6 py-4">
                       <div className="flex items-center gap-1 text-sm text-[var(--muted-foreground)]">
                         <MapPin className="w-4 h-4" />
                         {appraiser.coverageRadiusMiles} mile radius
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="hidden md:table-cell px-6 py-4">
                       <div className="flex items-center gap-4 text-sm">
                         <span className="flex items-center gap-1">
                           <Star className="w-4 h-4 text-yellow-500" />
@@ -387,7 +399,7 @@ export default function AppraisersPage() {
                                 : appraiser.userId,
                             )
                           }
-                          className="p-2 hover:bg-[var(--muted)] rounded-lg"
+                          className="p-2.5 hover:bg-[var(--muted)] rounded-lg"
                         >
                           <MoreVertical className="w-4 h-4 text-[var(--muted-foreground)]" />
                         </button>
@@ -466,6 +478,24 @@ export default function AppraisersPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {filteredAppraisers && filteredAppraisers.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-3 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Showing {filteredAppraisers.length} appraiser
+            {filteredAppraisers.length !== 1 ? "s" : ""}
+          </p>
+          {hasMore && (
+            <button
+              onClick={() => setPageLimit((prev) => prev + 25)}
+              className="px-4 py-2 text-sm font-medium text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-colors"
+            >
+              Load More
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

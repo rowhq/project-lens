@@ -99,12 +99,12 @@ export function FeatureShowcase() {
           <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
             Platform Capabilities
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-white">
+          <h2 className="text-3xl md:text-4xl font-bold text-[var(--foreground)]">
             Everything You Need for
             <br />
             <span className="text-lime-400">Property Intelligence</span>
           </h2>
-          <p className="mt-4 text-lg text-gray-400 max-w-2xl mx-auto">
+          <p className="mt-4 text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto">
             TruPlat combines cutting-edge AI with professional appraisal
             expertise to deliver the most comprehensive property valuation
             platform.
@@ -125,7 +125,7 @@ export function FeatureShowcase() {
               <motion.div
                 key={feature.title}
                 variants={itemVariants}
-                className="group relative bg-gray-900 clip-notch border border-gray-800 p-6 hover:border-lime-500/50 transition-all"
+                className="group relative bg-[var(--card)] clip-notch border border-[var(--border)] p-6 hover:border-lime-500/50 transition-all"
                 style={{
                   transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
                 }}
@@ -138,10 +138,12 @@ export function FeatureShowcase() {
                   <div className="w-12 h-12 bg-lime-500/10 border border-lime-500/30 clip-notch-sm flex items-center justify-center mb-4">
                     <Icon className="w-6 h-6 text-lime-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-sm text-gray-400">{feature.description}</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    {feature.description}
+                  </p>
                 </div>
               </motion.div>
             );

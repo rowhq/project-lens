@@ -396,7 +396,7 @@ model Job {
 
   // Status & SLA
   status        JobStatus @default(PENDING_DISPATCH)
-  statusHistory Json      @default("[]")
+  statusHistory Json      @default("[]") // Contains breach info with slaBreached flag
   slaDueAt      DateTime
   dispatchedAt  DateTime?
   acceptedAt    DateTime?
@@ -420,11 +420,19 @@ model Job {
   evidence Evidence[]
   disputes Dispute[]
 
+  // Single column indices
   @@index([status])
   @@index([assignedAppraiserId])
   @@index([slaDueAt])
   @@index([organizationId])
   @@index([jobType])
+  @@index([createdAt])
+
+  // Composite indices for common queries
+  @@index([status, assignedAppraiserId]) // My active jobs query
+  @@index([status, organizationId]) // Org jobs by status
+  @@index([status, slaDueAt]) // SLA monitoring
+  @@index([assignedAppraiserId, status, slaDueAt]) // Appraiser workload
 }
 
 model Evidence {
@@ -516,6 +524,9 @@ model AppraiserProfile {
   @@index([verificationStatus])
   @@index([coverageRadiusMiles])
   @@index([homeBaseLat, homeBaseLng])
+  @@index([licenseExpiry])
+  // Composite index for matching verified appraisers with valid licenses
+  @@index([verificationStatus, licenseExpiry])
 }
 
 model Payment {

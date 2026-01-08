@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, memo } from "react";
 import { trpc } from "@/shared/lib/trpc";
 import {
   FileText,
@@ -18,6 +19,8 @@ import Link from "next/link";
 import { AreaChart, DonutChart } from "@/shared/components/charts";
 import { cn } from "@/shared/lib/utils";
 
+type DateRange = "7d" | "30d" | "90d" | "ytd";
+
 function formatTimeAgo(date: Date): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -32,7 +35,7 @@ function formatTimeAgo(date: Date): string {
 }
 
 // Stat Card Component - Ledger Style
-function StatCard({
+const StatCard = memo(function StatCard({
   label,
   value,
   subtext,
@@ -93,10 +96,10 @@ function StatCard({
       </p>
     </div>
   );
-}
+});
 
 // SLA Status Item
-function SLAStatusItem({
+const SLAStatusItem = memo(function SLAStatusItem({
   label,
   count,
   color,
@@ -123,10 +126,10 @@ function SLAStatusItem({
       <span className="font-mono font-bold text-white">{count}</span>
     </div>
   );
-}
+});
 
 // Quick Action Button
-function QuickActionCard({
+const QuickActionCard = memo(function QuickActionCard({
   label,
   href,
   icon: Icon,
@@ -155,29 +158,37 @@ function QuickActionCard({
       <ChevronRight className="w-4 h-4 text-gray-600 ml-auto group-hover:text-lime-400 transition-colors" />
     </Link>
   );
-}
+});
 
 export default function AdminDashboardPage() {
-  const { data: stats } = trpc.admin.dashboard.stats.useQuery();
+  const [dateRange, setDateRange] = useState<DateRange>("7d");
+
+  const { data: stats } = trpc.admin.dashboard.stats.useQuery({ dateRange });
   const { data: activity } = trpc.admin.dashboard.recentActivity.useQuery();
-  const { data: weeklyTrend } = trpc.admin.dashboard.weeklyTrend.useQuery();
+  const { data: weeklyTrend } = trpc.admin.dashboard.weeklyTrend.useQuery({
+    dateRange,
+  });
   const { data: jobTypeData } =
-    trpc.admin.dashboard.jobTypeDistribution.useQuery();
+    trpc.admin.dashboard.jobTypeDistribution.useQuery({ dateRange });
+
+  const dateRangeLabels: Record<DateRange, string> = {
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+    "90d": "Last 90 days",
+    ytd: "Year to date",
+  };
 
   const metrics = [
     {
       label: "Total Revenue",
-      value: `$${stats?.revenue?.thisMonth?.toLocaleString() || "0"}`,
-      change: "+12.5%",
-      trend: "up" as const,
+      value: `$${stats?.revenue?.period?.toLocaleString() || "0"}`,
       icon: DollarSign,
       accentColor: "lime" as const,
     },
     {
       label: "Active Jobs",
       value: stats?.jobs?.active || 0,
-      change: "+8",
-      trend: "up" as const,
+      subtext: `${stats?.jobs?.completed || 0} completed`,
       icon: Briefcase,
       accentColor: "amber" as const,
     },
@@ -191,7 +202,7 @@ export default function AdminDashboardPage() {
     {
       label: "Organizations",
       value: stats?.organizations || 0,
-      subtext: `${stats?.appraisals?.thisWeek || 0} requests this week`,
+      subtext: `${stats?.appraisals?.period || 0} requests`,
       icon: Building,
       accentColor: "lime" as const,
     },
@@ -239,10 +250,21 @@ export default function AdminDashboardPage() {
             Platform Performance Overview
           </p>
         </div>
-        <div className="flex gap-3">
-          <div className="px-4 py-2 bg-gray-950 border border-gray-800 text-gray-300 font-mono text-sm uppercase tracking-wider clip-notch-sm">
-            Last 7 days
-          </div>
+        <div className="flex gap-1 bg-gray-950 border border-gray-800 clip-notch-sm overflow-hidden">
+          {(["7d", "30d", "90d", "ytd"] as DateRange[]).map((range) => (
+            <button
+              key={range}
+              onClick={() => setDateRange(range)}
+              className={cn(
+                "px-4 py-2 font-mono text-sm uppercase tracking-wider transition-colors",
+                dateRange === range
+                  ? "bg-lime-400/10 text-lime-400"
+                  : "text-gray-500 hover:text-gray-300",
+              )}
+            >
+              {range === "ytd" ? "YTD" : range}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -254,8 +276,6 @@ export default function AdminDashboardPage() {
             label={metric.label}
             value={metric.value}
             subtext={metric.subtext}
-            change={metric.change}
-            trend={metric.trend}
             icon={metric.icon}
             accentColor={metric.accentColor}
           />
@@ -371,7 +391,10 @@ export default function AdminDashboardPage() {
                         {dispute.subject}
                       </p>
                       <p className="text-label text-gray-500 font-mono">
-                        {new Date(dispute.createdAt).toLocaleDateString()}
+                        {new Date(dispute.createdAt).toLocaleDateString(
+                          "en-US",
+                          { month: "short", day: "numeric", year: "numeric" },
+                        )}
                       </p>
                     </div>
                     <span
@@ -418,17 +441,15 @@ export default function AdminDashboardPage() {
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-gray-400 text-sm">
-                Today&apos;s Appraisals
-              </span>
+              <span className="text-gray-400 text-sm">Period Appraisals</span>
               <span className="font-mono font-bold text-white">
-                {stats?.appraisals?.today || 0}
+                {stats?.appraisals?.period || 0}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-400 text-sm">This Week</span>
+              <span className="text-gray-400 text-sm">Completed Jobs</span>
               <span className="font-mono font-bold text-lime-400">
-                {stats?.appraisals?.thisWeek || 0}
+                {stats?.jobs?.completed || 0}
               </span>
             </div>
             <div className="flex items-center justify-between">

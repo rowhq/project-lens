@@ -37,7 +37,7 @@ const MapView = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[300px] bg-gray-800 animate-pulse clip-notch" />
+      <div className="h-[300px] bg-[var(--secondary)] animate-pulse clip-notch" />
     ),
   },
 );
@@ -132,11 +132,11 @@ export default function PropertyAnalysisPage({
   if (error || !data?.property) {
     return (
       <div className="text-center py-16">
-        <Building2 className="w-16 h-16 mx-auto text-gray-600" />
+        <Building2 className="w-16 h-16 mx-auto text-[var(--muted-foreground)]" />
         <h2 className="mt-4 text-xl font-bold text-white">
           Property Not Found
         </h2>
-        <p className="text-gray-400 mt-2">
+        <p className="text-[var(--muted-foreground)] mt-2">
           The property you&apos;re looking for doesn&apos;t exist or has been
           removed.
         </p>
@@ -191,28 +191,28 @@ export default function PropertyAnalysisPage({
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm">
         <Link
           href="/dashboard"
-          className="text-gray-500 hover:text-white transition-colors flex items-center gap-1"
+          className="text-[var(--muted-foreground)] hover:text-white transition-colors flex items-center gap-1"
         >
           <Home className="w-4 h-4" />
           <span className="sr-only md:not-sr-only">Dashboard</span>
         </Link>
-        <ChevronRight className="w-4 h-4 text-gray-600" />
+        <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
         <Link
           href="/insights"
-          className="text-gray-500 hover:text-white transition-colors"
+          className="text-[var(--muted-foreground)] hover:text-white transition-colors"
         >
           Insights
         </Link>
-        <ChevronRight className="w-4 h-4 text-gray-600" />
+        <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
         <span className="text-lime-400 font-medium truncate max-w-[200px]">
           Property Analysis
         </span>
       </nav>
 
       {/* Header */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
-        <div className="absolute -top-px -left-px w-4 h-4 border-l-2 border-t-2 border-gray-700" />
-        <div className="absolute -bottom-px -right-px w-4 h-4 border-r-2 border-b-2 border-gray-700" />
+      <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch p-6">
+        <div className="absolute -top-px -left-px w-4 h-4 border-l-2 border-t-2 border-[var(--border)]" />
+        <div className="absolute -bottom-px -right-px w-4 h-4 border-r-2 border-b-2 border-[var(--border)]" />
 
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div className="flex items-start gap-4">
@@ -223,11 +223,11 @@ export default function PropertyAnalysisPage({
               <h1 className="text-xl md:text-2xl font-bold text-white">
                 {property.addressLine1 || property.parcelId}
               </h1>
-              <p className="text-gray-400 mt-1">
+              <p className="text-[var(--muted-foreground)] mt-1">
                 {property.city}, {property.state} {property.zipCode}
               </p>
               {property.county && (
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-[var(--muted-foreground)] text-sm mt-1">
                   {property.county} County
                 </p>
               )}
@@ -244,7 +244,9 @@ export default function PropertyAnalysisPage({
                     +{analysis.projectedAppreciation}%
                   </span>
                 </div>
-                <p className="text-xs text-gray-500">Projected (3yr)</p>
+                <p className="text-xs text-[var(--muted-foreground)]">
+                  Projected (3yr)
+                </p>
               </div>
               <div
                 className={`px-3 py-1.5 rounded border font-mono text-sm ${
@@ -262,19 +264,19 @@ export default function PropertyAnalysisPage({
 
       {/* No Analysis State */}
       {!analysis && (
-        <div className="relative bg-gray-900 border border-gray-800 clip-notch p-8 text-center">
-          <Activity className="w-12 h-12 mx-auto text-gray-600" />
+        <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch p-8 text-center">
+          <Activity className="w-12 h-12 mx-auto text-[var(--muted-foreground)]" />
           <h2 className="mt-4 text-lg font-bold text-white">
             No Infrastructure Signals Found
           </h2>
-          <p className="text-gray-400 mt-2 max-w-md mx-auto">
+          <p className="text-[var(--muted-foreground)] mt-2 max-w-md mx-auto">
             This property doesn&apos;t have any nearby infrastructure projects
             that would affect its value. Check back later as new projects are
             added.
           </p>
           <Link
             href="/insights"
-            className="inline-flex items-center gap-2 mt-6 px-4 py-2 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center gap-2 mt-6 px-4 py-2 border border-[var(--border)] clip-notch text-[var(--foreground)] font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Insights
@@ -287,15 +289,17 @@ export default function PropertyAnalysisPage({
         <>
           {/* Value Projection */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
-              <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
+            <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch p-6">
+              <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+              <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wider mb-2">
                 Current Value
               </p>
               <p className="text-2xl font-bold text-white font-mono">
                 {formatCurrency(analysis.currentValue)}
               </p>
-              <p className="text-xs text-gray-500 mt-1">Assessed value</p>
+              <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                Assessed value
+              </p>
             </div>
 
             <div className="relative bg-lime-400/10 border border-lime-400/30 clip-notch p-6">
@@ -306,7 +310,7 @@ export default function PropertyAnalysisPage({
               <p className="text-2xl font-bold text-lime-400 font-mono">
                 {formatCurrency(analysis.projectedValue)}
               </p>
-              <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+              <p className="text-xs text-[var(--muted-foreground)] mt-1 flex items-center gap-1">
                 <ArrowUpRight className="w-3 h-3" />+
                 {formatCurrency(
                   analysis.projectedValue - analysis.currentValue,
@@ -315,9 +319,9 @@ export default function PropertyAnalysisPage({
               </p>
             </div>
 
-            <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
-              <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
+            <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch p-6">
+              <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+              <p className="text-xs text-[var(--muted-foreground)] uppercase tracking-wider mb-2">
                 Confidence Score
               </p>
               <p className="text-2xl font-bold text-white font-mono">
@@ -343,11 +347,11 @@ export default function PropertyAnalysisPage({
           </div>
 
           {/* Investment Analysis */}
-          <div className="relative bg-gradient-to-r from-gray-900 to-gray-900/80 border border-gray-800 clip-notch p-6">
+          <div className="relative bg-gradient-to-r from-[var(--card)] to-[var(--card)]/80 border border-[var(--border)] clip-notch p-6">
             <div className="absolute -top-px -left-px w-4 h-4 border-l-2 border-t-2 border-lime-400/50" />
             <div className="absolute -bottom-px -right-px w-4 h-4 border-r-2 border-b-2 border-lime-400/50" />
 
-            <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+            <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
               <Lightbulb className="w-4 h-4 text-lime-400" />
               Investment Analysis
             </h2>
@@ -355,7 +359,9 @@ export default function PropertyAnalysisPage({
             {/* Signal Strength */}
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-sm text-gray-400">Signal Strength:</span>
+                <span className="text-sm text-[var(--muted-foreground)]">
+                  Signal Strength:
+                </span>
                 <div className="flex gap-0.5">
                   {[...Array(10)].map((_, i) => (
                     <div
@@ -388,7 +394,7 @@ export default function PropertyAnalysisPage({
                 >
                   {analysis.signalStrength}
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-[var(--muted-foreground)]">
                   ({analysis.avgCorrelation.toFixed(2)} correlation)
                 </span>
               </div>
@@ -406,9 +412,9 @@ export default function PropertyAnalysisPage({
                     {analysis.positiveFactors.map((factor, index) => (
                       <li
                         key={index}
-                        className="flex items-start gap-2 text-sm text-gray-300"
+                        className="flex items-start gap-2 text-sm text-[var(--foreground)]"
                       >
-                        <span className="text-lime-400 mt-0.5">•</span>
+                        <span className="text-lime-400 mt-0.5 text-xs">+</span>
                         <span>{factor}</span>
                       </li>
                     ))}
@@ -427,9 +433,11 @@ export default function PropertyAnalysisPage({
                     {analysis.riskFactors.map((factor, index) => (
                       <li
                         key={index}
-                        className="flex items-start gap-2 text-sm text-gray-300"
+                        className="flex items-start gap-2 text-sm text-[var(--foreground)]"
                       >
-                        <span className="text-yellow-400 mt-0.5">•</span>
+                        <span className="text-yellow-400 mt-0.5 text-xs">
+                          -
+                        </span>
                         <span>{factor}</span>
                       </li>
                     ))}
@@ -439,8 +447,8 @@ export default function PropertyAnalysisPage({
             </div>
 
             {/* Summary */}
-            <div className="mt-6 pt-4 border-t border-gray-800">
-              <p className="text-sm text-gray-400">
+            <div className="mt-6 pt-4 border-t border-[var(--border)]">
+              <p className="text-sm text-[var(--muted-foreground)]">
                 Based on {analysis.signalCount} infrastructure project
                 {analysis.signalCount !== 1 ? "s" : ""} within impact radius,
                 this property is projected to appreciate{" "}
@@ -459,36 +467,36 @@ export default function PropertyAnalysisPage({
           {/* Property Details + Map */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Property Details */}
-            <div className="relative bg-gray-900 border border-gray-800 p-6 clip-notch">
-              <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-              <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+            <div className="relative bg-[var(--card)] border border-[var(--border)] p-6 clip-notch">
+              <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+              <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)]" />
 
-              <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+              <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
                 Property Details
               </h2>
               <dl className="space-y-3">
                 <div className="flex justify-between">
-                  <dt className="text-gray-500">Parcel ID</dt>
+                  <dt className="text-[var(--muted-foreground)]">Parcel ID</dt>
                   <dd className="text-white font-mono text-sm">
                     {property.parcelId}
                   </dd>
                 </div>
                 {property.zoning && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-500">Zoning</dt>
+                    <dt className="text-[var(--muted-foreground)]">Zoning</dt>
                     <dd className="text-white">{property.zoning}</dd>
                   </div>
                 )}
                 {property.landUse && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-500">Land Use</dt>
+                    <dt className="text-[var(--muted-foreground)]">Land Use</dt>
                     <dd className="text-white">{property.landUse}</dd>
                   </div>
                 )}
                 {property.lotSizeSqft && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-500">Lot Size</dt>
+                    <dt className="text-[var(--muted-foreground)]">Lot Size</dt>
                     <dd className="text-white font-mono">
                       {(Number(property.lotSizeSqft) / 43560).toFixed(2)} acres
                     </dd>
@@ -496,7 +504,9 @@ export default function PropertyAnalysisPage({
                 )}
                 {property.lastSalePrice && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-500">Last Sale Price</dt>
+                    <dt className="text-[var(--muted-foreground)]">
+                      Last Sale Price
+                    </dt>
                     <dd className="text-lime-400 font-mono">
                       {formatCurrency(property.lastSalePrice)}
                     </dd>
@@ -507,12 +517,12 @@ export default function PropertyAnalysisPage({
 
             {/* Map */}
             {property.latitude && property.longitude && (
-              <div className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden">
-                <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700 z-10" />
-                <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700 z-10" />
+              <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch overflow-hidden">
+                <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)] z-10" />
+                <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)] z-10" />
 
-                <div className="p-4 border-b border-gray-800">
-                  <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 flex items-center gap-2">
+                <div className="p-4 border-b border-[var(--border)]">
+                  <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-2">
                     <MapPin className="w-4 h-4" />
                     Location & Infrastructure
                   </h2>
@@ -529,11 +539,11 @@ export default function PropertyAnalysisPage({
           </div>
 
           {/* Infrastructure Signals */}
-          <div className="relative bg-gray-900 border border-gray-800 p-6 clip-notch">
-            <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-            <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+          <div className="relative bg-[var(--card)] border border-[var(--border)] p-6 clip-notch">
+            <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+            <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)]" />
 
-            <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+            <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
               <Zap className="w-4 h-4 text-yellow-400" />
               Infrastructure Signals ({signals.length})
             </h2>
@@ -543,14 +553,14 @@ export default function PropertyAnalysisPage({
                 <Link
                   key={signal.id}
                   href={`/insights/${signal.id}`}
-                  className="block p-4 bg-gray-800/50 border border-gray-700 clip-notch hover:border-lime-400/50 transition-colors group"
+                  className="block p-4 bg-[var(--secondary)]/50 border border-[var(--border)] clip-notch hover:border-lime-400/50 transition-colors group"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div
                         className={`p-2 clip-notch shrink-0 ${
                           TYPE_COLORS[signal.type] ||
-                          "text-gray-400 bg-gray-800"
+                          "text-[var(--muted-foreground)] bg-[var(--secondary)]"
                         }`}
                       >
                         {TYPE_ICONS[signal.type] || (
@@ -565,17 +575,17 @@ export default function PropertyAnalysisPage({
                           <span
                             className={`px-1.5 py-0.5 border clip-notch ${
                               STATUS_BADGES[signal.status] ||
-                              "text-gray-400 bg-gray-800 border-gray-700"
+                              "text-[var(--muted-foreground)] bg-[var(--secondary)] border-[var(--border)]"
                             }`}
                           >
                             {signal.status}
                           </span>
-                          <span className="text-gray-500 flex items-center gap-1">
+                          <span className="text-[var(--muted-foreground)] flex items-center gap-1">
                             <Target className="w-3 h-3" />
                             {signal.distance} mi away
                           </span>
                           {signal.year && (
-                            <span className="text-gray-500 flex items-center gap-1">
+                            <span className="text-[var(--muted-foreground)] flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
                               {signal.year}
                             </span>
@@ -597,10 +607,12 @@ export default function PropertyAnalysisPage({
                             {signal.avgValueChange > 0 ? "+" : ""}
                             {signal.avgValueChange.toFixed(1)}%
                           </p>
-                          <p className="text-xs text-gray-500">impact</p>
+                          <p className="text-xs text-[var(--muted-foreground)]">
+                            impact
+                          </p>
                         </div>
                       )}
-                      <ExternalLink className="w-4 h-4 text-gray-600 group-hover:text-lime-400 transition-colors" />
+                      <ExternalLink className="w-4 h-4 text-[var(--muted-foreground)] group-hover:text-lime-400 transition-colors" />
                     </div>
                   </div>
                 </Link>
@@ -611,10 +623,10 @@ export default function PropertyAnalysisPage({
       )}
 
       {/* Footer Navigation */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-800">
+      <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
         <Link
           href="/insights"
-          className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2"
+          className="px-4 py-2.5 border border-[var(--border)] clip-notch text-[var(--foreground)] font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] hover:border-lime-400/50 transition-colors flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Insights

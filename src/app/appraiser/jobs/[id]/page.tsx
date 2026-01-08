@@ -1,49 +1,11 @@
 "use client";
 
-// Web Speech API type declarations
-interface SpeechRecognitionEvent extends Event {
-  resultIndex: number;
-  results: SpeechRecognitionResultList;
-}
-
-interface SpeechRecognitionResultList {
-  length: number;
-  [index: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionResult {
-  isFinal: boolean;
-  length: number;
-  [index: number]: SpeechRecognitionAlternative;
-}
-
-interface SpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
-}
-
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  onresult: ((event: SpeechRecognitionEvent) => void) | null;
-  onerror: ((event: Event) => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-}
-
-declare global {
-  interface Window {
-    SpeechRecognition?: new () => SpeechRecognition;
-    webkitSpeechRecognition?: new () => SpeechRecognition;
-  }
-}
-
-import { use, useState } from "react";
+import { use, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
+import { TIMEOUT_CONFIG } from "@/shared/lib/request-timeout";
 import {
   useLiveCountdown,
   getUrgencyConfig,
@@ -71,7 +33,29 @@ import {
   MicOff,
   CheckCircle,
   Star,
+  AlertCircle,
+  Flame,
+  Zap,
 } from "lucide-react";
+
+// Helper to render urgency icon based on icon name from config
+const UrgencyIcon = ({
+  icon,
+  className,
+}: {
+  icon: string;
+  className?: string;
+}) => {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    "alert-circle": AlertCircle,
+    flame: Flame,
+    zap: Zap,
+    clock: Clock,
+  };
+  const IconComponent = iconMap[icon];
+  if (!IconComponent) return null;
+  return <IconComponent className={className || "w-4 h-4"} />;
+};
 import { Skeleton } from "@/shared/components/ui/Skeleton";
 import { MapView } from "@/shared/components/common/MapView";
 
@@ -89,6 +73,9 @@ export default function JobDetailPage({ params }: PageProps) {
   const [isListening, setIsListening] = useState(false);
 
   const { data: job, isLoading, refetch } = trpc.job.getById.useQuery({ id });
+
+  // Timeout warning for long operations
+  const operationStartRef = useRef<number | null>(null);
 
   // Live countdown
   const countdown = useLiveCountdown(job?.slaDueAt || null);
@@ -169,6 +156,40 @@ export default function JobDetailPage({ params }: PageProps) {
     },
   });
 
+  // Track when mutations start to show slow operation warnings
+  useEffect(() => {
+    const isAnyMutationPending =
+      acceptJob.isPending ||
+      startJob.isPending ||
+      submitJob.isPending ||
+      cancelJob.isPending;
+
+    if (isAnyMutationPending) {
+      if (!operationStartRef.current) {
+        operationStartRef.current = Date.now();
+        // Show warning after 10 seconds
+        const timeoutId = setTimeout(() => {
+          if (operationStartRef.current) {
+            toast({
+              title: "Taking longer than expected",
+              description: "Please wait, the operation is still in progress...",
+            });
+          }
+        }, TIMEOUT_CONFIG.SHORT);
+
+        return () => clearTimeout(timeoutId);
+      }
+    } else {
+      operationStartRef.current = null;
+    }
+  }, [
+    acceptJob.isPending,
+    startJob.isPending,
+    submitJob.isPending,
+    cancelJob.isPending,
+    toast,
+  ]);
+
   // Voice to text for notes
   const toggleVoiceInput = () => {
     if (
@@ -195,7 +216,8 @@ export default function JobDetailPage({ params }: PageProps) {
     recognition.continuous = true;
     recognition.interimResults = true;
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
       let transcript = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;
@@ -376,9 +398,9 @@ export default function JobDetailPage({ params }: PageProps) {
       {/* Urgency Banner */}
       {(urgency.level === "critical" || urgency.level === "overdue") && (
         <div
-          className={`${urgency.bgClass} border-2 rounded-lg p-3 flex items-center gap-3 animate-pulse`}
+          className={`${urgency.bgClass} border-2 rounded-lg p-3 flex items-center gap-3 motion-safe:animate-pulse`}
         >
-          <span className="text-2xl">{urgency.icon}</span>
+          <UrgencyIcon icon={urgency.icon} className="w-7 h-7" />
           <div className="flex-1">
             <p className={`font-bold ${urgency.textClass}`}>{urgency.label}</p>
             <p className={`text-sm ${urgency.textClass}/80`}>
@@ -404,11 +426,17 @@ export default function JobDetailPage({ params }: PageProps) {
               <h1 className="text-xl font-bold text-[var(--foreground)]">
                 Job Details
               </h1>
-              <span
-                className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusConfig[job.status]?.color}`}
-              >
-                {statusConfig[job.status]?.label}
-              </span>
+              {(() => {
+                const StatusIcon = statusConfig[job.status]?.icon;
+                return (
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusConfig[job.status]?.color}`}
+                  >
+                    {StatusIcon && <StatusIcon className="w-3 h-3" />}
+                    {statusConfig[job.status]?.label}
+                  </span>
+                );
+              })()}
             </div>
             <p className="text-sm text-[var(--muted-foreground)]">
               Ref: {job.id.slice(0, 8).toUpperCase()}
@@ -670,7 +698,7 @@ export default function JobDetailPage({ params }: PageProps) {
                 onClick={toggleVoiceInput}
                 className={`p-2 rounded-lg transition-colors ${
                   isListening
-                    ? "bg-red-500/20 text-red-400 animate-pulse"
+                    ? "bg-red-500/20 text-red-400 motion-safe:animate-pulse"
                     : "hover:bg-[var(--secondary)] text-[var(--muted-foreground)]"
                 }`}
                 title={isListening ? "Stop listening" : "Voice input"}
@@ -684,17 +712,27 @@ export default function JobDetailPage({ params }: PageProps) {
             </div>
             <textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => setNotes(e.target.value.slice(0, 2000))}
               placeholder="Add your inspection notes here... You can also use voice input."
               rows={4}
+              maxLength={2000}
               className="w-full px-4 py-3 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none"
             />
-            {isListening && (
-              <p className="text-sm text-red-400 mt-2 flex items-center gap-2">
-                <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
-                Listening... Speak now
-              </p>
-            )}
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-xs text-[var(--muted-foreground)]">
+                {isListening && (
+                  <span className="flex items-center gap-2 text-red-400">
+                    <span className="w-2 h-2 bg-red-400 rounded-full motion-safe:animate-pulse" />
+                    Listening... Speak now
+                  </span>
+                )}
+              </span>
+              <span
+                className={`text-xs ${notes.length > 1800 ? "text-yellow-400" : "text-[var(--muted-foreground)]"}`}
+              >
+                {notes.length}/2000
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -741,7 +779,15 @@ export default function JobDetailPage({ params }: PageProps) {
                     longitude: position.coords.longitude,
                   });
                 },
-                () => {
+                (error) => {
+                  toast({
+                    title: "Location unavailable",
+                    description:
+                      error.code === 1
+                        ? "Please enable location permissions to record your position."
+                        : "Could not determine your location. Proceeding without location data.",
+                    variant: "destructive",
+                  });
                   startJob.mutate({ jobId: id, latitude: 0, longitude: 0 });
                 },
               );

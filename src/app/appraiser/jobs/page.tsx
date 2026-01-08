@@ -29,7 +29,29 @@ import {
   Zap,
   TrendingUp,
   AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  Flame,
 } from "lucide-react";
+
+// Helper to render urgency icon based on icon name from config
+const UrgencyIcon = ({
+  icon,
+  className,
+}: {
+  icon: string;
+  className?: string;
+}) => {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    "alert-circle": AlertCircle,
+    flame: Flame,
+    zap: Zap,
+    clock: Clock,
+  };
+  const IconComponent = iconMap[icon];
+  if (!IconComponent) return null;
+  return <IconComponent className={className || "w-4 h-4"} />;
+};
 import dynamic from "next/dynamic";
 
 // Dynamically import MapView to avoid SSR issues
@@ -51,6 +73,11 @@ interface AdvancedFilters {
   maxDistance: number | null;
   minPayout: number | null;
   jobType: string | null;
+}
+
+interface HistoryFilters {
+  startDate: string | null;
+  endDate: string | null;
 }
 
 // Swipeable Job Card Component
@@ -183,7 +210,7 @@ const SwipeableJobCard = ({
           <div
             className={`absolute -top-2 -right-2 ${urgency.badgeClass} px-3 py-1 rounded-full flex items-center gap-1 text-xs font-bold z-20`}
           >
-            <span>{urgency.icon}</span>
+            <UrgencyIcon icon={urgency.icon} className="w-3.5 h-3.5" />
             <span>{urgency.label}</span>
           </div>
         )}
@@ -337,11 +364,29 @@ export default function AppraiserJobsPage() {
   );
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [sortBy, setSortBy] = useState<SortBy>("distance");
+  const [sortBy, setSortByState] = useState<SortBy>("distance");
+
+  // Persist sort preference - load from localStorage on mount
+  useEffect(() => {
+    const savedSort = localStorage.getItem("appraiser-jobs-sort") as SortBy;
+    if (savedSort && ["distance", "payout", "urgency"].includes(savedSort)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSortByState(savedSort);
+    }
+  }, []);
+
+  const setSortBy = useCallback((sort: SortBy) => {
+    setSortByState(sort);
+    localStorage.setItem("appraiser-jobs-sort", sort);
+  }, []);
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
     maxDistance: null,
     minPayout: null,
     jobType: null,
+  });
+  const [historyFilters, setHistoryFilters] = useState<HistoryFilters>({
+    startDate: null,
+    endDate: null,
   });
   const [acceptingJobId, setAcceptingJobId] = useState<string | null>(null);
 
@@ -372,10 +417,13 @@ export default function AppraiserJobsPage() {
   const hasActiveFilters =
     advancedFilters.maxDistance !== null ||
     advancedFilters.minPayout !== null ||
-    advancedFilters.jobType !== null;
+    advancedFilters.jobType !== null ||
+    historyFilters.startDate !== null ||
+    historyFilters.endDate !== null;
 
   const clearFilters = () => {
     setAdvancedFilters({ maxDistance: null, minPayout: null, jobType: null });
+    setHistoryFilters({ startDate: null, endDate: null });
   };
 
   // tRPC utils for invalidation
@@ -405,7 +453,11 @@ export default function AppraiserJobsPage() {
   });
 
   const { data: completedJobs } = trpc.job.history.useQuery(
-    { limit: 20 },
+    {
+      limit: 20,
+      startDate: historyFilters.startDate ?? undefined,
+      endDate: historyFilters.endDate ?? undefined,
+    },
     {
       enabled: filter === "completed",
       staleTime: 5 * 60 * 1000,
@@ -598,14 +650,132 @@ export default function AppraiserJobsPage() {
 
       {/* Swipe Hint for Mobile */}
       {filter === "available" && viewMode === "list" && jobs.length > 0 && (
-        <div className="bg-[var(--muted)] rounded-lg p-3 flex items-center justify-center gap-4 text-sm text-[var(--muted-foreground)] md:hidden">
+        <div className="bg-[var(--muted)] rounded-lg p-3 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-[var(--muted-foreground)] md:hidden">
           <span className="flex items-center gap-1">
-            <span className="text-green-400">←</span> Swipe right to accept
+            <ArrowLeft className="w-4 h-4 text-green-400" /> Swipe right to
+            accept
           </span>
-          <span className="text-[var(--border)]">|</span>
+          <span className="text-[var(--border)] hidden sm:block">|</span>
           <span className="flex items-center gap-1">
-            Swipe left to skip <span className="text-red-400">→</span>
+            Swipe left to skip <ArrowRight className="w-4 h-4 text-red-400" />
           </span>
+        </div>
+      )}
+
+      {/* History Filters Panel */}
+      {showFilters && filter === "completed" && (
+        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-[var(--foreground)]">
+              Date Range Filter
+            </h3>
+            {(historyFilters.startDate || historyFilters.endDate) && (
+              <button
+                onClick={() =>
+                  setHistoryFilters({ startDate: null, endDate: null })
+                }
+                className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              >
+                Clear dates
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-2">
+                From Date
+              </label>
+              <input
+                type="date"
+                value={historyFilters.startDate ?? ""}
+                onChange={(e) =>
+                  setHistoryFilters({
+                    ...historyFilters,
+                    startDate: e.target.value || null,
+                  })
+                }
+                className="w-full px-3 py-2.5 bg-[var(--muted)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:ring-2 focus:ring-[var(--primary)]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-2">
+                To Date
+              </label>
+              <input
+                type="date"
+                value={historyFilters.endDate ?? ""}
+                onChange={(e) =>
+                  setHistoryFilters({
+                    ...historyFilters,
+                    endDate: e.target.value || null,
+                  })
+                }
+                max={new Date().toISOString().split("T")[0]}
+                className="w-full px-3 py-2.5 bg-[var(--muted)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:ring-2 focus:ring-[var(--primary)]"
+              />
+            </div>
+          </div>
+          {/* Quick Date Presets */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                setHistoryFilters({
+                  startDate: thirtyDaysAgo.toISOString().split("T")[0],
+                  endDate: today.toISOString().split("T")[0],
+                });
+              }}
+              className="px-3 py-1.5 text-sm bg-[var(--muted)] hover:bg-[var(--secondary)] rounded-lg text-[var(--foreground)]"
+            >
+              Last 30 Days
+            </button>
+            <button
+              onClick={() => {
+                const today = new Date();
+                const ninetyDaysAgo = new Date(today);
+                ninetyDaysAgo.setDate(today.getDate() - 90);
+                setHistoryFilters({
+                  startDate: ninetyDaysAgo.toISOString().split("T")[0],
+                  endDate: today.toISOString().split("T")[0],
+                });
+              }}
+              className="px-3 py-1.5 text-sm bg-[var(--muted)] hover:bg-[var(--secondary)] rounded-lg text-[var(--foreground)]"
+            >
+              Last 90 Days
+            </button>
+            <button
+              onClick={() => {
+                const today = new Date();
+                const firstDayOfMonth = new Date(
+                  today.getFullYear(),
+                  today.getMonth(),
+                  1,
+                );
+                setHistoryFilters({
+                  startDate: firstDayOfMonth.toISOString().split("T")[0],
+                  endDate: today.toISOString().split("T")[0],
+                });
+              }}
+              className="px-3 py-1.5 text-sm bg-[var(--muted)] hover:bg-[var(--secondary)] rounded-lg text-[var(--foreground)]"
+            >
+              This Month
+            </button>
+            <button
+              onClick={() => {
+                const today = new Date();
+                const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+                setHistoryFilters({
+                  startDate: firstDayOfYear.toISOString().split("T")[0],
+                  endDate: today.toISOString().split("T")[0],
+                });
+              }}
+              className="px-3 py-1.5 text-sm bg-[var(--muted)] hover:bg-[var(--secondary)] rounded-lg text-[var(--foreground)]"
+            >
+              This Year
+            </button>
+          </div>
         </div>
       )}
 
@@ -823,7 +993,7 @@ export default function AppraiserJobsPage() {
                             ? "bg-green-500"
                             : filter === "active"
                               ? "bg-yellow-500"
-                              : "bg-gray-500"
+                              : "bg-[var(--muted-foreground)]"
                         }`}
                       />
                       <div>

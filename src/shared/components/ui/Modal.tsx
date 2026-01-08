@@ -181,4 +181,62 @@ function Modal({
   );
 }
 
-export { Modal };
+// Compound components for flexible usage
+interface ModalHeaderProps {
+  children: React.ReactNode;
+  onClose?: () => void;
+  className?: string;
+}
+
+function ModalHeader({ children, onClose, className }: ModalHeaderProps) {
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-between px-6 py-4 border-b border-[var(--border)]",
+        className,
+      )}
+    >
+      <div className="font-semibold text-lg text-[var(--foreground)]">
+        {children}
+      </div>
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="p-2 -m-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors hover:bg-[var(--muted)]"
+          aria-label="Close modal"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+interface ModalBodyProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+function ModalBody({ children, className }: ModalBodyProps) {
+  return <div className={cn("px-6 py-6", className)}>{children}</div>;
+}
+
+interface ModalFooterProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+function ModalFooter({ children, className }: ModalFooterProps) {
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--border)]",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+export { Modal, ModalHeader, ModalBody, ModalFooter };

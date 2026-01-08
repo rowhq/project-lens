@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
+import { useDebounce } from "@/shared/hooks/useDebounce";
 import {
   Search,
   Building,
@@ -18,6 +19,7 @@ import { EmptyState } from "@/shared/components/common/EmptyState";
 export default function OrganizationsPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [showPlanModal, setShowPlanModal] = useState<string | null>(null);
   const [showSuspendModal, setShowSuspendModal] = useState<string | null>(null);
@@ -82,8 +84,10 @@ export default function OrganizationsPage() {
 
   const filteredOrgs = organizations?.filter(
     (org) =>
-      org.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      org.billingEmail?.toLowerCase().includes(searchQuery.toLowerCase()),
+      org.name?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+      org.billingEmail
+        ?.toLowerCase()
+        .includes(debouncedSearchQuery.toLowerCase()),
   );
 
   const subscriptionColors: Record<string, string> = {
@@ -157,7 +161,11 @@ export default function OrganizationsPage() {
                     org.plan,
                     org._count?.users || 0,
                     org._count?.appraisalRequests || 0,
-                    new Date(org.createdAt).toLocaleDateString(),
+                    new Date(org.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    }),
                   ].join(","),
                 ),
               ].join("\n");
@@ -242,22 +250,22 @@ export default function OrganizationsPage() {
 
       {/* Organizations Table */}
       <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden overflow-x-auto">
-        <table className="w-full min-w-[700px]">
+        <table className="w-full">
           <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Organization
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+              <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Members
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Subscription
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+              <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Requests
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
+              <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
                 Joined
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase"></th>
@@ -305,7 +313,7 @@ export default function OrganizationsPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="hidden md:table-cell px-6 py-4">
                     <div className="flex items-center gap-1 text-[var(--muted-foreground)]">
                       <Users className="w-4 h-4" />
                       <span>{org._count?.users || 1}</span>
@@ -320,13 +328,17 @@ export default function OrganizationsPage() {
                       {org.plan?.replace("_", " ") || "Starter"}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="hidden lg:table-cell px-6 py-4">
                     <span className="font-medium text-[var(--foreground)]">
                       {org._count?.appraisalRequests || 0}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[var(--muted-foreground)]">
-                    {new Date(org.createdAt).toLocaleDateString()}
+                  <td className="hidden md:table-cell px-6 py-4 text-sm text-[var(--muted-foreground)]">
+                    {new Date(org.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </td>
                   <td className="px-6 py-4">
                     <div
@@ -337,7 +349,7 @@ export default function OrganizationsPage() {
                         onClick={() =>
                           setActiveMenu(activeMenu === org.id ? null : org.id)
                         }
-                        className="p-2 hover:bg-[var(--muted)] rounded-lg"
+                        className="p-2.5 hover:bg-[var(--muted)] rounded-lg"
                       >
                         <MoreVertical className="w-4 h-4 text-[var(--muted-foreground)]" />
                       </button>
@@ -395,7 +407,7 @@ export default function OrganizationsPage() {
               </h2>
               <button
                 onClick={() => setShowPlanModal(null)}
-                className="p-2 hover:bg-[var(--muted)] rounded-lg"
+                className="p-2.5 hover:bg-[var(--muted)] rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>

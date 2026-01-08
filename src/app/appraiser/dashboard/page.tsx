@@ -14,7 +14,29 @@ import {
   AlertCircle,
   TrendingUp,
   Zap,
+  AlertTriangle,
+  Clock,
+  Flame,
 } from "lucide-react";
+
+// Helper to render urgency icon based on icon name from config
+const UrgencyIcon = ({
+  icon,
+  className,
+}: {
+  icon: string;
+  className?: string;
+}) => {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    "alert-circle": AlertCircle,
+    flame: Flame,
+    zap: Zap,
+    clock: Clock,
+  };
+  const IconComponent = iconMap[icon];
+  if (!IconComponent) return null;
+  return <IconComponent className={className || "w-4 h-4"} />;
+};
 import {
   StreakBanner,
   BadgeDisplay,
@@ -24,6 +46,7 @@ import {
 } from "@/shared/components/common/GamificationWidget";
 import { getUrgencyConfig } from "@/shared/hooks/useLiveCountdown";
 import { cn } from "@/shared/lib/utils";
+import { Skeleton } from "@/shared/components/ui/Skeleton";
 
 // Stat Card - Ledger Style
 function StatCard({
@@ -45,7 +68,7 @@ function StatCard({
   };
 
   return (
-    <div className="relative bg-gray-950 border border-gray-800 p-4 clip-notch-sm group hover:border-gray-700 transition-colors duration-fast">
+    <div className="relative bg-[var(--card)] border border-[var(--border)] p-4 clip-notch-sm group hover:border-[var(--border)] transition-colors duration-fast">
       {/* Bracket corners */}
       <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-lime-400/30" />
       <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-lime-400/30" />
@@ -58,7 +81,7 @@ function StatCard({
         </div>
       </div>
       <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
-      <p className="text-label text-gray-500 font-mono uppercase tracking-wider mt-0.5">
+      <p className="text-label text-[var(--muted-foreground)] font-mono uppercase tracking-wider mt-0.5">
         {label}
       </p>
     </div>
@@ -97,7 +120,7 @@ function JobListItem({
   return (
     <Link
       href={href}
-      className="flex items-center justify-between p-4 hover:bg-gray-900 transition-colors border-b border-gray-800 last:border-b-0"
+      className="flex items-center justify-between p-4 hover:bg-[var(--muted)] transition-colors border-b border-[var(--border)] last:border-b-0"
     >
       <div className="flex items-center gap-3">
         <div
@@ -112,7 +135,7 @@ function JobListItem({
         </div>
         <div>
           <p className="font-medium text-white">{address}</p>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
             {city && (
               <span>
                 {city}
@@ -122,7 +145,7 @@ function JobListItem({
             {distance !== undefined && (
               <>
                 <span
-                  className="w-1 h-1 bg-gray-600"
+                  className="w-1 h-1 bg-[var(--muted-foreground)]"
                   style={{
                     clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
                   }}
@@ -150,19 +173,21 @@ function JobListItem({
           </span>
         )}
         {jobType && !status && (
-          <p className="text-sm text-gray-500 font-mono uppercase">
+          <p className="text-sm text-[var(--muted-foreground)] font-mono uppercase">
             {jobType.replace("_", " ")}
           </p>
         )}
         {dueDate && (
           <p
             className={cn(
-              "text-sm mt-1",
-              urgency?.textClass || "text-gray-500",
+              "text-sm mt-1 flex items-center gap-1",
+              urgency?.textClass || "text-[var(--muted-foreground)]",
             )}
           >
-            {urgency?.level !== "normal" && urgency?.icon} Due{" "}
-            {dueDate.toLocaleDateString()}
+            {urgency?.level !== "normal" && urgency?.icon && (
+              <UrgencyIcon icon={urgency.icon} className="w-4 h-4" />
+            )}
+            Due {dueDate.toLocaleDateString()}
           </p>
         )}
       </div>
@@ -181,21 +206,23 @@ function WeeklyStatCard({
   stats: { label: string; value: string | number; color?: string }[];
 }) {
   return (
-    <div className="relative bg-gray-950 border border-gray-800 p-4 clip-notch-sm">
+    <div className="relative bg-[var(--card)] border border-[var(--border)] p-4 clip-notch-sm">
       {/* Bracket corners */}
       <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-lime-400/30" />
       <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-lime-400/30" />
 
       <div className="flex items-center gap-2 mb-3">
-        <Icon className="w-5 h-5 text-gray-500" />
-        <h3 className="font-mono text-sm uppercase tracking-wider text-gray-400">
+        <Icon className="w-5 h-5 text-[var(--muted-foreground)]" />
+        <h3 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)]">
           {title}
         </h3>
       </div>
       <div className="space-y-3">
         {stats.map((stat, i) => (
           <div key={i} className="flex items-center justify-between">
-            <span className="text-gray-400 text-sm">{stat.label}</span>
+            <span className="text-[var(--muted-foreground)] text-sm">
+              {stat.label}
+            </span>
             <span
               className={cn("font-mono font-bold", stat.color || "text-white")}
             >
@@ -209,10 +236,30 @@ function WeeklyStatCard({
 }
 
 export default function AppraiserDashboardPage() {
-  const { data: profile } = trpc.appraiser.profile.get.useQuery();
-  const { data: availableJobs } = trpc.job.available.useQuery({ limit: 5 });
-  const { data: activeJobs } = trpc.job.myActive.useQuery();
-  const { data: earnings } = trpc.appraiser.earnings.summary.useQuery();
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    isError: profileError,
+  } = trpc.appraiser.profile.get.useQuery();
+  const {
+    data: availableJobs,
+    isLoading: jobsLoading,
+    isError: jobsError,
+  } = trpc.job.available.useQuery({ limit: 5 });
+  const {
+    data: activeJobs,
+    isLoading: activeLoading,
+    isError: activeError,
+  } = trpc.job.myActive.useQuery();
+  const {
+    data: earnings,
+    isLoading: earningsLoading,
+    isError: earningsError,
+  } = trpc.appraiser.earnings.summary.useQuery();
+
+  const isLoading =
+    profileLoading || jobsLoading || activeLoading || earningsLoading;
+  const hasError = profileError || jobsError || activeError || earningsError;
 
   // Calculate unlocked badges based on stats
   const unlockedBadges = calculateUnlockedBadges({
@@ -285,10 +332,153 @@ export default function AppraiserDashboardPage() {
     });
   }, [activeJobs, now]);
 
+  // Calculate license expiry warning (90/60/30 days)
+  const licenseExpiryWarning = useMemo(() => {
+    if (!profile?.licenseExpiry || now === null) return null;
+    const expiryDate = new Date(profile.licenseExpiry);
+    const daysUntilExpiry = Math.ceil(
+      (expiryDate.getTime() - now) / (1000 * 60 * 60 * 24),
+    );
+
+    if (daysUntilExpiry <= 0) {
+      return {
+        level: "expired",
+        days: 0,
+        message:
+          "Your license has expired! You cannot accept jobs until renewed.",
+      };
+    } else if (daysUntilExpiry <= 30) {
+      return {
+        level: "critical",
+        days: daysUntilExpiry,
+        message: `Your license expires in ${daysUntilExpiry} days. Renew immediately to avoid service interruption.`,
+      };
+    } else if (daysUntilExpiry <= 60) {
+      return {
+        level: "warning",
+        days: daysUntilExpiry,
+        message: `Your license expires in ${daysUntilExpiry} days. Plan to renew soon.`,
+      };
+    } else if (daysUntilExpiry <= 90) {
+      return {
+        level: "notice",
+        days: daysUntilExpiry,
+        message: `Your license expires in ${daysUntilExpiry} days.`,
+      };
+    }
+    return null;
+  }, [profile, now]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        {/* Welcome Banner Skeleton */}
+        <div className="relative bg-[var(--card)] border border-lime-400/30 p-6 clip-notch">
+          <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400" />
+          <Skeleton className="h-8 w-64 mb-2" />
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-10 w-48 mt-4" />
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="relative bg-[var(--card)] border border-[var(--border)] p-4 clip-notch-sm"
+            >
+              <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-lime-400/30" />
+              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-lime-400/30" />
+              <Skeleton className="h-8 w-8 mb-2" />
+              <Skeleton className="h-7 w-20 mb-1" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          ))}
+        </div>
+
+        {/* Gamification Widgets Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              className="relative bg-[var(--card)] border border-[var(--border)] p-4 clip-notch-sm"
+            >
+              <Skeleton className="h-5 w-32 mb-3" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          ))}
+        </div>
+
+        {/* Jobs List Skeleton */}
+        <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch overflow-hidden">
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30 z-10" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30 z-10" />
+          <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+          <div>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between p-4 border-b border-[var(--border)] last:border-b-0"
+              >
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 clip-notch-sm" />
+                  <div>
+                    <Skeleton className="h-4 w-40 mb-2" />
+                    <Skeleton className="h-3 w-28" />
+                  </div>
+                </div>
+                <Skeleton className="h-5 w-16" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (hasError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="relative bg-[var(--card)] border border-red-500/30 p-8 clip-notch text-center max-w-md">
+          <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-red-500" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-red-500" />
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">
+            Unable to load dashboard
+          </h2>
+          <p className="text-[var(--muted-foreground)] mb-6 font-mono text-sm">
+            There was an error loading your data. Please try again.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className={cn(
+              "inline-flex items-center gap-2",
+              "bg-lime-400 text-black",
+              "px-6 py-3",
+              "font-mono text-sm uppercase tracking-wider",
+              "clip-notch-sm",
+              "hover:bg-lime-300",
+              "transition-colors duration-fast",
+            )}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Welcome Banner - Ledger Style */}
-      <div className="relative bg-gray-950 border border-lime-400/30 p-6 clip-notch overflow-hidden">
+      <div className="relative bg-[var(--card)] border border-lime-400/30 p-6 clip-notch overflow-hidden">
         {/* Bracket corners */}
         <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400" />
         <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400" />
@@ -310,7 +500,7 @@ export default function AppraiserDashboardPage() {
             <h1 className="text-2xl font-bold text-white tracking-tight">
               Welcome back, {profile?.user?.firstName || "Appraiser"}!
             </h1>
-            <p className="text-gray-400 mt-1 font-mono text-sm">
+            <p className="text-[var(--muted-foreground)] mt-1 font-mono text-sm">
               <span className="text-lime-400 font-bold">
                 {availableJobs?.length || 0}
               </span>{" "}
@@ -319,7 +509,7 @@ export default function AppraiserDashboardPage() {
           </div>
           {profile?.completedJobs && profile.completedJobs > 0 && (
             <div className="text-right">
-              <p className="text-label text-gray-500 font-mono uppercase tracking-wider">
+              <p className="text-label text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
                 Total Earned
               </p>
               <p className="text-xl font-bold text-lime-400 font-mono">
@@ -345,6 +535,95 @@ export default function AppraiserDashboardPage() {
           <ChevronRight className="w-4 h-4" />
         </Link>
       </div>
+
+      {/* License Expiry Warning Banner */}
+      {licenseExpiryWarning && (
+        <div
+          className={cn(
+            "relative p-4 clip-notch",
+            licenseExpiryWarning.level === "expired"
+              ? "bg-red-500/10 border border-red-500/50"
+              : licenseExpiryWarning.level === "critical"
+                ? "bg-red-500/10 border border-red-500/30"
+                : licenseExpiryWarning.level === "warning"
+                  ? "bg-amber-500/10 border border-amber-500/30"
+                  : "bg-blue-500/10 border border-blue-500/30",
+          )}
+        >
+          {/* Bracket corners */}
+          <div
+            className={cn(
+              "absolute top-0 left-0 w-3 h-3 border-t border-l",
+              licenseExpiryWarning.level === "expired" ||
+                licenseExpiryWarning.level === "critical"
+                ? "border-red-500"
+                : licenseExpiryWarning.level === "warning"
+                  ? "border-amber-500"
+                  : "border-blue-500",
+            )}
+          />
+          <div
+            className={cn(
+              "absolute bottom-0 right-0 w-3 h-3 border-b border-r",
+              licenseExpiryWarning.level === "expired" ||
+                licenseExpiryWarning.level === "critical"
+                ? "border-red-500"
+                : licenseExpiryWarning.level === "warning"
+                  ? "border-amber-500"
+                  : "border-blue-500",
+            )}
+          />
+
+          <div className="flex items-start gap-3">
+            <AlertTriangle
+              className={cn(
+                "w-5 h-5 flex-shrink-0 mt-0.5",
+                licenseExpiryWarning.level === "expired" ||
+                  licenseExpiryWarning.level === "critical"
+                  ? "text-red-500"
+                  : licenseExpiryWarning.level === "warning"
+                    ? "text-amber-500"
+                    : "text-blue-500",
+              )}
+            />
+            <div>
+              <p
+                className={cn(
+                  "font-mono text-sm uppercase tracking-wider",
+                  licenseExpiryWarning.level === "expired" ||
+                    licenseExpiryWarning.level === "critical"
+                    ? "text-red-500"
+                    : licenseExpiryWarning.level === "warning"
+                      ? "text-amber-500"
+                      : "text-blue-500",
+                )}
+              >
+                {licenseExpiryWarning.level === "expired"
+                  ? "License Expired"
+                  : "License Expiry Notice"}
+              </p>
+              <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                {licenseExpiryWarning.message}
+              </p>
+              <Link
+                href="/appraiser/profile"
+                className={cn(
+                  "inline-flex items-center gap-1 mt-2 font-mono text-sm uppercase tracking-wider transition-colors",
+                  licenseExpiryWarning.level === "expired" ||
+                    licenseExpiryWarning.level === "critical"
+                    ? "text-red-500 hover:text-red-400"
+                    : licenseExpiryWarning.level === "warning"
+                      ? "text-amber-500 hover:text-amber-400"
+                      : "text-blue-500 hover:text-blue-400",
+                )}
+              >
+                Update License
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Streak Banner */}
       <StreakBanner
@@ -377,7 +656,7 @@ export default function AppraiserDashboardPage() {
 
       {/* Urgent Jobs Alert - Ledger Style */}
       {jobsDueToday.length > 0 && (
-        <div className="relative bg-gray-950 border border-amber-400/30 p-4 clip-notch">
+        <div className="relative bg-[var(--card)] border border-amber-400/30 p-4 clip-notch">
           {/* Bracket corners */}
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400" />
@@ -394,7 +673,7 @@ export default function AppraiserDashboardPage() {
               <Link
                 key={job.id}
                 href={`/appraiser/jobs/${job.id}`}
-                className="flex items-center justify-between p-3 bg-gray-900 border border-gray-800 clip-notch-sm hover:border-amber-400/30 transition-colors"
+                className="flex items-center justify-between p-3 bg-[var(--muted)] border border-[var(--border)] clip-notch-sm hover:border-amber-400/30 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <MapPin className="w-4 h-4 text-amber-400" />
@@ -417,15 +696,15 @@ export default function AppraiserDashboardPage() {
 
       {/* Active Jobs - Ledger Style */}
       {activeJobs && activeJobs.length > 0 && (
-        <div className="relative bg-gray-950 border border-gray-800 clip-notch overflow-hidden">
+        <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch overflow-hidden">
           {/* Bracket corners */}
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400/30 z-10" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400/30 z-10" />
 
-          <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+          <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap className="w-5 h-5 text-amber-400" />
-              <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400">
+              <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)]">
                 Active Jobs
               </h2>
             </div>
@@ -463,15 +742,15 @@ export default function AppraiserDashboardPage() {
       />
 
       {/* Available Jobs - Ledger Style */}
-      <div className="relative bg-gray-950 border border-gray-800 clip-notch overflow-hidden">
+      <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch overflow-hidden">
         {/* Bracket corners */}
         <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30 z-10" />
         <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30 z-10" />
 
-        <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Briefcase className="w-5 h-5 text-lime-400" />
-            <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400">
+            <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)]">
               Available Jobs
             </h2>
           </div>
@@ -485,13 +764,13 @@ export default function AppraiserDashboardPage() {
         </div>
         {!availableJobs?.length ? (
           <div className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gray-900 border border-gray-800 flex items-center justify-center clip-notch">
-              <Briefcase className="w-8 h-8 text-gray-600" />
+            <div className="w-16 h-16 mx-auto mb-4 bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center clip-notch">
+              <Briefcase className="w-8 h-8 text-[var(--muted-foreground)]" />
             </div>
             <p className="text-white font-medium">
               No available jobs right now
             </p>
-            <p className="text-sm text-gray-500 mt-1 font-mono">
+            <p className="text-sm text-[var(--muted-foreground)] mt-1 font-mono">
               Check back soon or expand your service area
             </p>
           </div>
@@ -559,7 +838,7 @@ export default function AppraiserDashboardPage() {
 
       {/* Profile Completion Alert - Ledger Style */}
       {profile?.verificationStatus !== "VERIFIED" && (
-        <div className="relative bg-gray-950 border border-amber-400/30 p-4 clip-notch">
+        <div className="relative bg-[var(--card)] border border-amber-400/30 p-4 clip-notch">
           {/* Bracket corners */}
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-amber-400" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-amber-400" />
@@ -570,7 +849,7 @@ export default function AppraiserDashboardPage() {
               <p className="font-mono text-sm uppercase tracking-wider text-amber-400">
                 Complete Your Profile
               </p>
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-[var(--muted-foreground)] mt-1">
                 Verify your license and complete your profile to start receiving
                 jobs.
               </p>

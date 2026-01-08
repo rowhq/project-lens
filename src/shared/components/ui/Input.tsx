@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useId } from "react";
 import { cn } from "@/shared/lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -21,14 +21,25 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       leftIcon,
       rightIcon,
       type = "text",
+      id: providedId,
       ...props
     },
     ref,
   ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const errorId = error ? `${id}-error` : undefined;
+    const hintId = hint && !error ? `${id}-hint` : undefined;
+    const describedBy =
+      [errorId, hintId].filter(Boolean).join(" ") || undefined;
+
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-mono text-[var(--muted-foreground)] mb-2 uppercase">
+          <label
+            htmlFor={id}
+            className="block text-mono text-[var(--muted-foreground)] mb-2 uppercase"
+          >
             {label}
           </label>
         )}
@@ -40,7 +51,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           <input
             ref={ref}
+            id={id}
             type={type}
+            aria-invalid={error ? "true" : undefined}
+            aria-describedby={describedBy}
             className={cn(
               // Base styles
               "w-full px-4 py-3",
@@ -71,10 +85,19 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p className="mt-2 text-caption text-red-500 font-mono">{error}</p>
+          <p
+            id={errorId}
+            className="mt-2 text-caption text-red-500 font-mono"
+            role="alert"
+          >
+            {error}
+          </p>
         )}
         {hint && !error && (
-          <p className="mt-2 text-caption text-[var(--muted-foreground)]">
+          <p
+            id={hintId}
+            className="mt-2 text-caption text-[var(--muted-foreground)]"
+          >
             {hint}
           </p>
         )}

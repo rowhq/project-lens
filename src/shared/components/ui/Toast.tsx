@@ -86,6 +86,9 @@ export function useToast() {
   return { success, error, warning, info };
 }
 
+// Maximum toasts to show at once
+const MAX_VISIBLE_TOASTS = 5;
+
 // Toast Container
 function ToastContainer() {
   const context = useContext(ToastContext);
@@ -93,17 +96,39 @@ function ToastContainer() {
 
   const { toasts } = context;
 
+  // Only show the latest N toasts
+  const visibleToasts = toasts.slice(-MAX_VISIBLE_TOASTS);
+  const hiddenCount = toasts.length - visibleToasts.length;
+
   return (
-    <div className="fixed bottom-4 right-4 z-toast flex flex-col gap-3 max-w-sm w-full pointer-events-none">
-      {toasts.map((toast) => (
-        <ToastItem key={toast.id} toast={toast} />
+    <div className="fixed bottom-4 right-4 z-toast flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+      {hiddenCount > 0 && (
+        <div className="text-xs text-[var(--muted-foreground)] text-right pr-2 pointer-events-none">
+          +{hiddenCount} more
+        </div>
+      )}
+      {visibleToasts.map((toast, index) => (
+        <ToastItem
+          key={toast.id}
+          toast={toast}
+          index={index}
+          total={visibleToasts.length}
+        />
       ))}
     </div>
   );
 }
 
 // Single Toast Item
-function ToastItem({ toast }: { toast: Toast }) {
+function ToastItem({
+  toast,
+  index,
+  total,
+}: {
+  toast: Toast;
+  index: number;
+  total: number;
+}) {
   const context = useContext(ToastContext);
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -137,6 +162,11 @@ function ToastItem({ toast }: { toast: Toast }) {
 
   const { icon, styles, iconColor, borderAccent } = config[toast.type];
 
+  // Calculate scale for stacking effect (older toasts slightly smaller)
+  const stackOffset = total - 1 - index;
+  const scale = Math.max(0.95, 1 - stackOffset * 0.02);
+  const opacity = Math.max(0.7, 1 - stackOffset * 0.1);
+
   useEffect(() => {
     // Trigger enter animation
     requestAnimationFrame(() => setIsVisible(true));
@@ -168,10 +198,13 @@ function ToastItem({ toast }: { toast: Toast }) {
         "border clip-notch",
         "transition-all duration-normal ease-out-expo",
         styles,
-        isVisible && !isLeaving
-          ? "translate-x-0 opacity-100"
-          : "translate-x-8 opacity-0",
+        isVisible && !isLeaving ? "translate-x-0" : "translate-x-8",
       )}
+      style={{
+        transform: isVisible && !isLeaving ? `scale(${scale})` : undefined,
+        opacity: isVisible && !isLeaving ? opacity : 0,
+        transformOrigin: "bottom right",
+      }}
       role="alert"
     >
       {/* Bracket decorations */}

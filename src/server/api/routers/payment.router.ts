@@ -6,6 +6,12 @@
 import { z } from "zod";
 import { createTRPCRouter, appraiserProcedure, adminProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
+import {
+  runPayoutScheduler,
+  getPayoutStats,
+  getNextScheduledPayoutDate,
+  PAYOUT_CONFIG,
+} from "@/server/services/payout-scheduler";
 
 export const paymentRouter = createTRPCRouter({
   /**
@@ -270,4 +276,39 @@ export const paymentRouter = createTRPCRouter({
         },
       });
     }),
+
+  /**
+   * Admin: Get payout scheduler stats and configuration
+   */
+  getSchedulerStats: adminProcedure.query(async () => {
+    const stats = await getPayoutStats();
+    return {
+      ...stats,
+      config: {
+        minimumPayoutAmount: PAYOUT_CONFIG.minimumPayoutAmount,
+        maximumPayoutAmount: PAYOUT_CONFIG.maximumPayoutAmount,
+        payoutIntervalDays: PAYOUT_CONFIG.payoutIntervalDays,
+        scheduledPayoutDay: PAYOUT_CONFIG.scheduledPayoutDay,
+        scheduledPayoutHour: PAYOUT_CONFIG.scheduledPayoutHour,
+      },
+    };
+  }),
+
+  /**
+   * Admin: Run payout scheduler manually
+   * This processes all pending payouts that meet the minimum threshold
+   */
+  runScheduler: adminProcedure.mutation(async () => {
+    const result = await runPayoutScheduler();
+    return result;
+  }),
+
+  /**
+   * Admin: Get next scheduled payout date
+   */
+  getNextPayoutDate: adminProcedure.query(async () => {
+    return {
+      nextPayout: getNextScheduledPayoutDate(),
+    };
+  }),
 });

@@ -83,11 +83,13 @@ function StatCard({
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
 
-  // Queries
-  const { data: stats } = trpc.admin.dashboard.stats.useQuery();
-  const { data: weeklyTrend } = trpc.admin.dashboard.weeklyTrend.useQuery();
+  // Queries - pass dateRange to all queries that support it
+  const { data: stats } = trpc.admin.dashboard.stats.useQuery({ dateRange });
+  const { data: weeklyTrend } = trpc.admin.dashboard.weeklyTrend.useQuery({
+    dateRange,
+  });
   const { data: jobTypeDistribution } =
-    trpc.admin.dashboard.jobTypeDistribution.useQuery();
+    trpc.admin.dashboard.jobTypeDistribution.useQuery({ dateRange });
   const { data: topAppraisersData } =
     trpc.admin.dashboard.topAppraisers.useQuery({ limit: 3 });
   const { data: topOrganizationsData } =
@@ -101,8 +103,8 @@ export default function AnalyticsPage() {
     trpc.admin.dashboard.satisfactionScore.useQuery();
 
   // Calculate metrics
-  const totalRevenue = stats?.revenue?.thisMonth || 0;
-  const totalJobs = stats?.jobs?.active || 0;
+  const totalRevenue = stats?.revenue?.period || 0;
+  const totalJobs = stats?.jobs?.completed || 0;
   const avgTurnaround = avgTurnaroundData ?? 0;
   const satisfactionScore = satisfactionScoreData ?? 0;
 
@@ -125,7 +127,7 @@ export default function AnalyticsPage() {
   const jobTypeData = useMemo(() => {
     if (!jobTypeDistribution) {
       return [
-        { name: "AI Only", value: 0 },
+        { name: "AI Report", value: 0 },
         { name: "On-Site", value: 0 },
         { name: "Certified", value: 0 },
       ];
@@ -186,7 +188,7 @@ export default function AnalyticsPage() {
       ["KPI Metrics", ""],
       ["Total Revenue", `$${totalRevenue.toLocaleString()}`],
       ["Total Jobs", totalJobs.toString()],
-      ["Avg Turnaround", `${avgTurnaround} hours`],
+      ["Avg Turnaround", `${avgTurnaround} days`],
       ["Satisfaction Score", `${satisfactionScore}%`],
       ["", ""],
       ["Job Type Distribution", ""],
@@ -262,43 +264,35 @@ export default function AnalyticsPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           label="Total Revenue"
           value={`$${totalRevenue.toLocaleString()}`}
-          change="+12.5%"
-          trend="up"
           icon={DollarSign}
           accentColor="lime"
         />
         <StatCard
           label="Jobs Completed"
           value={totalJobs}
-          change="+8.2%"
-          trend="up"
           icon={Briefcase}
           accentColor="amber"
         />
         <StatCard
           label="Avg Turnaround"
           value={`${avgTurnaround} days`}
-          change="-15%"
-          trend="up"
           icon={Clock}
           accentColor="cyan"
         />
         <StatCard
           label="Satisfaction"
           value={`${satisfactionScore}/5`}
-          change="+0.3"
-          trend="up"
           icon={Star}
           accentColor="purple"
         />
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Revenue Chart */}
         <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
@@ -340,7 +334,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Second Row: Distribution + Counties */}
-      <div className="grid grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Job Type Distribution */}
         <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
@@ -353,7 +347,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Top Counties */}
-        <div className="col-span-2 relative bg-gray-950 border border-gray-800 p-6 clip-notch">
+        <div className="lg:col-span-2 relative bg-gray-950 border border-gray-800 p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
 
@@ -389,7 +383,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Third Row: Top Performers */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Appraisers */}
         <div className="relative bg-gray-950 border border-gray-800 p-6 clip-notch">
           <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />

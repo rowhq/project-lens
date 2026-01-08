@@ -121,8 +121,19 @@ class AppraiserMatcher {
       if (!isLicenseEligibleForJob(appraiser.licenseType, job.jobType))
         continue;
 
-      // Check availability
-      const isAvailable = await this.checkAvailability(appraiser.userId, job);
+      // Check if license is expired
+      if (appraiser.licenseExpiry) {
+        const expirationDate = new Date(appraiser.licenseExpiry);
+        if (expirationDate < new Date()) {
+          // License is expired, skip this appraiser
+          continue;
+        }
+      }
+
+      // Check availability (pass profile to avoid N+1 query)
+      const isAvailable = await this.checkAvailability(appraiser.userId, job, {
+        preferredSchedule: appraiser.preferredSchedule,
+      });
       if (!isAvailable) continue;
 
       // Calculate score
@@ -157,10 +168,12 @@ class AppraiserMatcher {
 
   /**
    * Check if appraiser is available for job
+   * Note: Profile is now included in the initial query to avoid N+1
    */
   private async checkAvailability(
     appraiserId: string,
     job: JobWithProperty,
+    profile?: { preferredSchedule: unknown } | null,
   ): Promise<boolean> {
     // Check current workload
     const activeJobs = await prisma.job.count({
@@ -176,11 +189,14 @@ class AppraiserMatcher {
     const maxConcurrent = 5;
     if (activeJobs >= maxConcurrent) return false;
 
-    // Get appraiser's preferred schedule
-    const profile = await prisma.appraiserProfile.findUnique({
-      where: { userId: appraiserId },
-      select: { preferredSchedule: true },
-    });
+    // Use provided profile or fetch if not provided (backward compatibility)
+    let scheduleProfile = profile;
+    if (!scheduleProfile) {
+      scheduleProfile = await prisma.appraiserProfile.findUnique({
+        where: { userId: appraiserId },
+        select: { preferredSchedule: true },
+      });
+    }
 
     const now = new Date();
     const dayOfWeek = now.getDay();
@@ -193,7 +209,7 @@ class AppraiserMatcher {
     const dayName = dayNames[dayOfWeek];
 
     // Check schedule from appraiser's preferredSchedule
-    const schedule = profile?.preferredSchedule as Record<
+    const schedule = scheduleProfile?.preferredSchedule as Record<
       string,
       unknown
     > | null;
@@ -252,6 +268,67 @@ class AppraiserMatcher {
   }
 
   /**
+   * Calculate availability score based on schedule and workload
+   */
+  private calculateAvailabilityScore(
+    appraiser: AppraiserProfile & { user: User },
+  ): number {
+    let score = 100;
+    const schedule = appraiser.preferredSchedule as Record<
+      string,
+      { start: string; end: string; enabled: boolean }
+    > | null;
+
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const dayNames = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
+    const todayKey = dayNames[dayOfWeek];
+
+    // Check if appraiser has schedule for today
+    if (schedule && schedule[todayKey]) {
+      const todaySchedule = schedule[todayKey];
+      if (!todaySchedule.enabled) {
+        // Not working today - reduce score significantly
+        score -= 50;
+      } else {
+        // Check remaining hours in their schedule
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const endMinutes = this.parseTimeToMinutes(todaySchedule.end);
+        const remainingMinutes = Math.max(0, endMinutes - currentMinutes);
+
+        // If less than 2 hours remaining, reduce score
+        if (remainingMinutes < 120) {
+          score -= 30;
+        } else if (remainingMinutes < 240) {
+          score -= 15;
+        }
+      }
+    }
+
+    // Factor in current workload (completedJobs this week indicates active appraiser)
+    // Appraisers with very high recent completions might be overloaded
+    if (appraiser.completedJobs > 0) {
+      // Assume average 5 jobs per week is healthy workload
+      // This would ideally check actual active jobs, but we use proxy metric
+      const weeklyTarget = 5;
+      const workloadRatio = Math.min(1.5, appraiser.completedJobs / 100); // Simplified
+      if (workloadRatio > 1.2) {
+        score -= 10; // Slightly penalize very busy appraisers
+      }
+    }
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  /**
    * Calculate match score for appraiser
    */
   private calculateScore(
@@ -278,8 +355,8 @@ class AppraiserMatcher {
       totalJobs > 0 ? (appraiser.completedJobs / totalJobs) * 100 : 90;
     score += completionRate * weights.completionRate;
 
-    // Availability score (based on current workload - simplified)
-    const availabilityScore = 80; // Would be calculated from actual availability
+    // Availability score (based on current workload and schedule)
+    const availabilityScore = this.calculateAvailabilityScore(appraiser);
     score += availabilityScore * weights.availability;
 
     // Experience score (based on total jobs completed)

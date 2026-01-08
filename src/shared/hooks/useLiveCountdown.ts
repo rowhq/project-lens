@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 interface CountdownResult {
   timeRemaining: string;
@@ -9,7 +9,7 @@ interface CountdownResult {
 }
 
 const DEFAULT_RESULT: CountdownResult = {
-  timeRemaining: '',
+  timeRemaining: "",
   hoursRemaining: Infinity,
   isOverdue: false,
   isCritical: false,
@@ -17,7 +17,7 @@ const DEFAULT_RESULT: CountdownResult = {
 };
 
 const NA_RESULT: CountdownResult = {
-  timeRemaining: 'N/A',
+  timeRemaining: "N/A",
   hoursRemaining: Infinity,
   isOverdue: false,
   isCritical: false,
@@ -33,10 +33,15 @@ function calculateCountdown(targetDate: string | Date): CountdownResult {
   if (diff <= 0) {
     const overdueDiff = Math.abs(diff);
     const overdueHours = Math.floor(overdueDiff / (1000 * 60 * 60));
-    const overdueMinutes = Math.floor((overdueDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const overdueMinutes = Math.floor(
+      (overdueDiff % (1000 * 60 * 60)) / (1000 * 60),
+    );
 
     return {
-      timeRemaining: overdueHours > 0 ? `${overdueHours}h ${overdueMinutes}m overdue` : `${overdueMinutes}m overdue`,
+      timeRemaining:
+        overdueHours > 0
+          ? `${overdueHours}h ${overdueMinutes}m overdue`
+          : `${overdueMinutes}m overdue`,
       hoursRemaining: -overdueHours,
       isOverdue: true,
       isCritical: true,
@@ -66,7 +71,9 @@ function calculateCountdown(targetDate: string | Date): CountdownResult {
   };
 }
 
-export const useLiveCountdown = (targetDate: string | Date | null): CountdownResult => {
+export const useLiveCountdown = (
+  targetDate: string | Date | null,
+): CountdownResult => {
   const [result, setResult] = useState<CountdownResult>(() => {
     if (!targetDate) return NA_RESULT;
     return calculateCountdown(targetDate);
@@ -91,6 +98,7 @@ export const useLiveCountdown = (targetDate: string | Date | null): CountdownRes
 
   // Update when targetDate changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     updateCountdown();
   }, [updateCountdown]);
 
@@ -98,57 +106,62 @@ export const useLiveCountdown = (targetDate: string | Date | null): CountdownRes
 };
 
 // Helper function for urgency styling
-export const getUrgencyConfig = (hoursRemaining: number, isOverdue: boolean) => {
+export const getUrgencyConfig = (
+  hoursRemaining: number,
+  isOverdue: boolean,
+) => {
   if (isOverdue) {
     return {
-      level: 'overdue' as const,
-      label: 'OVERDUE',
-      icon: '🚨',
-      bgClass: 'bg-red-500/20 border-red-500/50',
-      textClass: 'text-red-400',
-      badgeClass: 'bg-red-500 text-white animate-pulse',
+      level: "overdue" as const,
+      label: "OVERDUE",
+      icon: "alert-circle",
+      bgClass: "bg-red-500/20 border-red-500/50",
+      textClass: "text-red-400",
+      badgeClass: "bg-red-500 text-white animate-pulse",
     };
   }
 
   if (hoursRemaining < 4) {
     return {
-      level: 'critical' as const,
-      label: 'DUE VERY SOON',
-      icon: '🔥',
-      bgClass: 'bg-red-500/20 border-red-500/50',
-      textClass: 'text-red-400',
-      badgeClass: 'bg-red-500/20 text-red-400 border border-red-500/50',
+      level: "critical" as const,
+      label: "DUE VERY SOON",
+      icon: "flame",
+      bgClass: "bg-red-500/20 border-red-500/50",
+      textClass: "text-red-400",
+      badgeClass: "bg-red-500/20 text-red-400 border border-red-500/50",
     };
   }
 
   if (hoursRemaining < 24) {
     return {
-      level: 'high' as const,
-      label: 'DUE TODAY',
-      icon: '⚡',
-      bgClass: 'bg-orange-500/20 border-orange-500/50',
-      textClass: 'text-orange-400',
-      badgeClass: 'bg-orange-500/20 text-orange-400 border border-orange-500/50',
+      level: "high" as const,
+      label: "DUE TODAY",
+      icon: "zap",
+      bgClass: "bg-orange-500/20 border-orange-500/50",
+      textClass: "text-orange-400",
+      badgeClass:
+        "bg-orange-500/20 text-orange-400 border border-orange-500/50",
     };
   }
 
   if (hoursRemaining < 48) {
     return {
-      level: 'medium' as const,
-      label: 'DUE TOMORROW',
-      icon: '⏰',
-      bgClass: 'bg-yellow-500/20 border-yellow-500/50',
-      textClass: 'text-yellow-400',
-      badgeClass: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50',
+      level: "medium" as const,
+      label: "DUE TOMORROW",
+      icon: "clock",
+      bgClass: "bg-yellow-500/20 border-yellow-500/50",
+      textClass: "text-yellow-400",
+      badgeClass:
+        "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50",
     };
   }
 
   return {
-    level: 'normal' as const,
-    label: '',
-    icon: '',
-    bgClass: '',
-    textClass: 'text-[var(--foreground)]',
-    badgeClass: '',
+    level: "normal" as const,
+    label: "",
+    icon: "",
+    bgClass: "",
+    textClass: "text-[var(--foreground)]",
+    badgeClass: "",
   };
 };

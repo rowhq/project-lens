@@ -285,6 +285,7 @@ class SLAMonitor {
       : [];
 
     // Update job with escalation info in statusHistory
+    // Note: slaBreached and escalationLevel fields will be added after migration
     await prisma.job.update({
       where: { id: breach.jobId },
       data: {
@@ -296,6 +297,7 @@ class SLAMonitor {
             breachType: breach.breachType,
             level: breach.level,
             hoursOverdue: breach.hoursOverdue,
+            slaBreached: true, // Store in statusHistory until schema is migrated
           },
         ],
       },

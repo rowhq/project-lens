@@ -82,7 +82,9 @@ export const appraiserRouter = createTRPCRouter({
         } else {
           const prevDate = new Date(sortedDates[i - 1]);
           const currDate = new Date(sortedDates[i]);
-          const diffDays = Math.round((prevDate.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24));
+          const diffDays = Math.round(
+            (prevDate.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24),
+          );
 
           if (diffDays === 1) {
             tempStreak++;
@@ -109,7 +111,7 @@ export const appraiserRouter = createTRPCRouter({
           homeBaseLng: z.number().optional(),
           availableJobTypes: z.array(z.string()).optional(),
           preferredSchedule: z.record(z.string(), z.any()).optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         return ctx.prisma.appraiserProfile.update({
@@ -138,7 +140,7 @@ export const appraiserRouter = createTRPCRouter({
           homeBaseLat: z.number(),
           homeBaseLng: z.number(),
           coverageRadiusMiles: z.number().min(5).max(100).default(50),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         // Check if profile already exists
@@ -183,7 +185,7 @@ export const appraiserRouter = createTRPCRouter({
           userId: z.string(),
           action: z.enum(["APPROVE", "REJECT"]),
           notes: z.string().optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const profile = await ctx.prisma.appraiserProfile.findUnique({
@@ -197,7 +199,8 @@ export const appraiserRouter = createTRPCRouter({
         return ctx.prisma.appraiserProfile.update({
           where: { userId: input.userId },
           data: {
-            verificationStatus: input.action === "APPROVE" ? "VERIFIED" : "REVOKED",
+            verificationStatus:
+              input.action === "APPROVE" ? "VERIFIED" : "REVOKED",
             verifiedAt: input.action === "APPROVE" ? new Date() : null,
             verificationNotes: input.notes,
           },
@@ -213,7 +216,7 @@ export const appraiserRouter = createTRPCRouter({
           fileName: z.string(),
           fileType: z.string(),
           fileSize: z.number().max(10 * 1024 * 1024), // Max 10MB
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         // Validate file type
@@ -268,7 +271,7 @@ export const appraiserRouter = createTRPCRouter({
       .input(
         z.object({
           preferredSchedule: z.record(z.string(), z.any()),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         return ctx.prisma.appraiserProfile.update({
@@ -287,9 +290,9 @@ export const appraiserRouter = createTRPCRouter({
               isAvailable: z.boolean(),
               startTime: z.string().optional(), // "08:00"
               endTime: z.string().optional(), // "18:00"
-            })
+            }),
           ),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const profile = await ctx.prisma.appraiserProfile.update({
@@ -310,14 +313,18 @@ export const appraiserRouter = createTRPCRouter({
           isAvailable: z.boolean(),
           startTime: z.string().optional(),
           endTime: z.string().optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         // Get current schedule
-        const currentSchedule = (ctx.appraiserProfile.preferredSchedule as Record<string, unknown>) || {};
+        const currentSchedule =
+          (ctx.appraiserProfile.preferredSchedule as Record<string, unknown>) ||
+          {};
 
         // Add or update the specific date override
-        const dateOverrides = { ...(currentSchedule.dateOverrides as object || {}) } as Record<string, object>;
+        const dateOverrides = {
+          ...((currentSchedule.dateOverrides as object) || {}),
+        } as Record<string, object>;
         dateOverrides[input.date] = {
           isAvailable: input.isAvailable,
           startTime: input.startTime,
@@ -342,11 +349,15 @@ export const appraiserRouter = createTRPCRouter({
       .input(
         z.object({
           date: z.string(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
-        const currentSchedule = (ctx.appraiserProfile.preferredSchedule as Record<string, unknown>) || {};
-        const dateOverrides = { ...(currentSchedule.dateOverrides as object || {}) } as Record<string, object>;
+        const currentSchedule =
+          (ctx.appraiserProfile.preferredSchedule as Record<string, unknown>) ||
+          {};
+        const dateOverrides = {
+          ...((currentSchedule.dateOverrides as object) || {}),
+        } as Record<string, object>;
 
         delete dateOverrides[input.date];
 
@@ -370,7 +381,11 @@ export const appraiserRouter = createTRPCRouter({
   earnings: createTRPCRouter({
     summary: appraiserProcedure.query(async ({ ctx }) => {
       const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      );
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - now.getDay());
@@ -424,15 +439,15 @@ export const appraiserRouter = createTRPCRouter({
 
       const todayEarnings = todayJobs.reduce(
         (sum, job) => sum + Number(job.payoutAmount),
-        0
+        0,
       );
       const monthlyEarnings = monthlyJobs.reduce(
         (sum, job) => sum + Number(job.payoutAmount),
-        0
+        0,
       );
       const weeklyEarnings = weeklyJobs.reduce(
         (sum, job) => sum + Number(job.payoutAmount),
-        0
+        0,
       );
 
       return {
@@ -454,7 +469,7 @@ export const appraiserRouter = createTRPCRouter({
         z.object({
           limit: z.number().min(1).max(100).default(20),
           cursor: z.string().optional(),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         const payments = await ctx.prisma.payment.findMany({
@@ -475,6 +490,138 @@ export const appraiserRouter = createTRPCRouter({
 
         return { items: payments, nextCursor };
       }),
+  }),
+
+  /**
+   * Service Areas - available cities for coverage
+   * Returns dynamically from config or database
+   */
+  serviceAreas: createTRPCRouter({
+    /**
+     * Get available service cities
+     * Currently supports Texas, expandable to other states
+     */
+    getCities: protectedProcedure
+      .input(
+        z
+          .object({
+            state: z.string().default("TX"),
+          })
+          .optional(),
+      )
+      .query(async ({ input }) => {
+        const state = input?.state || "TX";
+
+        // Service area configuration - can be moved to database later
+        const serviceAreaConfig: Record<
+          string,
+          { cities: string[]; name: string }
+        > = {
+          TX: {
+            name: "Texas",
+            cities: [
+              "Houston",
+              "San Antonio",
+              "Dallas",
+              "Austin",
+              "Fort Worth",
+              "El Paso",
+              "Arlington",
+              "Corpus Christi",
+              "Plano",
+              "Laredo",
+              "Lubbock",
+              "Irving",
+              "Garland",
+              "Amarillo",
+              "Grand Prairie",
+              "McKinney",
+              "Frisco",
+              "Brownsville",
+              "Killeen",
+              "Pasadena",
+              "McAllen",
+              "Mesquite",
+              "Waco",
+              "Denton",
+              "Carrollton",
+              "Midland",
+              "Abilene",
+              "Beaumont",
+              "Round Rock",
+              "Odessa",
+              "Richardson",
+              "Pearland",
+              "College Station",
+              "League City",
+              "Lewisville",
+              "Tyler",
+              "San Marcos",
+              "Sugar Land",
+              "The Woodlands",
+              "Allen",
+            ],
+          },
+          CA: {
+            name: "California",
+            cities: [
+              "Los Angeles",
+              "San Diego",
+              "San Jose",
+              "San Francisco",
+              "Fresno",
+              "Sacramento",
+              "Long Beach",
+              "Oakland",
+              "Bakersfield",
+              "Anaheim",
+            ],
+          },
+          FL: {
+            name: "Florida",
+            cities: [
+              "Jacksonville",
+              "Miami",
+              "Tampa",
+              "Orlando",
+              "St. Petersburg",
+              "Hialeah",
+              "Port St. Lucie",
+              "Tallahassee",
+              "Cape Coral",
+              "Fort Lauderdale",
+            ],
+          },
+        };
+
+        const stateData = serviceAreaConfig[state];
+        if (!stateData) {
+          return {
+            state,
+            stateName: state,
+            cities: [],
+            supported: false,
+          };
+        }
+
+        return {
+          state,
+          stateName: stateData.name,
+          cities: stateData.cities.sort(),
+          supported: true,
+        };
+      }),
+
+    /**
+     * Get all supported states
+     */
+    getStates: protectedProcedure.query(async () => {
+      return [
+        { code: "TX", name: "Texas", active: true },
+        { code: "CA", name: "California", active: false },
+        { code: "FL", name: "Florida", active: false },
+      ];
+    }),
   }),
 
   /**

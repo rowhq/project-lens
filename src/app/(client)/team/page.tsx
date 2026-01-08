@@ -193,7 +193,7 @@ export default function TeamPage() {
           className={`fixed top-4 right-4 z-50 px-4 py-3 clip-notch shadow-lg flex items-center gap-2 animate-in slide-in-from-top-2 ${
             feedback.type === "success"
               ? "bg-lime-400 text-black"
-              : "bg-red-500 text-white"
+              : "bg-red-500 text-[var(--foreground)]"
           }`}
         >
           {feedback.type === "success" ? (
@@ -208,8 +208,10 @@ export default function TeamPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Team</h1>
-          <p className="text-gray-400">Manage your organization members</p>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">Team</h1>
+          <p className="text-[var(--muted-foreground)]">
+            Manage your organization members
+          </p>
         </div>
         <button
           onClick={() => setShowInviteModal(true)}
@@ -221,17 +223,17 @@ export default function TeamPage() {
       </div>
 
       {/* Organization Info */}
-      <div className="relative bg-gray-900 clip-notch border border-gray-800 p-6">
+      <div className="relative bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
               <Users className="w-8 h-8 text-lime-400" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-white">
+              <h2 className="text-xl font-semibold text-[var(--foreground)]">
                 {organization?.name}
               </h2>
-              <p className="text-gray-400">
+              <p className="text-[var(--muted-foreground)]">
                 {activeMembers.length} active member
                 {activeMembers.length !== 1 ? "s" : ""}
                 {pendingInvitations && pendingInvitations.length > 0 && (
@@ -254,11 +256,11 @@ export default function TeamPage() {
       </div>
 
       {/* Members List */}
-      <div className="relative bg-gray-900 clip-notch border border-gray-800">
-        <div className="px-6 py-4 border-b border-gray-800">
-          <h3 className="font-semibold text-white">Members</h3>
+      <div className="relative bg-[var(--card)] clip-notch border border-[var(--border)]">
+        <div className="px-6 py-4 border-b border-[var(--border)]">
+          <h3 className="font-semibold text-[var(--foreground)]">Members</h3>
         </div>
-        <div className="divide-y divide-gray-800">
+        <div className="divide-y divide-[var(--border)]">
           {activeMembers.length === 0 ? (
             <EmptyState
               icon={Users}
@@ -277,29 +279,31 @@ export default function TeamPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
-                    <span className="text-gray-300 font-medium">
+                    <span className="text-[var(--foreground)] font-medium">
                       {member.firstName?.[0]}
                       {member.lastName?.[0]}
                     </span>
                   </div>
                   <div>
-                    <p className="font-medium text-white">
+                    <p className="font-medium text-[var(--foreground)]">
                       {member.firstName} {member.lastName}
                     </p>
-                    <p className="text-sm text-gray-400">{member.email}</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      {member.email}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span
                     className={`px-2 py-0.5 clip-notch-sm text-xs font-mono uppercase tracking-wider ${
                       roleLabels[member.role as MemberRole]?.color ||
-                      "bg-gray-500/20 text-gray-400"
+                      "bg-gray-500/20 text-[var(--muted-foreground)]"
                     }`}
                   >
                     {roleLabels[member.role as MemberRole]?.label ||
                       member.role}
                   </span>
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                     <UserCheck className="w-4 h-4 text-lime-400" />
                     Active
                   </div>
@@ -310,12 +314,12 @@ export default function TeamPage() {
                           activeMenu === member.id ? null : member.id,
                         )
                       }
-                      className="p-2 hover:bg-gray-800 clip-notch-sm"
+                      className="p-2 hover:bg-[var(--secondary)] clip-notch-sm"
                     >
-                      <MoreVertical className="w-4 h-4 text-gray-400" />
+                      <MoreVertical className="w-4 h-4 text-[var(--muted-foreground)]" />
                     </button>
                     {activeMenu === member.id && (
-                      <div className="absolute right-0 mt-2 w-48 bg-gray-900 clip-notch shadow-lg border border-gray-700 py-1 z-10">
+                      <div className="absolute right-0 mt-2 w-48 bg-[var(--card)] clip-notch shadow-lg border border-[var(--border)] py-1 z-10">
                         {/* Change Role Submenu */}
                         <div className="relative">
                           <button
@@ -326,13 +330,13 @@ export default function TeamPage() {
                                   : member.id,
                               )
                             }
-                            className="w-full px-4 py-2 text-left text-sm text-white hover:bg-gray-800 flex items-center gap-2"
+                            className="w-full px-4 py-2 text-left text-sm text-[var(--foreground)] hover:bg-[var(--secondary)] flex items-center gap-2"
                           >
                             <Edit className="w-4 h-4" />
                             Change Role
                           </button>
                           {showRoleDropdown === member.id && (
-                            <div className="absolute left-full top-0 ml-1 w-36 bg-gray-900 clip-notch shadow-lg border border-gray-700 py-1">
+                            <div className="absolute left-full top-0 ml-1 w-36 bg-[var(--card)] clip-notch shadow-lg border border-[var(--border)] py-1">
                               {availableRoles.map((role) => (
                                 <button
                                   key={role.value}
@@ -340,10 +344,10 @@ export default function TeamPage() {
                                     handleRoleChange(member.id, role.value)
                                   }
                                   disabled={changeRole.isPending}
-                                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-800 flex items-center gap-2 ${
+                                  className={`w-full px-4 py-2 text-left text-sm hover:bg-[var(--secondary)] flex items-center gap-2 ${
                                     member.role === role.value
                                       ? "text-lime-400 font-medium"
-                                      : "text-white"
+                                      : "text-[var(--foreground)]"
                                   }`}
                                 >
                                   {member.role === role.value && (
@@ -375,17 +379,19 @@ export default function TeamPage() {
       </div>
 
       {/* Pending Invitations */}
-      <div className="relative bg-gray-900 clip-notch border border-gray-800">
-        <div className="px-6 py-4 border-b border-gray-800">
-          <h3 className="font-semibold text-white">Pending Invitations</h3>
+      <div className="relative bg-[var(--card)] clip-notch border border-[var(--border)]">
+        <div className="px-6 py-4 border-b border-[var(--border)]">
+          <h3 className="font-semibold text-[var(--foreground)]">
+            Pending Invitations
+          </h3>
         </div>
         {!pendingInvitations || pendingInvitations.length === 0 ? (
-          <div className="p-6 text-center text-gray-400">
-            <Mail className="w-8 h-8 mx-auto mb-2 text-gray-500" />
+          <div className="p-6 text-center text-[var(--muted-foreground)]">
+            <Mail className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
             <p>No pending invitations</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-800">
+          <div className="divide-y divide-[var(--border)]">
             {pendingInvitations.map((invite) => (
               <div
                 key={invite.id}
@@ -396,14 +402,16 @@ export default function TeamPage() {
                     <Clock className="w-5 h-5 text-amber-400" />
                   </div>
                   <div>
-                    <p className="font-medium text-white">
+                    <p className="font-medium text-[var(--foreground)]">
                       {invite.firstName} {invite.lastName}
                     </p>
-                    <p className="text-sm text-gray-400">{invite.email}</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      {invite.email}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-[var(--muted-foreground)]">
                     Sent {new Date(invite.createdAt).toLocaleDateString()}
                   </span>
                   <button
@@ -434,23 +442,30 @@ export default function TeamPage() {
       </div>
 
       {/* Roles & Permissions */}
-      <div className="relative bg-gray-900 clip-notch border border-gray-800">
-        <div className="px-6 py-4 border-b border-gray-800">
-          <h3 className="font-semibold text-white">Roles & Permissions</h3>
+      <div className="relative bg-[var(--card)] clip-notch border border-[var(--border)]">
+        <div className="px-6 py-4 border-b border-[var(--border)]">
+          <h3 className="font-semibold text-[var(--foreground)]">
+            Roles & Permissions
+          </h3>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-3 gap-4">
             {Object.entries(roleLabels).map(([role, config]) => (
-              <div key={role} className="border border-gray-700 clip-notch p-4">
+              <div
+                key={role}
+                className="border border-[var(--border)] clip-notch p-4"
+              >
                 <div className="flex items-center gap-2 mb-2">
-                  <Shield className="w-5 h-5 text-gray-400" />
+                  <Shield className="w-5 h-5 text-[var(--muted-foreground)]" />
                   <span
                     className={`px-2 py-1 clip-notch-sm text-xs font-mono uppercase tracking-wider ${config.color}`}
                   >
                     {config.label}
                   </span>
                 </div>
-                <p className="text-sm text-gray-400">{config.description}</p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  {config.description}
+                </p>
               </div>
             ))}
           </div>
@@ -460,22 +475,23 @@ export default function TeamPage() {
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 clip-notch border border-gray-700 w-full max-w-md p-6">
+          <div className="bg-[var(--card)] clip-notch border border-[var(--border)] w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-white">
+              <h2 className="text-xl font-semibold text-[var(--foreground)]">
                 Invite Team Member
               </h2>
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="p-2 hover:bg-gray-800 clip-notch-sm"
+                className="p-2 hover:bg-[var(--secondary)] clip-notch-sm"
+                aria-label="Close invite modal"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5 text-[var(--muted-foreground)]" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-sm font-mono uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
                   Email Address
                 </label>
                 <input
@@ -483,13 +499,13 @@ export default function TeamPage() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="colleague@company.com"
-                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                  className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-[var(--foreground)] font-mono text-sm placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
+                  <label className="block text-sm font-mono uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
                     First Name
                   </label>
                   <input
@@ -497,11 +513,11 @@ export default function TeamPage() {
                     value={inviteFirstName}
                     onChange={(e) => setInviteFirstName(e.target.value)}
                     placeholder="John"
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-[var(--foreground)] font-mono text-sm placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
+                  <label className="block text-sm font-mono uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
                     Last Name
                   </label>
                   <input
@@ -509,7 +525,7 @@ export default function TeamPage() {
                     value={inviteLastName}
                     onChange={(e) => setInviteLastName(e.target.value)}
                     placeholder="Doe"
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-[var(--foreground)] font-mono text-sm placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
                   />
                 </div>
               </div>
@@ -518,7 +534,7 @@ export default function TeamPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
+                className="flex-1 px-4 py-2.5 border border-[var(--border)] clip-notch font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] text-[var(--foreground)] transition-colors"
               >
                 Cancel
               </button>
@@ -530,7 +546,7 @@ export default function TeamPage() {
                   !inviteLastName ||
                   inviteMember.isPending
                 }
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-[var(--muted)] disabled:text-[var(--muted-foreground)] disabled:cursor-not-allowed transition-colors"
               >
                 {inviteMember.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -547,22 +563,23 @@ export default function TeamPage() {
       {/* Edit Organization Modal */}
       {showEditOrgModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 clip-notch border border-gray-700 w-full max-w-md p-6">
+          <div className="bg-[var(--card)] clip-notch border border-[var(--border)] w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-white">
+              <h2 className="text-xl font-semibold text-[var(--foreground)]">
                 Edit Organization
               </h2>
               <button
                 onClick={() => setShowEditOrgModal(false)}
-                className="p-2 hover:bg-gray-800 clip-notch-sm"
+                className="p-2 hover:bg-[var(--secondary)] clip-notch-sm"
+                aria-label="Close edit organization modal"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5 text-[var(--muted-foreground)]" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-sm font-mono uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
                   Organization Name
                 </label>
                 <input
@@ -570,12 +587,12 @@ export default function TeamPage() {
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
                   placeholder="Acme Inc."
-                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                  className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-[var(--foreground)] font-mono text-sm placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-sm font-mono uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
                   Phone
                 </label>
                 <input
@@ -583,9 +600,9 @@ export default function TeamPage() {
                   value={orgPhone}
                   onChange={(e) => setOrgPhone(e.target.value)}
                   placeholder="+1 (555) 123-4567"
-                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                  className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-[var(--foreground)] font-mono text-sm placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-[var(--muted-foreground)] mt-1">
                   Billing address can be updated in the Billing page
                 </p>
               </div>
@@ -594,14 +611,14 @@ export default function TeamPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowEditOrgModal(false)}
-                className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
+                className="flex-1 px-4 py-2.5 border border-[var(--border)] clip-notch font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] text-[var(--foreground)] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveOrg}
                 disabled={!orgName || updateOrganization.isPending}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-[var(--muted)] disabled:text-[var(--muted-foreground)] disabled:cursor-not-allowed transition-colors"
               >
                 {updateOrganization.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -618,17 +635,17 @@ export default function TeamPage() {
       {/* Remove Member Confirmation Modal */}
       {showRemoveConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 clip-notch border border-gray-700 w-full max-w-sm p-6">
+          <div className="bg-[var(--card)] clip-notch border border-[var(--border)] w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-red-500/10 clip-notch-sm flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">
                 Remove Member
               </h2>
             </div>
 
-            <p className="text-gray-400 mb-6">
+            <p className="text-[var(--muted-foreground)] mb-6">
               Are you sure you want to remove this member from your
               organization? This action cannot be undone.
             </p>
@@ -639,14 +656,14 @@ export default function TeamPage() {
                   setShowRemoveConfirm(null);
                   setActiveMenu(null);
                 }}
-                className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
+                className="flex-1 px-4 py-2.5 border border-[var(--border)] clip-notch font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] text-[var(--foreground)] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleRemoveMember(showRemoveConfirm)}
                 disabled={removeMember.isPending}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 text-white font-mono text-sm uppercase tracking-wider clip-notch hover:bg-red-600 disabled:opacity-50 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 text-[var(--foreground)] font-mono text-sm uppercase tracking-wider clip-notch hover:bg-red-600 disabled:opacity-50 transition-colors"
               >
                 {removeMember.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

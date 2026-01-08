@@ -29,11 +29,11 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 5 * 1000, // 5 seconds
+            staleTime: 60 * 1000, // 60 seconds - reasonable default for most data
             refetchOnWindowFocus: false,
           },
         },
-      })
+      }),
   );
 
   const [trpcClient] = useState(() =>
@@ -49,7 +49,7 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
           },
         }),
       ],
-    })
+    }),
   );
 
   return (

@@ -336,17 +336,20 @@ export const PhotoExamplesModal = ({
   const [currentCategory, setCurrentCategory] = useState(categoryId);
   const categoryKeys = Object.keys(photoExamples);
   const currentIndex = categoryKeys.indexOf(currentCategory);
-  const example = photoExamples[currentCategory] || photoExamples.front_exterior;
+  const example =
+    photoExamples[currentCategory] || photoExamples.front_exterior;
 
   if (!isOpen) return null;
 
   const goToPrevious = () => {
-    const newIndex = currentIndex > 0 ? currentIndex - 1 : categoryKeys.length - 1;
+    const newIndex =
+      currentIndex > 0 ? currentIndex - 1 : categoryKeys.length - 1;
     setCurrentCategory(categoryKeys[newIndex]);
   };
 
   const goToNext = () => {
-    const newIndex = currentIndex < categoryKeys.length - 1 ? currentIndex + 1 : 0;
+    const newIndex =
+      currentIndex < categoryKeys.length - 1 ? currentIndex + 1 : 0;
     setCurrentCategory(categoryKeys[newIndex]);
   };
 
@@ -359,7 +362,7 @@ export const PhotoExamplesModal = ({
       />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto bg-[var(--card)] rounded-2xl border border-[var(--border)] shadow-xl">
+      <div className="relative z-10 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto bg-[var(--card)] clip-notch border border-[var(--border)] shadow-xl">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-[var(--card)] px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -383,7 +386,9 @@ export const PhotoExamplesModal = ({
             <ChevronLeft className="w-5 h-5 text-[var(--muted-foreground)]" />
           </button>
           <div className="text-center">
-            <p className="font-semibold text-[var(--foreground)]">{example.label}</p>
+            <p className="font-semibold text-[var(--foreground)]">
+              {example.label}
+            </p>
             <p className="text-xs text-[var(--muted-foreground)]">
               {currentIndex + 1} of {categoryKeys.length}
             </p>
@@ -399,17 +404,24 @@ export const PhotoExamplesModal = ({
         {/* Content */}
         <div className="p-4 space-y-4">
           {/* Description */}
-          <p className="text-[var(--muted-foreground)]">{example.description}</p>
+          <p className="text-[var(--muted-foreground)]">
+            {example.description}
+          </p>
 
           {/* Tips */}
-          <div className="bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded-xl p-4">
+          <div className="bg-[var(--primary)]/10 border border-[var(--primary)]/30 clip-notch p-4">
             <div className="flex items-center gap-2 mb-3">
               <Info className="w-5 h-5 text-[var(--primary)]" />
-              <h3 className="font-semibold text-[var(--primary)]">Photography Tips</h3>
+              <h3 className="font-semibold text-[var(--primary)]">
+                Photography Tips
+              </h3>
             </div>
             <ul className="space-y-2">
               {example.tips.map((tip, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-[var(--foreground)]">
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-sm text-[var(--foreground)]"
+                >
                   <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[var(--primary)] flex-shrink-0" />
                   {tip}
                 </li>
@@ -418,15 +430,20 @@ export const PhotoExamplesModal = ({
           </div>
 
           {/* Good Example */}
-          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+          <div className="bg-green-500/10 border border-green-500/30 clip-notch p-4">
             <div className="flex items-center gap-2 mb-3">
               <Check className="w-5 h-5 text-green-400" />
               <h3 className="font-semibold text-green-400">Good Example</h3>
             </div>
-            <p className="text-sm text-[var(--foreground)] mb-2">{example.goodExample.description}</p>
+            <p className="text-sm text-[var(--foreground)] mb-2">
+              {example.goodExample.description}
+            </p>
             <ul className="space-y-1.5">
               {example.goodExample.features.map((feature, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-green-400/90">
+                <li
+                  key={i}
+                  className="flex items-center gap-2 text-sm text-green-400/90"
+                >
                   <Check className="w-4 h-4 flex-shrink-0" />
                   {feature}
                 </li>
@@ -442,15 +459,20 @@ export const PhotoExamplesModal = ({
           </div>
 
           {/* Bad Example */}
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+          <div className="bg-red-500/10 border border-red-500/30 clip-notch p-4">
             <div className="flex items-center gap-2 mb-3">
               <AlertCircle className="w-5 h-5 text-red-400" />
               <h3 className="font-semibold text-red-400">Avoid This</h3>
             </div>
-            <p className="text-sm text-[var(--foreground)] mb-2">{example.badExample.description}</p>
+            <p className="text-sm text-[var(--foreground)] mb-2">
+              {example.badExample.description}
+            </p>
             <ul className="space-y-1.5">
               {example.badExample.issues.map((issue, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-red-400/90">
+                <li
+                  key={i}
+                  className="flex items-center gap-2 text-sm text-red-400/90"
+                >
                   <X className="w-4 h-4 flex-shrink-0" />
                   {issue}
                 </li>
@@ -466,8 +488,10 @@ export const PhotoExamplesModal = ({
           </div>
 
           {/* Quick Reference */}
-          <div className="bg-[var(--muted)] rounded-xl p-4">
-            <h3 className="font-semibold text-[var(--foreground)] mb-3">Quick Reference</h3>
+          <div className="bg-[var(--muted)] clip-notch p-4">
+            <h3 className="font-semibold text-[var(--foreground)] mb-3">
+              Quick Reference
+            </h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                 <Sun className="w-4 h-4 text-yellow-400" />
@@ -504,11 +528,7 @@ export const PhotoExamplesModal = ({
 };
 
 // Info button component to trigger the modal
-export const PhotoInfoButton = ({
-  onPress,
-}: {
-  onPress: () => void;
-}) => {
+export const PhotoInfoButton = ({ onPress }: { onPress: () => void }) => {
   return (
     <button
       onClick={onPress}
