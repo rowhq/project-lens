@@ -436,12 +436,12 @@ export default function SchedulePage() {
                   }`}
                 >
                   <p
-                    className={`text-xs ${isToday ? "text-white/70" : "text-[var(--muted-foreground)]"}`}
+                    className={`text-xs ${isToday ? "text-black/70" : "text-[var(--muted-foreground)]"}`}
                   >
                     {dayNames[index]}
                   </p>
                   <p
-                    className={`text-lg font-bold ${isToday ? "text-white" : "text-[var(--foreground)]"}`}
+                    className={`text-lg font-bold ${isToday ? "text-black" : "text-[var(--foreground)]"}`}
                   >
                     {day.getDate()}
                   </p>

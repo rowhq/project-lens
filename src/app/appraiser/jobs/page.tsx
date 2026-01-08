@@ -29,6 +29,8 @@ import {
   Zap,
   TrendingUp,
   AlertCircle,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -630,11 +632,12 @@ export default function AppraiserJobsPage() {
       {filter === "available" && viewMode === "list" && jobs.length > 0 && (
         <div className="bg-[var(--muted)] rounded-lg p-3 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-[var(--muted-foreground)] md:hidden">
           <span className="flex items-center gap-1">
-            <span className="text-green-400">←</span> Swipe right to accept
+            <ArrowLeft className="w-4 h-4 text-green-400" /> Swipe right to
+            accept
           </span>
           <span className="text-[var(--border)] hidden sm:block">|</span>
           <span className="flex items-center gap-1">
-            Swipe left to skip <span className="text-red-400">→</span>
+            Swipe left to skip <ArrowRight className="w-4 h-4 text-red-400" />
           </span>
         </div>
       )}
@@ -970,7 +973,7 @@ export default function AppraiserJobsPage() {
                             ? "bg-green-500"
                             : filter === "active"
                               ? "bg-yellow-500"
-                              : "bg-gray-500"
+                              : "bg-[var(--muted-foreground)]"
                         }`}
                       />
                       <div>

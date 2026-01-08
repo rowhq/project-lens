@@ -516,7 +516,7 @@ export default function EvidenceCapturePage({ params }: PageProps) {
               quality: 0.85,
             });
             console.log(
-              `Compressed ${formatFileSize(file.size)} → ${formatFileSize(processedFile.size)}`,
+              `Compressed ${formatFileSize(file.size)} to ${formatFileSize(processedFile.size)}`,
             );
           } catch (compressionError) {
             console.warn(
@@ -1071,7 +1071,8 @@ export default function EvidenceCapturePage({ params }: PageProps) {
                         {note.label}
                       </p>
                       <p className="text-sm text-[var(--muted-foreground)]">
-                        {formatDuration(note.duration)} •{" "}
+                        {formatDuration(note.duration)}{" "}
+                        <span className="mx-1">|</span>
                         {note.createdAt.toLocaleTimeString()}
                       </p>
                     </div>

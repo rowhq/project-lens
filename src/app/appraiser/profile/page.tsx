@@ -189,7 +189,8 @@ export default function AppraiserProfilePage() {
             Manage your appraiser profile and credentials
             {dataUpdatedAt && (
               <span className="text-xs ml-2 opacity-60">
-                · Updated {formatTimeAgo(dataUpdatedAt)}
+                <span className="mx-1.5">|</span>Updated{" "}
+                {formatTimeAgo(dataUpdatedAt)}
               </span>
             )}
           </p>

@@ -29,6 +29,7 @@ import {
   Edit3,
   WifiOff,
   RefreshCw,
+  Star,
 } from "lucide-react";
 import { AreaChart } from "@/shared/components/charts";
 
@@ -556,7 +557,8 @@ export default function EarningsPage() {
             Track your income and payouts
             {dataUpdatedAt && !isUsingCache && (
               <span className="text-xs ml-2 opacity-60">
-                · Updated {formatTimeAgo(dataUpdatedAt)}
+                <span className="mx-1.5">|</span>Updated{" "}
+                {formatTimeAgo(dataUpdatedAt)}
               </span>
             )}
           </p>
@@ -979,8 +981,9 @@ export default function EarningsPage() {
             </p>
           </div>
           <div className="text-center p-4 bg-[var(--secondary)] rounded-lg">
-            <p className="text-3xl font-bold text-yellow-500">
-              {effectiveEarnings?.rating?.toFixed(1) || "5.0"} ★
+            <p className="text-3xl font-bold text-yellow-500 flex items-center justify-center gap-1">
+              {effectiveEarnings?.rating?.toFixed(1) || "5.0"}
+              <Star className="w-6 h-6 fill-current" />
             </p>
             <p className="text-sm text-[var(--muted-foreground)]">
               Average rating
