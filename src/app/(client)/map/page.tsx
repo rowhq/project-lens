@@ -242,7 +242,15 @@ export default function MapPage() {
       try {
         // Dynamically import maplibre-gl to avoid SSR issues
         const maplibregl = (await import("maplibre-gl")).default;
-        await import("maplibre-gl/dist/maplibre-gl.css");
+
+        // Load CSS via link element (avoids TypeScript module issues)
+        if (!document.querySelector('link[href*="maplibre-gl"]')) {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href =
+            "https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.css";
+          document.head.appendChild(link);
+        }
 
         if (!isMounted || !mapContainer.current) return;
 
