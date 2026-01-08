@@ -1,21 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin, TrendingUp, AlertTriangle, Shield, Zap } from "lucide-react";
+import {
+  MapPin,
+  TrendingUp,
+  Zap,
+  Home,
+  Building2,
+  Route,
+  GraduationCap,
+  HeartPulse,
+  ShoppingCart,
+  Factory,
+  Building,
+  TreePine,
+  Train,
+} from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
-// Infrastructure type icons
-const TYPE_ICONS: Record<string, string> = {
-  RESIDENTIAL: "🏘️",
-  COMMERCIAL: "🏢",
-  INFRASTRUCTURE: "🛣️",
-  EDUCATIONAL: "🏫",
-  HEALTHCARE: "🏥",
-  RETAIL: "🛒",
-  INDUSTRIAL: "🏭",
-  MIXED_USE: "🏙️",
-  RECREATIONAL: "🏞️",
-  TRANSPORTATION: "🚇",
+// Infrastructure type icons using Lucide components
+const TYPE_ICONS: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
+  RESIDENTIAL: Home,
+  COMMERCIAL: Building2,
+  INFRASTRUCTURE: Route,
+  EDUCATIONAL: GraduationCap,
+  HEALTHCARE: HeartPulse,
+  RETAIL: ShoppingCart,
+  INDUSTRIAL: Factory,
+  MIXED_USE: Building,
+  RECREATIONAL: TreePine,
+  TRANSPORTATION: Train,
 };
 
 interface Signal {
@@ -168,21 +185,23 @@ export function GrowthOpportunityCard({
             </p>
           </div>
           <div className="space-y-2">
-            {signals.slice(0, 3).map((signal) => (
-              <div
-                key={signal.id}
-                className="flex items-center gap-2 text-sm text-gray-300"
-              >
-                <span className="flex-shrink-0">
-                  {TYPE_ICONS[signal.type] || "📍"}
-                </span>
-                <span className="flex-1 truncate">{signal.title}</span>
-                <span className="text-xs text-gray-500 font-mono flex-shrink-0">
-                  {signal.distance} mi
-                  {signal.year && ` • ${signal.year}`}
-                </span>
-              </div>
-            ))}
+            {signals.slice(0, 3).map((signal) => {
+              const IconComponent = TYPE_ICONS[signal.type] || MapPin;
+              return (
+                <div
+                  key={signal.id}
+                  className="flex items-center gap-2 text-sm text-gray-300"
+                >
+                  <IconComponent className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                  <span className="flex-1 truncate">{signal.title}</span>
+                  <span className="text-xs text-gray-500 font-mono flex-shrink-0">
+                    {signal.distance} mi
+                    {signal.year && <span className="mx-1">|</span>}
+                    {signal.year}
+                  </span>
+                </div>
+              );
+            })}
             {signals.length > 3 && (
               <p className="text-xs text-gray-500">
                 +{signals.length - 3} more signals
