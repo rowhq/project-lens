@@ -40,7 +40,7 @@ export function PageHeader({
     <header
       className={cn(
         "flex h-16 items-center justify-between",
-        "border-b border-gray-800 bg-gray-950 px-6",
+        "border-b border-[var(--border)] bg-[var(--background)] px-6",
         className,
       )}
     >

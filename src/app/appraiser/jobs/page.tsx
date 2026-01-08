@@ -342,7 +342,21 @@ export default function AppraiserJobsPage() {
   );
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [sortBy, setSortBy] = useState<SortBy>("distance");
+  const [sortBy, setSortByState] = useState<SortBy>("distance");
+
+  // Persist sort preference - load from localStorage on mount
+  useEffect(() => {
+    const savedSort = localStorage.getItem("appraiser-jobs-sort") as SortBy;
+    if (savedSort && ["distance", "payout", "urgency"].includes(savedSort)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSortByState(savedSort);
+    }
+  }, []);
+
+  const setSortBy = useCallback((sort: SortBy) => {
+    setSortByState(sort);
+    localStorage.setItem("appraiser-jobs-sort", sort);
+  }, []);
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
     maxDistance: null,
     minPayout: null,
@@ -614,11 +628,11 @@ export default function AppraiserJobsPage() {
 
       {/* Swipe Hint for Mobile */}
       {filter === "available" && viewMode === "list" && jobs.length > 0 && (
-        <div className="bg-[var(--muted)] rounded-lg p-3 flex items-center justify-center gap-4 text-sm text-[var(--muted-foreground)] md:hidden">
+        <div className="bg-[var(--muted)] rounded-lg p-3 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-[var(--muted-foreground)] md:hidden">
           <span className="flex items-center gap-1">
             <span className="text-green-400">←</span> Swipe right to accept
           </span>
-          <span className="text-[var(--border)]">|</span>
+          <span className="text-[var(--border)] hidden sm:block">|</span>
           <span className="flex items-center gap-1">
             Swipe left to skip <span className="text-red-400">→</span>
           </span>

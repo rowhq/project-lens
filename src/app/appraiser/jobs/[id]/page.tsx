@@ -376,7 +376,7 @@ export default function JobDetailPage({ params }: PageProps) {
       {/* Urgency Banner */}
       {(urgency.level === "critical" || urgency.level === "overdue") && (
         <div
-          className={`${urgency.bgClass} border-2 rounded-lg p-3 flex items-center gap-3 animate-pulse`}
+          className={`${urgency.bgClass} border-2 rounded-lg p-3 flex items-center gap-3 motion-safe:animate-pulse`}
         >
           <span className="text-2xl">{urgency.icon}</span>
           <div className="flex-1">
@@ -404,11 +404,17 @@ export default function JobDetailPage({ params }: PageProps) {
               <h1 className="text-xl font-bold text-[var(--foreground)]">
                 Job Details
               </h1>
-              <span
-                className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusConfig[job.status]?.color}`}
-              >
-                {statusConfig[job.status]?.label}
-              </span>
+              {(() => {
+                const StatusIcon = statusConfig[job.status]?.icon;
+                return (
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusConfig[job.status]?.color}`}
+                  >
+                    {StatusIcon && <StatusIcon className="w-3 h-3" />}
+                    {statusConfig[job.status]?.label}
+                  </span>
+                );
+              })()}
             </div>
             <p className="text-sm text-[var(--muted-foreground)]">
               Ref: {job.id.slice(0, 8).toUpperCase()}
@@ -670,7 +676,7 @@ export default function JobDetailPage({ params }: PageProps) {
                 onClick={toggleVoiceInput}
                 className={`p-2 rounded-lg transition-colors ${
                   isListening
-                    ? "bg-red-500/20 text-red-400 animate-pulse"
+                    ? "bg-red-500/20 text-red-400 motion-safe:animate-pulse"
                     : "hover:bg-[var(--secondary)] text-[var(--muted-foreground)]"
                 }`}
                 title={isListening ? "Stop listening" : "Voice input"}
@@ -684,17 +690,27 @@ export default function JobDetailPage({ params }: PageProps) {
             </div>
             <textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => setNotes(e.target.value.slice(0, 2000))}
               placeholder="Add your inspection notes here... You can also use voice input."
               rows={4}
+              maxLength={2000}
               className="w-full px-4 py-3 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none"
             />
-            {isListening && (
-              <p className="text-sm text-red-400 mt-2 flex items-center gap-2">
-                <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
-                Listening... Speak now
-              </p>
-            )}
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-xs text-[var(--muted-foreground)]">
+                {isListening && (
+                  <span className="flex items-center gap-2 text-red-400">
+                    <span className="w-2 h-2 bg-red-400 rounded-full motion-safe:animate-pulse" />
+                    Listening... Speak now
+                  </span>
+                )}
+              </span>
+              <span
+                className={`text-xs ${notes.length > 1800 ? "text-yellow-400" : "text-[var(--muted-foreground)]"}`}
+              >
+                {notes.length}/2000
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -741,7 +757,15 @@ export default function JobDetailPage({ params }: PageProps) {
                     longitude: position.coords.longitude,
                   });
                 },
-                () => {
+                (error) => {
+                  toast({
+                    title: "Location unavailable",
+                    description:
+                      error.code === 1
+                        ? "Please enable location permissions to record your position."
+                        : "Could not determine your location. Proceeding without location data.",
+                    variant: "destructive",
+                  });
                   startJob.mutate({ jobId: id, latitude: 0, longitude: 0 });
                 },
               );

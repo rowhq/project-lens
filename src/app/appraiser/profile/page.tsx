@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { trpc } from "@/shared/lib/trpc";
 import { useToast } from "@/shared/hooks/use-toast";
 import {
@@ -39,7 +39,24 @@ export default function AppraiserProfilePage() {
     number | null
   >(null);
 
-  const { data: profile, refetch } = trpc.appraiser.profile.get.useQuery();
+  const {
+    data: profile,
+    isLoading,
+    isError,
+    refetch,
+    dataUpdatedAt,
+  } = trpc.appraiser.profile.get.useQuery();
+
+  // Format time ago for stale data indicator
+  const formatTimeAgo = useCallback((timestamp: number): string => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  }, []);
 
   // Use edited value if set, otherwise use profile value
   const coverageRadiusMiles =
@@ -90,6 +107,76 @@ export default function AppraiserProfilePage() {
   const status = statusConfig[verificationStatus] || statusConfig.PENDING;
   const StatusIcon = status.icon;
 
+  // Loading Skeleton
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-8 w-24 bg-[var(--muted)] rounded mb-2" />
+            <div className="h-4 w-64 bg-[var(--muted)] rounded" />
+          </div>
+          <div className="h-10 w-28 bg-[var(--muted)] rounded" />
+        </div>
+
+        {/* Profile Card Skeleton */}
+        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden">
+          <div className="h-24 bg-[var(--muted)]" />
+          <div className="px-6 pb-6">
+            <div className="flex items-end gap-4 -mt-12">
+              <div className="w-24 h-24 bg-[var(--muted)] rounded-full border-4 border-[var(--card)]" />
+              <div className="flex-1 pb-2">
+                <div className="h-6 w-48 bg-[var(--muted)] rounded mb-2" />
+                <div className="h-4 w-32 bg-[var(--muted)] rounded" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs Skeleton */}
+        <div className="flex gap-6 border-b border-[var(--border)] pb-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-5 w-20 bg-[var(--muted)] rounded" />
+          ))}
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-6">
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-[var(--muted)] rounded" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error State
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+          <AlertCircle className="w-8 h-8 text-red-400" />
+        </div>
+        <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
+          Failed to Load Profile
+        </h2>
+        <p className="text-[var(--muted-foreground)] mb-6 max-w-md">
+          There was an error loading your profile. Please try again.
+        </p>
+        <button
+          onClick={() => refetch()}
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90"
+        >
+          <Loader2 className="w-4 h-4" />
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 ">
       {/* Header */}
@@ -100,6 +187,11 @@ export default function AppraiserProfilePage() {
           </h1>
           <p className="text-[var(--muted-foreground)]">
             Manage your appraiser profile and credentials
+            {dataUpdatedAt && (
+              <span className="text-xs ml-2 opacity-60">
+                · Updated {formatTimeAgo(dataUpdatedAt)}
+              </span>
+            )}
           </p>
         </div>
         <button
@@ -421,9 +513,13 @@ export default function AppraiserProfilePage() {
                 />
               </div>
             ) : (
-              <div className="h-64 bg-[var(--muted)] rounded-lg flex items-center justify-center">
-                <p className="text-[var(--muted-foreground)]">
-                  Set your location to view service area
+              <div className="h-64 bg-[var(--muted)] rounded-lg flex flex-col items-center justify-center gap-2">
+                <MapPin className="w-8 h-8 text-[var(--muted-foreground)]" />
+                <p className="text-[var(--muted-foreground)] text-center px-4">
+                  Location data unavailable
+                </p>
+                <p className="text-xs text-[var(--muted-foreground)] text-center px-4">
+                  Contact support if you need to update your service area
                 </p>
               </div>
             )}
@@ -616,7 +712,17 @@ export default function AppraiserProfilePage() {
                   </div>
                 </div>
                 <button
-                  onClick={highContrast.toggle}
+                  onClick={() => {
+                    highContrast.toggle();
+                    toast({
+                      title: highContrast.enabled
+                        ? "High contrast disabled"
+                        : "High contrast enabled",
+                      description: highContrast.enabled
+                        ? "Standard visibility mode restored"
+                        : "Enhanced visibility for outdoor use",
+                    });
+                  }}
                   className={`relative w-14 h-7 rounded-full transition-colors ${
                     highContrast.enabled ? "bg-yellow-500" : "bg-[var(--muted)]"
                   }`}

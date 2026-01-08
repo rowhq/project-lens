@@ -552,6 +552,26 @@ body {
   }
 }
 
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes audioBar {
+  0%, 100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
 @keyframes clipReveal {
   from {
     clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
@@ -592,6 +612,15 @@ body {
 
 .animate-slide-in-left {
   animation: slideInLeft 0.25s var(--ease-out-expo);
+}
+
+.animate-slide-out-left {
+  animation: slideOutLeft 0.2s var(--ease-out-expo) forwards;
+}
+
+.animate-audio-bar {
+  animation: audioBar 0.5s ease-in-out infinite;
+  transform-origin: bottom;
 }
 
 .animate-clip-reveal {

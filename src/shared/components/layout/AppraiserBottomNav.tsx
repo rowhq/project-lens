@@ -8,7 +8,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Briefcase, ClipboardList, DollarSign, User } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { trpc } from "@/shared/lib/trpc";
@@ -23,6 +23,8 @@ interface NavItem {
 
 export function AppraiserBottomNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab");
 
   // Fetch counts for badges
   const { data: availableJobs } = trpc.job.available.useQuery(
@@ -106,7 +108,10 @@ export function AppraiserBottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-10 bg-[var(--background)] safe-area-inset-bottom border-t border-[var(--border)]">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-10 bg-[var(--background)] safe-area-inset-bottom border-t border-[var(--border)]"
+      aria-label="Mobile navigation"
+    >
       {/* Top accent line - only in dark mode */}
       <div className="absolute top-0 left-0 right-0 h-px dark:block hidden">
         <svg
@@ -128,13 +133,22 @@ export function AppraiserBottomNav() {
 
       <div className="flex h-16 items-center justify-around">
         {navigation.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href === "/appraiser/jobs" &&
-              pathname === "/appraiser/jobs") ||
-            (item.href.includes("?tab=active") &&
-              pathname.includes("/appraiser/jobs") &&
-              pathname !== "/appraiser/jobs");
+          // Fixed active state detection using searchParams
+          let isActive = false;
+          if (item.href === "/appraiser/jobs") {
+            // "Available" tab - active when on jobs page without tab param or with tab=available
+            isActive =
+              pathname === "/appraiser/jobs" &&
+              (!currentTab || currentTab === "available");
+          } else if (item.href === "/appraiser/jobs?tab=active") {
+            // "My Jobs" tab - active when on jobs page with tab=active OR on job detail page
+            isActive =
+              (pathname === "/appraiser/jobs" && currentTab === "active") ||
+              pathname.startsWith("/appraiser/jobs/");
+          } else {
+            // Other items - exact pathname match
+            isActive = pathname === item.href;
+          }
 
           const badge = item.getBadge?.();
           const showBadge = badge !== null && badge !== undefined;
@@ -143,6 +157,7 @@ export function AppraiserBottomNav() {
             <Link
               key={item.name}
               href={item.href}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
                 "group flex flex-1 flex-col items-center justify-center gap-1 py-2 relative",
                 "transition-colors duration-300",

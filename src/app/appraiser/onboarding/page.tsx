@@ -211,10 +211,13 @@ export default function AppraiserOnboardingPage() {
           return false;
         }
         // Validate phone number format (US format)
-        const phoneRegex =
-          /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
-        if (!phoneRegex.test(formData.phone.replace(/\s/g, ""))) {
-          setError("Please enter a valid phone number (e.g., (555) 555-5555)");
+        // Accepts: (555) 555-5555, 555-555-5555, 5555555555, +1 555-555-5555, 1-555-555-5555
+        const cleanPhone = formData.phone.replace(/[\s\-\.\(\)]/g, "");
+        const phoneRegex = /^(\+?1)?[2-9]\d{9}$/;
+        if (!phoneRegex.test(cleanPhone)) {
+          setError(
+            "Please enter a valid US phone number (e.g., (555) 555-5555)",
+          );
           return false;
         }
         if (formData.yearsExperience < 0) {
@@ -655,7 +658,7 @@ export default function AppraiserOnboardingPage() {
                         key={city}
                         type="button"
                         onClick={() => toggleCity(city)}
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                        className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                           isSelected
                             ? "bg-[var(--primary)]/20 text-[var(--primary)] border-2 border-[var(--primary)]"
                             : "bg-[var(--muted)] text-[var(--muted-foreground)] border-2 border-transparent hover:bg-[var(--secondary)]"

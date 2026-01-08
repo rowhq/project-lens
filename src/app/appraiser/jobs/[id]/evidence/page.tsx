@@ -3,6 +3,7 @@
 import { use, useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
+import { useToast } from "@/shared/hooks/use-toast";
 import {
   ArrowLeft,
   Camera,
@@ -81,6 +82,7 @@ const optionalPhotos = [
 export default function EvidenceCapturePage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const { toast } = useToast();
   const [uploadedPhotos, setUploadedPhotos] = useState<
     Record<string, UploadedPhoto>
   >({});
@@ -146,10 +148,12 @@ export default function EvidenceCapturePage({ params }: PageProps) {
           console.error("Geolocation error:", err);
           // Show user-friendly error message based on error code
           let errorMessage = "Unable to access your location.";
+          let toastTitle = "Location unavailable";
           switch (err.code) {
             case err.PERMISSION_DENIED:
               errorMessage =
                 "Location access denied. Please enable location permissions in your browser settings to verify you're at the property.";
+              toastTitle = "Location permission denied";
               break;
             case err.POSITION_UNAVAILABLE:
               errorMessage =
@@ -157,9 +161,15 @@ export default function EvidenceCapturePage({ params }: PageProps) {
               break;
             case err.TIMEOUT:
               errorMessage = "Location request timed out. Please try again.";
+              toastTitle = "Location timeout";
               break;
           }
           setError(errorMessage);
+          toast({
+            title: toastTitle,
+            description: errorMessage,
+            variant: "destructive",
+          });
         },
         {
           enableHighAccuracy: true,
@@ -168,11 +178,16 @@ export default function EvidenceCapturePage({ params }: PageProps) {
         },
       );
     } else {
-      setError(
-        "Geolocation is not supported by this browser. Evidence cannot be geotagged.",
-      );
+      const errorMessage =
+        "Geolocation is not supported by this browser. Evidence cannot be geotagged.";
+      setError(errorMessage);
+      toast({
+        title: "Geolocation not supported",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
-  }, []);
+  }, [toast]);
 
   // Request wake lock to keep screen on during evidence capture
   useEffect(() => {
@@ -392,10 +407,11 @@ export default function EvidenceCapturePage({ params }: PageProps) {
   // Voice transcription functions (Web Speech API)
   const startTranscription = useCallback(() => {
     // Check for browser support
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     const SpeechRecognitionAPI =
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
+    /* eslint-enable @typescript-eslint/no-explicit-any */
     if (!SpeechRecognitionAPI) {
       setTranscriptionError(
         "Voice transcription is not supported in this browser. Try Chrome or Edge.",
@@ -664,7 +680,7 @@ export default function EvidenceCapturePage({ params }: PageProps) {
   const allRequiredComplete = completedRequired === requiredPhotos.length;
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="space-y-4 pb-24 md:pb-6">
       {/* Hidden file input for camera/gallery */}
       <input
         ref={fileInputRef}
@@ -974,22 +990,37 @@ export default function EvidenceCapturePage({ params }: PageProps) {
         </div>
         <div className="p-4 space-y-4">
           {/* Recording Controls */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col items-center gap-4">
             {isRecording ? (
               <>
-                <div className="flex items-center gap-3 px-4 py-2 bg-red-500/20 rounded-full">
-                  <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-red-400 font-medium">
-                    {formatDuration(recordingDuration)}
-                  </span>
+                {/* Audio Level Visualizer */}
+                <div className="flex items-end justify-center gap-1 h-10 w-full max-w-xs">
+                  {[...Array(16)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-1.5 bg-red-500 rounded-full motion-safe:animate-audio-bar"
+                      style={{
+                        height: `${20 + (i % 3) * 25 + Math.sin(i) * 15}%`,
+                        animationDelay: `${i * 0.08}s`,
+                      }}
+                    />
+                  ))}
                 </div>
-                <button
-                  onClick={stopRecording}
-                  className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-full font-medium hover:bg-red-700"
-                >
-                  <Square className="w-5 h-5" />
-                  Stop Recording
-                </button>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 px-4 py-2 bg-red-500/20 rounded-full">
+                    <div className="w-3 h-3 rounded-full bg-red-500 motion-safe:animate-pulse" />
+                    <span className="text-red-400 font-medium font-mono">
+                      {formatDuration(recordingDuration)}
+                    </span>
+                  </div>
+                  <button
+                    onClick={stopRecording}
+                    className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-full font-medium hover:bg-red-700"
+                  >
+                    <Square className="w-5 h-5" />
+                    Stop Recording
+                  </button>
+                </div>
               </>
             ) : isUploadingVoice ? (
               <div className="flex items-center gap-3 px-6 py-3 bg-[var(--muted)] rounded-full">
@@ -1100,7 +1131,7 @@ export default function EvidenceCapturePage({ params }: PageProps) {
             {isTranscribing ? (
               <>
                 <div className="flex items-center gap-3 px-4 py-2 bg-blue-500/20 rounded-full">
-                  <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
+                  <div className="w-3 h-3 rounded-full bg-blue-500 motion-safe:animate-pulse" />
                   <span className="text-blue-400 font-medium">
                     Listening...
                   </span>

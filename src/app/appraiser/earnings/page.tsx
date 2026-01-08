@@ -101,8 +101,10 @@ export default function EarningsPage() {
   // Fixed: Use nested router path - appraiser.earnings.summary (no date params - it calculates internally)
   const {
     data: earnings,
+    isLoading: earningsLoading,
     isError: earningsError,
     refetch: refetchEarnings,
+    dataUpdatedAt,
   } = trpc.appraiser.earnings.summary.useQuery(undefined, {
     enabled: isOnline,
   });
@@ -110,12 +112,16 @@ export default function EarningsPage() {
   // Fixed: Use nested router path - appraiser.earnings.history
   const {
     data: payouts,
+    isLoading: payoutsLoading,
     isError: payoutsError,
     refetch: refetchPayouts,
   } = trpc.appraiser.earnings.history.useQuery(
     { limit: 10 },
     { enabled: isOnline },
   );
+
+  // Combined loading state
+  const isLoading = earningsLoading || payoutsLoading;
 
   // Cache data when fetched successfully
   useEffect(() => {
@@ -270,15 +276,29 @@ export default function EarningsPage() {
   // Save monthly goal
   const saveMonthlyGoal = () => {
     const newGoal = Number(goalInput);
-    if (!isNaN(newGoal) && newGoal > 0) {
-      setMonthlyGoal(newGoal);
-      localStorage.setItem(MONTHLY_GOAL_KEY, String(newGoal));
-      setIsEditingGoal(false);
+    if (isNaN(newGoal) || newGoal < 100) {
       toast({
-        title: "Goal updated",
-        description: `Your monthly goal is now $${newGoal.toLocaleString()}`,
+        title: "Invalid goal",
+        description: "Please enter a goal of at least $100",
+        variant: "destructive",
       });
+      return;
     }
+    if (newGoal > 1000000) {
+      toast({
+        title: "Invalid goal",
+        description: "Goal cannot exceed $1,000,000",
+        variant: "destructive",
+      });
+      return;
+    }
+    setMonthlyGoal(newGoal);
+    localStorage.setItem(MONTHLY_GOAL_KEY, String(newGoal));
+    setIsEditingGoal(false);
+    toast({
+      title: "Goal updated",
+      description: `Your monthly goal is now $${newGoal.toLocaleString()}`,
+    });
   };
 
   // Calculate earnings projections
@@ -379,6 +399,17 @@ export default function EarningsPage() {
     }));
   }, [effectivePayouts]);
 
+  // Format time ago for stale data indicator
+  const formatTimeAgo = useCallback((timestamp: number): string => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  }, []);
+
   const stats = [
     {
       label: "Total Earned",
@@ -405,6 +436,85 @@ export default function EarningsPage() {
       color: "bg-purple-500/10 text-purple-500",
     },
   ];
+
+  // Loading Skeleton
+  if (isLoading && !effectiveEarnings) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-8 w-32 bg-[var(--muted)] rounded mb-2" />
+            <div className="h-4 w-48 bg-[var(--muted)] rounded" />
+          </div>
+          <div className="h-10 w-24 bg-[var(--muted)] rounded" />
+        </div>
+
+        {/* Month Selector Skeleton */}
+        <div className="flex items-center justify-center gap-4">
+          <div className="h-10 w-10 bg-[var(--muted)] rounded" />
+          <div className="h-6 w-40 bg-[var(--muted)] rounded" />
+          <div className="h-10 w-10 bg-[var(--muted)] rounded" />
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4"
+            >
+              <div className="w-10 h-10 bg-[var(--muted)] rounded-lg mb-3" />
+              <div className="h-8 w-20 bg-[var(--muted)] rounded mb-2" />
+              <div className="h-4 w-16 bg-[var(--muted)] rounded" />
+            </div>
+          ))}
+        </div>
+
+        {/* Goal Progress Skeleton */}
+        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+          <div className="h-6 w-32 bg-[var(--muted)] rounded mb-4" />
+          <div className="h-3 w-full bg-[var(--muted)] rounded-full mb-3" />
+          <div className="h-10 w-full bg-[var(--muted)] rounded" />
+        </div>
+
+        {/* Projections Skeleton */}
+        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+          <div className="h-6 w-40 bg-[var(--muted)] rounded mb-4" />
+          <div className="grid grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 bg-[var(--muted)] rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error State
+  if (earningsError && payoutsError && !effectiveEarnings) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+          <DollarSign className="w-8 h-8 text-red-400" />
+        </div>
+        <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
+          Failed to Load Earnings
+        </h2>
+        <p className="text-[var(--muted-foreground)] mb-6 max-w-md">
+          There was an error loading your earnings data. Please check your
+          connection and try again.
+        </p>
+        <button
+          onClick={handleRefresh}
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 ">
@@ -444,6 +554,11 @@ export default function EarningsPage() {
           </h1>
           <p className="text-[var(--muted-foreground)]">
             Track your income and payouts
+            {dataUpdatedAt && !isUsingCache && (
+              <span className="text-xs ml-2 opacity-60">
+                · Updated {formatTimeAgo(dataUpdatedAt)}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -492,7 +607,7 @@ export default function EarningsPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
