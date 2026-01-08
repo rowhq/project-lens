@@ -31,7 +31,27 @@ import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
+  Flame,
 } from "lucide-react";
+
+// Helper to render urgency icon based on icon name from config
+const UrgencyIcon = ({
+  icon,
+  className,
+}: {
+  icon: string;
+  className?: string;
+}) => {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    "alert-circle": AlertCircle,
+    flame: Flame,
+    zap: Zap,
+    clock: Clock,
+  };
+  const IconComponent = iconMap[icon];
+  if (!IconComponent) return null;
+  return <IconComponent className={className || "w-4 h-4"} />;
+};
 import dynamic from "next/dynamic";
 
 // Dynamically import MapView to avoid SSR issues
@@ -190,7 +210,7 @@ const SwipeableJobCard = ({
           <div
             className={`absolute -top-2 -right-2 ${urgency.badgeClass} px-3 py-1 rounded-full flex items-center gap-1 text-xs font-bold z-20`}
           >
-            <span>{urgency.icon}</span>
+            <UrgencyIcon icon={urgency.icon} className="w-3.5 h-3.5" />
             <span>{urgency.label}</span>
           </div>
         )}

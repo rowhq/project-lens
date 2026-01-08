@@ -33,7 +33,29 @@ import {
   MicOff,
   CheckCircle,
   Star,
+  AlertCircle,
+  Flame,
+  Zap,
 } from "lucide-react";
+
+// Helper to render urgency icon based on icon name from config
+const UrgencyIcon = ({
+  icon,
+  className,
+}: {
+  icon: string;
+  className?: string;
+}) => {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    "alert-circle": AlertCircle,
+    flame: Flame,
+    zap: Zap,
+    clock: Clock,
+  };
+  const IconComponent = iconMap[icon];
+  if (!IconComponent) return null;
+  return <IconComponent className={className || "w-4 h-4"} />;
+};
 import { Skeleton } from "@/shared/components/ui/Skeleton";
 import { MapView } from "@/shared/components/common/MapView";
 
@@ -378,7 +400,7 @@ export default function JobDetailPage({ params }: PageProps) {
         <div
           className={`${urgency.bgClass} border-2 rounded-lg p-3 flex items-center gap-3 motion-safe:animate-pulse`}
         >
-          <span className="text-2xl">{urgency.icon}</span>
+          <UrgencyIcon icon={urgency.icon} className="w-7 h-7" />
           <div className="flex-1">
             <p className={`font-bold ${urgency.textClass}`}>{urgency.label}</p>
             <p className={`text-sm ${urgency.textClass}/80`}>

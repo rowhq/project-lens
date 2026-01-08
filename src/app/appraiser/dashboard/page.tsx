@@ -15,7 +15,28 @@ import {
   TrendingUp,
   Zap,
   AlertTriangle,
+  Clock,
+  Flame,
 } from "lucide-react";
+
+// Helper to render urgency icon based on icon name from config
+const UrgencyIcon = ({
+  icon,
+  className,
+}: {
+  icon: string;
+  className?: string;
+}) => {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    "alert-circle": AlertCircle,
+    flame: Flame,
+    zap: Zap,
+    clock: Clock,
+  };
+  const IconComponent = iconMap[icon];
+  if (!IconComponent) return null;
+  return <IconComponent className={className || "w-4 h-4"} />;
+};
 import {
   StreakBanner,
   BadgeDisplay,
@@ -159,12 +180,14 @@ function JobListItem({
         {dueDate && (
           <p
             className={cn(
-              "text-sm mt-1",
+              "text-sm mt-1 flex items-center gap-1",
               urgency?.textClass || "text-[var(--muted-foreground)]",
             )}
           >
-            {urgency?.level !== "normal" && urgency?.icon} Due{" "}
-            {dueDate.toLocaleDateString()}
+            {urgency?.level !== "normal" && urgency?.icon && (
+              <UrgencyIcon icon={urgency.icon} className="w-4 h-4" />
+            )}
+            Due {dueDate.toLocaleDateString()}
           </p>
         )}
       </div>
