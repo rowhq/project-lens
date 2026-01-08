@@ -4,6 +4,7 @@ export { StatsBlock } from "./StatsBlock";
 export { FeatureShowcase } from "./FeatureShowcase";
 export { TestimonialCarousel } from "./TestimonialCarousel";
 export { CTASection } from "./CTASection";
+export { GrowthSignalCard } from "./GrowthSignalCard";
 
 // New conversion-focused components
 export { TrustedBySection } from "./TrustedBySection";

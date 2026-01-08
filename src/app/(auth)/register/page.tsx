@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User, Building2, AlertCircle } from "lucide-react";
+import { Mail, Lock, User, Building2 } from "lucide-react";
 import { Input } from "@/shared/components/ui/Input";
 import { Button } from "@/shared/components/ui/Button";
-import { Alert } from "@/shared/components/ui/Alert";
 import { cn } from "@/shared/lib/utils";
 
 type UserRole = "CLIENT" | "APPRAISER";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const roleParam = searchParams.get("role");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -21,10 +21,9 @@ export default function RegisterPage() {
     confirmPassword: "",
     firstName: "",
     lastName: "",
-    role: "CLIENT" as UserRole,
+    role: (roleParam === "appraiser" ? "APPRAISER" : "CLIENT") as UserRole,
     organizationName: "",
   });
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (
@@ -38,69 +37,16 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    // Validate password length
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
-    }
-
     setIsLoading(true);
 
-    try {
-      // Register user
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          role: formData.role,
-          organizationName:
-            formData.role === "CLIENT" ? formData.organizationName : undefined,
-        }),
-      });
+    // Mock delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Failed to create account");
-        setIsLoading(false);
-        return;
-      }
-
-      // Auto sign in after registration
-      const signInResult = await signIn("credentials", {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-      });
-
-      if (signInResult?.error) {
-        // Account created but auto-login failed, redirect to login
-        router.push("/login?registered=true");
-        return;
-      }
-
-      // Redirect based on role
-      if (formData.role === "APPRAISER") {
-        router.push("/appraiser/onboarding");
-      } else {
-        router.push("/dashboard");
-      }
-      router.refresh();
-    } catch {
-      setError("Something went wrong. Please try again.");
-      setIsLoading(false);
+    // Redirect based on role (mockup - just go to next page)
+    if (formData.role === "APPRAISER") {
+      router.push("/appraiser/onboarding");
+    } else {
+      router.push("/dashboard");
     }
   };
 
@@ -112,15 +58,6 @@ export default function RegisterPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="w-full space-y-3">
-        {error && (
-          <Alert variant="error" dismissible onDismiss={() => setError("")}>
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              {error}
-            </div>
-          </Alert>
-        )}
-
         {/* Role Selection - Compact */}
         <div>
           <label className="block font-mono text-[10px] uppercase tracking-wider text-gray-400 mb-2">
@@ -169,7 +106,6 @@ export default function RegisterPage() {
             value={formData.firstName}
             onChange={handleChange}
             placeholder="John"
-            required
             disabled={isLoading}
           />
           <Input
@@ -180,7 +116,6 @@ export default function RegisterPage() {
             value={formData.lastName}
             onChange={handleChange}
             placeholder="Doe"
-            required
             disabled={isLoading}
           />
         </div>
@@ -193,7 +128,6 @@ export default function RegisterPage() {
           value={formData.email}
           onChange={handleChange}
           placeholder="you@example.com"
-          required
           disabled={isLoading}
           leftIcon={<Mail className="w-5 h-5" />}
         />
@@ -221,7 +155,6 @@ export default function RegisterPage() {
             value={formData.password}
             onChange={handleChange}
             placeholder="Min 8 chars"
-            required
             disabled={isLoading}
             leftIcon={<Lock className="w-4 h-4" />}
           />
@@ -233,7 +166,6 @@ export default function RegisterPage() {
             value={formData.confirmPassword}
             onChange={handleChange}
             placeholder="Repeat"
-            required
             disabled={isLoading}
             leftIcon={<Lock className="w-4 h-4" />}
           />

@@ -1,469 +1,497 @@
 /**
  * For Appraisers Landing Page
- * TruPlat - Dedicated page for appraiser recruitment
  */
 
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/shared/components/ui/Button";
+import { motion } from "framer-motion";
 import {
-  TestimonialCarousel,
-  CTASection,
-  TrustBadges,
-} from "@/modules/marketing/components";
-import {
-  Check,
+  ArrowRight,
   MapPin,
-  Calendar,
-  DollarSign,
-  Clock,
   Shield,
   Smartphone,
   Car,
+  ChevronDown,
+  Check,
+  Sparkles,
+  Camera,
+  FileText,
 } from "lucide-react";
 import { LedgerHeader } from "@/shared/components/layout/LedgerHeader";
-
-export const metadata = {
-  title: "Join TruPlat as an Appraiser | Earn $175-350 Per Job",
-  description:
-    "Join Texas's fastest-growing network of property appraisers. Accept jobs near you, work on your schedule, and get paid weekly.",
-};
 
 export default function ForAppraisersPage() {
   const navItems = [
     { label: "How It Works", href: "#how-it-works" },
     { label: "For Clients", href: "/" },
-    { label: "Docs", href: "/docs" },
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
-      {/* Ledger-style Header */}
+    <div className="min-h-screen bg-black text-white antialiased">
       <div className="fixed top-0 left-0 right-0 z-50">
         <LedgerHeader
           navItems={navItems}
-          actionButtonText="APPLY NOW"
+          actionButtonText="Apply Now"
           actionButtonHref="/register?role=appraiser"
         />
       </div>
 
-      {/* Spacer for fixed header */}
       <div className="h-16" />
 
-      {/* Hero Section */}
-      <section className="py-20 relative overflow-hidden bg-[var(--background)]">
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            {/* Left - Value Prop */}
-            <div>
-              <span className="inline-block px-4 py-1.5 font-mono text-xs uppercase tracking-wider bg-transparent border border-lime-400/50 text-lime-400 mb-6">
-                Join 150+ Active Appraisers
-              </span>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white">
-                Earn More.
-                <br />
-                <span className="text-lime-400">Work Smarter.</span>
-              </h1>
-              <p className="mt-6 text-xl text-gray-400">
-                Join Texas&apos;s fastest-growing network of property
-                appraisers. Accept jobs near you, work on your schedule, and get
-                paid weekly.
-              </p>
+      <Hero />
+      <HowItWorks />
+      <ProductDemo />
+      <Requirements />
+      <FAQ />
+      <CTA />
+      <Footer />
+    </div>
+  );
+}
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                <Link href="/register?role=appraiser">
-                  <Button variant="lime">Apply Now — It&apos;s Free</Button>
-                </Link>
-                <Link href="#how-it-works">
-                  <Button variant="outline">Learn How It Works</Button>
-                </Link>
+function Hero() {
+  return (
+    <section className="py-24 relative">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-lime-400/8 via-transparent to-transparent" />
+
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] mb-6">
+            <span className="text-white">Accept jobs.</span>
+            <br />
+            <span className="bg-gradient-to-r from-lime-300 via-lime-400 to-emerald-400 bg-clip-text text-transparent">
+              AI does the rest.
+            </span>
+          </h1>
+          <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+            Join Texas&apos;s fastest-growing appraiser network. Accept jobs on
+            your schedule, let AI assemble your reports.
+          </p>
+          <Link href="/register?role=appraiser">
+            <button className="group px-8 py-4 bg-lime-400 text-black font-semibold rounded-full hover:shadow-[0_0_40px_rgba(163,230,53,0.4)] transition-all">
+              <span className="flex items-center gap-2">
+                Apply Now
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </button>
+          </Link>
+
+          <div className="mt-10 flex justify-center gap-8 text-sm text-gray-500">
+            <span>Weekly payouts</span>
+            <span>Your schedule</span>
+            <span>AI co-pilot</span>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function ProductDemo() {
+  return (
+    <section className="py-24">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Field capture UI */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="rounded-xl border border-white/10 bg-gray-950 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-black/50">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-white/10" />
+                  <div className="w-3 h-3 rounded-full bg-white/10" />
+                  <div className="w-3 h-3 rounded-full bg-white/10" />
+                </div>
+                <div className="flex-1 text-center text-xs text-gray-500">
+                  On-Site Capture
+                </div>
               </div>
 
-              {/* Quick stats */}
-              <div className="mt-10 flex flex-wrap gap-6">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-lime-400" />
-                  <span className="font-mono text-sm uppercase tracking-wider text-white">
-                    $175-350 per job
-                  </span>
-                </div>
-                <span className="w-px h-4 bg-gray-700 hidden sm:block" />
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-lime-400" />
-                  <span className="font-mono text-sm uppercase tracking-wider text-white">
-                    Weekly payouts
-                  </span>
-                </div>
-                <span className="w-px h-4 bg-gray-700 hidden sm:block" />
-                <div className="flex items-center gap-2">
+              <div className="p-4">
+                {/* Property header */}
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/5">
                   <MapPin className="w-5 h-5 text-lime-400" />
-                  <span className="font-mono text-sm uppercase tracking-wider text-white">
-                    Jobs near you
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right - Earnings Showcase */}
-            <div className="relative">
-              <div className="relative bg-gray-900 border border-gray-800 p-6">
-                {/* L-bracket corners */}
-                <span className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-lime-400 pointer-events-none" />
-                <span className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-lime-400 pointer-events-none" />
-                <span className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-lime-400 pointer-events-none" />
-                <span className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-lime-400 pointer-events-none" />
-
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-transparent border border-lime-400/50 flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-lime-400" />
-                  </div>
                   <div>
-                    <p className="font-mono text-sm uppercase tracking-wider text-white">
-                      Top Earner This Month
-                    </p>
-                    <p className="text-sm text-gray-500">Austin, TX area</p>
+                    <div className="font-medium text-white">
+                      1847 Oak Avenue
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Austin, TX 78704
+                    </div>
                   </div>
                 </div>
 
-                <div className="text-center py-6 border-y border-gray-800">
-                  <p className="text-5xl font-bold text-lime-400">$4,250</p>
-                  <p className="text-gray-500 mt-1 font-mono text-xs uppercase tracking-wider">
-                    32 jobs completed
-                  </p>
+                {/* Photo grid */}
+                <div className="mb-4">
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">
+                    Photos
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                      <div
+                        key={i}
+                        className="aspect-square rounded-lg bg-white/5 flex items-center justify-center"
+                      >
+                        <Check className="w-4 h-4 text-lime-400" />
+                      </div>
+                    ))}
+                    <div className="aspect-square rounded-lg border-2 border-dashed border-white/10 flex items-center justify-center">
+                      <Camera className="w-5 h-5 text-gray-500" />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="mt-6 space-y-3">
-                  <EarningsRow label="Average per job" value="$133" />
-                  <EarningsRow label="Weekly average" value="$1,062" />
-                  <EarningsRow label="Hours worked" value="~25/week" />
+                {/* Field notes */}
+                <div className="mb-4">
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">
+                    Field Notes
+                  </div>
+                  <div className="space-y-2">
+                    <div className="p-3 rounded-lg bg-white/5 text-sm text-gray-300">
+                      Kitchen remodeled 2023, granite counters
+                    </div>
+                    <div className="p-3 rounded-lg bg-white/5 text-sm text-gray-300">
+                      New HVAC system, hardwood floors throughout
+                    </div>
+                    <div className="p-3 rounded-lg border border-dashed border-white/10 text-sm text-gray-500 flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Add note...
+                    </div>
+                  </div>
                 </div>
 
-                <p className="mt-6 text-xs text-gray-500 text-center font-mono uppercase tracking-wider">
-                  * Earnings vary by location, job type, and availability
-                </p>
-              </div>
-
-              {/* Floating badge */}
-              <div className="absolute -top-3 -right-3 bg-lime-400 text-black px-4 py-2 font-mono text-xs uppercase tracking-wider">
-                <Check className="w-4 h-4 inline mr-1" />
-                Verified Earnings
+                {/* Submit button */}
+                <button className="w-full py-3 bg-lime-400 text-black font-medium rounded-lg">
+                  Submit to AI
+                </button>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
+          </motion.div>
 
-      {/* Trust Badges */}
-      <div className="relative z-10 pb-8">
-        <TrustBadges />
+          {/* AI compiles report */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="rounded-xl border border-white/10 bg-gray-950 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-black/50">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-white/10" />
+                  <div className="w-3 h-3 rounded-full bg-white/10" />
+                  <div className="w-3 h-3 rounded-full bg-white/10" />
+                </div>
+                <div className="flex-1 text-center text-xs text-gray-500">
+                  AI Report Builder
+                </div>
+              </div>
+
+              <div className="p-4">
+                {/* Progress header */}
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/5">
+                  <div className="w-10 h-10 rounded-lg bg-lime-400/10 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-lime-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-white">
+                      Compiling report...
+                    </div>
+                    <div className="text-sm text-gray-500">1847 Oak Avenue</div>
+                  </div>
+                  <div className="text-sm text-lime-400">85%</div>
+                </div>
+
+                {/* What AI is doing */}
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-lime-400 flex items-center justify-center">
+                      <Check className="w-4 h-4 text-black" />
+                    </div>
+                    <span className="text-sm text-gray-300">
+                      Photos organized by room
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-lime-400 flex items-center justify-center">
+                      <Check className="w-4 h-4 text-black" />
+                    </div>
+                    <span className="text-sm text-gray-300">
+                      Field notes parsed
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-lime-400 flex items-center justify-center">
+                      <Check className="w-4 h-4 text-black" />
+                    </div>
+                    <span className="text-sm text-gray-300">
+                      6 comparables selected
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-lime-400 flex items-center justify-center">
+                      <Check className="w-4 h-4 text-black" />
+                    </div>
+                    <span className="text-sm text-gray-300">
+                      Market analysis generated
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full border-2 border-lime-400 flex items-center justify-center animate-pulse">
+                      <div className="w-2 h-2 bg-lime-400 rounded-full" />
+                    </div>
+                    <span className="text-sm text-white">
+                      Formatting USPAP report...
+                    </span>
+                  </div>
+                </div>
+
+                {/* AI insight */}
+                <div className="p-3 rounded-lg bg-lime-400/5 border border-lime-400/20 mb-4">
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="w-4 h-4 text-lime-400 mt-0.5" />
+                    <div className="text-sm text-gray-300">
+                      <span className="text-lime-400">AI:</span> Your note about
+                      the 2023 kitchen remodel added $12K to suggested value
+                      based on comparable adjustments.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preview button */}
+                <button className="w-full py-3 bg-white/5 text-white font-medium rounded-lg">
+                  Preview Draft
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
+    </section>
+  );
+}
 
-      {/* Benefits Grid */}
-      <section className="py-20 bg-[var(--background)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="font-mono text-2xl uppercase tracking-wider text-white">
-              Why Appraisers Choose TruPlat
-            </h2>
-            <p className="mt-4 text-gray-400">
-              Join a platform designed for your success
-            </p>
-          </div>
+function HowItWorks() {
+  const steps = [
+    {
+      num: "1",
+      title: "Apply online",
+      desc: "Submit license info, takes 5 minutes",
+    },
+    {
+      num: "2",
+      title: "Set your area",
+      desc: "Choose coverage radius and hours",
+    },
+    { num: "3", title: "Accept jobs", desc: "Get notified, accept what works" },
+    {
+      num: "4",
+      title: "AI assembles report",
+      desc: "Review, approve, get paid",
+    },
+  ];
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <BenefitCard
-              icon={<DollarSign className="w-6 h-6" />}
-              title="$175-350 per job"
-              description="Competitive payouts for every inspection you complete"
-            />
-            <BenefitCard
-              icon={<MapPin className="w-6 h-6" />}
-              title="Jobs near you"
-              description="Set your service area and radius — only see relevant jobs"
-            />
-            <BenefitCard
-              icon={<Calendar className="w-6 h-6" />}
-              title="Your schedule"
-              description="Accept jobs when it works for you, decline when it doesn't"
-            />
-            <BenefitCard
-              icon={<Clock className="w-6 h-6" />}
-              title="Weekly payouts"
-              description="Fast, reliable direct deposits every Friday"
-            />
-          </div>
+  return (
+    <section id="how-it-works" className="py-24">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.h2
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-3xl font-bold text-center mb-16"
+        >
+          How it works
+        </motion.h2>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {steps.map((step, i) => (
+            <motion.div
+              key={step.num}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="text-center"
+            >
+              <div className="w-10 h-10 rounded-full bg-lime-400 text-black font-bold flex items-center justify-center mx-auto mb-4">
+                {step.num}
+              </div>
+              <h3 className="font-semibold text-white mb-1">{step.title}</h3>
+              <p className="text-sm text-gray-500">{step.desc}</p>
+            </motion.div>
+          ))}
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* How It Works */}
-      <section id="how-it-works" className="py-20 bg-gray-950">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="font-mono text-2xl uppercase tracking-wider text-white">
-              Start Earning in 4 Simple Steps
-            </h2>
-          </div>
+function Requirements() {
+  const reqs = [
+    { icon: Shield, title: "Valid license", desc: "Texas appraiser license" },
+    { icon: Smartphone, title: "Smartphone", desc: "iPhone or Android" },
+    { icon: Car, title: "Transportation", desc: "Reliable vehicle" },
+  ];
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StepCard
-              number={1}
-              title="Apply Online"
-              description="Submit your license info and set up your profile in minutes"
-            />
-            <StepCard
-              number={2}
-              title="Set Your Area"
-              description="Choose your coverage radius and available hours"
-            />
-            <StepCard
-              number={3}
-              title="Accept Jobs"
-              description="Get notified of nearby jobs and accept what works for you"
-            />
-            <StepCard
-              number={4}
-              title="Complete & Earn"
-              description="Take photos, submit evidence, get paid weekly"
-            />
+  return (
+    <section className="py-24">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="p-8 rounded-2xl border border-white/10 text-center"
+        >
+          <h2 className="text-2xl font-bold mb-8">Requirements</h2>
+          <div className="grid sm:grid-cols-3 gap-8 mb-8">
+            {reqs.map((r) => (
+              <div key={r.title}>
+                <r.icon className="w-8 h-8 text-lime-400 mx-auto mb-3" />
+                <h3 className="font-semibold text-white mb-1">{r.title}</h3>
+                <p className="text-sm text-gray-500">{r.desc}</p>
+              </div>
+            ))}
           </div>
+          <Link href="/register?role=appraiser">
+            <button className="px-8 py-4 bg-lime-400 text-black font-semibold rounded-full hover:bg-lime-300 transition-colors">
+              Apply Now
+            </button>
+          </Link>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function FAQ() {
+  const [open, setOpen] = useState<number | null>(null);
+
+  const faqs = [
+    {
+      q: "How do I get paid?",
+      a: "Weekly direct deposits every Friday for completed jobs.",
+    },
+    {
+      q: "How does the AI co-pilot work?",
+      a: "Upload your photos and the AI auto-generates comparables, market analysis, and a draft report. You review and approve.",
+    },
+    {
+      q: "How many jobs can I expect?",
+      a: "Depends on location. Metro areas typically see multiple jobs per week.",
+    },
+    {
+      q: "How long does approval take?",
+      a: "Most applications approved within 24-48 hours after license verification.",
+    },
+    {
+      q: "Can I choose which jobs I take?",
+      a: "Yes. Accept jobs that work for you, decline those that don't. No minimums.",
+    },
+  ];
+
+  return (
+    <section className="py-24">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.h2
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-3xl font-bold text-center mb-12"
+        >
+          FAQ
+        </motion.h2>
+
+        <div className="space-y-2">
+          {faqs.map((faq, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className="border border-white/5 rounded-lg overflow-hidden"
+            >
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-white/5 transition-colors"
+              >
+                <span className="font-medium text-white">{faq.q}</span>
+                <ChevronDown
+                  className={`w-5 h-5 text-gray-500 transition-transform ${open === i ? "rotate-180" : ""}`}
+                />
+              </button>
+              {open === i && (
+                <div className="px-4 pb-4 text-gray-400 text-sm">{faq.a}</div>
+              )}
+            </motion.div>
+          ))}
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* Requirements */}
-      <section className="py-20 bg-[var(--background)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative bg-gray-900 border border-gray-800 p-8 md:p-12">
-            {/* L-bracket corners */}
-            <span className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-lime-400 pointer-events-none" />
-            <span className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-lime-400 pointer-events-none" />
-            <span className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-lime-400 pointer-events-none" />
-            <span className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-lime-400 pointer-events-none" />
+function CTA() {
+  return (
+    <section className="py-24 relative">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-lime-400/10 via-transparent to-transparent" />
 
-            <div className="text-center mb-8">
-              <h2 className="font-mono text-xl uppercase tracking-wider text-white">
-                Requirements to Join
-              </h2>
-              <p className="mt-2 text-gray-400">
-                Get started if you meet these simple requirements
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
-              <RequirementCard
-                icon={<Shield className="w-8 h-8" />}
-                title="Valid License"
-                description="Texas appraiser license in good standing"
-              />
-              <RequirementCard
-                icon={<Smartphone className="w-8 h-8" />}
-                title="Smartphone"
-                description="iPhone or Android with a quality camera"
-              />
-              <RequirementCard
-                icon={<Car className="w-8 h-8" />}
-                title="Transportation"
-                description="Reliable vehicle to reach properties"
-              />
-            </div>
-
-            <div className="text-center mt-10">
-              <Link href="/register?role=appraiser">
-                <Button size="lg" variant="lime">
-                  Apply Now — Takes 5 Minutes
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <TestimonialCarousel />
-
-      {/* FAQ */}
-      <section className="py-20 bg-[var(--background)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="font-mono text-2xl uppercase tracking-wider text-white">
-              Common Questions
-            </h2>
-          </div>
-
-          <div className="mx-auto max-w-3xl space-y-4">
-            <FAQItem
-              question="How do I get paid?"
-              answer="Appraisers receive weekly direct deposits every Friday for all completed jobs. Payouts typically range from $175-$350 depending on job type and location."
-            />
-            <FAQItem
-              question="How many jobs can I expect?"
-              answer="Job availability depends on your location and service area. Appraisers in major metro areas (Austin, Dallas, Houston, San Antonio) typically see 5-15 jobs per week."
-            />
-            <FAQItem
-              question="What equipment do I need?"
-              answer="Just a smartphone with a good camera and reliable transportation. Our app guides you through each inspection with a checklist of required photos."
-            />
-            <FAQItem
-              question="How long does approval take?"
-              answer="Most applications are approved within 24-48 hours after license verification. You can start accepting jobs immediately after approval."
-            />
-            <FAQItem
-              question="Can I choose which jobs I take?"
-              answer="Absolutely. You control your schedule. Accept jobs that work for you, decline those that don't. No minimums required."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <CTASection />
-
-      {/* Footer - Ledger Style */}
-      <footer className="border-t border-gray-800 py-12 bg-[var(--background)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              {/* TruPlat logo */}
-              <Image src="/truplat.svg" alt="TruPlat" width={100} height={30} />
-              <span className="w-px h-4 bg-gray-700" />
-              <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
-                For Appraisers
+      <div className="relative max-w-2xl mx-auto px-4 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="text-4xl font-bold mb-6">Start earning today</h2>
+          <p className="text-gray-400 mb-8">
+            Free to apply. Most approved within 48 hours.
+          </p>
+          <Link href="/register?role=appraiser">
+            <button className="group px-8 py-4 bg-lime-400 text-black font-semibold rounded-full hover:shadow-[0_0_40px_rgba(163,230,53,0.4)] transition-all">
+              <span className="flex items-center gap-2">
+                Apply Now
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </span>
-            </div>
-            <div className="flex items-center gap-6">
-              <Link
-                href="/"
-                className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                style={{
-                  transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-                }}
-              >
-                Back to Home
-              </Link>
-              <span className="w-px h-3 bg-gray-700" />
-              <Link
-                href="/login"
-                className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                style={{
-                  transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-                }}
-              >
-                Appraiser Login
-              </Link>
-            </div>
-            <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-              &copy; {new Date().getFullYear()} TruPlat. All rights reserved.
-            </p>
+            </button>
+          </Link>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Image
+              src="/truplat.svg"
+              alt="TruPlat"
+              width={80}
+              height={20}
+              className="opacity-50"
+            />
+            <span className="text-sm text-gray-600">For Appraisers</span>
           </div>
+          <Link
+            href="/"
+            className="text-sm text-gray-600 hover:text-white transition-colors"
+          >
+            Back to Home
+          </Link>
         </div>
-      </footer>
-    </div>
-  );
-}
-
-// Component definitions
-
-function BenefitCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div
-      className="relative p-6 bg-gray-900 border border-gray-800 hover:border-gray-600 transition-colors duration-300"
-      style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
-    >
-      {/* L-bracket corners */}
-      <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/50 pointer-events-none" />
-      <span className="absolute top-0 right-0 w-3 h-3 border-t border-r border-lime-400/50 pointer-events-none" />
-      <span className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-lime-400/50 pointer-events-none" />
-      <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/50 pointer-events-none" />
-
-      <div className="w-12 h-12 bg-transparent border border-lime-400/50 flex items-center justify-center text-lime-400 mb-4">
-        {icon}
       </div>
-      <h3 className="font-mono text-sm uppercase tracking-wider text-white mb-2">
-        {title}
-      </h3>
-      <p className="text-sm text-gray-400">{description}</p>
-    </div>
-  );
-}
-
-function StepCard({
-  number,
-  title,
-  description,
-}: {
-  number: number;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="text-center p-6 bg-gray-900 border border-gray-800">
-      <div className="w-10 h-10 mx-auto bg-transparent border border-lime-400 text-lime-400 flex items-center justify-center font-mono font-bold mb-4">
-        {number}
-      </div>
-      <h4 className="font-mono text-sm uppercase tracking-wider text-white mb-2">
-        {title}
-      </h4>
-      <p className="text-sm text-gray-400">{description}</p>
-    </div>
-  );
-}
-
-function RequirementCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="text-center">
-      <div className="w-16 h-16 mx-auto bg-transparent border border-lime-400/50 flex items-center justify-center text-lime-400 mb-4">
-        {icon}
-      </div>
-      <h3 className="font-mono text-sm uppercase tracking-wider text-white mb-1">
-        {title}
-      </h3>
-      <p className="text-sm text-gray-400">{description}</p>
-    </div>
-  );
-}
-
-function EarningsRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-gray-500 font-mono text-xs uppercase tracking-wider">
-        {label}
-      </span>
-      <span className="font-mono text-sm text-white">{value}</span>
-    </div>
-  );
-}
-
-function FAQItem({ question, answer }: { question: string; answer: string }) {
-  return (
-    <details className="group border border-gray-800 bg-gray-900/50">
-      <summary
-        className="flex items-center justify-between cursor-pointer px-6 py-4 font-mono text-sm uppercase tracking-wider text-white hover:bg-gray-800/50 transition-colors duration-300"
-        style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
-      >
-        {question}
-        <span className="font-mono text-lime-400 text-xs group-open:hidden">
-          [+]
-        </span>
-        <span className="font-mono text-lime-400 text-xs hidden group-open:inline">
-          [-]
-        </span>
-      </summary>
-      <div className="px-6 pb-4 text-gray-400 text-sm">{answer}</div>
-    </details>
+    </footer>
   );
 }

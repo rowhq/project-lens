@@ -1,90 +1,87 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
-import { ArrowRight, Zap, Shield, Clock } from "lucide-react";
-import { Button } from "@/shared/components/ui/Button";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
 export function HeroSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[var(--background)]">
-      {/* Grid pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `linear-gradient(rgba(163, 230, 53, 0.3) 1px, transparent 1px),
-                           linear-gradient(90deg, rgba(163, 230, 53, 0.3) 1px, transparent 1px)`,
-          backgroundSize: "60px 60px",
-        }}
-        aria-hidden="true"
-      />
+    <section
+      ref={containerRef}
+      className="relative min-h-[90vh] flex items-center overflow-hidden bg-black"
+    >
+      {/* Subtle gradient */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-lime-400/8 via-transparent to-transparent" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-3 px-4 py-2 clip-notch-sm border border-lime-400/30 mb-8">
-          <span className="w-1.5 h-1.5 bg-lime-400 animate-pulse" />
-          <span className="font-mono text-xs uppercase tracking-wider text-gray-400">
-            Now Live in Texas
-          </span>
-        </div>
-
-        {/* Main heading */}
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-          <span className="text-white">Property Values</span>
-          <br />
-          <span className="text-lime-400">in Minutes, Not Weeks</span>
-        </h1>
-
-        {/* Subheading */}
-        <p className="text-xl sm:text-2xl text-gray-400 max-w-3xl mx-auto mb-10">
-          From address to value in 30 seconds.
-          <br className="hidden sm:block" />
-          Close deals faster. Decide with confidence.
-        </p>
-
-        {/* CTA Button */}
-        <div className="flex flex-col items-center justify-center gap-3 mb-16">
-          <Link href="/register">
-            <Button
-              variant="lime"
-              size="lg"
-              rightIcon={<ArrowRight className="w-5 h-5" />}
-            >
-              Start Free Trial
-            </Button>
-          </Link>
-          <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            5 free AI reports every month
-          </span>
-        </div>
-
-        {/* Feature pills */}
-        <div className="flex flex-wrap justify-center gap-4">
-          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-gray-800 bg-gray-900/50">
-            <Zap className="w-4 h-4 text-lime-400" />
-            <span className="font-mono text-xs uppercase tracking-wider text-white">
-              30-sec AI Reports
+      <motion.div
+        style={{ y, opacity }}
+        className="relative z-10 w-full px-4 sm:px-6 lg:px-8"
+      >
+        <div className="max-w-5xl mx-auto text-center">
+          {/* Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-5xl sm:text-6xl lg:text-8xl font-bold tracking-tight leading-[0.95]"
+          >
+            <span className="text-white">Property intel</span>
+            <br />
+            <span className="bg-gradient-to-r from-lime-300 via-lime-400 to-emerald-400 bg-clip-text text-transparent">
+              before anyone else
             </span>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-gray-800 bg-gray-900/50">
-            <Shield className="w-4 h-4 text-lime-400" />
-            <span className="font-mono text-xs uppercase tracking-wider text-white">
-              USPAP Compliant
-            </span>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 clip-notch-sm border border-gray-800 bg-gray-900/50">
-            <Clock className="w-4 h-4 text-lime-400" />
-            <span className="font-mono text-xs uppercase tracking-wider text-white">
-              48hr On-Site
-            </span>
-          </div>
-        </div>
-      </div>
+          </motion.h1>
 
-      {/* Bottom fade */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent"
-        aria-hidden="true"
-      />
+          {/* Single line subhead */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="mt-8 text-xl text-gray-400 max-w-xl mx-auto"
+          >
+            AI valuations with infrastructure signals no one else sees.
+          </motion.p>
+
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mt-10"
+          >
+            <Link href="/register">
+              <button className="group px-8 py-4 bg-lime-400 text-black font-semibold rounded-full transition-all hover:shadow-[0_0_40px_rgba(163,230,53,0.4)] hover:scale-105">
+                <span className="flex items-center gap-2">
+                  Try Free
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </button>
+            </Link>
+          </motion.div>
+
+          {/* Minimal stats */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mt-20 flex justify-center gap-12 text-sm text-gray-500"
+          >
+            <span>254 Texas counties</span>
+            <span>50+ data sources</span>
+            <span>Updated daily</span>
+          </motion.div>
+        </div>
+      </motion.div>
     </section>
   );
 }

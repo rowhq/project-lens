@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { trpc } from "@/shared/lib/trpc";
-import { PRICING } from "@/shared/config/constants";
+/**
+ * Request Appraisal - Mockup Version
+ * Multi-step wizard for requesting property appraisals
+ */
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   MapPin,
   FileText,
@@ -37,7 +40,7 @@ const reportTypes = [
     label: "AI Report",
     description:
       "Instant automated valuation using AI and comparable sales data",
-    price: PRICING.AI_REPORT,
+    price: 0,
     time: "5 minutes",
     features: [
       "Comparable sales analysis",
@@ -50,7 +53,7 @@ const reportTypes = [
     id: "ON_SITE",
     label: "On-Site Verification",
     description: "AI report enhanced with property photos and inspection notes",
-    price: PRICING.ON_SITE,
+    price: 149,
     time: "48 hours",
     features: [
       "Everything in AI Report",
@@ -63,7 +66,7 @@ const reportTypes = [
     id: "CERTIFIED",
     label: "Certified Appraisal",
     description: "Full USPAP-compliant appraisal signed by licensed appraiser",
-    price: PRICING.CERTIFIED,
+    price: 399,
     time: "72 hours",
     features: [
       "Everything in On-Site",
@@ -86,163 +89,81 @@ const purposes = [
   "Other",
 ];
 
+// Mock search results
+const MOCK_SEARCH_RESULTS = [
+  {
+    id: "1",
+    address: "1847 Oak Avenue",
+    city: "Austin",
+    state: "TX",
+    zipCode: "78701",
+    county: "Travis",
+  },
+  {
+    id: "2",
+    address: "1850 Oak Street",
+    city: "Austin",
+    state: "TX",
+    zipCode: "78702",
+    county: "Travis",
+  },
+  {
+    id: "3",
+    address: "1855 Oak Lane",
+    city: "Round Rock",
+    state: "TX",
+    zipCode: "78664",
+    county: "Williamson",
+  },
+];
+
+type SearchResult = (typeof MOCK_SEARCH_RESULTS)[0];
+
 export default function NewAppraisalPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState<Step>("property");
-  const [searchEnabled, setSearchEnabled] = useState(false);
-  const [prefilledFromMap, setPrefilledFromMap] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
-    // Property
     addressQuery: "",
-    selectedProperty: null as (typeof searchResults)[0] | null,
+    selectedProperty: null as SearchResult | null,
     propertyType: "SINGLE_FAMILY",
-
-    // Details
     purpose: "",
     notes: "",
     loanNumber: "",
     borrowerName: "",
-
-    // Type
     reportType: "AI_REPORT",
   });
 
-  // Pre-populate form from URL query params (from map page)
-  useEffect(() => {
-    if (prefilledFromMap) return;
-
-    const address = searchParams.get("address");
-    const city = searchParams.get("city");
-    const state = searchParams.get("state");
-    const zipCode = searchParams.get("zipCode");
-    const type = searchParams.get("type");
-
-    // Only address is required - the rest is optional
-    if (address) {
-      const prefilledProperty = {
-        id: `prefilled-${Date.now()}`,
-        address,
-        city: city || "",
-        state: state || "TX",
-        zipCode: zipCode || "",
-        county: "",
-        latitude: 0,
-        longitude: 0,
-      };
-
-      // Use setTimeout to avoid synchronous setState in effect
-      setTimeout(() => {
-        setFormData((prev) => ({
-          ...prev,
-          addressQuery: address,
-          selectedProperty: prefilledProperty,
-          reportType: type === "CERTIFIED" ? "CERTIFIED" : "AI_REPORT",
-        }));
-        setPrefilledFromMap(true);
-        // Skip to details step since we already have the property
-        setCurrentStep("details");
-      }, 0);
-    }
-  }, [searchParams, prefilledFromMap]);
-
-  // Check if Stripe is configured
-  const isStripeConfigured = !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-
-  const createWithCheckout = trpc.appraisal.createWithCheckout.useMutation({
-    onSuccess: (data) => {
-      // Redirect to Stripe checkout
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else {
-        // Fallback if no checkout URL (shouldn't happen)
-        router.push(`/appraisals/${data.appraisalId}`);
-      }
-    },
-  });
-
-  // Development checkout - bypasses Stripe
-  const devCheckout = trpc.appraisal.devCheckout.useMutation({
-    onSuccess: (data) => {
-      // Redirect to appraisal page with success indicator
-      router.push(`/appraisals/${data.appraisalId}?payment=success`);
-    },
-  });
-
-  // Real address search using Mapbox via property.search API
-  const searchAddresses = trpc.property.search.useQuery(
-    { query: formData.addressQuery, limit: 5 },
-    {
-      enabled: formData.addressQuery.length >= 5 && searchEnabled,
-      staleTime: 30000, // Cache results for 30 seconds
-    },
-  );
-
-  // Derive search results directly from query data
-  const searchResults = useMemo(() => {
-    if (!searchAddresses.data) return [];
-    return searchAddresses.data.map((r) => ({
-      id: r.id,
-      address: r.address,
-      city: r.city,
-      state: r.state,
-      zipCode: r.zipCode,
-      county: r.county,
-      latitude: r.latitude,
-      longitude: r.longitude,
-    }));
-  }, [searchAddresses.data]);
-
-  const isSearching = searchEnabled && searchAddresses.isLoading;
-
   const handleSearch = () => {
-    if (formData.addressQuery.length < 5) return;
-    setSearchEnabled(true);
+    if (formData.addressQuery.length < 3) return;
+
+    setIsSearching(true);
+    // Mock search delay
+    setTimeout(() => {
+      // Filter mock results based on query
+      const filtered = MOCK_SEARCH_RESULTS.filter(
+        (r) =>
+          r.address
+            .toLowerCase()
+            .includes(formData.addressQuery.toLowerCase()) ||
+          r.city.toLowerCase().includes(formData.addressQuery.toLowerCase()),
+      );
+      // If no matches, show all results as suggestions
+      setSearchResults(filtered.length > 0 ? filtered : MOCK_SEARCH_RESULTS);
+      setIsSearching(false);
+    }, 500);
   };
 
   const handleSubmit = () => {
-    if (!formData.selectedProperty) return;
-
-    // Map report types to API expected values
-    const reportTypeMap: Record<
-      string,
-      "AI_REPORT" | "AI_REPORT_WITH_ONSITE" | "CERTIFIED_APPRAISAL"
-    > = {
-      AI_REPORT: "AI_REPORT",
-      ON_SITE: "AI_REPORT_WITH_ONSITE",
-      CERTIFIED: "CERTIFIED_APPRAISAL",
-    };
-
-    const commonData = {
-      propertyAddress: formData.selectedProperty.address,
-      propertyCity: formData.selectedProperty.city,
-      propertyState: formData.selectedProperty.state,
-      propertyZipCode: formData.selectedProperty.zipCode,
-      propertyType: formData.propertyType as
-        | "SINGLE_FAMILY"
-        | "MULTI_FAMILY"
-        | "CONDO"
-        | "TOWNHOUSE"
-        | "COMMERCIAL"
-        | "LAND"
-        | "MIXED_USE",
-      purpose: formData.purpose,
-      requestedType: reportTypeMap[formData.reportType] || "AI_REPORT",
-      notes: formData.notes
-        ? `${formData.notes}\nLoan: ${formData.loanNumber || "N/A"}\nBorrower: ${formData.borrowerName || "N/A"}`
-        : undefined,
-    };
-
-    // Use devCheckout if Stripe is not configured (development mode)
-    if (!isStripeConfigured) {
-      devCheckout.mutate({
-        ...commonData,
-        propertyCounty: formData.selectedProperty.county,
-      });
-    } else {
-      createWithCheckout.mutate(commonData);
-    }
+    setIsSubmitting(true);
+    // Mock submit delay
+    setTimeout(() => {
+      // Redirect to appraisals list with success message
+      router.push("/appraisals?success=true");
+    }, 1500);
   };
 
   const steps: { id: Step; label: string; icon: typeof MapPin }[] = [
@@ -256,6 +177,33 @@ export default function NewAppraisalPage() {
   const selectedReportType = reportTypes.find(
     (t) => t.id === formData.reportType,
   );
+
+  // For mockup - allow continuing even without data
+  const canContinue = () => {
+    if (currentStep === "property") {
+      return (
+        formData.selectedProperty !== null || formData.addressQuery.length >= 3
+      );
+    }
+    return true; // Allow continuing on other steps
+  };
+
+  // Auto-create property from address query if none selected
+  const ensureProperty = () => {
+    if (!formData.selectedProperty && formData.addressQuery.length >= 3) {
+      setFormData((prev) => ({
+        ...prev,
+        selectedProperty: {
+          id: "custom",
+          address: formData.addressQuery,
+          city: "Austin",
+          state: "TX",
+          zipCode: "78701",
+          county: "Travis",
+        },
+      }));
+    }
+  };
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -275,12 +223,17 @@ export default function NewAppraisalPage() {
 
             return (
               <div key={step.id} className="flex items-center">
-                <div
-                  className={`flex items-center gap-2 px-4 py-2 clip-notch-sm font-mono text-sm uppercase tracking-wider ${
+                <button
+                  onClick={() => {
+                    if (index <= currentStepIndex) {
+                      setCurrentStep(step.id);
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2 clip-notch-sm font-mono text-sm uppercase tracking-wider transition-colors ${
                     isActive
                       ? "bg-lime-400 text-black"
                       : isCompleted
-                        ? "bg-lime-400/10 text-lime-400 border border-lime-400/30"
+                        ? "bg-lime-400/10 text-lime-400 border border-lime-400/30 hover:bg-lime-400/20"
                         : "bg-gray-800 text-gray-500"
                   }`}
                 >
@@ -289,10 +242,12 @@ export default function NewAppraisalPage() {
                   ) : (
                     <Icon className="w-5 h-5" />
                   )}
-                  <span className="font-medium">{step.label}</span>
-                </div>
+                  <span className="font-medium hidden sm:inline">
+                    {step.label}
+                  </span>
+                </button>
                 {index < steps.length - 1 && (
-                  <div className="w-12 h-0.5 bg-gray-700 mx-2" />
+                  <div className="w-8 md:w-12 h-0.5 bg-gray-700 mx-1 md:mx-2" />
                 )}
               </div>
             );
@@ -303,6 +258,7 @@ export default function NewAppraisalPage() {
       {/* Step Content */}
       <div className="relative bg-gray-900 clip-notch border border-gray-800 p-6">
         <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
+
         {/* Property Step */}
         {currentStep === "property" && (
           <div className="space-y-6">
@@ -317,15 +273,23 @@ export default function NewAppraisalPage() {
                     type="text"
                     placeholder="Enter property address..."
                     value={formData.addressQuery}
-                    onChange={(e) =>
-                      setFormData({ ...formData, addressQuery: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        addressQuery: e.target.value,
+                        selectedProperty: null,
+                      });
+                      setSearchResults([]);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSearch();
+                    }}
                     className="w-full pl-10 pr-4 py-3 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
                   />
                 </div>
                 <button
                   onClick={handleSearch}
-                  disabled={isSearching || formData.addressQuery.length < 5}
+                  disabled={isSearching || formData.addressQuery.length < 3}
                   className="px-4 py-3 bg-lime-400 text-black clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed"
                 >
                   {isSearching ? (
@@ -335,10 +299,16 @@ export default function NewAppraisalPage() {
                   )}
                 </button>
               </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Type at least 3 characters and click search, or press Enter
+              </p>
             </div>
 
             {searchResults.length > 0 && (
               <div className="space-y-2">
+                <p className="text-xs text-gray-500 font-mono uppercase tracking-wider">
+                  Select a property:
+                </p>
                 {searchResults.map((result) => (
                   <button
                     key={result.id}
@@ -360,7 +330,8 @@ export default function NewAppraisalPage() {
               </div>
             )}
 
-            {formData.selectedProperty && (
+            {(formData.selectedProperty ||
+              formData.addressQuery.length >= 3) && (
               <div>
                 <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
                   Property Type
@@ -485,7 +456,7 @@ export default function NewAppraisalPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-lime-400">
-                      ${type.price}
+                      {type.price === 0 ? "Free" : `$${type.price}`}
                     </p>
                     <p className="text-sm text-gray-500">{type.time}</p>
                   </div>
@@ -512,11 +483,13 @@ export default function NewAppraisalPage() {
               <h3 className="font-semibold text-white mb-3 font-mono uppercase tracking-wider text-sm">
                 Property
               </h3>
-              <p className="text-white">{formData.selectedProperty?.address}</p>
+              <p className="text-white">
+                {formData.selectedProperty?.address || formData.addressQuery}
+              </p>
               <p className="text-sm text-gray-400">
-                {formData.selectedProperty?.city},{" "}
-                {formData.selectedProperty?.state}{" "}
-                {formData.selectedProperty?.zipCode}
+                {formData.selectedProperty
+                  ? `${formData.selectedProperty.city}, ${formData.selectedProperty.state} ${formData.selectedProperty.zipCode}`
+                  : "Austin, TX 78701"}
               </p>
               <p className="text-sm text-gray-400 mt-1">
                 Type:{" "}
@@ -536,7 +509,7 @@ export default function NewAppraisalPage() {
                   <p className="text-gray-500 font-mono uppercase tracking-wider text-xs">
                     Purpose
                   </p>
-                  <p className="text-white">{formData.purpose || "-"}</p>
+                  <p className="text-white">{formData.purpose || "Purchase"}</p>
                 </div>
                 <div>
                   <p className="text-gray-500 font-mono uppercase tracking-wider text-xs">
@@ -573,7 +546,9 @@ export default function NewAppraisalPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-lime-400">
-                    ${selectedReportType?.price}
+                    {selectedReportType?.price === 0
+                      ? "Free"
+                      : `$${selectedReportType?.price}`}
                   </p>
                   <p className="text-sm text-gray-500">
                     Delivery: {selectedReportType?.time}
@@ -601,14 +576,12 @@ export default function NewAppraisalPage() {
           {currentStep !== "review" ? (
             <button
               onClick={() => {
+                ensureProperty();
                 const nextIndex = currentStepIndex + 1;
                 if (nextIndex < steps.length)
                   setCurrentStep(steps[nextIndex].id);
               }}
-              disabled={
-                (currentStep === "property" && !formData.selectedProperty) ||
-                (currentStep === "details" && !formData.purpose)
-              }
+              disabled={!canContinue()}
               className="flex items-center gap-2 px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed"
             >
               Continue
@@ -617,22 +590,20 @@ export default function NewAppraisalPage() {
           ) : (
             <button
               onClick={handleSubmit}
-              disabled={createWithCheckout.isPending || devCheckout.isPending}
+              disabled={isSubmitting}
               className="flex items-center gap-2 px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500"
             >
-              {createWithCheckout.isPending || devCheckout.isPending ? (
+              {isSubmitting ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  {isStripeConfigured
-                    ? "Redirecting to checkout..."
-                    : "Processing..."}
+                  Processing...
                 </>
               ) : (
                 <>
                   <CreditCard className="w-5 h-5" />
-                  {isStripeConfigured
-                    ? `Proceed to Payment $${selectedReportType?.price}`
-                    : `Process (Dev Mode) $${selectedReportType?.price}`}
+                  {selectedReportType?.price === 0
+                    ? "Generate Free Report"
+                    : `Pay $${selectedReportType?.price}`}
                 </>
               )}
             </button>

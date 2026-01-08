@@ -1,7 +1,7 @@
 /**
  * Client Sidebar Navigation
  * Ledger-Inspired Design with L-bracket corners
- * Hybrid approach: Team link only shows when organization has >1 members
+ * MOCKUP MODE: Static navigation without API calls
  */
 
 "use client";
@@ -14,11 +14,9 @@ import {
   Users,
   CreditCard,
   Settings,
-  HelpCircle,
   X,
+  TrendingUp,
   Map,
-  Lightbulb,
-  Store,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Logo } from "@/shared/components/common/Logo";
@@ -26,34 +24,33 @@ import {
   LedgerCorners,
   StatusSquare,
 } from "@/shared/components/ui/Decorations";
-import { trpc } from "@/shared/lib/trpc";
 
-// Base navigation items (always shown)
-const baseNavigation = [
+// Navigation items for mockup - includes Team for demo
+const navigation = [
   {
     name: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
-    name: "Map",
+    name: "Growth Map",
     href: "/map",
     icon: Map,
   },
   {
-    name: "Insights",
+    name: "Opportunities",
     href: "/insights",
-    icon: Lightbulb,
-  },
-  {
-    name: "Marketplace",
-    href: "/marketplace",
-    icon: Store,
+    icon: TrendingUp,
   },
   {
     name: "Appraisals",
     href: "/appraisals",
     icon: FileText,
+  },
+  {
+    name: "Team",
+    href: "/team",
+    icon: Users,
   },
   {
     name: "Billing",
@@ -62,23 +59,11 @@ const baseNavigation = [
   },
 ];
 
-// Team navigation item (conditionally shown)
-const teamNavItem = {
-  name: "Team",
-  href: "/team",
-  icon: Users,
-};
-
 const secondaryNavigation = [
   {
     name: "Settings",
     href: "/settings",
     icon: Settings,
-  },
-  {
-    name: "Support",
-    href: "/support",
-    icon: HelpCircle,
   },
 ];
 
@@ -89,25 +74,6 @@ interface ClientSidebarProps {
 
 export function ClientSidebar({ isMobileOpen, onClose }: ClientSidebarProps) {
   const pathname = usePathname();
-
-  // Fetch team status to conditionally show Team link
-  const { data: teamStatus } = trpc.organization.teamStatus.useQuery(
-    undefined,
-    {
-      staleTime: 60000, // Cache for 1 minute
-      refetchOnWindowFocus: false,
-    },
-  );
-
-  // Build navigation array based on team status
-  // Insert Team before Billing (last item) when organization has multiple members
-  const navigation = teamStatus?.showTeamPage
-    ? [
-        ...baseNavigation.slice(0, -1),
-        teamNavItem,
-        baseNavigation[baseNavigation.length - 1],
-      ]
-    : baseNavigation;
 
   const NavItem = ({
     href,

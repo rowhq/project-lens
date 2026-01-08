@@ -12,7 +12,7 @@ import {
   LayoutDashboard,
   Map,
   FileText,
-  Lightbulb,
+  TrendingUp,
   Settings,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
@@ -45,9 +45,9 @@ export function ClientBottomNav() {
       icon: FileText,
     },
     {
-      name: "Insights",
+      name: "Opportunities",
       href: "/insights",
-      icon: Lightbulb,
+      icon: TrendingUp,
     },
     {
       name: "Settings",

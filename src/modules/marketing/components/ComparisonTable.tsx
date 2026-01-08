@@ -1,159 +1,93 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Check, ChevronDown, Zap, DollarSign, Database } from "lucide-react";
+import { Check, ChevronDown, Layers, Zap, TrendingUp } from "lucide-react";
 
-// Hero stat data - the 3 most impactful differentiators
+// Hero stat data
 const heroStats = [
   {
-    icon: Zap,
-    multiplier: "30",
-    label: "Seconds",
-    comparison: "AI Report Generation",
-    description: "Get instant property valuations with AI-powered analysis.",
-  },
-  {
-    icon: DollarSign,
-    multiplier: "0",
-    label: "To Start",
-    comparison: "5 Free Reports/Month",
-    description: "Try TruPlat free. Upgrade when you need more volume.",
-  },
-  {
-    icon: Database,
-    multiplier: "50+",
+    icon: Layers,
+    value: 50,
+    suffix: "+",
     label: "Data Sources",
-    comparison: "vs 3-5 Traditional Comps",
-    description: "Comprehensive analysis using multiple data providers.",
+    comparison: "vs 3-5 Traditional",
   },
-];
-
-// Exclusive TruPlat features
-const exclusiveFeatures = [
-  "GPS-Verified Evidence",
-  "Instant Report Generation",
-  "Real-time Market Refresh",
-  "AI-Powered Trend Analysis",
-];
-
-// Full comparison data for expandable section
-const fullComparisonData = [
   {
-    aspect: "AI Report",
-    traditional: "Not available",
-    truplat: "~30 seconds",
+    icon: Zap,
+    value: 30,
+    suffix: "s",
+    label: "AI Report",
+    comparison: "vs 2-3 Weeks",
   },
+  {
+    icon: TrendingUp,
+    value: 80,
+    suffix: "%",
+    label: "Cost Savings",
+    comparison: "vs Traditional",
+  },
+];
+
+// Unique features
+const uniqueFeatures = [
+  "County permit scraping",
+  "Infrastructure signals",
+  "Growth forecasts",
+  "GPS-verified photos",
+];
+
+// Full comparison data
+const comparisonData = [
+  { aspect: "AI Report", traditional: "Not available", truplat: "~30 seconds" },
   {
     aspect: "On-Site Inspection",
     traditional: "2-3 weeks",
     truplat: "24-48 hours",
   },
-  {
-    aspect: "Starting Cost",
-    traditional: "$400-800",
-    truplat: "Free tier available",
-  },
+  { aspect: "Starting Cost", traditional: "$400-800", truplat: "Free" },
   { aspect: "Data Points", traditional: "3-5 comps", truplat: "50+ sources" },
-  {
-    aspect: "Consistency",
-    traditional: "Variable",
-    truplat: "Standardized AI",
-  },
+  { aspect: "Infrastructure Data", traditional: "No", truplat: "Yes" },
   { aspect: "GPS Evidence", traditional: "No", truplat: "Yes" },
-  { aspect: "Instant Reports", traditional: "No", truplat: "Yes" },
 ];
 
-// Animated counter hook
-function useCountUp(
-  end: number,
-  duration: number = 1500,
-  start: boolean = false,
-) {
+// Animated counter
+function AnimatedNumber({
+  value,
+  suffix = "",
+  isVisible,
+}: {
+  value: number;
+  suffix?: string;
+  isVisible: boolean;
+}) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    if (!start) return;
+    if (!isVisible) return;
 
-    let startTime: number | null = null;
-    let animationFrame: number;
+    const duration = 2000;
+    const steps = 60;
+    const increment = value / steps;
+    let current = 0;
 
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(eased * end));
-
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate);
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= value) {
+        setCount(value);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(current));
       }
-    };
+    }, duration / steps);
 
-    animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [end, duration, start]);
-
-  return count;
-}
-
-// Hero Stat Card
-function HeroStatCard({
-  stat,
-  isVisible,
-  delay,
-}: {
-  stat: (typeof heroStats)[0];
-  isVisible: boolean;
-  delay: number;
-}) {
-  const Icon = stat.icon;
-  const numericValue = parseInt(stat.multiplier.replace(/\D/g, "")) || 0;
-  const suffix = stat.multiplier.replace(/\d/g, "");
-  const count = useCountUp(numericValue, 1500, isVisible);
+    return () => clearInterval(timer);
+  }, [value, isVisible]);
 
   return (
-    <div
-      className="group relative bg-gray-900 border border-gray-800 clip-notch transition-all duration-500 hover:border-lime-500/50 overflow-hidden"
-      style={{
-        transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? "translateY(0)" : "translateY(20px)",
-        transitionDelay: `${delay}ms`,
-      }}
-    >
-      {/* L-bracket corners */}
-      <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-      <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-
-      {/* Stat content */}
-      <div className="p-6 text-center">
-        {/* Icon */}
-        <div className="w-10 h-10 mx-auto mb-3 bg-lime-500/10 border border-lime-500/30 clip-notch-sm flex items-center justify-center">
-          <Icon className="w-5 h-5 text-lime-400" />
-        </div>
-
-        {/* Multiplier - animated */}
-        <div className="text-4xl sm:text-5xl font-bold text-lime-400 mb-1">
-          {stat.multiplier === "0" ? "$" : ""}
-          {count}
-          {suffix}
-        </div>
-
-        {/* Label */}
-        <div className="font-mono text-sm uppercase tracking-wider text-white mb-1">
-          {stat.label}
-        </div>
-
-        {/* Comparison */}
-        <div className="font-mono text-xs uppercase tracking-wider text-gray-500 mb-3">
-          {stat.comparison}
-        </div>
-
-        {/* Description */}
-        <p className="text-sm text-gray-400 leading-relaxed">
-          {stat.description}
-        </p>
-      </div>
-    </div>
+    <>
+      {count}
+      {suffix}
+    </>
   );
 }
 
@@ -181,151 +115,155 @@ export function ComparisonTable() {
   }, []);
 
   return (
-    <section ref={ref} className="py-24 relative">
-      {/* Background pattern */}
-      <div className="absolute inset-0 grid-pattern opacity-20" />
+    <section ref={ref} className="py-32 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-950 to-black" />
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
-        <div className="text-center mb-12">
-          <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
-            Real Results
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Why Lenders Choose TruPlat
+        <div className="text-center mb-20">
+          <span className="inline-block font-mono text-xs uppercase tracking-[0.3em] text-lime-400 mb-4">
+            Why TruPlat
+          </span>
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+            Data no one else has.
           </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Measurable impact backed by real client experiences.
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            We scrape county infrastructure documents daily. See growth signals
+            before they hit property values.
           </p>
         </div>
 
-        {/* Hero Stats with integrated testimonials */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          {heroStats.map((stat, index) => (
-            <HeroStatCard
-              key={stat.label}
-              stat={stat}
-              isVisible={isVisible}
-              delay={index * 150}
-            />
-          ))}
+        {/* Stats grid */}
+        <div className="grid md:grid-cols-3 gap-6 mb-16">
+          {heroStats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="group relative"
+                style={{
+                  opacity: isVisible ? 1 : 0,
+                  transform: isVisible ? "translateY(0)" : "translateY(20px)",
+                  transition: `all 0.6s ease-out ${index * 0.15}s`,
+                }}
+              >
+                <div className="absolute -inset-px bg-gradient-to-b from-lime-400/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-gray-900/80 backdrop-blur border border-gray-800 group-hover:border-lime-400/50 rounded-xl p-8 text-center transition-all duration-500">
+                  {/* Corner accents */}
+                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-lime-400/50 group-hover:border-lime-400 rounded-tl-xl transition-colors" />
+                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-lime-400/30 group-hover:border-lime-400 rounded-br-xl transition-colors" />
+
+                  <div className="w-12 h-12 mx-auto mb-4 bg-lime-400/10 border border-lime-400/30 rounded-xl flex items-center justify-center">
+                    <Icon className="w-6 h-6 text-lime-400" />
+                  </div>
+
+                  <div className="text-5xl font-bold text-white mb-2">
+                    <AnimatedNumber
+                      value={stat.value}
+                      suffix={stat.suffix}
+                      isVisible={isVisible}
+                    />
+                  </div>
+
+                  <div className="font-mono text-sm uppercase tracking-wider text-white mb-1">
+                    {stat.label}
+                  </div>
+
+                  <div className="font-mono text-xs uppercase tracking-wider text-gray-500">
+                    {stat.comparison}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Only with TruPlat - Compact feature list */}
+        {/* Unique features */}
         <div
-          className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mb-8 transition-all duration-500"
+          className="flex flex-wrap items-center justify-center gap-4 mb-12"
           style={{
             opacity: isVisible ? 1 : 0,
-            transitionDelay: "500ms",
-            transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+            transition: "opacity 0.6s ease-out 0.5s",
           }}
         >
           <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Also included:
+            Only with TruPlat:
           </span>
-          {exclusiveFeatures.map((feature) => (
-            <div key={feature} className="flex items-center gap-2">
-              <span
-                className="w-1.5 h-1.5 bg-lime-400 flex-shrink-0"
-                style={{
-                  clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-                }}
-              />
-              <span className="text-sm text-gray-400">{feature}</span>
+          {uniqueFeatures.map((feature) => (
+            <div
+              key={feature}
+              className="flex items-center gap-2 px-3 py-1.5 bg-lime-400/5 border border-lime-400/20 rounded-full"
+            >
+              <div className="w-1.5 h-1.5 bg-lime-400 rounded-full" />
+              <span className="text-sm text-gray-300">{feature}</span>
             </div>
           ))}
         </div>
 
-        {/* Expandable Full Comparison */}
+        {/* Expandable comparison */}
         <div
-          className="transition-all duration-500"
           style={{
             opacity: isVisible ? 1 : 0,
-            transitionDelay: "600ms",
+            transition: "opacity 0.6s ease-out 0.6s",
           }}
         >
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full flex items-center justify-center gap-2 py-3 border border-gray-800 bg-gray-900/50 clip-notch-sm font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-white hover:border-gray-700 transition-colors"
-            style={{
-              transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-            }}
+            className="w-full flex items-center justify-center gap-2 py-4 bg-gray-900/50 border border-gray-800 rounded-xl font-mono text-sm uppercase tracking-wider text-gray-400 hover:text-white hover:border-gray-700 transition-all duration-300"
           >
             {isExpanded ? "Hide" : "See"} Full Comparison
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-300 ${
-                isExpanded ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
             />
           </button>
 
-          {/* Expandable table */}
           <div
             className={`overflow-hidden transition-all duration-500 ${
               isExpanded
                 ? "max-h-[600px] opacity-100 mt-4"
                 : "max-h-0 opacity-0"
             }`}
-            style={{
-              transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-            }}
           >
-            <div className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden">
-              {/* L-bracket corners */}
-              <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400 z-10" />
-              <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400 z-10" />
-
+            <div className="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
               {/* Table header */}
-              <div className="grid grid-cols-3 border-b border-gray-800 bg-gray-950">
+              <div className="grid grid-cols-3 border-b border-gray-800">
                 <div className="p-4 font-mono text-xs uppercase tracking-wider text-gray-500">
                   Feature
                 </div>
                 <div className="p-4 text-center border-l border-gray-800 font-mono text-xs uppercase tracking-wider text-gray-500">
                   Traditional
                 </div>
-                <div className="p-4 text-center border-l border-gray-800 bg-lime-500/5 font-mono text-xs uppercase tracking-wider text-lime-400">
+                <div className="p-4 text-center border-l border-gray-800 bg-lime-400/5 font-mono text-xs uppercase tracking-wider text-lime-400">
                   TruPlat
                 </div>
               </div>
 
               {/* Table rows */}
-              {fullComparisonData.map((row, index) => (
+              {comparisonData.map((row, index) => (
                 <div
                   key={row.aspect}
                   className={`grid grid-cols-3 border-b border-gray-800 last:border-b-0 ${
-                    index % 2 === 0 ? "" : "bg-gray-950/50"
+                    index % 2 === 1 ? "bg-gray-950/30" : ""
                   }`}
                 >
-                  <div className="p-4 text-sm text-gray-300">{row.aspect}</div>
-                  <div className="p-4 text-center border-l border-gray-800 text-sm text-gray-500">
+                  <div className="p-4 text-gray-300">{row.aspect}</div>
+                  <div className="p-4 text-center border-l border-gray-800 text-gray-500">
                     {row.traditional}
                   </div>
-                  <div className="p-4 text-center border-l border-gray-800 bg-lime-500/5 text-sm text-white font-medium">
+                  <div className="p-4 text-center border-l border-gray-800 bg-lime-400/5">
                     {row.traditional === "No" && row.truplat === "Yes" ? (
                       <Check className="w-5 h-5 text-lime-400 mx-auto" />
                     ) : (
-                      row.truplat
+                      <span className="text-white font-medium">
+                        {row.truplat}
+                      </span>
                     )}
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Social proof */}
-        <div
-          className="mt-8 text-center transition-all duration-500"
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transitionDelay: "700ms",
-            transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-          }}
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-600">
-            Built for <span className="text-lime-400">Texas</span> real estate
-            professionals
-          </p>
         </div>
       </div>
     </section>

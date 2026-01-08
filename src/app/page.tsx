@@ -1,664 +1,475 @@
 /**
- * Landing Page
- * TruPlat - Optimized for Conversion (11 sections)
+ * Landing Page - Minimal Premium Design
  */
 
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import {
   HeroSection,
-  ComparisonTable,
   CTASection,
-  TrustBadges,
   StickyMobileCTA,
 } from "@/modules/marketing/components";
 import { LedgerHeader } from "@/shared/components/layout/LedgerHeader";
-import { Button } from "@/shared/components/ui/Button";
-import { Zap, Award, Check, Clock, ArrowRight, Gift } from "lucide-react";
+import {
+  Check,
+  Zap,
+  Shield,
+  MapPin,
+  Building,
+  School,
+  Route,
+  TrendingUp,
+  ChevronDown,
+} from "lucide-react";
 
 export default function LandingPage() {
   const navItems = [
-    { label: "How It Works", href: "#how-it-works" },
+    { label: "Features", href: "#features" },
     { label: "Pricing", href: "#pricing" },
     { label: "For Appraisers", href: "/for-appraisers" },
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
-      {/* Ledger-style Header */}
+    <div className="min-h-screen bg-black text-white antialiased">
       <div className="fixed top-0 left-0 right-0 z-50">
         <LedgerHeader
           navItems={navItems}
-          actionButtonText="START FREE"
+          actionButtonText="Get Started"
           actionButtonHref="/register"
         />
       </div>
 
-      {/* Spacer for fixed header */}
       <div className="h-16" />
 
-      {/* 1. Hero Section */}
       <HeroSection />
-
-      {/* 2. How It Works */}
-      <section id="how-it-works" className="py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center mb-16">
-            <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
-              Simple Process
-            </p>
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Get Your Valuation in 3 Steps
-            </h2>
-            <p className="mt-4 text-lg text-gray-400">
-              From address to professional report in minutes
-            </p>
-          </div>
-
-          <div className="mx-auto max-w-4xl">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              <StepCard
-                number={1}
-                title="Enter the Address"
-                description="Paste any Texas address. We pull property data instantly."
-              />
-              <StepCard
-                number={2}
-                title="Pick Your Plan"
-                description="Free (5 reports/mo), Pro ($99/mo), or Enterprise ($299/mo). Upgrade anytime."
-              />
-              <StepCard
-                number={3}
-                title="Get Your Valuation"
-                description="Download your PDF with comps, risk flags, and confidence score."
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Trust Badges */}
-      <div className="relative z-10 py-8">
-        <TrustBadges />
-      </div>
-
-      {/* 5. Real Results (Comparison + Testimonials merged) */}
-      <ComparisonTable />
-
-      {/* 6. Pricing */}
-      <section id="pricing" className="py-24 relative">
-        <div className="absolute inset-0 grid-pattern opacity-20" />
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center mb-16">
-            <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
-              Transparent Pricing
-            </p>
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Pick Your Speed
-            </h2>
-            <p className="mt-4 text-lg text-gray-400">
-              From free starter to unlimited enterprise. Simple monthly plans.
-            </p>
-          </div>
-
-          {/* Pricing Cards - Popular elevated */}
-          <div className="mx-auto max-w-5xl">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:items-center pt-6">
-              {/* Free tier */}
-              <PricingCard
-                icon={Gift}
-                tier="free"
-                name="Starter"
-                price={0}
-                turnaround="~30 sec"
-                useCase="Try before you buy"
-                features={[
-                  "5 AI Reports/month",
-                  "Comparable analysis",
-                  "Risk flags",
-                  "PDF download",
-                ]}
-              />
-
-              {/* Professional - Popular tier */}
-              <PricingCard
-                icon={Zap}
-                tier="popular"
-                name="Professional"
-                price={99}
-                turnaround="~30 sec"
-                useCase="Growing teams & investors"
-                features={[
-                  "50 AI Reports/month",
-                  "On-Site Verification available",
-                  "Priority support",
-                  "API access",
-                ]}
-                popular
-              />
-
-              {/* Enterprise - Premium tier */}
-              <PricingCard
-                icon={Award}
-                tier="premium"
-                name="Enterprise"
-                price={299}
-                turnaround="Priority"
-                useCase="High-volume lenders & brokerages"
-                features={[
-                  "Unlimited AI Reports",
-                  "All report types included",
-                  "Dedicated support",
-                  "Custom integrations",
-                ]}
-              />
-            </div>
-
-            {/* Quick comparison bar */}
-            <div className="mt-12 flex flex-wrap justify-center gap-8 py-6 border-t border-gray-800">
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Check className="w-4 h-4 text-lime-400" />
-                <span>Cancel anytime</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Check className="w-4 h-4 text-lime-400" />
-                <span>30-day money-back</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Check className="w-4 h-4 text-lime-400" />
-                <span>Free tier forever</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. FAQ */}
-      <section className="py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center mb-16">
-            <p className="font-mono text-xs uppercase tracking-wider text-lime-400 mb-4">
-              Common Questions
-            </p>
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Got Questions?
-            </h2>
-          </div>
-
-          <div className="mx-auto max-w-3xl space-y-4">
-            <FAQItem
-              question="How accurate is the AI?"
-              answer="95%+ accuracy within a 5% margin of final sale prices. Each report includes a confidence score for that specific property."
-            />
-            <FAQItem
-              question="How quickly can someone visit the property?"
-              answer="On-site inspections within 48 hours. Rush service available for 24-hour turnaround. Certified appraisals take 5-7 business days."
-            />
-            <FAQItem
-              question="Will my bank accept this appraisal?"
-              answer="Yes. Certified appraisals are prepared by state-licensed appraisers following USPAP guidelines. Accepted by banks, credit unions, and lenders across Texas."
-            />
-            <FAQItem
-              question="What properties can you appraise?"
-              answer="Single-family homes, condos, townhouses, small multi-family (2-4 units), commercial properties, and land across Texas."
-            />
-            <FAQItem
-              question="What if I'm not satisfied?"
-              answer="30-day money-back guarantee. Full refund, no questions asked."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* 9. CTA Section */}
+      <HowItWorks />
+      <Features />
+      <Pricing />
+      <FAQ />
       <CTASection />
-
-      {/* 10. Footer - Ledger Style */}
-      <footer className="border-t border-gray-800 py-16 bg-[var(--background)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8 mb-12">
-            {/* Product */}
-            <div>
-              <h4 className="font-mono text-xs uppercase tracking-wider text-gray-500 mb-4">
-                Product
-              </h4>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="#how-it-works"
-                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                    style={{
-                      transitionTimingFunction:
-                        "cubic-bezier(0.85, 0, 0.15, 1)",
-                    }}
-                  >
-                    How It Works
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#pricing"
-                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                    style={{
-                      transitionTimingFunction:
-                        "cubic-bezier(0.85, 0, 0.15, 1)",
-                    }}
-                  >
-                    Pricing
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/docs"
-                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                    style={{
-                      transitionTimingFunction:
-                        "cubic-bezier(0.85, 0, 0.15, 1)",
-                    }}
-                  >
-                    Documentation
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h4 className="font-mono text-xs uppercase tracking-wider text-gray-500 mb-4">
-                Company
-              </h4>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/docs#executive-summary"
-                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                    style={{
-                      transitionTimingFunction:
-                        "cubic-bezier(0.85, 0, 0.15, 1)",
-                    }}
-                  >
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="mailto:careers@truplat.com"
-                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                    style={{
-                      transitionTimingFunction:
-                        "cubic-bezier(0.85, 0, 0.15, 1)",
-                    }}
-                  >
-                    Careers
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="mailto:contact@truplat.com"
-                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                    style={{
-                      transitionTimingFunction:
-                        "cubic-bezier(0.85, 0, 0.15, 1)",
-                    }}
-                  >
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Resources */}
-            <div>
-              <h4 className="font-mono text-xs uppercase tracking-wider text-gray-500 mb-4">
-                Resources
-              </h4>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/docs"
-                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                    style={{
-                      transitionTimingFunction:
-                        "cubic-bezier(0.85, 0, 0.15, 1)",
-                    }}
-                  >
-                    Help Center
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/for-appraisers"
-                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                    style={{
-                      transitionTimingFunction:
-                        "cubic-bezier(0.85, 0, 0.15, 1)",
-                    }}
-                  >
-                    For Appraisers
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h4 className="font-mono text-xs uppercase tracking-wider text-gray-500 mb-4">
-                Legal
-              </h4>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/docs#security"
-                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                    style={{
-                      transitionTimingFunction:
-                        "cubic-bezier(0.85, 0, 0.15, 1)",
-                    }}
-                  >
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/docs#risks"
-                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                    style={{
-                      transitionTimingFunction:
-                        "cubic-bezier(0.85, 0, 0.15, 1)",
-                    }}
-                  >
-                    Terms of Service
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/docs#security"
-                    className="font-mono text-xs uppercase tracking-wider text-gray-400 hover:text-white transition-colors duration-300"
-                    style={{
-                      transitionTimingFunction:
-                        "cubic-bezier(0.85, 0, 0.15, 1)",
-                    }}
-                  >
-                    Security
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom bar */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-gray-800">
-            <div className="flex items-center">
-              {/* TruPlat logo */}
-              <Image src="/truplat.svg" alt="TruPlat" width={100} height={30} />
-            </div>
-            <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-              &copy; {new Date().getFullYear()} TruPlat. All rights reserved.
-            </p>
-            {/* Social links */}
-            <div className="flex items-center gap-6">
-              <Link
-                href="https://x.com/truplat"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-white transition-colors duration-300"
-                style={{
-                  transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-                }}
-              >
-                <span className="sr-only">X (Twitter)</span>
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                </svg>
-              </Link>
-              <Link
-                href="https://linkedin.com/company/truplat"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-white transition-colors duration-300"
-                style={{
-                  transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
-                }}
-              >
-                <span className="sr-only">LinkedIn</span>
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* Floating Mobile CTA */}
+      <Footer />
       <StickyMobileCTA />
     </div>
   );
 }
 
-// Local component definitions
-
-function StepCard({
-  number,
-  title,
-  description,
-}: {
-  number: number;
-  title: string;
-  description: string;
-}) {
+// Features - Product UI Demo
+function Features() {
   return (
-    <div className="text-center group">
-      <div className="relative w-14 h-14 mx-auto clip-notch-sm bg-lime-500/10 border border-lime-500/30 flex items-center justify-center text-lime-400 font-mono text-xl font-bold mb-4">
-        <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-        <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lime-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-        {number}
+    <section id="features" className="py-24">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          {/* Fake browser window */}
+          <div className="rounded-xl border border-white/10 bg-gray-950 overflow-hidden shadow-2xl">
+            {/* Browser bar */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-black/50">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-white/10" />
+                <div className="w-3 h-3 rounded-full bg-white/10" />
+                <div className="w-3 h-3 rounded-full bg-white/10" />
+              </div>
+              <div className="flex-1 flex justify-center">
+                <div className="px-4 py-1 rounded bg-white/5 text-xs text-gray-500 font-mono">
+                  truplat.com/dashboard
+                </div>
+              </div>
+            </div>
+
+            {/* UI Content */}
+            <div className="p-6 sm:p-8">
+              {/* Product selection cards */}
+              <div className="grid md:grid-cols-2 gap-4 mb-8">
+                <div className="p-6 rounded-xl bg-gradient-to-br from-lime-400/10 to-transparent border border-lime-400/30">
+                  <Zap className="w-6 h-6 text-lime-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-white mb-1">
+                    AI Reports
+                  </h3>
+                  <p className="text-sm text-gray-400 mb-4">
+                    Instant. Free tier available.
+                  </p>
+                  <div className="text-sm text-lime-400 font-medium">
+                    Try free →
+                  </div>
+                </div>
+                <div className="p-6 rounded-xl border border-white/10">
+                  <Shield className="w-6 h-6 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-white mb-1">
+                    Certified
+                  </h3>
+                  <p className="text-sm text-gray-400 mb-4">
+                    Bank-ready. USPAP compliant.
+                  </p>
+                  <div className="text-sm text-gray-500 font-medium">
+                    Request appraisal →
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-white/5 my-6" />
+
+              {/* Property header */}
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">
+                    1847 Oak Avenue
+                  </h3>
+                  <p className="text-sm text-gray-500">Austin, TX 78704</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-white">$485,000</div>
+                  <div className="flex items-center gap-1 justify-end text-lime-400 text-sm">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>+12% projected</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Growth signals */}
+              <div className="mb-6">
+                <div className="text-xs text-gray-500 uppercase tracking-wider mb-3">
+                  Growth Signals
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    {
+                      icon: School,
+                      label: "New elementary school",
+                      status: "Approved",
+                      impact: "+8%",
+                    },
+                    {
+                      icon: Route,
+                      label: "Highway expansion",
+                      status: "Under construction",
+                      impact: "+5%",
+                    },
+                    {
+                      icon: Building,
+                      label: "12 permits nearby",
+                      status: "Last 90 days",
+                      impact: "+3%",
+                    },
+                    {
+                      icon: MapPin,
+                      label: "Zoning change",
+                      status: "Commercial adjacent",
+                      impact: "+2%",
+                    },
+                  ].map((signal) => (
+                    <div
+                      key={signal.label}
+                      className="p-3 rounded-lg bg-white/5 border border-white/5"
+                    >
+                      <signal.icon className="w-4 h-4 text-lime-400 mb-2" />
+                      <div className="text-sm text-white font-medium truncate">
+                        {signal.label}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate">
+                        {signal.status}
+                      </div>
+                      <div className="text-xs text-lime-400 mt-1">
+                        {signal.impact}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Confidence bar */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-gray-500">Confidence</span>
+                    <span className="text-lime-400">94%</span>
+                  </div>
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-lime-400 rounded-full"
+                      initial={{ width: 0 }}
+                      whileInView={{ width: "94%" }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 1, delay: 0.3 }}
+                    />
+                  </div>
+                </div>
+                <button className="px-4 py-2 bg-lime-400 text-black text-sm font-medium rounded-lg">
+                  Export PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
-      <h3 className="font-mono text-sm uppercase tracking-wider text-white mb-2">
-        {title}
-      </h3>
-      <p className="text-gray-400 text-sm">{description}</p>
-    </div>
+    </section>
   );
 }
 
-function PricingCard({
-  icon: Icon,
-  tier,
-  name,
-  price,
-  turnaround,
-  useCase,
-  features,
-  popular,
-}: {
-  icon: React.ElementType;
-  tier: "free" | "fastest" | "popular" | "premium";
-  name: string;
-  price: number;
-  turnaround: string;
-  useCase: string;
-  features: string[];
-  popular?: boolean;
-}) {
-  const tierColors = {
-    free: "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
-    fastest: "text-cyan-400 bg-cyan-400/10 border-cyan-400/30",
-    popular: "text-lime-400 bg-lime-400/10 border-lime-400/30",
-    premium: "text-amber-400 bg-amber-400/10 border-amber-400/30",
-  };
-
-  const tierLabels = {
-    free: "Free",
-    fastest: "Fastest",
-    popular: "Best Value",
-    premium: "Premium",
-  };
+// How it works - 3 steps
+function HowItWorks() {
+  const steps = [
+    {
+      num: "1",
+      title: "Enter any Texas address",
+      desc: "Residential, commercial, or land. All 254 counties covered.",
+    },
+    {
+      num: "2",
+      title: "Get instant AI report",
+      desc: "Valuation, comparables, and infrastructure growth signals from 50+ data sources.",
+    },
+    {
+      num: "3",
+      title: "Certify if needed",
+      desc: "Licensed appraiser visits on-site. USPAP-compliant, bank-ready reports.",
+    },
+  ];
 
   return (
-    <div
-      className={`relative ${popular ? "lg:scale-105 lg:-my-4" : ""}`}
-      style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
-    >
-      {/* Popular badge - OUTSIDE clip-notch container */}
-      {popular && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-          <span className="px-4 py-1.5 bg-lime-400 text-black font-mono text-xs uppercase tracking-wider clip-notch-sm">
-            Most Popular
-          </span>
+    <section className="py-24">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-3xl font-bold mb-4">How it works</h2>
+          <p className="text-gray-500">
+            From address to insights in three steps
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {steps.map((step, i) => (
+            <motion.div
+              key={step.num}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="relative p-6 rounded-2xl border border-white/5 hover:border-white/10 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-full bg-lime-400 text-black font-bold flex items-center justify-center mb-4">
+                {step.num}
+              </div>
+              <h3 className="font-semibold text-white mb-2">{step.title}</h3>
+              <p className="text-sm text-gray-400 leading-relaxed">
+                {step.desc}
+              </p>
+            </motion.div>
+          ))}
         </div>
-      )}
+      </div>
+    </section>
+  );
+}
 
-      <div
-        className={`group relative bg-gray-900 clip-notch border transition-all duration-500 ${
-          popular
-            ? "border-lime-400 shadow-xl shadow-lime-400/10"
-            : "border-gray-800 hover:border-gray-700"
-        }`}
-        style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
-      >
-        {/* Glow effect for popular */}
-        {popular && (
-          <div className="absolute -inset-px bg-gradient-to-b from-lime-400/20 to-transparent opacity-50 clip-notch pointer-events-none" />
-        )}
+// Pricing - Clean 3 column
+function Pricing() {
+  const plans = [
+    {
+      name: "Free",
+      price: "$0",
+      features: ["5 reports/month", "PDF export"],
+      cta: "Start Free",
+      highlight: false,
+    },
+    {
+      name: "Pro",
+      price: "$99",
+      period: "/mo",
+      features: ["50 reports/month", "API access", "Certification"],
+      cta: "Start Trial",
+      highlight: true,
+    },
+    {
+      name: "Enterprise",
+      price: "Custom",
+      features: ["Unlimited", "White-label", "SLA"],
+      cta: "Contact",
+      highlight: false,
+    },
+  ];
 
-        {/* L-bracket corners */}
-        <span
-          className={`absolute top-0 left-0 w-3 h-3 border-t border-l pointer-events-none transition-colors ${
-            popular
-              ? "border-lime-400"
-              : "border-gray-700 group-hover:border-lime-400/50"
-          }`}
-        />
-        <span
-          className={`absolute bottom-0 right-0 w-3 h-3 border-b border-r pointer-events-none transition-colors ${
-            popular
-              ? "border-lime-400"
-              : "border-gray-700 group-hover:border-lime-400/50"
-          }`}
-        />
+  return (
+    <section id="pricing" className="py-24">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.h2
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-3xl font-bold text-center mb-16"
+        >
+          Pricing
+        </motion.h2>
 
-        {/* Content */}
-        <div className="relative p-6 lg:p-8">
-          {/* Header: Icon + Tier badge */}
-          <div className="flex items-start justify-between mb-6">
-            <div
-              className={`w-12 h-12 clip-notch-sm flex items-center justify-center border ${tierColors[tier]}`}
+        <div className="grid md:grid-cols-3 gap-6">
+          {plans.map((plan, i) => (
+            <motion.div
+              key={plan.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className={`p-6 rounded-2xl ${
+                plan.highlight
+                  ? "bg-lime-400/10 border-2 border-lime-400"
+                  : "border border-white/10"
+              }`}
             >
-              <Icon className="w-6 h-6" />
-            </div>
-            <span
-              className={`px-2 py-1 font-mono text-[10px] uppercase tracking-wider border clip-notch-sm ${tierColors[tier]}`}
+              <h3 className="font-semibold text-white mb-4">{plan.name}</h3>
+              <div className="mb-6">
+                <span className="text-3xl font-bold text-white">
+                  {plan.price}
+                </span>
+                {plan.period && (
+                  <span className="text-gray-500">{plan.period}</span>
+                )}
+              </div>
+              <ul className="space-y-2 mb-6">
+                {plan.features.map((f) => (
+                  <li
+                    key={f}
+                    className="flex items-center gap-2 text-sm text-gray-400"
+                  >
+                    <Check className="w-4 h-4 text-lime-400" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/register" className="block">
+                <button
+                  className={`w-full py-3 rounded-full font-medium transition-all ${
+                    plan.highlight
+                      ? "bg-lime-400 text-black hover:bg-lime-300"
+                      : "bg-white/5 text-white hover:bg-white/10"
+                  }`}
+                >
+                  {plan.cta}
+                </button>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// FAQ
+function FAQ() {
+  const [open, setOpen] = useState<number | null>(null);
+
+  const faqs = [
+    {
+      q: "What data sources do you use?",
+      a: "We aggregate 50+ sources including county permit databases, school district records, DOT road projects, zoning board minutes, and utility filings. We overlay this with MLS records and historical price data showing how values changed when similar infrastructure was announced.",
+    },
+    {
+      q: "How accurate are the valuations?",
+      a: "Our AI valuations are within 5% of final sale price 94% of the time. Each report includes a confidence score specific to that property.",
+    },
+    {
+      q: "What's the difference between AI reports and certified appraisals?",
+      a: "AI reports are instant valuations for quick decisions. Certified appraisals involve a licensed appraiser visiting on-site and are accepted by banks for lending.",
+    },
+    {
+      q: "Which banks accept your certified appraisals?",
+      a: "Our USPAP-compliant appraisals are accepted by most major lenders. Each report includes a list of banks that have previously accepted our appraisals.",
+    },
+    {
+      q: "How often is the data updated?",
+      a: "Infrastructure signals are updated daily. We scrape county permit databases, school board announcements, and development filings every 24 hours.",
+    },
+    {
+      q: "Is there an API?",
+      a: "Yes. Pro and Enterprise plans include API access. Full documentation available at docs.truplat.com.",
+    },
+    {
+      q: "What areas do you cover?",
+      a: "Currently all 254 Texas counties. We're expanding to additional states in 2025.",
+    },
+  ];
+
+  return (
+    <section className="py-24">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.h2
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-3xl font-bold text-center mb-12"
+        >
+          FAQ
+        </motion.h2>
+
+        <div className="space-y-2">
+          {faqs.map((faq, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className="border border-white/5 rounded-lg overflow-hidden"
             >
-              {tierLabels[tier]}
-            </span>
-          </div>
-
-          {/* Plan name */}
-          <h3 className="font-mono text-xl uppercase tracking-wider text-white mb-2">
-            {name}
-          </h3>
-
-          {/* Use case */}
-          <p className="text-sm text-gray-400 mb-6">{useCase}</p>
-
-          {/* Price + Turnaround hero */}
-          <div className="flex items-end justify-between mb-6 pb-6 border-b border-gray-800">
-            <div>
-              {price === 0 ? (
-                <>
-                  <span className="text-4xl font-bold text-emerald-400">
-                    Free
-                  </span>
-                  <span className="text-gray-500 font-mono text-sm">
-                    {" "}
-                    · 5/month
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="text-4xl font-bold text-white">
-                    ${price}
-                  </span>
-                  <span className="text-gray-500 font-mono text-sm">
-                    /month
-                  </span>
-                </>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 clip-notch-sm">
-              <Clock className="w-3.5 h-3.5 text-lime-400" />
-              <span className="font-mono text-xs uppercase tracking-wider text-white">
-                {turnaround}
-              </span>
-            </div>
-          </div>
-
-          {/* Features */}
-          <ul className="space-y-3 mb-8">
-            {features.map((feature, index) => (
-              <li key={feature} className="flex items-start gap-3 text-sm">
-                <Check
-                  className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
-                    index === 0 && feature.startsWith("Everything")
-                      ? "text-lime-400"
-                      : "text-gray-600"
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-white/5 transition-colors"
+              >
+                <span className="font-medium text-white">{faq.q}</span>
+                <ChevronDown
+                  className={`w-5 h-5 text-gray-500 transition-transform ${
+                    open === i ? "rotate-180" : ""
                   }`}
                 />
-                <span
-                  className={
-                    index === 0 && feature.startsWith("Everything")
-                      ? "text-lime-400 font-medium"
-                      : "text-gray-400"
-                  }
-                >
-                  {feature}
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          {/* CTA */}
-          <Link href="/register" className="block">
-            <Button
-              variant={popular ? "lime" : "outline"}
-              size="md"
-              className="w-full"
-              rightIcon={<ArrowRight className="w-4 h-4" />}
-            >
-              Get Started
-            </Button>
-          </Link>
+              </button>
+              {open === i && (
+                <div className="px-4 pb-4 text-gray-400 text-sm">{faq.a}</div>
+              )}
+            </motion.div>
+          ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
-function FAQItem({ question, answer }: { question: string; answer: string }) {
+// Footer - Minimal
+function Footer() {
   return (
-    <details className="group clip-notch border border-gray-800 bg-gray-900">
-      <summary
-        className="flex items-center justify-between cursor-pointer px-6 py-4 font-mono text-sm uppercase tracking-wider text-white hover:bg-gray-800/50 transition-colors duration-300"
-        style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
-      >
-        {question}
-        <span className="font-mono text-lime-400 text-xs group-open:hidden">
-          [+]
-        </span>
-        <span className="font-mono text-lime-400 text-xs hidden group-open:inline">
-          [−]
-        </span>
-      </summary>
-      <div className="px-6 pb-4 text-gray-400 text-sm">{answer}</div>
-    </details>
+    <footer className="py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between">
+          <Image
+            src="/truplat.svg"
+            alt="TruPlat"
+            width={80}
+            height={20}
+            className="opacity-50"
+          />
+          <div className="flex gap-6 text-sm text-gray-600">
+            <Link
+              href="/privacy"
+              className="hover:text-white transition-colors"
+            >
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-white transition-colors">
+              Terms
+            </Link>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 }

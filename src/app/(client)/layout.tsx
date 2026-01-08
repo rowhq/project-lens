@@ -3,20 +3,13 @@
  * For Lenders/Investors
  */
 
-import { redirect } from "next/navigation";
-import { auth } from "@/server/auth/auth";
 import { ClientLayoutWrapper } from "@/shared/components/layout/ClientLayoutWrapper";
 
-export default async function ClientLayout({
+export default function ClientLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
-
+  // Auth check disabled for mockup
   return <ClientLayoutWrapper>{children}</ClientLayoutWrapper>;
 }

@@ -2,105 +2,17 @@
  * Middleware
  * TruPlat - Texas V1
  *
- * Handles authentication and role-based routing with NextAuth
+ * MOCKUP MODE: Authentication disabled for demo purposes
  */
 
-import NextAuth from "next-auth";
-import { authConfig } from "@/server/auth/auth.config";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-// Create edge-compatible auth from config (no Prisma/bcrypt)
-const { auth } = NextAuth(authConfig);
-
-// Auth middleware wrapper
-export default auth(async (req) => {
-  const { pathname } = req.nextUrl;
-  const isAuthenticated = !!req.auth;
-  const user = req.auth?.user;
-  const userRole = (user as { role?: string } | undefined)?.role;
-
-  // Public routes that don't require authentication
-  const isPublicRoute =
-    pathname === "/" ||
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/register") ||
-    pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/reset-password") ||
-    pathname.startsWith("/verify-email") ||
-    pathname.startsWith("/for-appraisers") ||
-    pathname.startsWith("/docs") ||
-    pathname.startsWith("/api/webhooks") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/cron") ||
-    pathname.startsWith("/share/");
-
-  // Allow public routes
-  if (isPublicRoute) {
-    // Redirect to dashboard if already authenticated and trying to access login/register
-    if (
-      isAuthenticated &&
-      (pathname.startsWith("/login") || pathname.startsWith("/register"))
-    ) {
-      if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
-        return NextResponse.redirect(new URL("/admin/dashboard", req.url));
-      }
-      if (userRole === "APPRAISER") {
-        return NextResponse.redirect(new URL("/appraiser/dashboard", req.url));
-      }
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-    return NextResponse.next();
-  }
-
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("redirect_url", req.url);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Role-based route protection
-  const isAdminRoute = pathname.startsWith("/admin");
-  const isAppraiserRoute = pathname.startsWith("/appraiser");
-  const isClientRoute =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/appraisals") ||
-    pathname.startsWith("/orders") ||
-    pathname.startsWith("/team") ||
-    pathname.startsWith("/billing") ||
-    pathname.startsWith("/settings") ||
-    pathname.startsWith("/marketplace");
-
-  if (isAdminRoute) {
-    if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
-      // Redirect non-admins to their appropriate dashboard
-      if (userRole === "APPRAISER") {
-        return NextResponse.redirect(new URL("/appraiser/dashboard", req.url));
-      }
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-  }
-
-  if (isAppraiserRoute) {
-    if (userRole !== "APPRAISER") {
-      if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
-        return NextResponse.redirect(new URL("/admin/dashboard", req.url));
-      }
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-  }
-
-  if (isClientRoute) {
-    if (userRole === "APPRAISER") {
-      return NextResponse.redirect(new URL("/appraiser/dashboard", req.url));
-    }
-    if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
-      return NextResponse.redirect(new URL("/admin/dashboard", req.url));
-    }
-  }
-
+// Mockup middleware - no authentication required
+export default function middleware(_req: NextRequest) {
+  // Allow all routes for mockup demo
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [

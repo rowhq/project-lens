@@ -11,7 +11,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/components/ui/Button";
 import { ThemeToggle } from "@/shared/components/ui/ThemeToggle";
 
 interface NavItem {
@@ -127,29 +126,43 @@ export function LedgerHeader({
             Docs
           </Link>
           <ThemeToggle />
-          <Link href={actionButtonHref}>
-            <Button
-              variant="outline"
-              size="md"
-              className="h-10 text-sm"
-              rightIcon={<ArrowRight className="w-4 h-4" />}
-            >
-              {actionButtonText}
-            </Button>
+          <Link
+            href={actionButtonHref}
+            className={cn(
+              "inline-flex items-center gap-2 h-10 px-5 text-sm",
+              "font-mono uppercase tracking-wider",
+              "bg-transparent text-[var(--foreground)]",
+              "border border-[var(--border)] hover:border-lime-500",
+              "hover:bg-lime-500 hover:text-gray-900",
+              "transition-all duration-300 clip-notch",
+            )}
+            style={{
+              transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+            }}
+          >
+            {actionButtonText}
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
         {/* Right: Mobile - Action button only */}
         <div className="flex lg:hidden items-center">
-          <Link href={actionButtonHref}>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 text-xs"
-              rightIcon={<ArrowRight className="w-3 h-3" />}
-            >
-              {actionButtonText}
-            </Button>
+          <Link
+            href={actionButtonHref}
+            className={cn(
+              "inline-flex items-center gap-2 h-9 px-4 text-xs",
+              "font-mono uppercase tracking-wider",
+              "bg-transparent text-[var(--foreground)]",
+              "border border-[var(--border)] hover:border-lime-500",
+              "hover:bg-lime-500 hover:text-gray-900",
+              "transition-all duration-300 clip-notch-sm",
+            )}
+            style={{
+              transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)",
+            }}
+          >
+            {actionButtonText}
+            <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
       </div>

@@ -7,10 +7,7 @@ import { z } from "zod";
 import { compare, hash } from "bcryptjs";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
-import {
-  getUploadUrl,
-  generateProfilePhotoKey,
-} from "@/shared/lib/storage";
+import { getUploadUrl, generateProfilePhotoKey } from "@/shared/lib/storage";
 
 export const userRouter = createTRPCRouter({
   /**
@@ -44,7 +41,7 @@ export const userRouter = createTRPCRouter({
         lastName: z.string().min(1).max(100).optional(),
         jobTitle: z.string().max(100).optional().nullable(),
         location: z.string().max(100).optional().nullable(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const updatedUser = await ctx.prisma.user.update({
@@ -64,7 +61,7 @@ export const userRouter = createTRPCRouter({
    * Get notification preferences
    */
   getNotificationPreferences: protectedProcedure.query(async ({ ctx }) => {
-    let prefs = await ctx.prisma.notificationPreferences.findUnique({
+    const prefs = await ctx.prisma.notificationPreferences.findUnique({
       where: { userId: ctx.user.id },
     });
 
@@ -97,7 +94,7 @@ export const userRouter = createTRPCRouter({
         emailMarketing: z.boolean().optional(),
         pushUrgent: z.boolean().optional(),
         pushReports: z.boolean().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Upsert notification preferences
@@ -126,11 +123,16 @@ export const userRouter = createTRPCRouter({
     .input(
       z.object({
         filename: z.string().min(1),
-        contentType: z.string().refine(
-          (type) => ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(type),
-          { message: "Invalid image type. Allowed: JPEG, PNG, WebP, GIF" }
-        ),
-      })
+        contentType: z
+          .string()
+          .refine(
+            (type) =>
+              ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(
+                type,
+              ),
+            { message: "Invalid image type. Allowed: JPEG, PNG, WebP, GIF" },
+          ),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const key = generateProfilePhotoKey({
@@ -158,7 +160,7 @@ export const userRouter = createTRPCRouter({
     .input(
       z.object({
         avatarUrl: z.string().url(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const updatedUser = await ctx.prisma.user.update({
@@ -189,7 +191,7 @@ export const userRouter = createTRPCRouter({
       z.object({
         currentPassword: z.string().min(1),
         newPassword: z.string().min(8),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Get user with password

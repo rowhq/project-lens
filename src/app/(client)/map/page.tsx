@@ -1,1427 +1,725 @@
 "use client";
 
 /**
- * Interactive Map Page
- * Core product feature - Click on parcels to generate valuations
+ * Growth Map - Interactive Map with Real Tiles (Mockup)
+ * Shows opportunity zones overlaid on actual map
  */
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import {
-  Map as MapIcon,
-  Layers,
-  Satellite,
-  Users,
-  Briefcase,
-  Search,
-  Home,
-  Loader2,
   X,
-  MapPin,
-  DollarSign,
-  Calendar,
-  ExternalLink,
-  Crosshair,
-  Maximize2,
-  Share2,
-  AlertCircle,
-  Phone,
-  Mail,
-  Award,
+  School,
+  Route,
+  Zap,
+  ChevronRight,
+  Info,
+  Layers,
+  Map as MapIcon,
+  Satellite,
+  Loader2,
 } from "lucide-react";
-import { trpc } from "@/shared/lib/trpc";
-import {
-  parcelAPI,
-  type ParcelProperties,
-  type Bounds,
-} from "@/shared/lib/parcel-api";
-import { StatusBar } from "@/shared/components/map/StatusBar";
-import {
-  LayerControl,
-  type LayersConfig,
-} from "@/shared/components/map/LayerControl";
-import { PropertyPopup } from "@/shared/components/map/PropertyPopup";
-import { useToast } from "@/shared/hooks/use-toast";
 
-type ViewTab = "parcels" | "jobs" | "appraisers";
-type BaseLayer = "streets" | "satellite" | "hybrid";
-
-// Job status colors
-const JOB_STATUS_COLORS: Record<string, string> = {
-  PENDING_DISPATCH: "#3B82F6", // Blue
-  DISPATCHED: "#F59E0B", // Yellow
-  ACCEPTED: "#10B981", // Green
-  IN_PROGRESS: "#8B5CF6", // Purple
-  SUBMITTED: "#F97316", // Orange
-  COMPLETED: "#059669", // Dark green
-  CANCELLED: "#EF4444", // Red
+// Type declarations for maplibre-gl
+type MaplibreMap = {
+  addControl: (control: unknown, position?: string) => void;
+  on: (event: string, callback: (e?: MapErrorEvent) => void) => void;
+  once: (event: string, callback: () => void) => void;
+  setStyle: (style: unknown) => void;
+  flyTo: (options: {
+    center: [number, number];
+    zoom: number;
+    duration: number;
+  }) => void;
+  remove: () => void;
 };
 
-// Base styles for map
-const BASE_STYLES: Record<BaseLayer, maplibregl.StyleSpecification> = {
-  streets: {
-    version: 8,
-    sources: {
-      "osm-tiles": {
-        type: "raster",
-        tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-        tileSize: 256,
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      },
-    },
-    layers: [
-      {
-        id: "osm-tiles",
-        type: "raster",
-        source: "osm-tiles",
-        minzoom: 0,
-        maxzoom: 19,
-      },
-    ],
-  },
-  satellite: {
-    version: 8,
-    sources: {
-      "satellite-tiles": {
-        type: "raster",
-        tiles: [
-          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        ],
-        tileSize: 256,
-        attribution: "&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
-      },
-    },
-    layers: [
-      {
-        id: "satellite-tiles",
-        type: "raster",
-        source: "satellite-tiles",
-        minzoom: 0,
-        maxzoom: 19,
-      },
-    ],
-  },
-  hybrid: {
-    version: 8,
-    sources: {
-      "satellite-tiles": {
-        type: "raster",
-        tiles: [
-          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        ],
-        tileSize: 256,
-      },
-      "labels-tiles": {
-        type: "raster",
-        tiles: [
-          "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-        ],
-        tileSize: 256,
-        attribution: "&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
-      },
-    },
-    layers: [
-      {
-        id: "satellite-tiles",
-        type: "raster",
-        source: "satellite-tiles",
-        minzoom: 0,
-        maxzoom: 19,
-      },
-      {
-        id: "labels-tiles",
-        type: "raster",
-        source: "labels-tiles",
-        minzoom: 0,
-        maxzoom: 19,
-      },
-    ],
-  },
+type MaplibreMarker = {
+  setLngLat: (lngLat: [number, number]) => MaplibreMarker;
+  addTo: (map: MaplibreMap) => MaplibreMarker;
+  remove: () => void;
 };
 
-// Default center: Texas
-const DEFAULT_CENTER: [number, number] = [-95.4783, 30.0893]; // Montgomery County
-const DEFAULT_ZOOM = 14;
+type MapErrorEvent = {
+  error?: { message?: string };
+};
 
-// Appraiser type for selected state
-interface SelectedAppraiser {
-  userId: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  licenseNumber: string | null;
-  coverageRadiusMiles: number;
-  completedJobs: number;
-  rating: number | null;
-  latitude: number;
-  longitude: number;
-}
+// Type for the maplibre-gl module
+type MaplibreModule = {
+  Map: new (options: {
+    container: HTMLElement;
+    style: string | object;
+    center: [number, number];
+    zoom: number;
+  }) => MaplibreMap;
+  NavigationControl: new () => unknown;
+  Marker: new (options: {
+    element: HTMLElement;
+    anchor: string;
+  }) => MaplibreMarker;
+};
+
+// Mock opportunity zones with real coordinates (Central Texas)
+const OPPORTUNITY_ZONES = [
+  {
+    id: "1",
+    name: "North Austin Corridor",
+    county: "Travis",
+    lat: 30.4015,
+    lng: -97.7255,
+    appreciation: 18,
+    signals: [
+      {
+        type: "school",
+        label: "New Elementary School",
+        status: "Under Construction",
+      },
+      { type: "road", label: "MoPac Extension Phase 2", status: "Approved" },
+    ],
+    parcels: 847,
+    avgPrice: 425000,
+  },
+  {
+    id: "2",
+    name: "Cedar Park Growth Zone",
+    county: "Williamson",
+    lat: 30.5052,
+    lng: -97.8203,
+    appreciation: 22,
+    signals: [
+      {
+        type: "utility",
+        label: "New Water Treatment Plant",
+        status: "Planning",
+      },
+      {
+        type: "school",
+        label: "High School Expansion",
+        status: "Under Construction",
+      },
+      { type: "road", label: "183A Toll Extension", status: "Approved" },
+    ],
+    parcels: 1243,
+    avgPrice: 385000,
+  },
+  {
+    id: "3",
+    name: "San Marcos South",
+    county: "Hays",
+    lat: 29.853,
+    lng: -97.9414,
+    appreciation: 15,
+    signals: [
+      { type: "road", label: "I-35 Expansion", status: "Under Construction" },
+      {
+        type: "utility",
+        label: "Grid Infrastructure Upgrade",
+        status: "Approved",
+      },
+    ],
+    parcels: 562,
+    avgPrice: 295000,
+  },
+  {
+    id: "4",
+    name: "Round Rock Tech Hub",
+    county: "Williamson",
+    lat: 30.5083,
+    lng: -97.6789,
+    appreciation: 20,
+    signals: [
+      { type: "school", label: "STEM Academy", status: "Under Construction" },
+      { type: "road", label: "SH-45 Connector", status: "Approved" },
+    ],
+    parcels: 934,
+    avgPrice: 445000,
+  },
+  {
+    id: "5",
+    name: "Pflugerville East",
+    county: "Travis",
+    lat: 30.4393,
+    lng: -97.5801,
+    appreciation: 16,
+    signals: [
+      { type: "utility", label: "Solar Farm Connection", status: "Planning" },
+      {
+        type: "school",
+        label: "Middle School Construction",
+        status: "Under Construction",
+      },
+    ],
+    parcels: 678,
+    avgPrice: 365000,
+  },
+  {
+    id: "6",
+    name: "Kyle Expansion Zone",
+    county: "Hays",
+    lat: 29.9891,
+    lng: -97.8772,
+    appreciation: 24,
+    signals: [
+      { type: "road", label: "FM 1626 Widening", status: "Under Construction" },
+      { type: "school", label: "New Elementary Campus", status: "Approved" },
+      {
+        type: "utility",
+        label: "Wastewater Expansion",
+        status: "Under Construction",
+      },
+    ],
+    parcels: 1567,
+    avgPrice: 315000,
+  },
+  {
+    id: "7",
+    name: "Dripping Springs West",
+    county: "Hays",
+    lat: 30.1902,
+    lng: -98.0867,
+    appreciation: 19,
+    signals: [
+      { type: "school", label: "K-8 Campus", status: "Planning" },
+      { type: "road", label: "US-290 Improvements", status: "Approved" },
+    ],
+    parcels: 423,
+    avgPrice: 525000,
+  },
+  {
+    id: "8",
+    name: "Georgetown North",
+    county: "Williamson",
+    lat: 30.6478,
+    lng: -97.6778,
+    appreciation: 17,
+    signals: [
+      {
+        type: "utility",
+        label: "Water District Expansion",
+        status: "Under Construction",
+      },
+      { type: "road", label: "Inner Loop Connector", status: "Planning" },
+    ],
+    parcels: 756,
+    avgPrice: 395000,
+  },
+];
+
+const SignalIcon = ({ type }: { type: string }) => {
+  switch (type) {
+    case "school":
+      return <School className="w-3.5 h-3.5 text-blue-400" />;
+    case "road":
+      return <Route className="w-3.5 h-3.5 text-orange-400" />;
+    case "utility":
+      return <Zap className="w-3.5 h-3.5 text-yellow-400" />;
+    default:
+      return <Info className="w-3.5 h-3.5 text-gray-400" />;
+  }
+};
+
+type MapStyle = "streets" | "satellite" | "dark";
 
 export default function MapPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<maplibregl.Map | null>(null);
-  const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
-  const { toast } = useToast();
+  const mapRef = useRef<MaplibreMap | null>(null);
+  const markersRef = useRef<MaplibreMarker[]>([]);
 
-  // Read initial position from URL params (from insights page "View on Map" links)
-  const initialCenter = useMemo((): [number, number] => {
-    const lat = searchParams.get("lat");
-    const lng = searchParams.get("lng");
-    if (lat && lng) {
-      const parsedLat = parseFloat(lat);
-      const parsedLng = parseFloat(lng);
-      // Validate coordinates are within reasonable bounds
-      if (
-        !isNaN(parsedLat) &&
-        !isNaN(parsedLng) &&
-        parsedLat >= -90 &&
-        parsedLat <= 90 &&
-        parsedLng >= -180 &&
-        parsedLng <= 180
-      ) {
-        return [parsedLng, parsedLat];
-      }
-    }
-    return DEFAULT_CENTER;
-  }, [searchParams]);
-
-  const initialZoom = useMemo((): number => {
-    const zoom = searchParams.get("zoom");
-    if (zoom) {
-      const parsedZoom = parseFloat(zoom);
-      if (!isNaN(parsedZoom) && parsedZoom >= 0 && parsedZoom <= 22) {
-        return parsedZoom;
-      }
-    }
-    return DEFAULT_ZOOM;
-  }, [searchParams]);
-
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [activeTab, setActiveTab] = useState<ViewTab>("parcels");
-  const [baseLayer, setBaseLayer] = useState<BaseLayer>("streets");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [bounds, setBounds] = useState<Bounds | null>(null);
-  const [showPropertyPopup, setShowPropertyPopup] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-
-  // Map info for StatusBar (initialized with URL params or defaults)
-  const [mapInfo, setMapInfo] = useState({
-    lat: initialCenter[1],
-    lng: initialCenter[0],
-    zoom: initialZoom,
-  });
-
-  // Layer controls state
-  const [layers, setLayers] = useState<LayersConfig>({
-    parcels: { visible: true, opacity: 0.3 },
-    propertyLines: { visible: false, opacity: 1 },
-    floodZones: { visible: false, opacity: 0.5 },
-    zoning: { visible: false, opacity: 0.6 },
-  });
-
-  // Selected items
-  const [selectedParcel, setSelectedParcel] = useState<ParcelProperties | null>(
-    null,
-  );
-  const [selectedJob, setSelectedJob] = useState<{
-    id: string;
-    status: string;
-    jobType: string;
-    payoutAmount: number;
-    address: string;
-    city: string;
-    slaDueAt?: Date | null;
-    assignedAppraiser?: string | null;
-  } | null>(null);
-  const [selectedAppraiser, setSelectedAppraiser] =
-    useState<SelectedAppraiser | null>(null);
-
-  // Loading states
-  const [loadingParcels, setLoadingParcels] = useState(false);
-  const [parcelsData, setParcelsData] =
-    useState<GeoJSON.FeatureCollection | null>(null);
-
-  // TRPC queries
-  const {
-    data: jobsData,
-    isLoading: jobsLoading,
-    error: jobsError,
-  } = trpc.map.getJobsInBounds.useQuery(
-    { bounds: bounds! },
-    { enabled: !!bounds && activeTab === "jobs" },
-  );
-
-  const {
-    data: appraisersData,
-    isLoading: appraisersLoading,
-    error: appraisersError,
-  } = trpc.map.getAppraisers.useQuery(undefined, {
-    enabled: activeTab === "appraisers",
-  });
-
-  const { data: mapStats } = trpc.map.getMapStats.useQuery(
-    { bounds: bounds || undefined },
-    { enabled: !!bounds },
-  );
-
-  // Address search query
-  const searchAddresses = trpc.property.search.useQuery(
-    { query: searchQuery, limit: 5 },
-    {
-      enabled: searchQuery.length >= 5 && searchOpen,
-      staleTime: 30000,
-    },
-  );
-
-  const searchResults = useMemo(() => {
-    if (!searchAddresses.data) return [];
-    return searchAddresses.data.map((r) => ({
-      id: r.id,
-      address: r.address,
-      city: r.city,
-      state: r.state,
-      zipCode: r.zipCode,
-      latitude: r.latitude,
-      longitude: r.longitude,
-    }));
-  }, [searchAddresses.data]);
-
-  // Handle address selection from search
-  const handleAddressSelect = useCallback(
-    (result: (typeof searchResults)[0]) => {
-      if (!map.current) return;
-      map.current.flyTo({
-        center: [result.longitude, result.latitude],
-        zoom: 17,
-        duration: 2000,
-      });
-      setSearchQuery("");
-      setSearchOpen(false);
-      toast({
-        title: "Location found",
-        description: `Navigating to ${result.address}`,
-      });
-    },
-    [toast],
-  );
-
-  // Handle Request Certified Appraisal button
-  const handleRequestCertified = useCallback(() => {
-    if (!selectedParcel) return;
-
-    const params = new URLSearchParams({
-      address: selectedParcel.situs || "",
-      city: selectedParcel.city || "",
-      state: selectedParcel.state || "TX",
-      zipCode: selectedParcel.zip || "",
-      type: "CERTIFIED",
-    });
-
-    toast({
-      title: "Requesting appraisal",
-      description: "Redirecting to request form...",
-    });
-
-    router.push(`/appraisals/new?${params.toString()}`);
-  }, [selectedParcel, router, toast]);
-
-  // Handle layer changes - apply to actual map layers
-  const handleLayerChange = useCallback(
-    (
-      layerId: keyof LayersConfig,
-      state: Partial<LayersConfig[keyof LayersConfig]>,
-    ) => {
-      setLayers((prev) => {
-        const newLayers = {
-          ...prev,
-          [layerId]: { ...prev[layerId], ...state },
-        };
-
-        // Apply opacity to parcels layer if it exists
-        if (map.current && layerId === "parcels") {
-          if (map.current.getLayer("parcels-fill")) {
-            const newOpacity = state.opacity ?? prev.parcels.opacity;
-            map.current.setPaintProperty(
-              "parcels-fill",
-              "fill-opacity",
-              newOpacity * 0.3,
-            );
-          }
-          if (map.current.getLayer("parcels-outline")) {
-            const visible = state.visible ?? prev.parcels.visible;
-            map.current.setLayoutProperty(
-              "parcels-outline",
-              "visibility",
-              visible ? "visible" : "none",
-            );
-            map.current.setLayoutProperty(
-              "parcels-fill",
-              "visibility",
-              visible ? "visible" : "none",
-            );
-          }
-        }
-
-        return newLayers;
-      });
-    },
-    [],
-  );
-
-  // Handle reset view
-  const handleResetView = useCallback(() => {
-    if (!map.current) return;
-    map.current.flyTo({
-      center: DEFAULT_CENTER,
-      zoom: DEFAULT_ZOOM,
-      duration: 1500,
-    });
-    toast({
-      title: "View reset",
-      description: "Map returned to default location",
-    });
-  }, [toast]);
-
-  // Handle geolocation
-  const handleGeolocate = useCallback(() => {
-    if (!navigator.geolocation) {
-      toast({
-        title: "Geolocation unavailable",
-        description: "Your browser doesn't support geolocation",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Finding your location...",
-      description: "Please wait",
-    });
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        if (!map.current) return;
-        map.current.flyTo({
-          center: [position.coords.longitude, position.coords.latitude],
-          zoom: 15,
-          duration: 2000,
-        });
-        toast({
-          title: "Location found",
-          description: "Map centered on your location",
-        });
-      },
-      (error) => {
-        toast({
-          title: "Location error",
-          description: error.message,
-          variant: "destructive",
-        });
-      },
-    );
-  }, [toast]);
-
-  // Handle fullscreen toggle
-  const handleFullscreen = useCallback(() => {
-    const container = mapContainer.current?.parentElement;
-    if (!container) return;
-
-    if (!document.fullscreenElement) {
-      container.requestFullscreen().then(() => {
-        setIsFullscreen(true);
-        setTimeout(() => map.current?.resize(), 100);
-      });
-    } else {
-      document.exitFullscreen().then(() => {
-        setIsFullscreen(false);
-        setTimeout(() => map.current?.resize(), 100);
-      });
-    }
-  }, []);
-
-  // Handle share link
-  const handleShare = useCallback(() => {
-    const url = `${window.location.origin}/map?lat=${mapInfo.lat.toFixed(6)}&lng=${mapInfo.lng.toFixed(6)}&zoom=${Math.round(mapInfo.zoom)}`;
-    navigator.clipboard.writeText(url);
-    toast({
-      title: "Link copied",
-      description: "Map location link copied to clipboard",
-    });
-  }, [mapInfo, toast]);
+  const [selectedZone, setSelectedZone] = useState<
+    (typeof OPPORTUNITY_ZONES)[0] | null
+  >(null);
+  const [mapStyle, setMapStyle] = useState<MapStyle>("dark");
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
+    if (!mapContainer.current || mapRef.current) return;
 
-    try {
-      map.current = new maplibregl.Map({
-        container: mapContainer.current,
-        style: BASE_STYLES[baseLayer],
-        center: initialCenter,
-        zoom: initialZoom,
-        attributionControl: false,
-      });
+    let isMounted = true;
 
-      // Add controls
-      map.current.addControl(new maplibregl.NavigationControl(), "top-right");
-      map.current.addControl(
-        new maplibregl.ScaleControl({ maxWidth: 100 }),
-        "bottom-left",
-      );
-      map.current.addControl(
-        new maplibregl.AttributionControl({ compact: true }),
-        "bottom-right",
-      );
+    const initMap = async () => {
+      try {
+        // Dynamically import maplibre-gl to avoid SSR issues
+        const maplibregl = (await import("maplibre-gl")).default;
+        await import("maplibre-gl/dist/maplibre-gl.css");
 
-      // Handle load
-      map.current.on("load", () => {
-        setIsLoaded(true);
-        updateBounds();
-      });
+        if (!isMounted || !mapContainer.current) return;
 
-      // Handle errors
-      map.current.on("error", (e) => {
-        console.error("Map error:", e);
-        setLoadError("Failed to load map tiles");
-      });
+        const styleUrl =
+          mapStyle === "dark"
+            ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+            : mapStyle === "satellite"
+              ? {
+                  version: 8 as const,
+                  sources: {
+                    "satellite-tiles": {
+                      type: "raster" as const,
+                      tiles: [
+                        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                      ],
+                      tileSize: 256,
+                    },
+                  },
+                  layers: [
+                    {
+                      id: "satellite-tiles",
+                      type: "raster" as const,
+                      source: "satellite-tiles",
+                      minzoom: 0,
+                      maxzoom: 19,
+                    },
+                  ],
+                }
+              : "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
 
-      // Update bounds and map info on move
-      map.current.on("moveend", () => {
-        updateBounds();
-        if (map.current) {
-          const center = map.current.getCenter();
-          setMapInfo({
-            lat: center.lat,
-            lng: center.lng,
-            zoom: map.current.getZoom(),
-          });
-        }
-      });
+        const map = new maplibregl.Map({
+          container: mapContainer.current,
+          style: styleUrl,
+          center: [-97.7431, 30.2672], // Austin, TX
+          zoom: 9,
+        });
 
-      // Track mouse position for StatusBar
-      map.current.on("mousemove", (e) => {
-        setMapInfo((prev) => ({
-          ...prev,
-          lat: e.lngLat.lat,
-          lng: e.lngLat.lng,
-        }));
-      });
-    } catch (error) {
-      console.error("Failed to initialize map:", error);
-      setLoadError("Failed to initialize map");
-    }
+        map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+        map.on("load", () => {
+          if (!isMounted) return;
+          setIsMapLoaded(true);
+          addMarkers(map, maplibregl);
+        });
+
+        map.on("error", (e?: MapErrorEvent) => {
+          console.error("Map error:", e);
+          setMapError("Failed to load map");
+        });
+
+        mapRef.current = map;
+      } catch (error) {
+        console.error("Failed to initialize map:", error);
+        setMapError("Failed to initialize map");
+      }
+    };
+
+    initMap();
 
     return () => {
+      isMounted = false;
       markersRef.current.forEach((marker) => marker.remove());
-      markersRef.current.clear();
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
+      mapRef.current?.remove();
+      mapRef.current = null;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally run once on mount only
 
-  // Update bounds from map
-  const updateBounds = useCallback(() => {
-    if (!map.current) return;
-    const mapBounds = map.current.getBounds();
-    setBounds({
-      north: mapBounds.getNorth(),
-      south: mapBounds.getSouth(),
-      east: mapBounds.getEast(),
-      west: mapBounds.getWest(),
-    });
-  }, []);
-
-  // Handle base layer change
-  const handleBaseLayerChange = useCallback(
-    (newLayer: BaseLayer) => {
-      if (!map.current) return;
-      setBaseLayer(newLayer);
-      map.current.setStyle(BASE_STYLES[newLayer]);
-
-      // Re-add parcel layers after style change
-      map.current.once("styledata", () => {
-        if (parcelsData && activeTab === "parcels") {
-          addParcelsToMap(parcelsData);
-        }
-      });
-    },
-    [parcelsData, activeTab],
-  );
-
-  // Load parcels when bounds change and tab is parcels
+  // Handle style changes
   useEffect(() => {
-    if (!bounds || activeTab !== "parcels" || !isLoaded) return;
+    if (!mapRef.current || !isMapLoaded) return;
 
-    const loadParcels = async () => {
-      // Only load parcels at zoom level 13 or higher
-      const currentZoom = map.current?.getZoom() || 0;
-      if (currentZoom < 13) {
-        setParcelsData(null);
-        return;
-      }
+    const updateStyle = async () => {
+      const styleUrl =
+        mapStyle === "dark"
+          ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+          : mapStyle === "satellite"
+            ? {
+                version: 8 as const,
+                sources: {
+                  "satellite-tiles": {
+                    type: "raster" as const,
+                    tiles: [
+                      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                    ],
+                    tileSize: 256,
+                  },
+                },
+                layers: [
+                  {
+                    id: "satellite-tiles",
+                    type: "raster" as const,
+                    source: "satellite-tiles",
+                    minzoom: 0,
+                    maxzoom: 19,
+                  },
+                ],
+              }
+            : "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
 
-      setLoadingParcels(true);
-      try {
-        const data = await parcelAPI.fetchParcelsInBounds(bounds);
-        setParcelsData(data);
-        addParcelsToMap(data);
-      } catch (error) {
-        console.error("Failed to load parcels:", error);
-        toast({
-          title: "Error loading parcels",
-          description: "Failed to fetch parcel data. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoadingParcels(false);
-      }
+      mapRef.current.setStyle(styleUrl);
+
+      // Re-add markers after style change
+      mapRef.current.once("styledata", async () => {
+        const maplibregl = (await import("maplibre-gl")).default;
+        addMarkers(mapRef.current, maplibregl);
+      });
     };
 
-    loadParcels();
-  }, [bounds, activeTab, isLoaded, toast]);
+    updateStyle();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapStyle]); // isMapLoaded is used as guard, not trigger
 
-  // Add parcels GeoJSON to map
-  const addParcelsToMap = useCallback(
-    (geojson: GeoJSON.FeatureCollection) => {
-      if (!map.current) return;
-
-      // Remove existing layers and source
-      if (map.current.getLayer("parcels-fill")) {
-        map.current.removeLayer("parcels-fill");
-      }
-      if (map.current.getLayer("parcels-outline")) {
-        map.current.removeLayer("parcels-outline");
-      }
-      if (map.current.getSource("parcels")) {
-        map.current.removeSource("parcels");
-      }
-
-      // Add source
-      map.current.addSource("parcels", {
-        type: "geojson",
-        data: geojson,
-      });
-
-      // Add fill layer with layer opacity
-      map.current.addLayer({
-        id: "parcels-fill",
-        type: "fill",
-        source: "parcels",
-        paint: {
-          "fill-color": "#3B82F6",
-          "fill-opacity": layers.parcels.opacity * 0.3,
-        },
-        layout: {
-          visibility: layers.parcels.visible ? "visible" : "none",
-        },
-      });
-
-      // Add outline layer
-      map.current.addLayer({
-        id: "parcels-outline",
-        type: "line",
-        source: "parcels",
-        paint: {
-          "line-color": "#3B82F6",
-          "line-width": 2,
-        },
-        layout: {
-          visibility: layers.parcels.visible ? "visible" : "none",
-        },
-      });
-
-      // Handle click on parcel
-      map.current.on("click", "parcels-fill", (e) => {
-        if (!e.features || e.features.length === 0) return;
-        const feature = e.features[0];
-        const props = feature.properties as ParcelProperties;
-        setSelectedParcel(props);
-        setShowPropertyPopup(true);
-      });
-
-      // Change cursor on hover
-      map.current.on("mouseenter", "parcels-fill", () => {
-        if (map.current) map.current.getCanvas().style.cursor = "pointer";
-      });
-      map.current.on("mouseleave", "parcels-fill", () => {
-        if (map.current) map.current.getCanvas().style.cursor = "";
-      });
-    },
-    [layers.parcels.opacity, layers.parcels.visible],
-  );
-
-  // Add job markers to map
-  useEffect(() => {
-    if (!map.current || !isLoaded || activeTab !== "jobs") return;
+  // Add markers to map
+  const addMarkers = (map: MaplibreMap | null, maplibregl: MaplibreModule) => {
+    if (!map) return;
 
     // Clear existing markers
     markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current.clear();
+    markersRef.current = [];
 
-    if (!jobsData) return;
+    OPPORTUNITY_ZONES.forEach((zone) => {
+      const isHighGrowth = zone.appreciation >= 20;
+      const isModerate = zone.appreciation >= 15 && zone.appreciation < 20;
 
-    jobsData.forEach((job) => {
-      const color = JOB_STATUS_COLORS[job.status] || "#6B7280";
-
+      // Create custom marker element
       const el = document.createElement("div");
+      el.className = "growth-marker";
+      el.style.cssText = "cursor: pointer;";
+
+      const color = isHighGrowth
+        ? "rgb(163, 230, 53)"
+        : isModerate
+          ? "rgb(34, 211, 238)"
+          : "rgb(107, 114, 128)";
+
       el.innerHTML = `
-        <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M16 0C7.163 0 0 7.163 0 16c0 10.667 16 24 16 24s16-13.333 16-24C32 7.163 24.837 0 16 0z" fill="${color}"/>
-          <circle cx="16" cy="14" r="6" fill="white"/>
-        </svg>
-      `;
-      el.style.cursor = "pointer";
-      el.setAttribute("role", "button");
-      el.setAttribute(
-        "aria-label",
-        `Job at ${job.address}, status: ${job.status}`,
-      );
-      el.setAttribute("tabindex", "0");
-
-      const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
-        .setLngLat([job.longitude, job.latitude])
-        .addTo(map.current!);
-
-      el.addEventListener("click", () => {
-        setSelectedJob(job);
-        setSelectedAppraiser(null);
-      });
-
-      el.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          setSelectedJob(job);
-          setSelectedAppraiser(null);
-        }
-      });
-
-      markersRef.current.set(job.id, marker);
-    });
-  }, [jobsData, activeTab, isLoaded]);
-
-  // Add appraiser markers to map
-  useEffect(() => {
-    if (!map.current || !isLoaded || activeTab !== "appraisers") return;
-
-    // Clear existing markers
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current.clear();
-
-    if (!appraisersData) return;
-
-    appraisersData.forEach((appraiser) => {
-      // Create marker
-      const el = document.createElement("div");
-      el.innerHTML = `
-        <div class="w-10 h-10 bg-green-500 clip-notch-sm border-2 border-lime-400 shadow-lg flex items-center justify-center">
-          <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-          </svg>
+        <div style="position: relative;">
+          ${
+            isHighGrowth
+              ? `
+            <div style="position: absolute; inset: -4px; width: 32px; height: 32px; border-radius: 50%; background: rgba(163, 230, 53, 0.3); animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+          `
+              : ""
+          }
+          <div style="position: relative; width: 24px; height: 24px; border-radius: 50%; background: ${color}; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.3);">
+            <div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div>
+          </div>
         </div>
       `;
-      el.style.cursor = "pointer";
-      el.setAttribute("role", "button");
-      el.setAttribute(
-        "aria-label",
-        `Appraiser ${appraiser.name}, coverage: ${appraiser.coverageRadiusMiles} miles`,
-      );
-      el.setAttribute("tabindex", "0");
+
+      el.addEventListener("click", () => {
+        setSelectedZone(zone);
+        map.flyTo({
+          center: [zone.lng, zone.lat],
+          zoom: 12,
+          duration: 1000,
+        });
+      });
 
       const marker = new maplibregl.Marker({ element: el, anchor: "center" })
-        .setLngLat([appraiser.longitude, appraiser.latitude])
-        .addTo(map.current!);
+        .setLngLat([zone.lng, zone.lat])
+        .addTo(map);
 
-      // Add click handler for appraiser selection
-      el.addEventListener("click", () => {
-        setSelectedAppraiser({
-          userId: appraiser.userId,
-          name: appraiser.name,
-          email: appraiser.email,
-          phone: appraiser.phone,
-          licenseNumber: appraiser.licenseNumber,
-          coverageRadiusMiles: appraiser.coverageRadiusMiles,
-          completedJobs: appraiser.completedJobs,
-          rating: appraiser.rating,
-          latitude: appraiser.latitude,
-          longitude: appraiser.longitude,
-        });
-        setSelectedJob(null);
-      });
-
-      el.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          setSelectedAppraiser({
-            userId: appraiser.userId,
-            name: appraiser.name,
-            email: appraiser.email,
-            phone: appraiser.phone,
-            licenseNumber: appraiser.licenseNumber,
-            coverageRadiusMiles: appraiser.coverageRadiusMiles,
-            completedJobs: appraiser.completedJobs,
-            rating: appraiser.rating,
-            latitude: appraiser.latitude,
-            longitude: appraiser.longitude,
-          });
-          setSelectedJob(null);
-        }
-      });
-
-      // Add coverage radius circle
-      const circleId = `coverage-${appraiser.userId}`;
-      if (!map.current!.getSource(circleId)) {
-        const radiusInMeters = appraiser.coverageRadiusMiles * 1609.34;
-        const circleGeoJSON = createCircleGeoJSON(
-          appraiser.longitude,
-          appraiser.latitude,
-          radiusInMeters,
-        );
-
-        map.current!.addSource(circleId, {
-          type: "geojson",
-          data: circleGeoJSON,
-        });
-
-        map.current!.addLayer({
-          id: circleId,
-          type: "fill",
-          source: circleId,
-          paint: {
-            "fill-color": "#10B981",
-            "fill-opacity": 0.1,
-          },
-        });
-
-        map.current!.addLayer({
-          id: `${circleId}-outline`,
-          type: "line",
-          source: circleId,
-          paint: {
-            "line-color": "#10B981",
-            "line-width": 2,
-            "line-dasharray": [2, 2],
-          },
-        });
-      }
-
-      markersRef.current.set(appraiser.userId, marker);
+      markersRef.current.push(marker);
     });
+  };
 
-    // Cleanup function to remove sources and layers
-    return () => {
-      appraisersData?.forEach((appraiser) => {
-        const circleId = `coverage-${appraiser.userId}`;
-        if (map.current?.getLayer(circleId)) {
-          map.current.removeLayer(circleId);
-        }
-        if (map.current?.getLayer(`${circleId}-outline`)) {
-          map.current.removeLayer(`${circleId}-outline`);
-        }
-        if (map.current?.getSource(circleId)) {
-          map.current.removeSource(circleId);
-        }
-      });
-    };
-  }, [appraisersData, activeTab, isLoaded]);
-
-  // Clear markers when switching tabs
-  useEffect(() => {
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current.clear();
-    setSelectedParcel(null);
-    setSelectedJob(null);
-    setSelectedAppraiser(null);
-
-    // Remove parcel layers when switching away from parcels tab
-    if (map.current && activeTab !== "parcels") {
-      if (map.current.getLayer("parcels-fill")) {
-        map.current.removeLayer("parcels-fill");
-      }
-      if (map.current.getLayer("parcels-outline")) {
-        map.current.removeLayer("parcels-outline");
-      }
-      if (map.current.getSource("parcels")) {
-        map.current.removeSource("parcels");
-      }
-    }
-  }, [activeTab]);
-
-  // Handle keyboard navigation for tabs
-  const handleTabKeyDown = useCallback(
-    (e: React.KeyboardEvent, tabs: ViewTab[]) => {
-      const currentIndex = tabs.indexOf(activeTab);
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        const nextIndex = (currentIndex + 1) % tabs.length;
-        setActiveTab(tabs[nextIndex]);
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-        setActiveTab(tabs[prevIndex]);
-      }
-    },
-    [activeTab],
-  );
+  // Fly to zone when selected from panel
+  const handleZoneSelect = (zone: (typeof OPPORTUNITY_ZONES)[0]) => {
+    setSelectedZone(zone);
+    mapRef.current?.flyTo({
+      center: [zone.lng, zone.lat],
+      zoom: 12,
+      duration: 1000,
+    });
+  };
 
   return (
-    <div className="fixed inset-0 top-16 left-0 lg:left-64 bg-[var(--background)] z-10">
-      {/* Main Map Area */}
-      <div
-        className="w-full h-full relative"
-        role="application"
-        aria-label="Interactive property map"
-      >
-        {/* Map Container */}
-        <div
-          ref={mapContainer}
-          className="w-full h-full"
-          role="region"
-          aria-label="Map view"
-        />
-
-        {/* Error State */}
-        {loadError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-20">
-            <div className="text-center p-8">
-              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-white mb-2">Map Error</h2>
-              <p className="text-gray-400 mb-4">{loadError}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase clip-notch hover:bg-lime-300"
-              >
-                Reload Page
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Loading Overlay */}
-        {(!isLoaded || loadingParcels) && !loadError && (
-          <div
-            className="absolute inset-0 flex items-center justify-center bg-black/80 z-10"
-            role="status"
-            aria-live="polite"
-          >
-            <div className="flex items-center gap-3 text-white">
-              <Loader2 className="w-6 h-6 animate-spin" aria-hidden="true" />
-              <span>
-                {loadingParcels ? "Loading parcels..." : "Loading map..."}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Top Controls */}
-        <div className="absolute top-4 left-4 z-10 flex gap-2">
-          {/* Search */}
-          <div className="relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 z-10"
-              aria-hidden="true"
-            />
-            <input
-              type="text"
-              placeholder="Search address..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setSearchOpen(true);
-              }}
-              onFocus={() => setSearchOpen(true)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") {
-                  setSearchOpen(false);
-                  setSearchQuery("");
-                } else if (e.key === "Enter" && searchResults.length > 0) {
-                  handleAddressSelect(searchResults[0]);
-                }
-              }}
-              aria-label="Search for an address"
-              aria-expanded={searchOpen && searchQuery.length >= 5}
-              aria-controls="search-results"
-              aria-busy={searchAddresses.isLoading}
-              className="w-full sm:w-48 md:w-64 pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 clip-notch-sm shadow-lg text-sm font-mono text-white placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
-            />
-            {/* Search Results Dropdown */}
-            {searchOpen && searchQuery.length >= 5 && (
-              <div
-                id="search-results"
-                role="listbox"
-                aria-label="Search results"
-                className="absolute top-full left-0 right-0 mt-1 bg-gray-900 border border-gray-700 clip-notch-sm shadow-xl overflow-hidden z-50 max-h-60 overflow-y-auto"
-              >
-                {searchAddresses.isLoading ? (
-                  <div
-                    className="flex items-center gap-2 px-4 py-3 text-gray-400"
-                    role="status"
-                  >
-                    <Loader2
-                      className="w-4 h-4 animate-spin"
-                      aria-hidden="true"
-                    />
-                    <span className="text-sm">Searching...</span>
-                  </div>
-                ) : searchResults.length > 0 ? (
-                  <div>
-                    {searchResults.map((result, index) => (
-                      <button
-                        key={result.id}
-                        role="option"
-                        aria-selected={index === 0}
-                        onClick={() => handleAddressSelect(result)}
-                        className="w-full text-left px-4 py-3 hover:bg-gray-800 border-b border-gray-800 last:border-b-0 transition-colors focus:bg-gray-800 focus:outline-none"
-                      >
-                        <p className="text-sm font-medium text-white">
-                          {result.address}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {result.city}, {result.state} {result.zipCode}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="px-4 py-3 text-center">
-                    <p className="text-sm text-gray-400">No results found</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Try a different address or check spelling
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Quick Actions */}
-          <div className="flex gap-1 bg-gray-900 border border-gray-800 p-1 clip-notch-sm shadow-lg">
-            <button
-              onClick={handleGeolocate}
-              className="p-2 text-gray-400 hover:text-lime-400 hover:bg-gray-800 clip-notch-sm transition-colors"
-              aria-label="Go to my location"
-              title="My Location"
-            >
-              <Crosshair className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleFullscreen}
-              className="p-2 text-gray-400 hover:text-lime-400 hover:bg-gray-800 clip-notch-sm transition-colors"
-              aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-              title="Fullscreen"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleShare}
-              className="p-2 text-gray-400 hover:text-lime-400 hover:bg-gray-800 clip-notch-sm transition-colors"
-              aria-label="Share map location"
-              title="Share"
-            >
-              <Share2 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* View Tabs */}
-        <div
-          className="absolute top-4 right-16 z-10 flex bg-gray-900 border border-gray-800 clip-notch shadow-lg overflow-hidden"
-          role="tablist"
-          aria-label="Map view options"
-        >
-          {[
-            { id: "parcels" as ViewTab, label: "Parcels", icon: Home },
-            { id: "jobs" as ViewTab, label: "Jobs", icon: Briefcase },
-            { id: "appraisers" as ViewTab, label: "Appraisers", icon: Users },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={activeTab === tab.id}
-                aria-controls={`${tab.id}-panel`}
-                onClick={() => setActiveTab(tab.id)}
-                onKeyDown={(e) =>
-                  handleTabKeyDown(e, ["parcels", "jobs", "appraisers"])
-                }
-                className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2.5 text-xs md:text-sm font-mono uppercase tracking-wider transition-colors ${
-                  activeTab === tab.id
-                    ? "bg-lime-400 text-black"
-                    : "text-gray-400 hover:bg-gray-800"
-                }`}
-              >
-                <Icon className="w-4 h-4" aria-hidden="true" />
-                <span className="hidden md:inline">{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Base Layer Switcher */}
-        <div
-          className="absolute bottom-8 left-4 z-10 flex gap-1 bg-gray-900 border border-gray-800 p-1 clip-notch shadow-lg"
-          role="group"
-          aria-label="Map style options"
-        >
-          <button
-            onClick={() => handleBaseLayerChange("streets")}
-            className={`p-2 clip-notch-sm transition-colors ${
-              baseLayer === "streets"
-                ? "bg-lime-400 text-black"
-                : "text-gray-400 hover:bg-gray-800"
-            }`}
-            aria-label="Streets map view"
-            aria-pressed={baseLayer === "streets"}
-          >
-            <MapIcon className="h-4 w-4" aria-hidden="true" />
-          </button>
-          <button
-            onClick={() => handleBaseLayerChange("satellite")}
-            className={`p-2 clip-notch-sm transition-colors ${
-              baseLayer === "satellite"
-                ? "bg-lime-400 text-black"
-                : "text-gray-400 hover:bg-gray-800"
-            }`}
-            aria-label="Satellite map view"
-            aria-pressed={baseLayer === "satellite"}
-          >
-            <Satellite className="h-4 w-4" aria-hidden="true" />
-          </button>
-          <button
-            onClick={() => handleBaseLayerChange("hybrid")}
-            className={`p-2 clip-notch-sm transition-colors ${
-              baseLayer === "hybrid"
-                ? "bg-lime-400 text-black"
-                : "text-gray-400 hover:bg-gray-800"
-            }`}
-            aria-label="Hybrid map view"
-            aria-pressed={baseLayer === "hybrid"}
-          >
-            <Layers className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
-
-        {/* Empty States */}
-        {activeTab === "jobs" &&
-          isLoaded &&
-          !jobsLoading &&
-          !jobsData?.length && (
-            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 px-6 py-4 bg-gray-900 border border-gray-800 clip-notch shadow-lg text-center max-w-sm">
-              <Briefcase className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-              <p className="text-sm text-white font-medium">
-                No jobs in this area
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Pan or zoom the map to find available jobs
-              </p>
-            </div>
-          )}
-
-        {activeTab === "appraisers" &&
-          isLoaded &&
-          !appraisersLoading &&
-          !appraisersData?.length && (
-            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 px-6 py-4 bg-gray-900 border border-gray-800 clip-notch shadow-lg text-center max-w-sm">
-              <Users className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-              <p className="text-sm text-white font-medium">
-                No appraisers in this area
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Expand your view to find available appraisers
-              </p>
-            </div>
-          )}
-
-        {/* API Error States */}
-        {jobsError && activeTab === "jobs" && (
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 px-6 py-4 bg-red-900/80 border border-red-700 clip-notch shadow-lg text-center max-w-sm">
-            <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-            <p className="text-sm text-white font-medium">
-              Failed to load jobs
-            </p>
-            <p className="text-xs text-red-300 mt-1">Please try again later</p>
-          </div>
-        )}
-
-        {appraisersError && activeTab === "appraisers" && (
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 px-6 py-4 bg-red-900/80 border border-red-700 clip-notch shadow-lg text-center max-w-sm">
-            <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-            <p className="text-sm text-white font-medium">
-              Failed to load appraisers
-            </p>
-            <p className="text-xs text-red-300 mt-1">Please try again later</p>
-          </div>
-        )}
-
-        {/* Zoom hint for parcels */}
-        {activeTab === "parcels" &&
-          isLoaded &&
-          (map.current?.getZoom() || 0) < 13 && (
-            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 px-6 py-4 bg-gray-900 border border-lime-400/30 clip-notch shadow-lg text-center">
-              <MapPin className="w-6 h-6 text-lime-400 mx-auto mb-2" />
-              <p className="text-sm text-white font-medium">
-                Zoom in to see parcels
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Parcel boundaries appear at zoom level 13+
-              </p>
-            </div>
-          )}
-
-        {/* Layer Control Panel */}
-        {activeTab === "parcels" && (
-          <LayerControl
-            layers={layers}
-            onLayerChange={handleLayerChange}
-            onResetView={handleResetView}
-          />
-        )}
-
-        {/* Status Bar */}
-        <StatusBar
-          lat={mapInfo.lat}
-          lng={mapInfo.lng}
-          zoom={mapInfo.zoom}
-          parcelCount={parcelsData?.features.length || 0}
-          jobCount={activeTab === "jobs" ? jobsData?.length : undefined}
-          appraiserCount={
-            activeTab === "appraisers" ? appraisersData?.length : undefined
+    <div className="h-[calc(100vh-8rem)] flex flex-col">
+      {/* Add keyframes for ping animation */}
+      <style jsx global>{`
+        @keyframes ping {
+          75%,
+          100% {
+            transform: scale(2);
+            opacity: 0;
           }
-        />
+        }
+      `}</style>
+
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Growth Map</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Infrastructure projects driving appreciation
+          </p>
+        </div>
+        <div className="hidden md:flex items-center gap-4 text-xs text-gray-500">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-lime-400/80 animate-pulse" />
+            <span>High Growth (20%+)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-cyan-400/80" />
+            <span>Moderate (15-20%)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-gray-500/80" />
+            <span>Emerging (&lt;15%)</span>
+          </div>
+        </div>
       </div>
 
-      {/* Property Popup Modal */}
-      {showPropertyPopup && selectedParcel && (
-        <PropertyPopup
-          parcel={selectedParcel}
-          onClose={() => {
-            setShowPropertyPopup(false);
-            setSelectedParcel(null);
-          }}
-          onRequestCertified={() => {
-            setShowPropertyPopup(false);
-            handleRequestCertified();
-          }}
-        />
-      )}
+      {/* Map Container */}
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
+        {/* Map */}
+        <div className="flex-1 relative bg-gray-900 border border-gray-800 rounded-xl overflow-hidden min-h-[400px]">
+          <div
+            ref={mapContainer}
+            className="absolute inset-0 w-full h-full"
+            style={{ minHeight: "400px" }}
+          />
 
-      {/* Job Details Panel */}
-      {selectedJob && (
-        <div
-          className="absolute bottom-20 left-4 z-20 w-full sm:w-80 max-w-[calc(100vw-2rem)] bg-gray-900 border border-gray-800 clip-notch shadow-xl"
-          role="dialog"
-          aria-labelledby="job-details-title"
-        >
-          <div className="p-4">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <span
-                  className={`inline-block px-2 py-0.5 text-xs font-mono uppercase tracking-wider clip-notch-sm ${
-                    selectedJob.status === "COMPLETED"
-                      ? "bg-lime-400/20 text-lime-400"
-                      : selectedJob.status === "IN_PROGRESS"
-                        ? "bg-blue-400/20 text-blue-400"
-                        : "bg-yellow-400/20 text-yellow-400"
-                  }`}
+          {/* Loading State */}
+          {!isMapLoaded && !mapError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+              <div className="flex items-center gap-3 text-gray-400">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="text-sm">Loading map...</span>
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {mapError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+              <div className="text-center">
+                <p className="text-red-400 mb-2">{mapError}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="text-sm text-lime-400 hover:underline"
                 >
-                  {selectedJob.status.replace(/_/g, " ")}
-                </span>
-              </div>
-              <button
-                onClick={() => setSelectedJob(null)}
-                className="p-1 text-gray-400 hover:text-white"
-                aria-label="Close job details"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex items-start gap-2 mb-3">
-              <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 id="job-details-title" className="font-medium text-white">
-                  {selectedJob.address}
-                </h3>
-                <p className="text-sm text-gray-400">{selectedJob.city}</p>
+                  Reload page
+                </button>
               </div>
             </div>
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500 flex items-center gap-1">
-                  <Briefcase className="w-3.5 h-3.5" />
-                  {selectedJob.jobType.replace(/_/g, " ")}
-                </span>
-                <span className="font-mono text-lime-400 flex items-center gap-1">
-                  <DollarSign className="w-3.5 h-3.5" />
-                  {selectedJob.payoutAmount}
-                </span>
-              </div>
-              {selectedJob.slaDueAt && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
-                  <Calendar className="w-3.5 h-3.5" />
-                  Due: {new Date(selectedJob.slaDueAt).toLocaleDateString()}
-                </div>
-              )}
-              {selectedJob.assignedAppraiser && (
-                <div className="text-xs text-gray-400">
-                  Assigned: {selectedJob.assignedAppraiser}
-                </div>
-              )}
-            </div>
+          )}
+
+          {/* Map Style Switcher */}
+          <div className="absolute top-4 left-4 z-10 flex gap-1 bg-gray-900/90 border border-gray-700 p-1 rounded-lg backdrop-blur-sm">
             <button
-              onClick={() => router.push(`/jobs/${selectedJob.id}`)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-lime-400 text-black font-medium text-sm clip-notch hover:bg-lime-300 transition-colors"
+              onClick={() => setMapStyle("dark")}
+              className={`p-2 rounded transition-colors ${
+                mapStyle === "dark"
+                  ? "bg-lime-400 text-black"
+                  : "text-gray-400 hover:bg-gray-800"
+              }`}
+              title="Dark Map"
             >
-              View Details
-              <ExternalLink className="w-4 h-4" />
+              <Layers className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setMapStyle("streets")}
+              className={`p-2 rounded transition-colors ${
+                mapStyle === "streets"
+                  ? "bg-lime-400 text-black"
+                  : "text-gray-400 hover:bg-gray-800"
+              }`}
+              title="Street Map"
+            >
+              <MapIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setMapStyle("satellite")}
+              className={`p-2 rounded transition-colors ${
+                mapStyle === "satellite"
+                  ? "bg-lime-400 text-black"
+                  : "text-gray-400 hover:bg-gray-800"
+              }`}
+              title="Satellite"
+            >
+              <Satellite className="w-4 h-4" />
             </button>
           </div>
-        </div>
-      )}
 
-      {/* Appraiser Details Panel */}
-      {selectedAppraiser && (
-        <div
-          className="absolute bottom-20 left-4 z-20 w-full sm:w-80 max-w-[calc(100vw-2rem)] bg-gray-900 border border-gray-800 clip-notch shadow-xl"
-          role="dialog"
-          aria-labelledby="appraiser-details-title"
-        >
-          <div className="p-4">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-green-500 clip-notch-sm flex items-center justify-center">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3
-                    id="appraiser-details-title"
-                    className="font-medium text-white"
-                  >
-                    {selectedAppraiser.name}
-                  </h3>
-                  {selectedAppraiser.licenseNumber && (
-                    <p className="text-xs text-gray-400 flex items-center gap-1">
-                      <Award className="w-3 h-3" />
-                      {selectedAppraiser.licenseNumber}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedAppraiser(null)}
-                className="p-1 text-gray-400 hover:text-white"
-                aria-label="Close appraiser details"
-              >
-                <X className="w-4 h-4" />
-              </button>
+          {/* Legend - Mobile */}
+          <div className="absolute bottom-4 left-4 md:hidden flex flex-col gap-1 text-xs bg-gray-900/90 p-2 rounded border border-gray-800 backdrop-blur-sm z-10">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-lime-400/80" />
+              <span className="text-gray-400">20%+</span>
             </div>
-
-            <div className="space-y-3 mb-4">
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="p-2 bg-gray-800/50 rounded">
-                  <p className="text-lg font-bold text-white font-mono">
-                    {selectedAppraiser.completedJobs}
-                  </p>
-                  <p className="text-xs text-gray-500">Jobs completed</p>
-                </div>
-                <div className="p-2 bg-gray-800/50 rounded">
-                  <p className="text-lg font-bold text-lime-400 font-mono">
-                    {selectedAppraiser.coverageRadiusMiles} mi
-                  </p>
-                  <p className="text-xs text-gray-500">Coverage radius</p>
-                </div>
-              </div>
-
-              {/* Rating */}
-              {selectedAppraiser.rating && (
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-500">Rating:</span>
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <div
-                        key={i}
-                        className={`w-3 h-3 rounded-full ${
-                          i < Math.round(selectedAppraiser.rating!)
-                            ? "bg-lime-400"
-                            : "bg-gray-700"
-                        }`}
-                      />
-                    ))}
-                    <span className="text-white font-mono ml-1">
-                      {selectedAppraiser.rating.toFixed(1)}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Contact Info */}
-              <div className="space-y-2 pt-2 border-t border-gray-800">
-                {selectedAppraiser.email && (
-                  <a
-                    href={`mailto:${selectedAppraiser.email}`}
-                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-lime-400 transition-colors"
-                  >
-                    <Mail className="w-4 h-4" />
-                    {selectedAppraiser.email}
-                  </a>
-                )}
-                {selectedAppraiser.phone && (
-                  <a
-                    href={`tel:${selectedAppraiser.phone}`}
-                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-lime-400 transition-colors"
-                  >
-                    <Phone className="w-4 h-4" />
-                    {selectedAppraiser.phone}
-                  </a>
-                )}
-              </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-cyan-400/80" />
+              <span className="text-gray-400">15-20%</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-gray-500/80" />
+              <span className="text-gray-400">&lt;15%</span>
             </div>
           </div>
+
+          {/* Zone Count Badge */}
+          <div className="absolute bottom-4 right-4 z-10 px-3 py-1.5 bg-gray-900/90 border border-gray-700 rounded-lg backdrop-blur-sm">
+            <span className="text-xs text-gray-400 font-mono">
+              {OPPORTUNITY_ZONES.length} GROWTH ZONES
+            </span>
+          </div>
         </div>
-      )}
+
+        {/* Detail Panel */}
+        <div
+          className={`
+          w-full lg:w-80 bg-gray-900 border border-gray-800 rounded-xl overflow-hidden
+          transition-all duration-300 flex flex-col
+          ${selectedZone ? "opacity-100" : "opacity-70"}
+        `}
+        >
+          {selectedZone ? (
+            <div className="h-full flex flex-col">
+              {/* Header */}
+              <div className="p-4 border-b border-gray-800">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 font-mono uppercase tracking-wider">
+                      {selectedZone.county} County
+                    </p>
+                    <h2 className="text-lg font-bold text-white mt-1">
+                      {selectedZone.name}
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => setSelectedZone(null)}
+                    className="p-1 text-gray-500 hover:text-white transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-3 mt-4">
+                  <div className="bg-gray-800/50 rounded-lg p-2 text-center">
+                    <p className="text-lg font-bold text-lime-400">
+                      +{selectedZone.appreciation}%
+                    </p>
+                    <p className="text-xs text-gray-500">Projected</p>
+                  </div>
+                  <div className="bg-gray-800/50 rounded-lg p-2 text-center">
+                    <p className="text-lg font-bold text-white">
+                      {selectedZone.parcels.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-gray-500">Parcels</p>
+                  </div>
+                  <div className="bg-gray-800/50 rounded-lg p-2 text-center">
+                    <p className="text-lg font-bold text-white">
+                      ${(selectedZone.avgPrice / 1000).toFixed(0)}K
+                    </p>
+                    <p className="text-xs text-gray-500">Avg Price</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Signals */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <p className="text-xs text-gray-500 font-mono uppercase tracking-wider mb-3">
+                  Growth Signals ({selectedZone.signals.length})
+                </p>
+                <div className="space-y-2">
+                  {selectedZone.signals.map((signal, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-start gap-3 p-3 bg-gray-800/30 border border-gray-800 rounded-lg"
+                    >
+                      <div className="p-1.5 bg-gray-800 rounded">
+                        <SignalIcon type={signal.type} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">
+                          {signal.label}
+                        </p>
+                        <p
+                          className={`text-xs mt-0.5 ${
+                            signal.status === "Under Construction"
+                              ? "text-yellow-400"
+                              : signal.status === "Approved"
+                                ? "text-cyan-400"
+                                : "text-gray-500"
+                          }`}
+                        >
+                          {signal.status}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="p-4 border-t border-gray-800 space-y-2">
+                <Link
+                  href={`/insights/${selectedZone.id}`}
+                  className="flex items-center justify-between w-full px-4 py-2.5 bg-lime-400 text-black font-medium rounded-lg hover:bg-lime-300 transition-colors"
+                >
+                  <span>View Properties</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+                <button className="flex items-center justify-center gap-2 w-full px-4 py-2 text-gray-400 hover:text-white transition-colors text-sm border border-gray-800 rounded-lg hover:border-gray-700">
+                  View Source Documents
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col">
+              {/* Zone List */}
+              <div className="p-4 border-b border-gray-800">
+                <p className="text-xs text-gray-500 font-mono uppercase tracking-wider">
+                  All Growth Zones
+                </p>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {OPPORTUNITY_ZONES.sort(
+                  (a, b) => b.appreciation - a.appreciation,
+                ).map((zone) => {
+                  const isHighGrowth = zone.appreciation >= 20;
+                  const isModerate =
+                    zone.appreciation >= 15 && zone.appreciation < 20;
+
+                  return (
+                    <button
+                      key={zone.id}
+                      onClick={() => handleZoneSelect(zone)}
+                      className="w-full p-3 border-b border-gray-800 hover:bg-gray-800/50 transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            isHighGrowth
+                              ? "bg-lime-400"
+                              : isModerate
+                                ? "bg-cyan-400"
+                                : "bg-gray-500"
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white truncate">
+                            {zone.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {zone.county} County
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p
+                            className={`text-sm font-bold ${
+                              isHighGrowth
+                                ? "text-lime-400"
+                                : isModerate
+                                  ? "text-cyan-400"
+                                  : "text-gray-400"
+                            }`}
+                          >
+                            +{zone.appreciation}%
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {zone.signals.length} signals
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
-}
-
-// Helper function to create a circle GeoJSON
-function createCircleGeoJSON(
-  lng: number,
-  lat: number,
-  radiusInMeters: number,
-): GeoJSON.FeatureCollection {
-  const points = 64;
-  const coords: number[][] = [];
-
-  for (let i = 0; i < points; i++) {
-    const angle = (i / points) * 2 * Math.PI;
-    const dx = radiusInMeters * Math.cos(angle);
-    const dy = radiusInMeters * Math.sin(angle);
-    const dlng = dx / (111320 * Math.cos((lat * Math.PI) / 180));
-    const dlat = dy / 110540;
-    coords.push([lng + dlng, lat + dlat]);
-  }
-  coords.push(coords[0]); // Close the polygon
-
-  return {
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        properties: {},
-        geometry: {
-          type: "Polygon",
-          coordinates: [coords],
-        },
-      },
-    ],
-  };
 }

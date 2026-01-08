@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+/**
+ * Appraisals List - Mockup Version
+ */
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { trpc } from "@/shared/lib/trpc";
+import { useSearchParams } from "next/navigation";
 import {
   Plus,
   Search,
@@ -13,24 +17,10 @@ import {
   AlertCircle,
   ChevronRight,
   Download,
-  Loader2,
-  Trash2,
+  MapPin,
 } from "lucide-react";
-import {
-  Skeleton,
-  SkeletonStats,
-  SkeletonTable,
-} from "@/shared/components/ui/Skeleton";
-import { useToast } from "@/shared/components/ui/Toast";
 
-// Match Prisma AppraisalStatus enum
-type AppraisalStatus =
-  | "DRAFT"
-  | "QUEUED"
-  | "RUNNING"
-  | "READY"
-  | "FAILED"
-  | "EXPIRED";
+type AppraisalStatus = "DRAFT" | "QUEUED" | "RUNNING" | "READY" | "FAILED";
 
 const statusConfig: Record<
   AppraisalStatus,
@@ -61,138 +51,140 @@ const statusConfig: Record<
     color: "bg-red-500/20 text-red-400",
     icon: AlertCircle,
   },
-  EXPIRED: {
-    label: "Expired",
-    color: "bg-gray-500/20 text-gray-400",
-    icon: AlertCircle,
-  },
 };
 
+// Mock appraisals data
+const MOCK_APPRAISALS = [
+  {
+    id: "1",
+    referenceCode: "APR-2024-001",
+    property: {
+      addressLine1: "1847 Oak Avenue",
+      city: "Austin",
+      state: "TX",
+      zipCode: "78701",
+    },
+    requestedType: "AI_REPORT",
+    status: "READY" as AppraisalStatus,
+    valueEstimate: 485000,
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "2",
+    referenceCode: "APR-2024-002",
+    property: {
+      addressLine1: "2301 Maple Drive",
+      city: "Round Rock",
+      state: "TX",
+      zipCode: "78664",
+    },
+    requestedType: "CERTIFIED_APPRAISAL",
+    status: "RUNNING" as AppraisalStatus,
+    valueEstimate: null,
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "3",
+    referenceCode: "APR-2024-003",
+    property: {
+      addressLine1: "445 Commerce St",
+      city: "Pflugerville",
+      state: "TX",
+      zipCode: "78660",
+    },
+    requestedType: "AI_REPORT",
+    status: "READY" as AppraisalStatus,
+    valueEstimate: 320000,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "4",
+    referenceCode: "APR-2024-004",
+    property: {
+      addressLine1: "789 Cedar Lane",
+      city: "Austin",
+      state: "TX",
+      zipCode: "78702",
+    },
+    requestedType: "AI_REPORT_WITH_ONSITE",
+    status: "READY" as AppraisalStatus,
+    valueEstimate: 425000,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "5",
+    referenceCode: "APR-2024-005",
+    property: {
+      addressLine1: "123 Main Street",
+      city: "Cedar Park",
+      state: "TX",
+      zipCode: "78613",
+    },
+    requestedType: "CERTIFIED_APPRAISAL",
+    status: "QUEUED" as AppraisalStatus,
+    valueEstimate: null,
+    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
 export default function AppraisalsPage() {
-  const toast = useToast();
-  const utils = trpc.useUtils();
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<AppraisalStatus | "ALL">(
     "ALL",
   );
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  const { data: appraisals, isLoading } = trpc.appraisal.list.useQuery({
-    limit: 50,
-    status: statusFilter === "ALL" ? undefined : statusFilter,
-  });
-
-  const downloadMutation = trpc.report.download.useMutation({
-    onSuccess: (data) => {
-      // Open PDF in new tab
-      window.open(data.url, "_blank");
-      setDownloadingId(null);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to download PDF");
-      setDownloadingId(null);
-    },
-  });
-
-  const deleteMutation = trpc.appraisal.delete.useMutation({
-    onSuccess: () => {
-      toast.success("Appraisal deleted successfully");
-      utils.appraisal.list.invalidate();
-      setDeletingId(null);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to delete appraisal");
-      setDeletingId(null);
-    },
-  });
-
-  const bulkDeleteMutation = trpc.appraisal.bulkDelete.useMutation({
-    onSuccess: (data) => {
-      toast.success(
-        `Deleted ${data.softDeleted + data.hardDeleted} appraisal${data.total > 1 ? "s" : ""} successfully`,
-      );
-      utils.appraisal.list.invalidate();
-      setSelectedIds(new Set());
-      setIsBulkDeleting(false);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to delete appraisals");
-      setIsBulkDeleting(false);
-    },
-  });
-
-  const handleDownload = (reportId: string) => {
-    setDownloadingId(reportId);
-    downloadMutation.mutate({ reportId });
-  };
-
-  const handleDelete = (appraisalId: string, referenceCode: string) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete appraisal ${referenceCode}? This action cannot be undone.`,
-      )
-    ) {
-      setDeletingId(appraisalId);
-      deleteMutation.mutate({ id: appraisalId });
+  // Check for success message from new appraisal
+  useEffect(() => {
+    const isSuccess = searchParams.get("success") === "true";
+    if (isSuccess) {
+      const timer = setTimeout(() => {
+        setShowSuccess(true);
+        const hideTimer = setTimeout(() => setShowSuccess(false), 5000);
+        return () => clearTimeout(hideTimer);
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [searchParams]);
 
-  const handleBulkDelete = () => {
-    if (selectedIds.size === 0) return;
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${selectedIds.size} appraisal${selectedIds.size > 1 ? "s" : ""}? This action cannot be undone.`,
-      )
-    ) {
-      setIsBulkDeleting(true);
-      bulkDeleteMutation.mutate({ ids: Array.from(selectedIds) });
-    }
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked && filteredAppraisals) {
-      setSelectedIds(new Set(filteredAppraisals.map((a) => a.id)));
-    } else {
-      setSelectedIds(new Set());
-    }
-  };
-
-  const handleSelectOne = (id: string, checked: boolean) => {
-    const newSelected = new Set(selectedIds);
-    if (checked) {
-      newSelected.add(id);
-    } else {
-      newSelected.delete(id);
-    }
-    setSelectedIds(newSelected);
-  };
-
-  const filteredAppraisals = appraisals?.items.filter(
-    (a) =>
-      a.property?.addressFull
-        ?.toLowerCase()
+  const filteredAppraisals = MOCK_APPRAISALS.filter((a) => {
+    const matchesSearch =
+      a.property.addressLine1
+        .toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
-      a.referenceCode.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+      a.referenceCode.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "ALL" || a.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
-  const allSelected =
-    filteredAppraisals &&
-    filteredAppraisals.length > 0 &&
-    filteredAppraisals.every((a) => selectedIds.has(a.id));
-  const someSelected = selectedIds.size > 0;
+  const stats = {
+    total: MOCK_APPRAISALS.length,
+    processing: MOCK_APPRAISALS.filter(
+      (a) => a.status === "RUNNING" || a.status === "QUEUED",
+    ).length,
+    ready: MOCK_APPRAISALS.filter((a) => a.status === "READY").length,
+    thisMonth: MOCK_APPRAISALS.length,
+  };
 
   return (
     <div className="space-y-6">
+      {/* Success Message */}
+      {showSuccess && (
+        <div className="bg-lime-400/10 border border-lime-400/30 text-lime-400 px-4 py-3 rounded-lg flex items-center gap-3">
+          <CheckCircle className="w-5 h-5" />
+          <p>
+            Appraisal request submitted successfully! You&apos;ll receive your
+            report shortly.
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">
-            Appraisals
-          </h1>
-          <p className="text-[var(--muted-foreground)]">
+          <h1 className="text-2xl font-bold text-white">Appraisals</h1>
+          <p className="text-gray-400">
             Manage your property valuation requests
           </p>
         </div>
@@ -208,7 +200,7 @@ export default function AppraisalsPage() {
       {/* Filters */}
       <div className="flex gap-4 items-center">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
           <input
             type="text"
             placeholder="Search by address or reference..."
@@ -218,7 +210,7 @@ export default function AppraisalsPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="w-5 h-5 text-[var(--muted-foreground)]" />
+          <Filter className="w-5 h-5 text-gray-500" />
           <select
             value={statusFilter}
             onChange={(e) =>
@@ -227,254 +219,170 @@ export default function AppraisalsPage() {
             className="border border-gray-700 clip-notch-sm px-4 py-2.5 bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
           >
             <option value="ALL">All Status</option>
-            <option value="DRAFT">Draft</option>
             <option value="QUEUED">Queued</option>
             <option value="RUNNING">Processing</option>
             <option value="READY">Ready</option>
             <option value="FAILED">Failed</option>
           </select>
         </div>
-        {someSelected && (
-          <button
-            onClick={handleBulkDelete}
-            disabled={isBulkDeleting}
-            className="flex items-center gap-2 px-4 py-2.5 bg-red-500/20 border border-red-500/30 text-red-400 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-red-500/30 disabled:opacity-50"
-          >
-            {isBulkDeleting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Trash2 className="w-4 h-4" />
-            )}
-            Delete ({selectedIds.size})
-          </button>
-        )}
       </div>
 
       {/* Stats Cards */}
-      {isLoading ? (
-        <SkeletonStats count={4} />
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
-            <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-lime-400" />
-            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
-              Total Appraisals
-            </p>
-            <p className="text-2xl font-bold text-white mt-1">
-              {appraisals?.items?.length || 0}
-            </p>
-          </div>
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
-            <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-yellow-400" />
-            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
-              Processing
-            </p>
-            <p className="text-2xl font-bold text-yellow-400 mt-1">
-              {appraisals?.items.filter(
-                (a: { status: string }) =>
-                  a.status === "RUNNING" || a.status === "QUEUED",
-              ).length || 0}
-            </p>
-          </div>
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
-            <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-green-400" />
-            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
-              Ready
-            </p>
-            <p className="text-2xl font-bold text-green-400 mt-1">
-              {appraisals?.items.filter(
-                (a: { status: string }) => a.status === "READY",
-              ).length || 0}
-            </p>
-          </div>
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
-            <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-lime-400" />
-            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
-              This Month
-            </p>
-            <p className="text-2xl font-bold text-lime-400 mt-1">
-              {appraisals?.items.filter((a) => {
-                const date = new Date(a.createdAt);
-                const now = new Date();
-                return (
-                  date.getMonth() === now.getMonth() &&
-                  date.getFullYear() === now.getFullYear()
-                );
-              }).length || 0}
-            </p>
-          </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-lime-400" />
+          <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+            Total Appraisals
+          </p>
+          <p className="text-2xl font-bold text-white mt-1">{stats.total}</p>
         </div>
-      )}
+        <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-yellow-400" />
+          <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+            Processing
+          </p>
+          <p className="text-2xl font-bold text-yellow-400 mt-1">
+            {stats.processing}
+          </p>
+        </div>
+        <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-green-400" />
+          <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+            Ready
+          </p>
+          <p className="text-2xl font-bold text-green-400 mt-1">
+            {stats.ready}
+          </p>
+        </div>
+        <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-lime-400" />
+          <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+            This Month
+          </p>
+          <p className="text-2xl font-bold text-lime-400 mt-1">
+            {stats.thisMonth}
+          </p>
+        </div>
+      </div>
 
       {/* Appraisals Table */}
-      {isLoading ? (
-        <SkeletonTable rows={5} columns={7} />
-      ) : (
-        <div className="relative bg-gray-900 clip-notch border border-gray-800 overflow-hidden overflow-x-auto">
-          <table className="w-full min-w-[800px]">
-            <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
+      <div className="relative bg-gray-900 clip-notch border border-gray-800 overflow-hidden overflow-x-auto">
+        <table className="w-full min-w-[800px]">
+          <thead className="bg-gray-800/50 border-b border-gray-800">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Reference
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Property
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
+                Type
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
+                Value
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
+                Date
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-800">
+            {filteredAppraisals.length === 0 ? (
               <tr>
-                <th className="px-4 py-3 w-12">
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-lime-400 focus:ring-lime-400 focus:ring-offset-gray-900"
-                  />
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
-                  Reference
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
-                  Property
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase hidden md:table-cell">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase hidden lg:table-cell">
-                  Value
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase hidden md:table-cell">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase"></th>
+                <td
+                  colSpan={7}
+                  className="px-6 py-12 text-center text-gray-500"
+                >
+                  No appraisals found. Create your first appraisal to get
+                  started.
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border)]">
-              {filteredAppraisals?.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="px-6 py-12 text-center text-[var(--muted-foreground)]"
-                  >
-                    No appraisals found. Create your first appraisal to get
-                    started.
-                  </td>
-                </tr>
-              ) : (
-                filteredAppraisals?.map((appraisal) => {
-                  const status =
-                    statusConfig[appraisal.status as AppraisalStatus];
-                  const StatusIcon = status?.icon || FileText;
-                  const isSelected = selectedIds.has(appraisal.id);
-                  return (
-                    <tr
-                      key={appraisal.id}
-                      className={`hover:bg-[var(--secondary)] ${isSelected ? "bg-lime-400/5" : ""}`}
-                    >
-                      <td className="px-4 py-4 w-12">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={(e) =>
-                            handleSelectOne(appraisal.id, e.target.checked)
-                          }
-                          className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-lime-400 focus:ring-lime-400 focus:ring-offset-gray-900"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="font-mono text-sm text-[var(--foreground)]">
-                          {appraisal.referenceCode}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
+            ) : (
+              filteredAppraisals.map((appraisal) => {
+                const status = statusConfig[appraisal.status];
+                const StatusIcon = status.icon;
+                return (
+                  <tr key={appraisal.id} className="hover:bg-gray-800/50">
+                    <td className="px-6 py-4">
+                      <span className="font-mono text-sm text-white">
+                        {appraisal.referenceCode}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="font-medium text-[var(--foreground)]">
-                            {appraisal.property?.addressLine1}
+                          <p className="font-medium text-white">
+                            {appraisal.property.addressLine1}
                           </p>
-                          <p className="text-sm text-[var(--muted-foreground)]">
-                            {appraisal.property?.city},{" "}
-                            {appraisal.property?.state}{" "}
-                            {appraisal.property?.zipCode}
+                          <p className="text-sm text-gray-500">
+                            {appraisal.property.city},{" "}
+                            {appraisal.property.state}{" "}
+                            {appraisal.property.zipCode}
                           </p>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 hidden md:table-cell">
-                        <span className="text-sm text-[var(--foreground)]">
-                          {appraisal.requestedType?.replace("_", " ")}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 hidden md:table-cell">
+                      <span className="text-sm text-gray-300">
+                        {appraisal.requestedType.replace(/_/g, " ")}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 clip-notch-sm text-xs font-mono uppercase tracking-wider ${status.color}`}
+                      >
+                        <StatusIcon className="w-3 h-3" />
+                        {status.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 hidden lg:table-cell">
+                      {appraisal.valueEstimate ? (
+                        <span className="font-medium text-white">
+                          ${appraisal.valueEstimate.toLocaleString()}
                         </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 clip-notch-sm text-xs font-mono uppercase tracking-wider ${status?.color}`}
-                        >
-                          <StatusIcon className="w-3 h-3" />
-                          {status?.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 hidden lg:table-cell">
-                        {appraisal.report?.valueEstimate ? (
-                          <span className="font-medium text-[var(--foreground)]">
-                            $
-                            {Number(
-                              appraisal.report.valueEstimate,
-                            ).toLocaleString()}
-                          </span>
-                        ) : (
-                          <span className="text-[var(--muted-foreground)]">
-                            -
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 hidden md:table-cell">
-                        <span className="text-sm text-[var(--muted-foreground)]">
-                          {new Date(appraisal.createdAt).toLocaleDateString()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          {appraisal.report && appraisal.status === "READY" && (
-                            <button
-                              onClick={() =>
-                                handleDownload(appraisal.report!.id)
-                              }
-                              disabled={downloadingId === appraisal.report.id}
-                              className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
-                              title="Download PDF"
-                            >
-                              {downloadingId === appraisal.report.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Download className="w-4 h-4" />
-                              )}
-                            </button>
-                          )}
+                      ) : (
+                        <span className="text-gray-500">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 hidden md:table-cell">
+                      <span className="text-sm text-gray-500">
+                        {new Date(appraisal.createdAt).toLocaleDateString()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        {appraisal.status === "READY" && (
                           <button
                             onClick={() =>
-                              handleDelete(
-                                appraisal.id,
-                                appraisal.referenceCode,
-                              )
+                              alert("PDF download would happen here")
                             }
-                            disabled={deletingId === appraisal.id}
-                            className="p-2 text-[var(--muted-foreground)] hover:text-red-400 disabled:opacity-50"
-                            title="Delete appraisal"
+                            className="p-2 text-gray-500 hover:text-white"
+                            title="Download PDF"
                           >
-                            {deletingId === appraisal.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
+                            <Download className="w-4 h-4" />
                           </button>
-                          <Link
-                            href={`/appraisals/${appraisal.id}`}
-                            className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                          >
-                            <ChevronRight className="w-4 h-4" />
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+                        )}
+                        <Link
+                          href={`/appraisals/${appraisal.id}`}
+                          className="p-2 text-gray-500 hover:text-white"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
