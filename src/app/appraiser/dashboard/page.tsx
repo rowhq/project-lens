@@ -25,6 +25,7 @@ import {
 } from "@/shared/components/common/GamificationWidget";
 import { getUrgencyConfig } from "@/shared/hooks/useLiveCountdown";
 import { cn } from "@/shared/lib/utils";
+import { Skeleton } from "@/shared/components/ui/Skeleton";
 
 // Stat Card - Ledger Style
 function StatCard({
@@ -210,10 +211,17 @@ function WeeklyStatCard({
 }
 
 export default function AppraiserDashboardPage() {
-  const { data: profile } = trpc.appraiser.profile.get.useQuery();
-  const { data: availableJobs } = trpc.job.available.useQuery({ limit: 5 });
-  const { data: activeJobs } = trpc.job.myActive.useQuery();
-  const { data: earnings } = trpc.appraiser.earnings.summary.useQuery();
+  const { data: profile, isLoading: profileLoading } =
+    trpc.appraiser.profile.get.useQuery();
+  const { data: availableJobs, isLoading: jobsLoading } =
+    trpc.job.available.useQuery({ limit: 5 });
+  const { data: activeJobs, isLoading: activeLoading } =
+    trpc.job.myActive.useQuery();
+  const { data: earnings, isLoading: earningsLoading } =
+    trpc.appraiser.earnings.summary.useQuery();
+
+  const isLoading =
+    profileLoading || jobsLoading || activeLoading || earningsLoading;
 
   // Calculate unlocked badges based on stats
   const unlockedBadges = calculateUnlockedBadges({
@@ -322,6 +330,79 @@ export default function AppraiserDashboardPage() {
     }
     return null;
   }, [profile, now]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        {/* Welcome Banner Skeleton */}
+        <div className="relative bg-gray-950 border border-lime-400/30 p-6 clip-notch">
+          <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-lime-400" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-lime-400" />
+          <Skeleton className="h-8 w-64 mb-2" />
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-10 w-48 mt-4" />
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="relative bg-gray-950 border border-gray-800 p-4 clip-notch-sm"
+            >
+              <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-lime-400/30" />
+              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-lime-400/30" />
+              <Skeleton className="h-8 w-8 mb-2" />
+              <Skeleton className="h-7 w-20 mb-1" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          ))}
+        </div>
+
+        {/* Gamification Widgets Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              className="relative bg-gray-950 border border-gray-800 p-4 clip-notch-sm"
+            >
+              <Skeleton className="h-5 w-32 mb-3" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          ))}
+        </div>
+
+        {/* Jobs List Skeleton */}
+        <div className="relative bg-gray-950 border border-gray-800 clip-notch overflow-hidden">
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30 z-10" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30 z-10" />
+          <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+          <div>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between p-4 border-b border-gray-800 last:border-b-0"
+              >
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 clip-notch-sm" />
+                  <div>
+                    <Skeleton className="h-4 w-40 mb-2" />
+                    <Skeleton className="h-3 w-28" />
+                  </div>
+                </div>
+                <Skeleton className="h-5 w-16" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
