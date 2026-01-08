@@ -14,40 +14,45 @@ export default async function AppraiserLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  try {
+    const session = await auth();
 
-  if (!session?.user?.id) {
-    redirect("/login");
+    if (!session?.user?.id) {
+      redirect("/login");
+    }
+
+    // Verify user has APPRAISER role
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        role: true,
+        status: true,
+        appraiserProfile: {
+          select: { verificationStatus: true },
+        },
+      },
+    });
+
+    if (!user) {
+      redirect("/login");
+    }
+
+    if (user.status !== "ACTIVE") {
+      redirect("/login?error=account_suspended");
+    }
+
+    if (user.role !== "APPRAISER") {
+      redirect("/dashboard?error=unauthorized");
+    }
+
+    // Check if appraiser needs to complete onboarding
+    if (!user.appraiserProfile) {
+      redirect("/appraiser/onboarding");
+    }
+
+    return <AppraiserLayoutWrapper>{children}</AppraiserLayoutWrapper>;
+  } catch (error) {
+    console.error("AppraiserLayout error:", error);
+    redirect("/login?error=server_error");
   }
-
-  // Verify user has APPRAISER role
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      role: true,
-      status: true,
-      appraiserProfile: {
-        select: { verificationStatus: true }
-      }
-    },
-  });
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  if (user.status !== "ACTIVE") {
-    redirect("/login?error=account_suspended");
-  }
-
-  if (user.role !== "APPRAISER") {
-    redirect("/dashboard?error=unauthorized");
-  }
-
-  // Check if appraiser needs to complete onboarding
-  if (!user.appraiserProfile) {
-    redirect("/appraiser/onboarding");
-  }
-
-  return <AppraiserLayoutWrapper>{children}</AppraiserLayoutWrapper>;
 }
