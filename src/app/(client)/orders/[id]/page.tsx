@@ -962,8 +962,10 @@ export default function OrderDetailPage() {
 
               {/* Counter and download */}
               <div className="flex items-center justify-between mt-4">
-                <span className="text-white/60 text-sm">
-                  Use ← → keys to navigate, ESC to close
+                <span className="text-white/60 text-sm flex items-center gap-1">
+                  Use <ChevronLeft className="w-4 h-4 inline" />
+                  <ChevronRight className="w-4 h-4 inline" /> keys to navigate,
+                  ESC to close
                 </span>
                 <span className="text-white" aria-live="polite">
                   {selectedPhotoIndex + 1} / {order.evidence.length}

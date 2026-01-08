@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle, Mail, AlertCircle } from "lucide-react";
+import { CheckCircle, Mail, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/shared/components/ui/Button";
 import { Input } from "@/shared/components/ui/Input";
 import { Alert } from "@/shared/components/ui/Alert";
@@ -59,7 +59,8 @@ export default function ForgotPasswordPage() {
           className="inline-block text-sm font-mono uppercase tracking-wider text-lime-400 hover:text-lime-300 transition-colors"
           style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
         >
-          ← Back to login
+          <ArrowLeft className="w-4 h-4 inline mr-1" />
+          Back to login
         </Link>
       </div>
     );
@@ -113,7 +114,8 @@ export default function ForgotPasswordPage() {
           className="text-sm font-mono uppercase tracking-wider text-lime-400 hover:text-lime-300 transition-colors"
           style={{ transitionTimingFunction: "cubic-bezier(0.85, 0, 0.15, 1)" }}
         >
-          ← Back to login
+          <ArrowLeft className="w-4 h-4 inline mr-1" />
+          Back to login
         </Link>
       </div>
     </div>

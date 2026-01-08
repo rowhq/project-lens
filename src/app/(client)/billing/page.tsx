@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Trash2,
   ExternalLink,
+  ArrowRight,
 } from "lucide-react";
 import { EmptyState } from "@/shared/components/common/EmptyState";
 import { Progress } from "@/shared/components/ui/Progress";
@@ -367,7 +368,8 @@ export default function BillingPage() {
                       onClick={() => handleUpgrade("professional")}
                       className="text-xs text-lime-600 hover:text-lime-700 font-medium"
                     >
-                      Upgrade for more →
+                      Upgrade for more{" "}
+                      <ArrowRight className="w-3 h-3 inline ml-1" />
                     </button>
                   )}
               </div>

@@ -142,7 +142,7 @@ export function StatsOverview({
                   key={index}
                   className="flex items-start gap-2 text-[var(--foreground)]"
                 >
-                  <span className="text-lime-400 mt-1">•</span>
+                  <span className="text-lime-400 mt-1 text-xs">+</span>
                   <span>{insight}</span>
                 </li>
               ))}

@@ -417,19 +417,19 @@ export default function DocsPage() {
               </h4>
               <ul className="space-y-3 text-gray-300 text-sm">
                 <li className="flex items-start gap-2">
-                  <span className="text-red-400 mt-1">•</span>
+                  <span className="text-red-400 mt-1 text-xs">-</span>
                   Traditional valuations take 2-4 weeks
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-red-400 mt-1">•</span>
+                  <span className="text-red-400 mt-1 text-xs">-</span>
                   Average cost $400-600 per valuation
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-red-400 mt-1">•</span>
+                  <span className="text-red-400 mt-1 text-xs">-</span>
                   Appraiser shortage (40% retiring in 10 years)
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-red-400 mt-1">•</span>
+                  <span className="text-red-400 mt-1 text-xs">-</span>
                   Manual, inconsistent, and opaque process
                 </li>
               </ul>
@@ -441,19 +441,19 @@ export default function DocsPage() {
               </h4>
               <ul className="space-y-3 text-gray-300 text-sm">
                 <li className="flex items-start gap-2">
-                  <span className="text-lime-400 mt-1">•</span>
+                  <span className="text-lime-400 mt-1 text-xs">+</span>
                   Instant AI Reports (~30 sec) included in subscription
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-lime-400 mt-1">•</span>
+                  <span className="text-lime-400 mt-1 text-xs">+</span>
                   On-Site reports with photos in 48 hours (${PRICING.ON_SITE})
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-lime-400 mt-1">•</span>
+                  <span className="text-lime-400 mt-1 text-xs">+</span>
                   USPAP Certified appraisals in 3 days (${PRICING.CERTIFIED})
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-lime-400 mt-1">•</span>
+                  <span className="text-lime-400 mt-1 text-xs">+</span>
                   Appraiser marketplace with automated dispatch
                 </li>
               </ul>
@@ -491,7 +491,7 @@ export default function DocsPage() {
                 <div className="text-4xl font-bold text-cyan-400 mb-2">3</div>
                 <div className="text-gray-400 text-sm">Product Tiers</div>
                 <div className="text-gray-500 text-xs">
-                  AI → On-Site → Certified
+                  AI &gt; On-Site &gt; Certified
                 </div>
               </div>
               <div className="text-center">
@@ -1228,10 +1228,10 @@ export default function DocsPage() {
                 </div>
               </div>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li>• Fix & flip operators (high volume)</li>
-                <li>• Buy & hold landlords</li>
-                <li>• Wholesalers</li>
-                <li>• Small/medium REITs</li>
+                <li>- Fix & flip operators (high volume)</li>
+                <li>- Buy & hold landlords</li>
+                <li>- Wholesalers</li>
+                <li>- Small/medium REITs</li>
               </ul>
               <div className="mt-4 pt-4 border-t border-gray-800">
                 <div className="flex justify-between text-sm">
@@ -1242,7 +1242,7 @@ export default function DocsPage() {
                 </div>
                 <div className="flex justify-between text-sm mt-2">
                   <span className="text-gray-500">Product Fit</span>
-                  <span className="text-cyan-400">AI Report → On-Site</span>
+                  <span className="text-cyan-400">AI Report &gt; On-Site</span>
                 </div>
               </div>
             </div>
@@ -1262,10 +1262,10 @@ export default function DocsPage() {
                 </div>
               </div>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li>• Mortgage brokers</li>
-                <li>• Loan officers</li>
-                <li>• Small lenders</li>
-                <li>• Credit unions</li>
+                <li>- Mortgage brokers</li>
+                <li>- Loan officers</li>
+                <li>- Small lenders</li>
+                <li>- Credit unions</li>
               </ul>
               <div className="mt-4 pt-4 border-t border-gray-800">
                 <div className="flex justify-between text-sm">
@@ -1276,7 +1276,7 @@ export default function DocsPage() {
                 </div>
                 <div className="flex justify-between text-sm mt-2">
                   <span className="text-gray-500">Product Fit</span>
-                  <span className="text-amber-400">On-Site → Certified</span>
+                  <span className="text-amber-400">On-Site &gt; Certified</span>
                 </div>
               </div>
             </div>
@@ -1296,9 +1296,9 @@ export default function DocsPage() {
                 </div>
               </div>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li>• Listing agents (pricing)</li>
-                <li>• Buyer agents (negotiation)</li>
-                <li>• Teams and brokerages</li>
+                <li>- Listing agents (pricing)</li>
+                <li>- Buyer agents (negotiation)</li>
+                <li>- Teams and brokerages</li>
               </ul>
               <div className="mt-4 pt-4 border-t border-gray-800">
                 <div className="flex justify-between text-sm">
@@ -1323,10 +1323,10 @@ export default function DocsPage() {
                 </div>
               </div>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li>• Divorce attorneys</li>
-                <li>• Estate planners</li>
-                <li>• Tax appeal specialists</li>
-                <li>• Probate courts</li>
+                <li>- Divorce attorneys</li>
+                <li>- Estate planners</li>
+                <li>- Tax appeal specialists</li>
+                <li>- Probate courts</li>
               </ul>
               <div className="mt-4 pt-4 border-t border-gray-800">
                 <div className="flex justify-between text-sm">
@@ -2956,7 +2956,7 @@ export default function DocsPage() {
               </a>
             </div>
             <p className="text-gray-500 text-sm">
-              5 free AI reports monthly · No credit card required · Cancel
+              5 free AI reports monthly | No credit card required | Cancel
               anytime
             </p>
           </div>
@@ -2965,7 +2965,7 @@ export default function DocsPage() {
         {/* Footer */}
         <div className="border-t border-gray-800 pt-8 mt-16">
           <p className="text-gray-500 text-sm text-center">
-            TruPlat Product Documentation v1.0 · Last updated January 2026
+            TruPlat Product Documentation v1.0 | Last updated January 2026
           </p>
         </div>
       </div>

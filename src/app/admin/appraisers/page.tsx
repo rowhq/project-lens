@@ -360,7 +360,7 @@ export default function AppraisersPage() {
                         {appraiser.licenseNumber || "-"}
                       </p>
                       <p className="text-xs text-[var(--muted-foreground)]">
-                        {appraiser.licenseType?.replace("_", " ")} •{" "}
+                        {appraiser.licenseType?.replace("_", " ")} |{" "}
                         {appraiser.licenseState}
                       </p>
                     </td>

@@ -595,9 +595,10 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                     ).map((strength: string, i: number) => (
                       <li
                         key={i}
-                        className="text-sm text-[var(--muted-foreground)]"
+                        className="text-sm text-[var(--muted-foreground)] flex items-start gap-2"
                       >
-                        • {strength}
+                        <span className="text-lime-400 text-xs mt-0.5">+</span>
+                        <span>{strength}</span>
                       </li>
                     ))}
                   </ul>
@@ -614,9 +615,12 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                     ).map((concern: string, i: number) => (
                       <li
                         key={i}
-                        className="text-sm text-[var(--muted-foreground)]"
+                        className="text-sm text-[var(--muted-foreground)] flex items-start gap-2"
                       >
-                        • {concern}
+                        <span className="text-yellow-400 text-xs mt-0.5">
+                          -
+                        </span>
+                        <span>{concern}</span>
                       </li>
                     ))}
                   </ul>
@@ -911,7 +915,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                   Request Certified Appraisal
                 </Link>
                 <p className="text-xs text-[var(--muted-foreground)] mt-2 text-center">
-                  Starting at ${PRICING.CERTIFIED} • 72 hour delivery
+                  Starting at ${PRICING.CERTIFIED} | 72 hour delivery
                 </p>
               </div>
             )}

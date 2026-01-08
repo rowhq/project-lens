@@ -381,7 +381,7 @@ export default function SettingsPage() {
             {auditLogs?.items && auditLogs.items.length > 0 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-gray-800 bg-gray-900/30">
                 <div className="text-xs text-gray-500 font-mono">
-                  Page {cursorHistory.length + 1} • {auditLogs.items.length}{" "}
+                  Page {cursorHistory.length + 1} | {auditLogs.items.length}{" "}
                   items
                 </div>
                 <div className="flex items-center gap-2">

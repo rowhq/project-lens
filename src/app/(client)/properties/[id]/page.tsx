@@ -133,7 +133,7 @@ export default function PropertyDetailPage({
           </h1>
           <p className="text-[var(--muted-foreground)] flex items-center gap-1 mt-1">
             <MapPin className="w-4 h-4" />
-            {property.city}, {property.state} {property.zipCode} •{" "}
+            {property.city}, {property.state} {property.zipCode} |{" "}
             {property.county} County
           </p>
         </div>

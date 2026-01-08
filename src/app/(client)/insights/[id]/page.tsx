@@ -615,7 +615,7 @@ export default function InsightDetailPage({
                       key={index}
                       className="flex items-start gap-2 text-sm text-[var(--foreground)]"
                     >
-                      <span className="text-lime-400 mt-0.5">•</span>
+                      <span className="text-lime-400 mt-0.5 text-xs">+</span>
                       <span>{factor}</span>
                     </li>
                   ))}
@@ -636,7 +636,7 @@ export default function InsightDetailPage({
                       key={index}
                       className="flex items-start gap-2 text-sm text-[var(--foreground)]"
                     >
-                      <span className="text-yellow-400 mt-0.5">•</span>
+                      <span className="text-yellow-400 mt-0.5 text-xs">-</span>
                       <span>{factor}</span>
                     </li>
                   ))}

@@ -580,7 +580,7 @@ function PricingCard({
                   </span>
                   <span className="text-gray-500 font-mono text-sm">
                     {" "}
-                    · 5/month
+                    | 5/month
                   </span>
                 </>
               ) : (

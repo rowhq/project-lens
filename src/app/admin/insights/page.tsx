@@ -1012,7 +1012,10 @@ export default function AdminInsightsPage() {
                     </p>
                     <ul className="text-sm text-red-300 mt-1 space-y-1">
                       {importPreview.errors.map((error, i) => (
-                        <li key={i}>• {error}</li>
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-red-400 mt-0.5">-</span>
+                          <span>{error}</span>
+                        </li>
                       ))}
                     </ul>
                     <p className="text-xs text-gray-500 mt-2">
