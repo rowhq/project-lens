@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Loader2,
   RefreshCw,
+  ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
@@ -42,6 +43,7 @@ export default function SettingsPage() {
   const [cursorHistory, setCursorHistory] = useState<(string | undefined)[]>(
     [],
   );
+  const [isSeedingMarketplace, setIsSeedingMarketplace] = useState(false);
 
   // Queries
   const { data: featureFlags, refetch: refetchFlags } =
@@ -76,6 +78,37 @@ export default function SettingsPage() {
   const handleResetPagination = () => {
     setAuditCursor(undefined);
     setCursorHistory([]);
+  };
+
+  const handleSeedMarketplace = async () => {
+    setIsSeedingMarketplace(true);
+    try {
+      const response = await fetch("/api/admin/seed-marketplace", {
+        method: "POST",
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Marketplace seeded",
+          description: `Created ${data.created} listings, ${data.updated} already existed. Total: ${data.total}`,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to seed marketplace",
+          variant: "destructive",
+        });
+      }
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to seed marketplace",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSeedingMarketplace(false);
+    }
   };
 
   // Mutations
@@ -526,6 +559,45 @@ export default function SettingsPage() {
                   className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white font-mono text-sm uppercase clip-notch-sm transition-colors"
                 >
                   Clear
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Seed Data Section */}
+          <div className="relative bg-gray-950 border border-lime-900/50 p-6 clip-notch">
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-lime-400/30" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-lime-400/30" />
+
+            <div className="flex items-center gap-2 mb-4">
+              <ShoppingBag className="w-4 h-4 text-lime-400" />
+              <h3 className="font-mono text-sm uppercase tracking-wider text-lime-400">
+                Seed Data
+              </h3>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gray-900 border border-gray-800 clip-notch-sm">
+                <div>
+                  <p className="text-white font-medium">Seed Marketplace</p>
+                  <p className="text-gray-500 text-sm">
+                    Populate marketplace with 21 sample listings (Environmental,
+                    Surveys, Civil, Geotechnical, etc.)
+                  </p>
+                </div>
+                <button
+                  onClick={handleSeedMarketplace}
+                  disabled={isSeedingMarketplace}
+                  className="px-4 py-2 bg-lime-400/10 hover:bg-lime-400/20 text-lime-400 font-mono text-sm uppercase clip-notch-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isSeedingMarketplace ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Seeding...
+                    </>
+                  ) : (
+                    "Seed"
+                  )}
                 </button>
               </div>
 
