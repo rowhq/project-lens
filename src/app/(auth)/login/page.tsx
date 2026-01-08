@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, AlertCircle } from "lucide-react";
@@ -38,8 +38,24 @@ export default function LoginPage() {
         return;
       }
 
-      // Successful login - redirect
-      router.push(redirectUrl);
+      // Successful login - get session to determine redirect
+      const session = await getSession();
+
+      // If there's a specific redirect_url (not default), use it
+      const hasCustomRedirect = searchParams.get("redirect_url");
+      if (hasCustomRedirect) {
+        router.push(redirectUrl);
+      } else {
+        // Route based on user role
+        const role = session?.user?.role;
+        if (role === "APPRAISER") {
+          router.push("/appraiser/dashboard");
+        } else if (role === "ADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
+      }
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");

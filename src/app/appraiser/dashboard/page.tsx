@@ -211,17 +211,30 @@ function WeeklyStatCard({
 }
 
 export default function AppraiserDashboardPage() {
-  const { data: profile, isLoading: profileLoading } =
-    trpc.appraiser.profile.get.useQuery();
-  const { data: availableJobs, isLoading: jobsLoading } =
-    trpc.job.available.useQuery({ limit: 5 });
-  const { data: activeJobs, isLoading: activeLoading } =
-    trpc.job.myActive.useQuery();
-  const { data: earnings, isLoading: earningsLoading } =
-    trpc.appraiser.earnings.summary.useQuery();
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    isError: profileError,
+  } = trpc.appraiser.profile.get.useQuery();
+  const {
+    data: availableJobs,
+    isLoading: jobsLoading,
+    isError: jobsError,
+  } = trpc.job.available.useQuery({ limit: 5 });
+  const {
+    data: activeJobs,
+    isLoading: activeLoading,
+    isError: activeError,
+  } = trpc.job.myActive.useQuery();
+  const {
+    data: earnings,
+    isLoading: earningsLoading,
+    isError: earningsError,
+  } = trpc.appraiser.earnings.summary.useQuery();
 
   const isLoading =
     profileLoading || jobsLoading || activeLoading || earningsLoading;
+  const hasError = profileError || jobsError || activeError || earningsError;
 
   // Calculate unlocked badges based on stats
   const unlockedBadges = calculateUnlockedBadges({
@@ -399,6 +412,39 @@ export default function AppraiserDashboardPage() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (hasError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="relative bg-gray-950 border border-red-500/30 p-8 clip-notch text-center max-w-md">
+          <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-red-500" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-red-500" />
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">
+            Unable to load dashboard
+          </h2>
+          <p className="text-gray-400 mb-6 font-mono text-sm">
+            There was an error loading your data. Please try again.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className={cn(
+              "inline-flex items-center gap-2",
+              "bg-lime-400 text-black",
+              "px-6 py-3",
+              "font-mono text-sm uppercase tracking-wider",
+              "clip-notch-sm",
+              "hover:bg-lime-300",
+              "transition-colors duration-fast",
+            )}
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
