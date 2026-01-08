@@ -27,6 +27,31 @@ import { deleteFile } from "@/shared/lib/storage";
 // Note: Email sending and job dispatch are now handled by the Stripe webhook
 // to prevent race conditions between webhook and confirmPayment
 
+// Timeout helper for processAppraisal (25s to stay within Vercel's 30s limit)
+const PROCESS_TIMEOUT_MS = 25000;
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  timeoutError: string,
+): Promise<T> {
+  let timeoutId: NodeJS.Timeout;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(timeoutError));
+    }, timeoutMs);
+  });
+
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timeoutId!);
+    return result;
+  } catch (error) {
+    clearTimeout(timeoutId!);
+    throw error;
+  }
+}
+
 export const appraisalRouter = createTRPCRouter({
   /**
    * Get usage status - free reports remaining this month
@@ -447,12 +472,16 @@ export const appraisalRouter = createTRPCRouter({
         },
       });
 
-      // Process synchronously (required for Vercel serverless)
+      // Process synchronously with timeout (required for Vercel serverless)
       try {
         console.log(
-          `[QuickAIReport] Starting processAppraisal for ${appraisal.id}`,
+          `[QuickAIReport] Starting processAppraisal for ${appraisal.id} (timeout: ${PROCESS_TIMEOUT_MS}ms)`,
         );
-        const result = await processAppraisal(appraisal.id);
+        const result = await withTimeout(
+          processAppraisal(appraisal.id),
+          PROCESS_TIMEOUT_MS,
+          `Processing timeout exceeded (${PROCESS_TIMEOUT_MS}ms)`,
+        );
         console.log(
           `[QuickAIReport] processAppraisal result:`,
           JSON.stringify(result),

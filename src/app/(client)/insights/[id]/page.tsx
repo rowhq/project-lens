@@ -41,7 +41,7 @@ const MapView = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[300px] bg-gray-800 animate-pulse clip-notch" />
+      <div className="h-[300px] bg-[var(--secondary)] animate-pulse clip-notch" />
     ),
   },
 );
@@ -202,7 +202,7 @@ export default function InsightDetailPage({
     // Signal strength based on correlation
     const correlation = insight.correlation ?? 0;
     let signalStrength: "STRONG" | "MODERATE" | "WEAK" = "WEAK";
-    let signalColor = "text-gray-400";
+    let signalColor = "text-[var(--muted-foreground)]";
     let signalBars = 3;
 
     if (correlation >= 0.7) {
@@ -353,9 +353,9 @@ export default function InsightDetailPage({
   if (error || !insight) {
     return (
       <div className="text-center py-16">
-        <Activity className="w-16 h-16 mx-auto text-gray-600" />
+        <Activity className="w-16 h-16 mx-auto text-[var(--muted-foreground)]" />
         <h2 className="mt-4 text-xl font-bold text-white">Insight Not Found</h2>
-        <p className="text-gray-400 mt-2">
+        <p className="text-[var(--muted-foreground)] mt-2">
           The insight you&apos;re looking for doesn&apos;t exist or has been
           removed.
         </p>
@@ -391,29 +391,29 @@ export default function InsightDetailPage({
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm">
         <Link
           href="/dashboard"
-          className="text-gray-500 hover:text-white transition-colors flex items-center gap-1"
+          className="text-[var(--muted-foreground)] hover:text-white transition-colors flex items-center gap-1"
         >
           <Home className="w-4 h-4" />
           <span className="sr-only md:not-sr-only">Dashboard</span>
         </Link>
-        <ChevronRight className="w-4 h-4 text-gray-600" />
+        <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
         <Link
           href="/insights"
-          className="text-gray-500 hover:text-white transition-colors"
+          className="text-[var(--muted-foreground)] hover:text-white transition-colors"
         >
           Insights
         </Link>
-        <ChevronRight className="w-4 h-4 text-gray-600" />
+        <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
         <span className="text-lime-400 font-medium truncate max-w-[200px]">
           {insight.title}
         </span>
       </nav>
 
       {/* Header */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
+      <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch p-6">
         {/* L-Bracket Corners */}
-        <div className="absolute -top-px -left-px w-4 h-4 border-l-2 border-t-2 border-gray-700" />
-        <div className="absolute -bottom-px -right-px w-4 h-4 border-r-2 border-b-2 border-gray-700" />
+        <div className="absolute -top-px -left-px w-4 h-4 border-l-2 border-t-2 border-[var(--border)]" />
+        <div className="absolute -bottom-px -right-px w-4 h-4 border-r-2 border-b-2 border-[var(--border)]" />
 
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div className="flex items-start gap-4">
@@ -436,7 +436,7 @@ export default function InsightDetailPage({
               <h1 className="text-2xl font-bold text-white mt-2">
                 {insight.title}
               </h1>
-              <p className="text-gray-400 flex items-center gap-1 mt-1">
+              <p className="text-[var(--muted-foreground)] flex items-center gap-1 mt-1">
                 <MapPin className="w-4 h-4" />
                 {insight.city ? `${insight.city}, ` : ""}
                 {insight.county} County, {insight.state}
@@ -463,7 +463,7 @@ export default function InsightDetailPage({
                   block: "start",
                 });
               }}
-              className="px-4 py-2 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2"
+              className="px-4 py-2 border border-[var(--border)] clip-notch text-[var(--foreground)] font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] hover:border-lime-400/50 transition-colors flex items-center gap-2"
             >
               <MapPin className="w-4 h-4" />
               View Location
@@ -473,8 +473,8 @@ export default function InsightDetailPage({
       </div>
 
       {/* Impact Metrics */}
-      <div className="bg-gray-900 border border-gray-800 p-6 clip-notch">
-        <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+      <div className="bg-[var(--card)] border border-[var(--border)] p-6 clip-notch">
+        <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
           <BarChart3 className="w-4 h-4" />
           Impact Metrics
         </h2>
@@ -498,10 +498,10 @@ export default function InsightDetailPage({
                   )}
                 </span>
               ) : (
-                <span className="text-gray-500">—</span>
+                <span className="text-[var(--muted-foreground)]">—</span>
               )}
             </p>
-            <p className="text-sm text-gray-400 flex items-center gap-1">
+            <p className="text-sm text-[var(--muted-foreground)] flex items-center gap-1">
               <TrendingUp className="w-4 h-4" />
               Value Change
             </p>
@@ -510,7 +510,7 @@ export default function InsightDetailPage({
             <p className="text-3xl font-bold text-white font-mono">
               {insight.parcelsAffected?.toLocaleString() || "—"}
             </p>
-            <p className="text-sm text-gray-400 flex items-center gap-1">
+            <p className="text-sm text-[var(--muted-foreground)] flex items-center gap-1">
               <Target className="w-4 h-4" />
               Parcels Affected
             </p>
@@ -521,7 +521,7 @@ export default function InsightDetailPage({
                 ? `${insight.lagPeriodYears.toFixed(1)} yrs`
                 : "—"}
             </p>
-            <p className="text-sm text-gray-400 flex items-center gap-1">
+            <p className="text-sm text-[var(--muted-foreground)] flex items-center gap-1">
               <Clock className="w-4 h-4" />
               Appreciation Lag
             </p>
@@ -534,20 +534,20 @@ export default function InsightDetailPage({
                     ? "text-lime-400"
                     : insight.correlation > 0.3
                       ? "text-yellow-400"
-                      : "text-gray-400"
-                  : "text-gray-500"
+                      : "text-[var(--muted-foreground)]"
+                  : "text-[var(--muted-foreground)]"
               }`}
             >
               {insight.correlation !== null
                 ? insight.correlation.toFixed(2)
                 : "—"}
             </p>
-            <p className="text-sm text-gray-400 flex items-center gap-1">
+            <p className="text-sm text-[var(--muted-foreground)] flex items-center gap-1">
               <Activity className="w-4 h-4" />
               Correlation
               <span className="group relative">
-                <Info className="w-3 h-3 text-gray-600 cursor-help" />
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-xs text-gray-300 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                <Info className="w-3 h-3 text-[var(--muted-foreground)] cursor-help" />
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--secondary)] text-xs text-[var(--foreground)] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                   0-1 scale: higher = stronger relationship
                 </span>
               </span>
@@ -558,12 +558,12 @@ export default function InsightDetailPage({
 
       {/* Investment Analysis Section */}
       {investmentAnalysis && (
-        <div className="relative bg-gradient-to-r from-gray-900 to-gray-900/80 border border-gray-800 clip-notch p-6">
+        <div className="relative bg-gradient-to-r from-[var(--card)] to-[var(--card)]/80 border border-[var(--border)] clip-notch p-6">
           {/* L-Bracket Corners */}
           <div className="absolute -top-px -left-px w-4 h-4 border-l-2 border-t-2 border-lime-400/50" />
           <div className="absolute -bottom-px -right-px w-4 h-4 border-r-2 border-b-2 border-lime-400/50" />
 
-          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+          <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
             <Lightbulb className="w-4 h-4 text-lime-400" />
             Investment Analysis
           </h2>
@@ -571,7 +571,9 @@ export default function InsightDetailPage({
           {/* Signal Strength */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-sm text-gray-400">Signal Strength:</span>
+              <span className="text-sm text-[var(--muted-foreground)]">
+                Signal Strength:
+              </span>
               <div className="flex gap-0.5">
                 {[...Array(10)].map((_, i) => (
                   <div
@@ -593,7 +595,7 @@ export default function InsightDetailPage({
               >
                 {investmentAnalysis.signalStrength}
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-[var(--muted-foreground)]">
                 ({investmentAnalysis.correlation.toFixed(2)} correlation)
               </span>
             </div>
@@ -611,7 +613,7 @@ export default function InsightDetailPage({
                   {investmentAnalysis.positiveFactors.map((factor, index) => (
                     <li
                       key={index}
-                      className="flex items-start gap-2 text-sm text-gray-300"
+                      className="flex items-start gap-2 text-sm text-[var(--foreground)]"
                     >
                       <span className="text-lime-400 mt-0.5">•</span>
                       <span>{factor}</span>
@@ -632,7 +634,7 @@ export default function InsightDetailPage({
                   {investmentAnalysis.riskFactors.map((factor, index) => (
                     <li
                       key={index}
-                      className="flex items-start gap-2 text-sm text-gray-300"
+                      className="flex items-start gap-2 text-sm text-[var(--foreground)]"
                     >
                       <span className="text-yellow-400 mt-0.5">•</span>
                       <span>{factor}</span>
@@ -644,8 +646,8 @@ export default function InsightDetailPage({
           </div>
 
           {/* Key Takeaway */}
-          <div className="mt-6 pt-4 border-t border-gray-800">
-            <p className="text-sm text-gray-400">
+          <div className="mt-6 pt-4 border-t border-[var(--border)]">
+            <p className="text-sm text-[var(--muted-foreground)]">
               {insight.avgValueChange && insight.lagPeriodYears ? (
                 <>
                   Based on historical data, properties near this{" "}
@@ -673,15 +675,15 @@ export default function InsightDetailPage({
 
       {/* How This Project Compares */}
       {comparisonAnalysis && (
-        <div className="relative bg-gray-900 border border-gray-800 clip-notch p-6">
-          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+        <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch p-6">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)]" />
 
-          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+          <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             How This Project Compares
           </h2>
-          <p className="text-xs text-gray-500 mb-4">
+          <p className="text-xs text-[var(--muted-foreground)] mb-4">
             Compared to {similarInsights?.length || 0} similar{" "}
             {typeConfig.label.toLowerCase()} projects
           </p>
@@ -689,30 +691,32 @@ export default function InsightDetailPage({
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-800">
-                  <th className="py-2 px-3 text-left text-xs font-mono uppercase text-gray-500">
+                <tr className="border-b border-[var(--border)]">
+                  <th className="py-2 px-3 text-left text-xs font-mono uppercase text-[var(--muted-foreground)]">
                     Metric
                   </th>
-                  <th className="py-2 px-3 text-right text-xs font-mono uppercase text-gray-500">
+                  <th className="py-2 px-3 text-right text-xs font-mono uppercase text-[var(--muted-foreground)]">
                     This Project
                   </th>
-                  <th className="py-2 px-3 text-right text-xs font-mono uppercase text-gray-500">
+                  <th className="py-2 px-3 text-right text-xs font-mono uppercase text-[var(--muted-foreground)]">
                     Similar Avg
                   </th>
-                  <th className="py-2 px-3 text-right text-xs font-mono uppercase text-gray-500">
+                  <th className="py-2 px-3 text-right text-xs font-mono uppercase text-[var(--muted-foreground)]">
                     Difference
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/50">
+              <tbody className="divide-y divide-[var(--border)]/50">
                 <tr>
-                  <td className="py-2 px-3 text-gray-400">Value Change</td>
+                  <td className="py-2 px-3 text-[var(--muted-foreground)]">
+                    Value Change
+                  </td>
                   <td className="py-2 px-3 text-right font-mono text-white">
                     {comparisonAnalysis.valueChange.this !== null
                       ? `${comparisonAnalysis.valueChange.this > 0 ? "+" : ""}${comparisonAnalysis.valueChange.this.toFixed(1)}%`
                       : "—"}
                   </td>
-                  <td className="py-2 px-3 text-right font-mono text-gray-400">
+                  <td className="py-2 px-3 text-right font-mono text-[var(--muted-foreground)]">
                     {comparisonAnalysis.valueChange.avg > 0 ? "+" : ""}
                     {comparisonAnalysis.valueChange.avg.toFixed(1)}%
                   </td>
@@ -733,11 +737,13 @@ export default function InsightDetailPage({
                   </td>
                 </tr>
                 <tr>
-                  <td className="py-2 px-3 text-gray-400">Correlation</td>
+                  <td className="py-2 px-3 text-[var(--muted-foreground)]">
+                    Correlation
+                  </td>
                   <td className="py-2 px-3 text-right font-mono text-white">
                     {comparisonAnalysis.correlation.this?.toFixed(2) ?? "—"}
                   </td>
-                  <td className="py-2 px-3 text-right font-mono text-gray-400">
+                  <td className="py-2 px-3 text-right font-mono text-[var(--muted-foreground)]">
                     {comparisonAnalysis.correlation.avg.toFixed(2)}
                   </td>
                   <td
@@ -757,13 +763,15 @@ export default function InsightDetailPage({
                   </td>
                 </tr>
                 <tr>
-                  <td className="py-2 px-3 text-gray-400">Lag Period</td>
+                  <td className="py-2 px-3 text-[var(--muted-foreground)]">
+                    Lag Period
+                  </td>
                   <td className="py-2 px-3 text-right font-mono text-white">
                     {comparisonAnalysis.lag.this !== null
                       ? `${comparisonAnalysis.lag.this.toFixed(1)} yrs`
                       : "—"}
                   </td>
-                  <td className="py-2 px-3 text-right font-mono text-gray-400">
+                  <td className="py-2 px-3 text-right font-mono text-[var(--muted-foreground)]">
                     {comparisonAnalysis.lag.avg.toFixed(1)} yrs
                   </td>
                   <td
@@ -783,11 +791,13 @@ export default function InsightDetailPage({
                   </td>
                 </tr>
                 <tr>
-                  <td className="py-2 px-3 text-gray-400">Parcels Affected</td>
+                  <td className="py-2 px-3 text-[var(--muted-foreground)]">
+                    Parcels Affected
+                  </td>
                   <td className="py-2 px-3 text-right font-mono text-white">
                     {comparisonAnalysis.parcels.this?.toLocaleString() ?? "—"}
                   </td>
-                  <td className="py-2 px-3 text-right font-mono text-gray-400">
+                  <td className="py-2 px-3 text-right font-mono text-[var(--muted-foreground)]">
                     {Math.round(
                       comparisonAnalysis.parcels.avg,
                     ).toLocaleString()}
@@ -819,24 +829,26 @@ export default function InsightDetailPage({
       {/* Project Details Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Project Details */}
-        <div className="relative bg-gray-900 border border-gray-800 p-6 clip-notch">
-          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+        <div className="relative bg-[var(--card)] border border-[var(--border)] p-6 clip-notch">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)]" />
 
-          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+          <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
             <FileText className="w-4 h-4" />
             Project Details
           </h2>
           <dl className="space-y-3">
             {insight.projectYear && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Project Year</dt>
+                <dt className="text-[var(--muted-foreground)]">Project Year</dt>
                 <dd className="text-white font-mono">{insight.projectYear}</dd>
               </div>
             )}
             {insight.estimatedValue && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Estimated Value</dt>
+                <dt className="text-[var(--muted-foreground)]">
+                  Estimated Value
+                </dt>
                 <dd className="text-lime-400 font-mono">
                   {formatCurrency(insight.estimatedValue)}
                 </dd>
@@ -844,7 +856,9 @@ export default function InsightDetailPage({
             )}
             {insight.fundingAmount && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Funding Amount</dt>
+                <dt className="text-[var(--muted-foreground)]">
+                  Funding Amount
+                </dt>
                 <dd className="text-white font-mono">
                   {formatCurrency(insight.fundingAmount)}
                 </dd>
@@ -852,7 +866,7 @@ export default function InsightDetailPage({
             )}
             {insight.expectedROI !== null && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Expected ROI</dt>
+                <dt className="text-[var(--muted-foreground)]">Expected ROI</dt>
                 <dd className="text-lime-400 font-mono">
                   +{insight.expectedROI?.toFixed(1)}%
                 </dd>
@@ -860,25 +874,29 @@ export default function InsightDetailPage({
             )}
             {insight.impactRadiusMiles && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Impact Radius</dt>
+                <dt className="text-[var(--muted-foreground)]">
+                  Impact Radius
+                </dt>
                 <dd className="text-white font-mono">
                   {insight.impactRadiusMiles} miles
                 </dd>
               </div>
             )}
             <div className="flex justify-between">
-              <dt className="text-gray-500">Data Source</dt>
-              <dd className="text-gray-300 text-sm">{insight.source}</dd>
+              <dt className="text-[var(--muted-foreground)]">Data Source</dt>
+              <dd className="text-[var(--foreground)] text-sm">
+                {insight.source}
+              </dd>
             </div>
           </dl>
         </div>
 
         {/* Timeline */}
-        <div className="relative bg-gray-900 border border-gray-800 p-6 clip-notch">
-          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+        <div className="relative bg-[var(--card)] border border-[var(--border)] p-6 clip-notch">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)]" />
 
-          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+          <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             Timeline
           </h2>
@@ -888,7 +906,7 @@ export default function InsightDetailPage({
                 <div className="w-3 h-3 bg-blue-400 rounded-full" />
                 <div>
                   <p className="text-white font-medium">Announced</p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-[var(--muted-foreground)]">
                     {formatFullDate(insight.announcedAt)}
                   </p>
                 </div>
@@ -899,7 +917,7 @@ export default function InsightDetailPage({
                 <div className="w-3 h-3 bg-yellow-400 rounded-full" />
                 <div>
                   <p className="text-white font-medium">Expected Start</p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-[var(--muted-foreground)]">
                     {formatFullDate(insight.expectedStart)}
                   </p>
                 </div>
@@ -910,7 +928,7 @@ export default function InsightDetailPage({
                 <div className="w-3 h-3 bg-lime-400 rounded-full" />
                 <div>
                   <p className="text-white font-medium">Expected Completion</p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-[var(--muted-foreground)]">
                     {formatFullDate(insight.expectedEnd)}
                   </p>
                 </div>
@@ -919,13 +937,13 @@ export default function InsightDetailPage({
             {!insight.announcedAt &&
               !insight.expectedStart &&
               !insight.expectedEnd && (
-                <p className="text-gray-500 text-sm">
+                <p className="text-[var(--muted-foreground)] text-sm">
                   No timeline data available
                 </p>
               )}
             {insight.createdAt && (
-              <div className="pt-3 border-t border-gray-800">
-                <p className="text-xs text-gray-500">
+              <div className="pt-3 border-t border-[var(--border)]">
+                <p className="text-xs text-[var(--muted-foreground)]">
                   Added to database: {formatDate(insight.createdAt)}
                 </p>
               </div>
@@ -936,14 +954,14 @@ export default function InsightDetailPage({
 
       {/* Description */}
       {insight.description && (
-        <div className="relative bg-gray-900 border border-gray-800 p-6 clip-notch">
-          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+        <div className="relative bg-[var(--card)] border border-[var(--border)] p-6 clip-notch">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)]" />
 
-          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4">
+          <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
             Description
           </h2>
-          <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
+          <p className="text-[var(--foreground)] leading-relaxed whitespace-pre-wrap">
             {insight.description}
           </p>
         </div>
@@ -955,7 +973,7 @@ export default function InsightDetailPage({
           {insight.tags.map((tag, index) => (
             <span
               key={index}
-              className="px-3 py-1 bg-gray-800 text-gray-400 text-sm border border-gray-700 clip-notch"
+              className="px-3 py-1 bg-[var(--secondary)] text-[var(--muted-foreground)] text-sm border border-[var(--border)] clip-notch"
             >
               #{tag}
             </span>
@@ -967,13 +985,13 @@ export default function InsightDetailPage({
       {insight.latitude && insight.longitude && (
         <div
           ref={mapSectionRef}
-          className="relative bg-gray-900 border border-gray-800 clip-notch overflow-hidden"
+          className="relative bg-[var(--card)] border border-[var(--border)] clip-notch overflow-hidden"
         >
-          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700 z-10" />
-          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700 z-10" />
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)] z-10" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)] z-10" />
 
-          <div className="p-4 border-b border-gray-800">
-            <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 flex items-center gap-2">
+          <div className="p-4 border-b border-[var(--border)]">
+            <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-2">
               <MapPin className="w-4 h-4" />
               Location
             </h2>
@@ -985,7 +1003,7 @@ export default function InsightDetailPage({
             style={{ height: 300 }}
             showBaseLayerSwitcher
           />
-          <div className="p-3 bg-gray-800/50 text-xs text-gray-500 font-mono">
+          <div className="p-3 bg-[var(--secondary)]/50 text-xs text-[var(--muted-foreground)] font-mono">
             {insight.latitude.toFixed(6)}, {insight.longitude.toFixed(6)}
           </div>
         </div>
@@ -993,48 +1011,54 @@ export default function InsightDetailPage({
 
       {/* Affected Properties */}
       {affectedProperties && affectedProperties.stats.totalCount > 0 && (
-        <div className="relative bg-gray-900 border border-gray-800 p-6 clip-notch">
-          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+        <div className="relative bg-[var(--card)] border border-[var(--border)] p-6 clip-notch">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)]" />
 
-          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+          <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
             <Users className="w-4 h-4" />
             Affected Properties (
             {affectedProperties.stats.totalCount.toLocaleString()} parcels)
           </h2>
 
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-[var(--muted-foreground)] mb-4">
             Properties within {insight.impactRadiusMiles || 5} miles of this
             project
           </p>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="p-3 bg-gray-800/50 rounded">
+            <div className="p-3 bg-[var(--secondary)]/50 rounded">
               <p className="text-2xl font-bold text-lime-400 font-mono">
                 {formatCurrency(affectedProperties.stats.totalAssessedValue)}
               </p>
-              <p className="text-xs text-gray-500">Total Assessed Value</p>
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Total Assessed Value
+              </p>
             </div>
-            <div className="p-3 bg-gray-800/50 rounded">
+            <div className="p-3 bg-[var(--secondary)]/50 rounded">
               <p className="text-2xl font-bold text-white font-mono">
                 {affectedProperties.stats.totalCount.toLocaleString()}
               </p>
-              <p className="text-xs text-gray-500">Total Parcels</p>
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Total Parcels
+              </p>
             </div>
-            <div className="p-3 bg-gray-800/50 rounded">
+            <div className="p-3 bg-[var(--secondary)]/50 rounded">
               <p className="text-2xl font-bold text-white font-mono">
                 {affectedProperties.stats.avgLotSizeSqft > 0
                   ? `${(affectedProperties.stats.avgLotSizeSqft / 43560).toFixed(2)} ac`
                   : "—"}
               </p>
-              <p className="text-xs text-gray-500">Avg Lot Size</p>
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Avg Lot Size
+              </p>
             </div>
-            <div className="p-3 bg-gray-800/50 rounded">
+            <div className="p-3 bg-[var(--secondary)]/50 rounded">
               <p className="text-lg font-bold text-white font-mono truncate">
                 {affectedProperties.stats.zoningBreakdown[0]?.zoning || "—"}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[var(--muted-foreground)]">
                 Top Zoning (
                 {affectedProperties.stats.zoningBreakdown[0]?.percentage.toFixed(
                   0,
@@ -1047,22 +1071,22 @@ export default function InsightDetailPage({
           {/* Sample Properties */}
           {affectedProperties.properties.length > 0 && (
             <div className="space-y-2 mb-4">
-              <h3 className="text-xs font-mono uppercase text-gray-500">
+              <h3 className="text-xs font-mono uppercase text-[var(--muted-foreground)]">
                 Sample Properties
               </h3>
               <div className="space-y-2">
                 {affectedProperties.properties.map((property) => (
                   <div
                     key={property.parcelId}
-                    className="flex items-center justify-between p-3 bg-gray-800/30 rounded text-sm"
+                    className="flex items-center justify-between p-3 bg-[var(--secondary)]/30 rounded text-sm"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <MapPin className="w-4 h-4 text-gray-500 shrink-0" />
+                      <MapPin className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
                       <div className="min-w-0">
                         <p className="text-white truncate">
                           {property.addressLine1 || property.parcelId}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-[var(--muted-foreground)]">
                           {property.city}, {property.state} {property.zipCode}
                         </p>
                       </div>
@@ -1071,7 +1095,7 @@ export default function InsightDetailPage({
                       <p className="text-lime-400 font-mono">
                         {formatCurrency(property.assessedValue)}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-[var(--muted-foreground)]">
                         {property.zoning || "—"}
                       </p>
                     </div>
@@ -1082,7 +1106,7 @@ export default function InsightDetailPage({
           )}
 
           {/* CTAs */}
-          <div className="flex gap-3 pt-4 border-t border-gray-800">
+          <div className="flex gap-3 pt-4 border-t border-[var(--border)]">
             <Link
               href={`/map?lat=${insight.latitude}&lng=${insight.longitude}&zoom=13`}
               className="flex-1 px-4 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch flex items-center justify-center gap-2 hover:bg-lime-300 transition-colors"
@@ -1114,7 +1138,7 @@ export default function InsightDetailPage({
                 a.click();
                 URL.revokeObjectURL(url);
               }}
-              className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-gray-800 hover:border-lime-400/50 transition-colors"
+              className="px-4 py-2.5 border border-[var(--border)] clip-notch text-[var(--foreground)] font-mono text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[var(--secondary)] hover:border-lime-400/50 transition-colors"
             >
               <Download className="w-4 h-4" />
               Export
@@ -1125,11 +1149,11 @@ export default function InsightDetailPage({
 
       {/* Similar Projects */}
       {similarInsights && similarInsights.length > 0 && (
-        <div className="relative bg-gray-900 border border-gray-800 p-6 clip-notch">
-          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
+        <div className="relative bg-[var(--card)] border border-[var(--border)] p-6 clip-notch">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)]" />
 
-          <h2 className="font-mono text-sm uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+          <h2 className="font-mono text-sm uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
             <Sparkles className="w-4 h-4" />
             Similar Projects
           </h2>
@@ -1142,7 +1166,7 @@ export default function InsightDetailPage({
                 <Link
                   key={similar.id}
                   href={`/insights/${similar.id}`}
-                  className="p-4 bg-gray-800/50 border border-gray-700 clip-notch hover:border-lime-400/50 transition-colors group"
+                  className="p-4 bg-[var(--secondary)]/50 border border-[var(--border)] clip-notch hover:border-lime-400/50 transition-colors group"
                 >
                   <div className="flex items-start gap-3">
                     <div
@@ -1156,7 +1180,7 @@ export default function InsightDetailPage({
                       <p className="text-sm font-medium text-white truncate group-hover:text-lime-400 transition-colors">
                         {similar.title}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
+                      <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
                         {similar.city || similar.county}, {similar.state}
                       </p>
                       <div className="flex items-center gap-3 mt-2">
@@ -1173,7 +1197,7 @@ export default function InsightDetailPage({
                           </span>
                         )}
                         {similar.projectYear && (
-                          <span className="text-xs text-gray-500 font-mono">
+                          <span className="text-xs text-[var(--muted-foreground)] font-mono">
                             {similar.projectYear}
                           </span>
                         )}
@@ -1188,12 +1212,12 @@ export default function InsightDetailPage({
       )}
 
       {/* Footer Navigation */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-800">
+      <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
         {/* Previous Button */}
         {adjacentInsights?.prev ? (
           <Link
             href={`/insights/${adjacentInsights.prev.id}`}
-            className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2 group max-w-[40%]"
+            className="px-4 py-2.5 border border-[var(--border)] clip-notch text-[var(--foreground)] font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] hover:border-lime-400/50 transition-colors flex items-center gap-2 group max-w-[40%]"
           >
             <ChevronLeft className="w-4 h-4 shrink-0 group-hover:-translate-x-1 transition-transform" />
             <span className="truncate hidden sm:inline">
@@ -1204,7 +1228,7 @@ export default function InsightDetailPage({
         ) : (
           <Link
             href="/insights"
-            className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2 group"
+            className="px-4 py-2.5 border border-[var(--border)] clip-notch text-[var(--foreground)] font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] hover:border-lime-400/50 transition-colors flex items-center gap-2 group"
           >
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             All Insights
@@ -1214,7 +1238,7 @@ export default function InsightDetailPage({
         {/* Center - Back to list */}
         <Link
           href="/insights"
-          className="text-xs text-gray-500 hover:text-lime-400 transition-colors hidden md:block"
+          className="text-xs text-[var(--muted-foreground)] hover:text-lime-400 transition-colors hidden md:block"
         >
           View all insights
         </Link>
@@ -1223,7 +1247,7 @@ export default function InsightDetailPage({
         {adjacentInsights?.next ? (
           <Link
             href={`/insights/${adjacentInsights.next.id}`}
-            className="px-4 py-2.5 border border-gray-700 clip-notch text-gray-300 font-mono text-sm uppercase tracking-wider hover:bg-gray-800 hover:border-lime-400/50 transition-colors flex items-center gap-2 group max-w-[40%]"
+            className="px-4 py-2.5 border border-[var(--border)] clip-notch text-[var(--foreground)] font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] hover:border-lime-400/50 transition-colors flex items-center gap-2 group max-w-[40%]"
           >
             <span className="truncate hidden sm:inline">
               {adjacentInsights.next.title}

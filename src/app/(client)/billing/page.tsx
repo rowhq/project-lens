@@ -16,6 +16,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { EmptyState } from "@/shared/components/common/EmptyState";
+import { Progress } from "@/shared/components/ui/Progress";
 
 const plans = [
   {
@@ -80,11 +81,19 @@ export default function BillingPage() {
 
   // Queries
   const { data: subscription } = trpc.billing.subscription.get.useQuery();
-  const { data: invoicesData } = trpc.billing.invoices.list.useQuery({
-    limit: 10,
-  });
-  const invoices = invoicesData?.items || [];
-  const stripeInvoices = invoicesData?.stripeInvoices || [];
+  const {
+    data: invoicesData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = trpc.billing.invoices.list.useInfiniteQuery(
+    { limit: 10 },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    },
+  );
+  const invoices = invoicesData?.pages.flatMap((page) => page.items) || [];
+  const stripeInvoices = invoicesData?.pages[0]?.stripeInvoices || [];
   const { data: paymentMethods, refetch: refetchPaymentMethods } =
     trpc.billing.paymentMethods.list.useQuery();
   const { data: usage } = trpc.billing.usage.useQuery();
@@ -202,6 +211,15 @@ export default function BillingPage() {
   };
 
   const handleSaveBillingInfo = () => {
+    // Validate email format if provided
+    if (displayBillingEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(displayBillingEmail)) {
+        showFeedback("error", "Please enter a valid email address");
+        return;
+      }
+    }
+
     updateBillingInfo.mutate({
       companyName: displayCompanyName || undefined,
       billingEmail: displayBillingEmail || undefined,
@@ -268,7 +286,7 @@ export default function BillingPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Billing</h1>
-        <p className="text-gray-400">
+        <p className="text-[var(--muted-foreground)]">
           Manage your subscription and payment methods
         </p>
       </div>
@@ -311,6 +329,49 @@ export default function BillingPage() {
                   ? "50"
                   : "5"}
             </p>
+            {currentPlan !== "ENTERPRISE" && (
+              <div className="mt-2 space-y-1">
+                <Progress
+                  value={usage?.aiReports || 0}
+                  max={currentPlan === "PROFESSIONAL" ? 50 : 5}
+                  size="sm"
+                  variant={
+                    (usage?.aiReports || 0) /
+                      (currentPlan === "PROFESSIONAL" ? 50 : 5) >=
+                    0.9
+                      ? "error"
+                      : (usage?.aiReports || 0) /
+                            (currentPlan === "PROFESSIONAL" ? 50 : 5) >=
+                          0.75
+                        ? "warning"
+                        : "default"
+                  }
+                />
+                <p className="text-xs text-black/50">
+                  Resets{" "}
+                  {usage?.billingPeriod?.end
+                    ? new Date(usage.billingPeriod.end).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )
+                    : "monthly"}
+                </p>
+                {(usage?.aiReports || 0) /
+                  (currentPlan === "PROFESSIONAL" ? 50 : 5) >=
+                  0.9 &&
+                  currentPlan !== "PROFESSIONAL" && (
+                    <button
+                      onClick={() => handleUpgrade("professional")}
+                      className="text-xs text-lime-600 hover:text-lime-700 font-medium"
+                    >
+                      Upgrade for more →
+                    </button>
+                  )}
+              </div>
+            )}
           </div>
           <div className="bg-black/10 clip-notch-sm p-4">
             <p className="text-black/60 text-xs font-mono uppercase tracking-wider">
@@ -337,7 +398,7 @@ export default function BillingPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-700">
+      <div className="border-b border-[var(--border)]">
         <nav className="flex gap-6">
           {[
             { id: "overview", label: "Plans" },
@@ -350,7 +411,7 @@ export default function BillingPage() {
               className={`pb-3 font-mono text-sm uppercase tracking-wider border-b-2 -mb-px transition-colors ${
                 activeTab === tab.id
                   ? "border-lime-400 text-lime-400"
-                  : "border-transparent text-gray-400 hover:text-white"
+                  : "border-transparent text-[var(--muted-foreground)] hover:text-white"
               }`}
             >
               {tab.label}
@@ -367,10 +428,10 @@ export default function BillingPage() {
             return (
               <div
                 key={plan.id}
-                className={`relative bg-gray-900 clip-notch border p-6 ${
+                className={`relative bg-[var(--card)] clip-notch border p-6 ${
                   plan.popular
                     ? "border-lime-400 ring-1 ring-lime-400/50"
-                    : "border-gray-800"
+                    : "border-[var(--border)]"
                 }`}
               >
                 {plan.popular && (
@@ -381,18 +442,20 @@ export default function BillingPage() {
                 <h3 className="text-xl font-semibold text-white">
                   {plan.name}
                 </h3>
-                <p className="text-gray-400 text-sm mt-1">{plan.description}</p>
+                <p className="text-[var(--muted-foreground)] text-sm mt-1">
+                  {plan.description}
+                </p>
                 <div className="mt-4">
                   <span className="text-4xl font-bold text-white">
                     ${plan.price}
                   </span>
-                  <span className="text-gray-500">/month</span>
+                  <span className="text-[var(--muted-foreground)]">/month</span>
                 </div>
                 <ul className="mt-6 space-y-3">
                   {plan.features.map((feature) => (
                     <li
                       key={feature}
-                      className="flex items-center gap-2 text-sm text-gray-400"
+                      className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]"
                     >
                       <Check className="w-4 h-4 text-lime-400" />
                       {feature}
@@ -404,10 +467,10 @@ export default function BillingPage() {
                   disabled={isCurrentPlan || upgradePlan.isPending}
                   className={`w-full mt-6 py-2.5 clip-notch font-mono text-sm uppercase tracking-wider transition-colors flex items-center justify-center gap-2 ${
                     isCurrentPlan
-                      ? "bg-gray-800 text-gray-500 cursor-default"
+                      ? "bg-[var(--secondary)] text-[var(--muted-foreground)] cursor-default"
                       : plan.popular
                         ? "bg-lime-400 text-black hover:bg-lime-300"
-                        : "border border-gray-700 text-white hover:bg-gray-800"
+                        : "border border-[var(--border)] text-white hover:bg-[var(--secondary)]"
                   }`}
                 >
                   {upgradePlan.isPending && !isCurrentPlan ? (
@@ -427,30 +490,30 @@ export default function BillingPage() {
 
       {/* Invoices */}
       {activeTab === "invoices" && (
-        <div className="relative bg-gray-900 clip-notch border border-gray-800 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+        <div className="relative bg-[var(--card)] clip-notch border border-[var(--border)] overflow-hidden">
+          <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
             <h3 className="font-semibold text-white">Invoice History</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px]">
-              <thead className="bg-gray-800">
+              <thead className="bg-[var(--secondary)]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-gray-400">
+                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
                     Invoice
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-gray-400">
+                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-gray-400">
+                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-gray-400">
+                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-gray-400"></th>
+                  <th className="px-6 py-3 text-left text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-[var(--border)]">
                 {allInvoices.length === 0 ? (
                   <tr>
                     <td colSpan={5}>
@@ -463,17 +526,20 @@ export default function BillingPage() {
                   </tr>
                 ) : (
                   allInvoices.map((invoice) => (
-                    <tr key={invoice.id} className="hover:bg-gray-800/50">
+                    <tr
+                      key={invoice.id}
+                      className="hover:bg-[var(--secondary)]/50"
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-gray-500" />
+                          <FileText className="w-4 h-4 text-[var(--muted-foreground)]" />
                           <span className="font-mono text-sm text-white">
                             {invoice.number ||
                               `INV-${invoice.id.slice(-8).toUpperCase()}`}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-400">
+                      <td className="px-6 py-4 text-sm text-[var(--muted-foreground)]">
                         {new Date(invoice.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 font-medium text-white font-mono">
@@ -518,7 +584,9 @@ export default function BillingPage() {
                             PDF
                           </button>
                         ) : (
-                          <span className="text-gray-500 text-sm">-</span>
+                          <span className="text-[var(--muted-foreground)] text-sm">
+                            -
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -527,14 +595,32 @@ export default function BillingPage() {
               </tbody>
             </table>
           </div>
+          {hasNextPage && (
+            <div className="px-6 py-4 border-t border-[var(--border)] flex justify-center">
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="flex items-center gap-2 px-4 py-2 text-lime-400 hover:text-lime-300 font-mono text-sm uppercase tracking-wider disabled:opacity-50"
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Load More Invoices"
+                )}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
       {/* Payment Methods */}
       {activeTab === "methods" && (
         <div className="space-y-6">
-          <div className="relative bg-gray-900 clip-notch border border-gray-800">
-            <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+          <div className="relative bg-[var(--card)] clip-notch border border-[var(--border)]">
+            <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
               <h3 className="font-semibold text-white">Payment Methods</h3>
               <button
                 onClick={() => setShowAddPaymentModal(true)}
@@ -544,7 +630,7 @@ export default function BillingPage() {
                 Add Method
               </button>
             </div>
-            <div className="divide-y divide-gray-800">
+            <div className="divide-y divide-[var(--border)]">
               {!paymentMethods || paymentMethods.length === 0 ? (
                 <EmptyState
                   icon={CreditCard}
@@ -562,14 +648,14 @@ export default function BillingPage() {
                     className="px-6 py-4 flex items-center justify-between"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-8 bg-gray-800 clip-notch-sm flex items-center justify-center">
-                        <CreditCard className="w-5 h-5 text-gray-400" />
+                      <div className="w-12 h-8 bg-[var(--secondary)] clip-notch-sm flex items-center justify-center">
+                        <CreditCard className="w-5 h-5 text-[var(--muted-foreground)]" />
                       </div>
                       <div>
                         <p className="font-medium text-white capitalize">
                           {method.brand} ending in {method.last4}
                         </p>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-[var(--muted-foreground)]">
                           Expires {method.expMonth}/{method.expYear}
                         </p>
                       </div>
@@ -582,7 +668,7 @@ export default function BillingPage() {
                       )}
                       <button
                         onClick={() => setShowRemoveConfirm(method.id)}
-                        className="text-gray-400 hover:text-red-500 text-sm"
+                        className="text-[var(--muted-foreground)] hover:text-red-500 text-sm"
                       >
                         Remove
                       </button>
@@ -594,13 +680,13 @@ export default function BillingPage() {
           </div>
 
           {/* Billing Info */}
-          <div className="relative bg-gray-900 clip-notch border border-gray-800 p-6">
+          <div className="relative bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
             <h3 className="font-semibold text-white mb-4">
               Billing Information
             </h3>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-sm font-mono uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
                   Company Name
                 </label>
                 <input
@@ -608,11 +694,11 @@ export default function BillingPage() {
                   value={displayCompanyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder="Your company name"
-                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                  className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-sm font-mono uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
                   Billing Email
                 </label>
                 <input
@@ -620,11 +706,11 @@ export default function BillingPage() {
                   value={displayBillingEmail}
                   onChange={(e) => setBillingEmail(e.target.value)}
                   placeholder="billing@company.com"
-                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                  className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
                 />
               </div>
               <div className="col-span-2">
-                <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-sm font-mono uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
                   Billing Address
                 </label>
                 <input
@@ -632,14 +718,14 @@ export default function BillingPage() {
                   value={displayBillingAddress}
                   onChange={(e) => setBillingAddress(e.target.value)}
                   placeholder="123 Main Street, Austin, TX 78701"
-                  className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                  className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
                 />
               </div>
             </div>
             <button
               onClick={handleSaveBillingInfo}
               disabled={!hasChanges || updateBillingInfo.isPending}
-              className="mt-4 px-5 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+              className="mt-4 px-5 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:bg-[var(--muted)] disabled:text-[var(--muted-foreground)] disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
             >
               {updateBillingInfo.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -655,16 +741,17 @@ export default function BillingPage() {
       {/* Add Payment Method Modal */}
       {showAddPaymentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 clip-notch border border-gray-700 w-full max-w-md p-6">
+          <div className="bg-[var(--card)] clip-notch border border-[var(--border)] w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-white">
                 Add Payment Method
               </h2>
               <button
                 onClick={() => setShowAddPaymentModal(false)}
-                className="p-2 hover:bg-gray-800 clip-notch-sm"
+                className="p-2 hover:bg-[var(--secondary)] clip-notch-sm"
+                aria-label="Close add payment modal"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5 text-[var(--muted-foreground)]" />
               </button>
             </div>
 
@@ -673,14 +760,14 @@ export default function BillingPage() {
                 <AlertCircle className="w-5 h-5 text-lime-400 mt-0.5" />
                 <div>
                   <p className="text-sm text-white">Secure Payment</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-[var(--muted-foreground)]">
                     Your payment information is securely processed by Stripe. We
                     never store your card details.
                   </p>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-[var(--muted-foreground)]">
                 Click below to securely add a payment method through Stripe.
               </p>
             </div>
@@ -688,7 +775,7 @@ export default function BillingPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowAddPaymentModal(false)}
-                className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
+                className="flex-1 px-4 py-2.5 border border-[var(--border)] clip-notch font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] text-white transition-colors"
               >
                 Cancel
               </button>
@@ -714,7 +801,7 @@ export default function BillingPage() {
       {/* Remove Payment Method Confirmation Modal */}
       {showRemoveConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 clip-notch border border-gray-700 w-full max-w-sm p-6">
+          <div className="bg-[var(--card)] clip-notch border border-[var(--border)] w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-red-500/10 clip-notch-sm flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -724,7 +811,7 @@ export default function BillingPage() {
               </h2>
             </div>
 
-            <p className="text-gray-400 mb-6">
+            <p className="text-[var(--muted-foreground)] mb-6">
               Are you sure you want to remove this payment method? If this is
               your only payment method, you may need to add a new one for future
               payments.
@@ -733,7 +820,7 @@ export default function BillingPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowRemoveConfirm(null)}
-                className="flex-1 px-4 py-2.5 border border-gray-700 clip-notch font-mono text-sm uppercase tracking-wider hover:bg-gray-800 text-white transition-colors"
+                className="flex-1 px-4 py-2.5 border border-[var(--border)] clip-notch font-mono text-sm uppercase tracking-wider hover:bg-[var(--secondary)] text-white transition-colors"
               >
                 Cancel
               </button>

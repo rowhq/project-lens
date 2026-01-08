@@ -634,6 +634,18 @@ export const billingRouter = createTRPCRouter({
           });
         }
 
+        // Security: Verify admin can only refund payments from their organization
+        // SUPER_ADMIN can refund any organization, regular ADMIN only their own
+        if (
+          ctx.user.role !== "SUPER_ADMIN" &&
+          payment.organizationId !== ctx.organization?.id
+        ) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only refund payments from your organization",
+          });
+        }
+
         if (payment.type !== "CHARGE" || payment.status !== "COMPLETED") {
           throw new TRPCError({
             code: "BAD_REQUEST",

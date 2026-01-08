@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { trpc } from "@/shared/lib/trpc";
 import {
   Plus,
@@ -22,6 +23,9 @@ import {
   SkeletonTable,
 } from "@/shared/components/ui/Skeleton";
 import { useToast } from "@/shared/components/ui/Toast";
+import { ConfirmationModal } from "@/shared/components/ui/ConfirmationModal";
+import { EmptyState } from "@/shared/components/ui/EmptyState";
+import { useKeyboardShortcuts } from "@/shared/hooks";
 
 // Match Prisma AppraisalStatus enum
 type AppraisalStatus =
@@ -38,7 +42,7 @@ const statusConfig: Record<
 > = {
   DRAFT: {
     label: "Draft",
-    color: "bg-gray-500/20 text-gray-400",
+    color: "bg-gray-500/20 text-[var(--muted-foreground)]",
     icon: FileText,
   },
   QUEUED: {
@@ -63,22 +67,58 @@ const statusConfig: Record<
   },
   EXPIRED: {
     label: "Expired",
-    color: "bg-gray-500/20 text-gray-400",
+    color: "bg-gray-500/20 text-[var(--muted-foreground)]",
     icon: AlertCircle,
   },
 };
 
 export default function AppraisalsPage() {
+  const router = useRouter();
   const toast = useToast();
   const utils = trpc.useUtils();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<AppraisalStatus | "ALL">(
     "ALL",
+  );
+  const [dateFilter, setDateFilter] = useState<"all" | "7d" | "30d" | "90d">(
+    "all",
   );
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: "/",
+      handler: () => searchInputRef.current?.focus(),
+      description: "Focus search",
+    },
+    {
+      key: "n",
+      handler: () => router.push("/appraisals/new"),
+      description: "New appraisal",
+    },
+    {
+      key: "Escape",
+      handler: () => {
+        searchInputRef.current?.blur();
+        setSelectedIds(new Set());
+      },
+      description: "Clear selection",
+      allowInInput: true,
+    },
+  ]);
+
+  // Confirmation modal state
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    appraisalId: string;
+    referenceCode: string;
+  }>({ isOpen: false, appraisalId: "", referenceCode: "" });
+  const [bulkDeleteModal, setBulkDeleteModal] = useState(false);
 
   const { data: appraisals, isLoading } = trpc.appraisal.list.useQuery({
     limit: 50,
@@ -130,26 +170,24 @@ export default function AppraisalsPage() {
   };
 
   const handleDelete = (appraisalId: string, referenceCode: string) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete appraisal ${referenceCode}? This action cannot be undone.`,
-      )
-    ) {
-      setDeletingId(appraisalId);
-      deleteMutation.mutate({ id: appraisalId });
-    }
+    setDeleteModal({ isOpen: true, appraisalId, referenceCode });
+  };
+
+  const confirmDelete = () => {
+    setDeletingId(deleteModal.appraisalId);
+    deleteMutation.mutate({ id: deleteModal.appraisalId });
+    setDeleteModal({ isOpen: false, appraisalId: "", referenceCode: "" });
   };
 
   const handleBulkDelete = () => {
     if (selectedIds.size === 0) return;
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${selectedIds.size} appraisal${selectedIds.size > 1 ? "s" : ""}? This action cannot be undone.`,
-      )
-    ) {
-      setIsBulkDeleting(true);
-      bulkDeleteMutation.mutate({ ids: Array.from(selectedIds) });
-    }
+    setBulkDeleteModal(true);
+  };
+
+  const confirmBulkDelete = () => {
+    setIsBulkDeleting(true);
+    bulkDeleteMutation.mutate({ ids: Array.from(selectedIds) });
+    setBulkDeleteModal(false);
   };
 
   const handleSelectAll = (checked: boolean) => {
@@ -170,13 +208,30 @@ export default function AppraisalsPage() {
     setSelectedIds(newSelected);
   };
 
-  const filteredAppraisals = appraisals?.items.filter(
-    (a) =>
+  const filteredAppraisals = appraisals?.items.filter((a) => {
+    // Search filter
+    const matchesSearch =
       a.property?.addressFull
         ?.toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
-      a.referenceCode.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+      a.referenceCode.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Date filter
+    let matchesDate = true;
+    if (dateFilter !== "all") {
+      const now = new Date();
+      const createdAt = new Date(a.createdAt);
+      const daysAgo = {
+        "7d": 7,
+        "30d": 30,
+        "90d": 90,
+      }[dateFilter];
+      const cutoff = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+      matchesDate = createdAt >= cutoff;
+    }
+
+    return matchesSearch && matchesDate;
+  });
 
   const allSelected =
     filteredAppraisals &&
@@ -210,11 +265,13 @@ export default function AppraisalsPage() {
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
           <input
+            ref={searchInputRef}
             type="text"
-            placeholder="Search by address or reference..."
+            placeholder="Search by address or reference... (Press / to focus)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-700 clip-notch bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+            aria-label="Search appraisals by address or reference code"
+            className="w-full pl-10 pr-4 py-2.5 border border-[var(--border)] clip-notch bg-[var(--card)] text-[var(--foreground)] font-mono text-sm focus:outline-none focus:border-lime-400/50"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -224,7 +281,7 @@ export default function AppraisalsPage() {
             onChange={(e) =>
               setStatusFilter(e.target.value as AppraisalStatus | "ALL")
             }
-            className="border border-gray-700 clip-notch-sm px-4 py-2.5 bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+            className="border border-[var(--border)] clip-notch-sm px-4 py-2.5 bg-[var(--card)] text-[var(--foreground)] font-mono text-sm focus:outline-none focus:border-lime-400/50"
           >
             <option value="ALL">All Status</option>
             <option value="DRAFT">Draft</option>
@@ -232,6 +289,18 @@ export default function AppraisalsPage() {
             <option value="RUNNING">Processing</option>
             <option value="READY">Ready</option>
             <option value="FAILED">Failed</option>
+          </select>
+          <select
+            value={dateFilter}
+            onChange={(e) =>
+              setDateFilter(e.target.value as "all" | "7d" | "30d" | "90d")
+            }
+            className="border border-[var(--border)] clip-notch-sm px-4 py-2.5 bg-[var(--card)] text-[var(--foreground)] font-mono text-sm focus:outline-none focus:border-lime-400/50"
+          >
+            <option value="all">All Time</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
           </select>
         </div>
         {someSelected && (
@@ -255,18 +324,18 @@ export default function AppraisalsPage() {
         <SkeletonStats count={4} />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="relative bg-[var(--card)] p-4 clip-notch border border-[var(--border)]">
             <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-lime-400" />
-            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+            <p className="text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
               Total Appraisals
             </p>
             <p className="text-2xl font-bold text-white mt-1">
               {appraisals?.items?.length || 0}
             </p>
           </div>
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="relative bg-[var(--card)] p-4 clip-notch border border-[var(--border)]">
             <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-yellow-400" />
-            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+            <p className="text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
               Processing
             </p>
             <p className="text-2xl font-bold text-yellow-400 mt-1">
@@ -276,9 +345,9 @@ export default function AppraisalsPage() {
               ).length || 0}
             </p>
           </div>
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="relative bg-[var(--card)] p-4 clip-notch border border-[var(--border)]">
             <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-green-400" />
-            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+            <p className="text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
               Ready
             </p>
             <p className="text-2xl font-bold text-green-400 mt-1">
@@ -287,9 +356,9 @@ export default function AppraisalsPage() {
               ).length || 0}
             </p>
           </div>
-          <div className="relative bg-gray-900 p-4 clip-notch border border-gray-800">
+          <div className="relative bg-[var(--card)] p-4 clip-notch border border-[var(--border)]">
             <div className="absolute -top-px -left-px w-2 h-2 border-l border-t border-lime-400" />
-            <p className="text-xs font-mono uppercase tracking-wider text-gray-500">
+            <p className="text-xs font-mono uppercase tracking-wider text-[var(--muted-foreground)]">
               This Month
             </p>
             <p className="text-2xl font-bold text-lime-400 mt-1">
@@ -310,7 +379,7 @@ export default function AppraisalsPage() {
       {isLoading ? (
         <SkeletonTable rows={5} columns={7} />
       ) : (
-        <div className="relative bg-gray-900 clip-notch border border-gray-800 overflow-hidden overflow-x-auto">
+        <div className="relative bg-[var(--card)] clip-notch border border-[var(--border)] overflow-hidden overflow-x-auto">
           <table className="w-full min-w-[800px]">
             <thead className="bg-[var(--secondary)] border-b border-[var(--border)]">
               <tr>
@@ -319,7 +388,8 @@ export default function AppraisalsPage() {
                     type="checkbox"
                     checked={allSelected}
                     onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-lime-400 focus:ring-lime-400 focus:ring-offset-gray-900"
+                    aria-label="Select all appraisals"
+                    className="w-4 h-4 rounded border-[var(--border)] bg-[var(--secondary)] text-lime-400 focus:ring-lime-400"
                   />
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase">
@@ -346,12 +416,17 @@ export default function AppraisalsPage() {
             <tbody className="divide-y divide-[var(--border)]">
               {filteredAppraisals?.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-6 py-12 text-center text-[var(--muted-foreground)]"
-                  >
-                    No appraisals found. Create your first appraisal to get
-                    started.
+                  <td colSpan={8}>
+                    <EmptyState
+                      icon={FileText}
+                      title="No appraisals found"
+                      description="Create your first appraisal to get started with property valuations."
+                      action={{
+                        label: "New Appraisal",
+                        href: "/appraisals/new",
+                      }}
+                      size="sm"
+                    />
                   </td>
                 </tr>
               ) : (
@@ -369,10 +444,11 @@ export default function AppraisalsPage() {
                         <input
                           type="checkbox"
                           checked={isSelected}
+                          aria-label={`Select appraisal ${appraisal.referenceCode}`}
                           onChange={(e) =>
                             handleSelectOne(appraisal.id, e.target.checked)
                           }
-                          className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-lime-400 focus:ring-lime-400 focus:ring-offset-gray-900"
+                          className="w-4 h-4 rounded border-[var(--border)] bg-[var(--secondary)] text-lime-400 focus:ring-lime-400"
                         />
                       </td>
                       <td className="px-6 py-4">
@@ -475,6 +551,34 @@ export default function AppraisalsPage() {
           </table>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() =>
+          setDeleteModal({ isOpen: false, appraisalId: "", referenceCode: "" })
+        }
+        onConfirm={confirmDelete}
+        title="Delete Appraisal"
+        message={`Are you sure you want to delete appraisal ${deleteModal.referenceCode}? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deletingId === deleteModal.appraisalId}
+      />
+
+      {/* Bulk Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={bulkDeleteModal}
+        onClose={() => setBulkDeleteModal(false)}
+        onConfirm={confirmBulkDelete}
+        title="Delete Multiple Appraisals"
+        message={`Are you sure you want to delete ${selectedIds.size} appraisal${selectedIds.size > 1 ? "s" : ""}? This action cannot be undone.`}
+        confirmText={`Delete ${selectedIds.size}`}
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isBulkDeleting}
+      />
     </div>
   );
 }

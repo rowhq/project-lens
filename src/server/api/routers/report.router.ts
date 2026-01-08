@@ -12,6 +12,7 @@ import {
 } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import * as storage from "@/shared/lib/storage";
 import { sendReportEmail } from "@/shared/lib/resend";
 import { processAppraisal } from "@/server/services/appraisal-processor";
@@ -247,9 +248,9 @@ export const reportRouter = createTRPCRouter({
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + input.expiresInDays);
 
-      // Hash password if provided
+      // Hash password if provided (using bcrypt for security)
       const passwordHash = input.password
-        ? crypto.createHash("sha256").update(input.password).digest("hex")
+        ? bcrypt.hashSync(input.password, 10)
         : null;
 
       // Create share link in database
@@ -333,12 +334,8 @@ export const reportRouter = createTRPCRouter({
           };
         }
 
-        const passwordHash = crypto
-          .createHash("sha256")
-          .update(input.password)
-          .digest("hex");
-
-        if (passwordHash !== shareLink.password) {
+        // Verify password using bcrypt
+        if (!bcrypt.compareSync(input.password, shareLink.password)) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "Incorrect password",
@@ -435,12 +432,8 @@ export const reportRouter = createTRPCRouter({
           });
         }
 
-        const passwordHash = crypto
-          .createHash("sha256")
-          .update(input.password)
-          .digest("hex");
-
-        if (passwordHash !== shareLink.password) {
+        // Verify password using bcrypt
+        if (!bcrypt.compareSync(input.password, shareLink.password)) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "Incorrect password",

@@ -23,571 +23,18 @@ import {
   Phone,
   Mail,
   Copy,
-  X,
-  Link as LinkIcon,
-  Send,
-  Check,
-  Lock,
   Camera,
   Truck,
   Trash2,
   Loader2,
   Award,
+  Check,
 } from "lucide-react";
 import { Skeleton } from "@/shared/components/ui/Skeleton";
+import { SLAProgressTracker, ShareModal, EmailModal } from "./_components";
 
 interface PageProps {
   params: Promise<{ id: string }>;
-}
-
-// SLA Progress Tracker Component
-function SLAProgressTracker({
-  appraisal,
-  job,
-}: {
-  appraisal: {
-    status: string;
-    requestedType: string;
-    createdAt: Date;
-  };
-  job?: {
-    status: string;
-    slaDueAt: Date | null;
-    startedAt: Date | null;
-    submittedAt: Date | null;
-  };
-}) {
-  const [timeLeft, setTimeLeft] = useState<string>("");
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const calculateProgress = () => {
-      const now = new Date();
-      const createdAt = new Date(appraisal.createdAt);
-
-      // Expected hours based on type
-      const expectedHours =
-        appraisal.requestedType === "AI_REPORT"
-          ? 1
-          : appraisal.requestedType === "AI_REPORT_WITH_ONSITE"
-            ? 48
-            : 72;
-
-      const expectedCompletion = new Date(
-        createdAt.getTime() + expectedHours * 60 * 60 * 1000,
-      );
-      const totalDuration = expectedCompletion.getTime() - createdAt.getTime();
-      const elapsed = now.getTime() - createdAt.getTime();
-      const remaining = expectedCompletion.getTime() - now.getTime();
-
-      // Calculate progress (0-100)
-      const progressPct = Math.min(
-        100,
-        Math.max(0, (elapsed / totalDuration) * 100),
-      );
-      setProgress(progressPct);
-
-      // Calculate time remaining
-      if (remaining <= 0) {
-        setTimeLeft("Overdue");
-      } else {
-        const hours = Math.floor(remaining / (1000 * 60 * 60));
-        const minutes = Math.floor(
-          (remaining % (1000 * 60 * 60)) / (1000 * 60),
-        );
-        if (hours >= 24) {
-          const days = Math.floor(hours / 24);
-          const hrs = hours % 24;
-          setTimeLeft(`${days}d ${hrs}h remaining`);
-        } else if (hours > 0) {
-          setTimeLeft(`${hours}h ${minutes}m remaining`);
-        } else {
-          setTimeLeft(`${minutes}m remaining`);
-        }
-      }
-    };
-
-    calculateProgress();
-    const interval = setInterval(calculateProgress, 60000); // Update every minute
-    return () => clearInterval(interval);
-  }, [appraisal.createdAt, appraisal.requestedType]);
-
-  // Determine current step based on status
-  const steps = [
-    { id: "submitted", label: "Order Received", complete: true },
-    {
-      id: "queued",
-      label: "In Queue",
-      complete: ["QUEUED", "RUNNING", "READY"].includes(appraisal.status),
-    },
-    {
-      id: "processing",
-      label: "AI Analysis",
-      complete: ["RUNNING", "READY"].includes(appraisal.status),
-    },
-    ...(appraisal.requestedType !== "AI_REPORT"
-      ? [
-          {
-            id: "inspection",
-            label: "On-Site Inspection",
-            complete:
-              job?.status === "COMPLETED" || appraisal.status === "READY",
-          },
-        ]
-      : []),
-    {
-      id: "complete",
-      label: "Report Ready",
-      complete: appraisal.status === "READY",
-    },
-  ];
-
-  const isOverdue = timeLeft === "Overdue";
-  const currentStepIdx = steps.findIndex((s) => !s.complete);
-
-  return (
-    <div
-      className={`clip-notch border p-6 ${isOverdue ? "bg-red-500/10 border-red-500/30" : "bg-gray-900 border-lime-400/30"}`}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-10 h-10 clip-notch-sm flex items-center justify-center ${isOverdue ? "bg-red-500/20" : "bg-lime-400/20"}`}
-          >
-            <Clock
-              className={`w-5 h-5 ${isOverdue ? "text-red-500" : "text-lime-400"}`}
-            />
-          </div>
-          <div>
-            <h3
-              className={`font-semibold font-mono ${isOverdue ? "text-red-400" : "text-white"}`}
-            >
-              {isOverdue ? "Processing Delayed" : "Processing Your Request"}
-            </h3>
-            <p
-              className={`text-sm ${isOverdue ? "text-red-400/70" : "text-gray-400"}`}
-            >
-              {timeLeft}
-            </p>
-          </div>
-        </div>
-        <div className="text-right">
-          <p
-            className={`text-2xl font-bold font-mono ${isOverdue ? "text-red-500" : "text-lime-400"}`}
-          >
-            {Math.round(progress)}%
-          </p>
-          <p
-            className={`text-xs font-mono uppercase tracking-wider ${isOverdue ? "text-red-500/70" : "text-lime-400/70"}`}
-          >
-            complete
-          </p>
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="h-2 bg-gray-800 clip-notch-sm overflow-hidden mb-4">
-        <div
-          className={`h-full transition-all duration-500 ${isOverdue ? "bg-red-500" : "bg-lime-400"}`}
-          style={{ width: `${Math.min(100, progress)}%` }}
-        />
-      </div>
-
-      {/* Step indicators */}
-      <div className="flex justify-between">
-        {steps.map((step, idx) => (
-          <div key={step.id} className="flex flex-col items-center flex-1">
-            <div className="flex items-center w-full">
-              <div
-                className={`w-6 h-6 clip-notch-sm flex items-center justify-center text-xs font-medium font-mono ${
-                  step.complete
-                    ? "bg-lime-400 text-black"
-                    : idx === currentStepIdx
-                      ? isOverdue
-                        ? "bg-red-500 text-white"
-                        : "bg-lime-400/50 text-black"
-                      : "bg-gray-700 text-gray-500"
-                }`}
-              >
-                {step.complete ? <CheckCircle className="w-4 h-4" /> : idx + 1}
-              </div>
-              {idx < steps.length - 1 && (
-                <div
-                  className={`flex-1 h-0.5 mx-1 ${
-                    step.complete ? "bg-lime-400" : "bg-gray-700"
-                  }`}
-                />
-              )}
-            </div>
-            <span
-              className={`mt-2 text-xs text-center font-mono ${
-                step.complete ? "text-lime-400 font-medium" : "text-gray-500"
-              }`}
-            >
-              {step.label}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Current status message */}
-      {currentStepIdx >= 0 && currentStepIdx < steps.length && (
-        <p
-          className={`mt-4 text-sm text-center ${isOverdue ? "text-red-400" : "text-gray-400"}`}
-        >
-          {appraisal.status === "QUEUED" &&
-            "Your request is queued and will be processed shortly."}
-          {appraisal.status === "RUNNING" &&
-            appraisal.requestedType === "AI_REPORT" &&
-            "AI is analyzing property data and comparables..."}
-          {appraisal.status === "RUNNING" &&
-            appraisal.requestedType !== "AI_REPORT" &&
-            (job?.status === "COMPLETED"
-              ? "On-site inspection complete. Generating final report..."
-              : "AI analysis complete. Waiting for on-site inspection...")}
-        </p>
-      )}
-    </div>
-  );
-}
-
-// Share Modal Component
-function ShareModal({
-  isOpen,
-  onClose,
-  reportId,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  reportId: string;
-}) {
-  const [expiresInDays, setExpiresInDays] = useState(7);
-  const [allowDownload, setAllowDownload] = useState(true);
-  const [password, setPassword] = useState("");
-  const [usePassword, setUsePassword] = useState(false);
-  const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  const shareMutation = trpc.report.share.useMutation({
-    onSuccess: (data) => {
-      setShareUrl(data.shareUrl);
-    },
-  });
-
-  const handleShare = async () => {
-    await shareMutation.mutateAsync({
-      reportId,
-      expiresInDays,
-      allowDownload,
-      password: usePassword && password ? password : undefined,
-    });
-  };
-
-  const handleCopyLink = async () => {
-    if (shareUrl) {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-gray-900 clip-notch border border-gray-800 w-full max-w-md p-6 animate-scale-in">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">Share Report</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-800 clip-notch-sm"
-          >
-            <X className="w-5 h-5 text-gray-400" />
-          </button>
-        </div>
-
-        {!shareUrl ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
-                Link Expires In
-              </label>
-              <select
-                value={expiresInDays}
-                onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
-              >
-                <option value={1}>1 day</option>
-                <option value={7}>7 days</option>
-                <option value={14}>14 days</option>
-                <option value={30}>30 days</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="allowDownload"
-                checked={allowDownload}
-                onChange={(e) => setAllowDownload(e.target.checked)}
-                className="w-4 h-4 clip-notch-sm border-gray-700 bg-gray-900 text-lime-400 focus:ring-lime-400"
-              />
-              <label htmlFor="allowDownload" className="text-sm text-white">
-                Allow PDF download
-              </label>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="usePassword"
-                  checked={usePassword}
-                  onChange={(e) => setUsePassword(e.target.checked)}
-                  className="w-4 h-4 clip-notch-sm border-gray-700 bg-gray-900 text-lime-400 focus:ring-lime-400"
-                />
-                <label htmlFor="usePassword" className="text-sm text-white">
-                  Password protect
-                </label>
-              </div>
-              {usePassword && (
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
-                />
-              )}
-            </div>
-
-            <button
-              onClick={handleShare}
-              disabled={shareMutation.isPending || (usePassword && !password)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50"
-            >
-              {shareMutation.isPending ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-black border-t-transparent clip-notch-sm animate-spin" />
-                  Creating Link...
-                </>
-              ) : (
-                <>
-                  <LinkIcon className="w-4 h-4" />
-                  Create Share Link
-                </>
-              )}
-            </button>
-
-            {shareMutation.isError && (
-              <p className="text-sm text-red-500 text-center">
-                Failed to create share link. Please try again.
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="p-4 bg-gray-800 clip-notch-sm">
-              <p className="text-sm text-gray-400 mb-2 font-mono uppercase tracking-wider">
-                Share Link
-              </p>
-              <p className="text-sm text-white break-all font-mono">
-                {shareUrl}
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={handleCopyLink}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    Copy Link
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  setShareUrl(null);
-                  onClose();
-                }}
-                className="px-4 py-2 border border-gray-700 clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider"
-              >
-                Done
-              </button>
-            </div>
-
-            <div className="text-sm text-gray-400 space-y-1">
-              <p className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Expires in {expiresInDays} days
-              </p>
-              {allowDownload && (
-                <p className="flex items-center gap-2">
-                  <Download className="w-4 h-4" />
-                  Download enabled
-                </p>
-              )}
-              {usePassword && password && (
-                <p className="flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
-                  Password protected
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Email Modal Component
-function EmailModal({
-  isOpen,
-  onClose,
-  reportId,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  reportId: string;
-}) {
-  const [recipientEmail, setRecipientEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [includeDownload, setIncludeDownload] = useState(true);
-  const [sent, setSent] = useState(false);
-
-  const emailMutation = trpc.report.emailReport.useMutation({
-    onSuccess: () => {
-      setSent(true);
-    },
-  });
-
-  const handleSend = async () => {
-    await emailMutation.mutateAsync({
-      reportId,
-      recipientEmail,
-      message: message || undefined,
-      includeDownloadLink: includeDownload,
-    });
-  };
-
-  const handleClose = () => {
-    setRecipientEmail("");
-    setMessage("");
-    setSent(false);
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-gray-900 clip-notch border border-gray-800 w-full max-w-md p-6 animate-scale-in">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">Email Report</h2>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-800 clip-notch-sm"
-          >
-            <X className="w-5 h-5 text-gray-400" />
-          </button>
-        </div>
-
-        {!sent ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
-                Recipient Email
-              </label>
-              <input
-                type="email"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-                placeholder="email@example.com"
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-mono uppercase tracking-wider text-gray-400 mb-2">
-                Message (optional)
-              </label>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Add a personal message..."
-                rows={3}
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 clip-notch-sm text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50 resize-none"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="includeDownload"
-                checked={includeDownload}
-                onChange={(e) => setIncludeDownload(e.target.checked)}
-                className="w-4 h-4 clip-notch-sm border-gray-700 bg-gray-900 text-lime-400 focus:ring-lime-400"
-              />
-              <label htmlFor="includeDownload" className="text-sm text-white">
-                Include download link
-              </label>
-            </div>
-
-            <button
-              onClick={handleSend}
-              disabled={emailMutation.isPending || !recipientEmail}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50"
-            >
-              {emailMutation.isPending ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-black border-t-transparent clip-notch-sm animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  Send Email
-                </>
-              )}
-            </button>
-
-            {emailMutation.isError && (
-              <p className="text-sm text-red-500 text-center">
-                Failed to send email. Please try again.
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="text-center py-6">
-            <div className="w-16 h-16 clip-notch-sm bg-lime-400/20 flex items-center justify-center mx-auto mb-4">
-              <Check className="w-8 h-8 text-lime-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-white mb-2">
-              Email Sent!
-            </h3>
-            <p className="text-gray-400 mb-6">
-              The report has been sent to {recipientEmail}
-            </p>
-            <button
-              onClick={handleClose}
-              className="px-6 py-2.5 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300"
-            >
-              Done
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }
 
 export default function AppraisalDetailPage({ params }: PageProps) {
@@ -598,9 +45,9 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const paymentToastShownRef = useRef(false);
+  const paymentConfirmedRef = useRef(false);
 
   const {
     data: appraisal,
@@ -640,7 +87,6 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   // Server-side PDF download mutation (uses Gotenberg)
   const downloadMutation = trpc.report.download.useMutation({
     onSuccess: (data) => {
-      // Open the signed URL in a new tab to trigger download
       window.open(data.url, "_blank");
       toast({
         title: "PDF Downloaded",
@@ -659,98 +105,63 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
   const isPdfGenerating = downloadMutation.isPending;
 
-  // Handle PDF download using server-side generation
   const handleDownloadPdf = () => {
     if (!appraisal?.report?.id) return;
     downloadMutation.mutate({ reportId: appraisal.report.id });
   };
 
-  // Handle payment success callback from Stripe
-  // Now uses polling to wait for webhook processing
+  // Consolidated polling effect for payment and processing states
   useEffect(() => {
     const paymentStatus = searchParams.get("payment");
-    if (
-      paymentStatus !== "success" ||
-      paymentConfirmed ||
-      paymentToastShownRef.current
-    ) {
-      return;
-    }
+    const isWaitingForWebhook =
+      paymentStatus === "success" && !paymentConfirmedRef.current;
+    const isProcessing =
+      appraisal && ["QUEUED", "RUNNING"].includes(appraisal.status);
 
-    // Check if webhook has processed the payment
-    // Processed statuses indicate the webhook has updated the appraisal
-    const processedStatuses = ["QUEUED", "RUNNING", "READY", "FAILED"];
-    if (appraisal && processedStatuses.includes(appraisal.status)) {
-      paymentToastShownRef.current = true;
-      // Use setTimeout to avoid synchronous setState in effect
-      setTimeout(() => {
-        setPaymentConfirmed(true);
+    if (isWaitingForWebhook && !paymentToastShownRef.current) {
+      const processedStatuses = ["QUEUED", "RUNNING", "READY", "FAILED"];
+      if (appraisal && processedStatuses.includes(appraisal.status)) {
+        paymentToastShownRef.current = true;
+        paymentConfirmedRef.current = true;
         toast({
           title: "Payment successful!",
           description: "Your appraisal request is now being processed.",
         });
-      }, 0);
-    }
-    // If appraisal exists but status is still pending webhook processing,
-    // the polling useEffect below will handle refreshing
-  }, [searchParams, paymentConfirmed, appraisal?.status, toast]);
-
-  // Polling while waiting for payment processing
-  // This handles the case where webhook processes before page loads
-  useEffect(() => {
-    const paymentStatus = searchParams.get("payment");
-    if (paymentStatus !== "success" || paymentConfirmed) {
-      return;
-    }
-
-    // Poll every 2 seconds while waiting for webhook
-    const interval = setInterval(() => {
-      refetch();
-    }, 2000);
-
-    // Stop polling after 30 seconds (webhook should definitely have processed by then)
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-      if (!paymentConfirmed) {
-        toast({
-          title: "Processing taking longer than expected",
-          description:
-            "Your payment was received. Please refresh the page in a moment.",
-        });
       }
-    }, 30000);
+    }
 
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [searchParams, paymentConfirmed, refetch]);
+    const shouldPoll = isWaitingForWebhook || isProcessing;
+    if (!shouldPoll) return;
 
-  // Polling while appraisal is processing (QUEUED or RUNNING)
-  useEffect(() => {
-    if (!appraisal) return;
+    const POLL_INTERVAL = 3000;
+    const MAX_WEBHOOK_WAIT = 30000;
+    const MAX_PROCESSING_WAIT = 5 * 60 * 1000;
 
-    const isProcessing = ["QUEUED", "RUNNING"].includes(appraisal.status);
-    if (!isProcessing) return;
+    const pollStartTime = Date.now();
+    const maxWaitTime = isWaitingForWebhook
+      ? MAX_WEBHOOK_WAIT
+      : MAX_PROCESSING_WAIT;
 
-    // Poll every 3 seconds while processing
     const interval = setInterval(() => {
-      refetch();
-    }, 3000);
+      const elapsed = Date.now() - pollStartTime;
 
-    // Stop polling after 5 minutes (processing should be done by then)
-    const timeout = setTimeout(
-      () => {
+      if (elapsed >= maxWaitTime) {
         clearInterval(interval);
-      },
-      5 * 60 * 1000,
-    );
+        if (isWaitingForWebhook && !paymentConfirmedRef.current) {
+          toast({
+            title: "Processing taking longer than expected",
+            description:
+              "Your payment was received. Please refresh the page in a moment.",
+          });
+        }
+        return;
+      }
 
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [appraisal?.status, refetch]);
+      refetch();
+    }, POLL_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [searchParams, appraisal?.status, refetch, toast]);
 
   // Get existing share link
   const { data: existingShareLink } = trpc.report.getShareLink.useQuery(
@@ -764,7 +175,6 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        {/* Header skeleton */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Skeleton className="w-10 h-10 clip-notch-sm" />
@@ -781,21 +191,19 @@ export default function AppraisalDetailPage({ params }: PageProps) {
             <Skeleton className="h-10 w-36 clip-notch" />
           </div>
         </div>
-        {/* Value summary skeleton */}
-        <div className="bg-gray-900 clip-notch border border-lime-400/30 p-6">
+        <div className="bg-[var(--card)] clip-notch border border-lime-400/30 p-6">
           <div className="grid grid-cols-4 gap-8">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="space-y-2">
-                <Skeleton className="h-4 w-24 bg-gray-800" />
-                <Skeleton className="h-8 w-32 bg-gray-800" />
+                <Skeleton className="h-4 w-24 bg-[var(--secondary)]" />
+                <Skeleton className="h-8 w-32 bg-[var(--secondary)]" />
               </div>
             ))}
           </div>
         </div>
         <div className="grid grid-cols-3 gap-6">
-          {/* Property details skeleton */}
           <div className="col-span-2 space-y-6">
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
               <Skeleton className="h-6 w-40 mb-4" />
               <div className="grid grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -807,9 +215,8 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               </div>
             </div>
           </div>
-          {/* Sidebar skeleton */}
           <div className="space-y-6">
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
               <Skeleton className="h-6 w-32 mb-4" />
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
@@ -832,7 +239,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   if (!appraisal) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-400">Appraisal not found</p>
+        <p className="text-[var(--muted-foreground)]">Appraisal not found</p>
         <Link
           href="/appraisals"
           className="text-lime-400 hover:text-lime-300 mt-2 inline-block"
@@ -847,13 +254,11 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   const property = appraisal.property;
 
   // Calculate value change vs market using comparable sales average
-  // Falls back to mid-range position if comps not available
   const calculateValueChange = () => {
     if (!report?.valueEstimate) return null;
 
     const estimate = Number(report.valueEstimate);
 
-    // Use comparable sales average if available
     if (
       report.comps &&
       Array.isArray(report.comps) &&
@@ -870,7 +275,6 @@ export default function AppraisalDetailPage({ params }: PageProps) {
       }
     }
 
-    // Fallback: calculate position within value range
     if (report.valueRangeMin && report.valueRangeMax) {
       const min = Number(report.valueRangeMin);
       const max = Number(report.valueRangeMax);
@@ -886,13 +290,66 @@ export default function AppraisalDetailPage({ params }: PageProps) {
   const valueChange = calculateValueChange();
 
   const statusColors: Record<string, string> = {
-    DRAFT: "bg-gray-700/50 text-gray-300 border border-gray-600",
+    DRAFT:
+      "bg-gray-700/50 text-[var(--foreground)] border border-[var(--border)]",
     SUBMITTED: "bg-lime-400/10 text-lime-400 border border-lime-400/30",
     IN_PROGRESS: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30",
     UNDER_REVIEW:
       "bg-purple-500/10 text-purple-400 border border-purple-500/30",
     COMPLETED: "bg-lime-400/10 text-lime-400 border border-lime-400/30",
     CANCELLED: "bg-red-500/10 text-red-400 border border-red-500/30",
+  };
+
+  const jobStatusConfig: Record<
+    string,
+    { label: string; color: string; icon: typeof Clock }
+  > = {
+    PENDING_DISPATCH: {
+      label: "Finding Appraiser",
+      color:
+        "bg-gray-700/50 text-[var(--foreground)] border border-[var(--border)]",
+      icon: Clock,
+    },
+    DISPATCHED: {
+      label: "Awaiting Assignment",
+      color: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30",
+      icon: Truck,
+    },
+    ACCEPTED: {
+      label: "Appraiser Assigned",
+      color: "bg-lime-400/10 text-lime-400 border border-lime-400/30",
+      icon: User,
+    },
+    IN_PROGRESS: {
+      label: "Inspection In Progress",
+      color: "bg-purple-500/10 text-purple-400 border border-purple-500/30",
+      icon: Camera,
+    },
+    SUBMITTED: {
+      label: "Photos Submitted",
+      color: "bg-orange-500/10 text-orange-400 border border-orange-500/30",
+      icon: FileText,
+    },
+    UNDER_REVIEW: {
+      label: "Under Review",
+      color: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30",
+      icon: Clock,
+    },
+    COMPLETED: {
+      label: "Completed",
+      color: "bg-lime-400/10 text-lime-400 border border-lime-400/30",
+      icon: CheckCircle,
+    },
+    CANCELLED: {
+      label: "Cancelled",
+      color: "bg-red-500/10 text-red-400 border border-red-500/30",
+      icon: AlertTriangle,
+    },
+    FAILED: {
+      label: "Failed",
+      color: "bg-red-500/10 text-red-400 border border-red-500/30",
+      icon: AlertTriangle,
+    },
   };
 
   return (
@@ -902,9 +359,9 @@ export default function AppraisalDetailPage({ params }: PageProps) {
         <div className="flex items-center gap-4">
           <Link
             href="/appraisals"
-            className="p-2 hover:bg-gray-800 clip-notch-sm"
+            className="p-2 hover:bg-[var(--secondary)] clip-notch-sm"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-400" />
+            <ArrowLeft className="w-5 h-5 text-[var(--muted-foreground)]" />
           </Link>
           <div>
             <div className="flex items-center gap-3">
@@ -917,7 +374,9 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 {appraisal.status.replace("_", " ")}
               </span>
             </div>
-            <p className="text-gray-400">{property?.addressFull}</p>
+            <p className="text-[var(--muted-foreground)]">
+              {property?.addressFull}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -925,7 +384,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
             <>
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-700 clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider"
+                className="flex items-center gap-2 px-4 py-2 border border-[var(--border)] clip-notch hover:bg-[var(--secondary)] text-white font-mono text-sm uppercase tracking-wider"
               >
                 <Share2 className="w-4 h-4" />
                 Share
@@ -933,7 +392,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               <button
                 onClick={handleDownloadPdf}
                 disabled={isPdfGenerating || !appraisal?.report?.id}
-                className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-gray-900 font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50"
               >
                 {isPdfGenerating ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -985,14 +444,14 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
       {/* Value Summary */}
       {report && (
-        <div className="relative bg-gray-900 clip-notch border border-lime-400/30 p-6">
+        <div className="relative bg-[var(--card)] clip-notch border border-lime-400/30 p-6">
           <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
           <div className="absolute -top-px -right-px w-3 h-3 border-r border-t border-lime-400" />
           <div className="absolute -bottom-px -left-px w-3 h-3 border-l border-b border-lime-400" />
           <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-lime-400" />
           <div className="grid grid-cols-4 gap-8">
             <div>
-              <p className="text-gray-400 text-sm font-mono uppercase tracking-wider">
+              <p className="text-[var(--muted-foreground)] text-sm font-mono uppercase tracking-wider">
                 Estimated Value
               </p>
               <p className="text-3xl font-bold text-lime-400 font-mono">
@@ -1017,7 +476,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               )}
             </div>
             <div>
-              <p className="text-gray-400 text-sm font-mono uppercase tracking-wider">
+              <p className="text-[var(--muted-foreground)] text-sm font-mono uppercase tracking-wider">
                 Value Range
               </p>
               <p className="text-xl font-semibold text-white font-mono">
@@ -1026,7 +485,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               </p>
             </div>
             <div>
-              <p className="text-gray-400 text-sm font-mono uppercase tracking-wider">
+              <p className="text-[var(--muted-foreground)] text-sm font-mono uppercase tracking-wider">
                 Confidence Score
               </p>
               <p className="text-xl font-semibold text-white font-mono">
@@ -1040,7 +499,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               </div>
             </div>
             <div>
-              <p className="text-gray-400 text-sm font-mono uppercase tracking-wider">
+              <p className="text-[var(--muted-foreground)] text-sm font-mono uppercase tracking-wider">
                 Report Type
               </p>
               <p className="text-xl font-semibold text-white">
@@ -1054,14 +513,14 @@ export default function AppraisalDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-3 gap-6">
         {/* Property Details */}
         <div className="col-span-2 space-y-6">
-          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+          <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
             <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <Home className="w-5 h-5 text-lime-400" />
               Property Details
             </h2>
             <div className="grid grid-cols-3 gap-6">
               <div>
-                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                <p className="text-sm text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
                   Property Type
                 </p>
                 <p className="font-medium text-white">
@@ -1069,7 +528,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                <p className="text-sm text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
                   Square Feet
                 </p>
                 <p className="font-medium text-white">
@@ -1077,7 +536,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                <p className="text-sm text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
                   Year Built
                 </p>
                 <p className="font-medium text-white">
@@ -1085,7 +544,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                <p className="text-sm text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
                   Bedrooms
                 </p>
                 <p className="font-medium text-white">
@@ -1093,7 +552,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                <p className="text-sm text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
                   Bathrooms
                 </p>
                 <p className="font-medium text-white">
@@ -1101,7 +560,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                <p className="text-sm text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
                   Lot Size
                 </p>
                 <p className="font-medium text-white">
@@ -1115,11 +574,11 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
           {/* AI Analysis */}
           {report?.aiAnalysis && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
               <h2 className="text-lg font-semibold text-white mb-4">
                 AI Analysis
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-[var(--foreground)] mb-4">
                 {(report.aiAnalysis as { summary?: string })?.summary}
               </p>
 
@@ -1134,7 +593,10 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                       (report.aiAnalysis as { strengths?: string[] })
                         ?.strengths || []
                     ).map((strength: string, i: number) => (
-                      <li key={i} className="text-sm text-gray-400">
+                      <li
+                        key={i}
+                        className="text-sm text-[var(--muted-foreground)]"
+                      >
                         • {strength}
                       </li>
                     ))}
@@ -1150,7 +612,10 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                       (report.aiAnalysis as { concerns?: string[] })
                         ?.concerns || []
                     ).map((concern: string, i: number) => (
-                      <li key={i} className="text-sm text-gray-400">
+                      <li
+                        key={i}
+                        className="text-sm text-[var(--muted-foreground)]"
+                      >
                         • {concern}
                       </li>
                     ))}
@@ -1162,32 +627,32 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
           {/* Comparable Sales */}
           {report?.comps && Array.isArray(report.comps) && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
               <h2 className="text-lg font-semibold text-white mb-4">
                 Comparable Sales
               </h2>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-800">
+                  <thead className="bg-[var(--secondary)]">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-gray-400 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
                         Address
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-gray-400 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
                         Sale Price
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-gray-400 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
                         Sq Ft
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-gray-400 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
                         Distance
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-gray-400 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-mono font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
                         Match
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-700">
+                  <tbody className="divide-y divide-[var(--border)]">
                     {(
                       report.comps as Array<{
                         address: string;
@@ -1206,10 +671,10 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                           <td className="px-4 py-3 text-sm text-white font-mono">
                             ${comp.salePrice?.toLocaleString()}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-400 font-mono">
+                          <td className="px-4 py-3 text-sm text-[var(--muted-foreground)] font-mono">
                             {comp.sqft?.toLocaleString()}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-400 font-mono">
+                          <td className="px-4 py-3 text-sm text-[var(--muted-foreground)] font-mono">
                             {comp.distance?.toFixed(1)} mi
                           </td>
                           <td className="px-4 py-3">
@@ -1236,7 +701,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 recommendation: string;
               }>
             ).length > 0 && (
-              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">
                   Risk Assessment
                 </h2>
@@ -1262,10 +727,10 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                       <p className="font-medium text-white">
                         {risk.type?.replace(/_/g, " ") ?? "Unknown"}
                       </p>
-                      <p className="text-sm text-gray-300 mt-1">
+                      <p className="text-sm text-[var(--foreground)] mt-1">
                         {risk.description ?? ""}
                       </p>
-                      <p className="text-sm text-gray-400 mt-1 italic">
+                      <p className="text-sm text-[var(--muted-foreground)] mt-1 italic">
                         {risk.recommendation ?? ""}
                       </p>
                     </div>
@@ -1278,7 +743,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Request Info */}
-          <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+          <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
             <h2 className="text-lg font-semibold text-white mb-4">
               Request Info
             </h2>
@@ -1286,7 +751,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-lime-400" />
                 <div>
-                  <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                  <p className="text-sm text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
                     Requested
                   </p>
                   <p className="font-medium text-white">
@@ -1297,7 +762,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               <div className="flex items-center gap-3">
                 <FileText className="w-5 h-5 text-lime-400" />
                 <div>
-                  <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                  <p className="text-sm text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
                     Purpose
                   </p>
                   <p className="font-medium text-white">{appraisal.purpose}</p>
@@ -1306,7 +771,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
               <div className="flex items-center gap-3">
                 <DollarSign className="w-5 h-5 text-lime-400" />
                 <div>
-                  <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">
+                  <p className="text-sm text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
                     Price Paid
                   </p>
                   <p className="font-medium text-white font-mono">
@@ -1317,76 +782,18 @@ export default function AppraisalDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* On-Site Inspection Status (for AI_REPORT_WITH_ONSITE or CERTIFIED_APPRAISAL) */}
+          {/* On-Site Inspection Status */}
           {appraisal.jobs && appraisal.jobs.length > 0 && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
               <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <Camera className="w-5 h-5 text-lime-400" />
                 On-Site Inspection
               </h2>
               {appraisal.jobs.map((job) => {
-                const jobStatusConfig: Record<
-                  string,
-                  { label: string; color: string; icon: typeof Clock }
-                > = {
-                  PENDING_DISPATCH: {
-                    label: "Finding Appraiser",
-                    color:
-                      "bg-gray-700/50 text-gray-300 border border-gray-600",
-                    icon: Clock,
-                  },
-                  DISPATCHED: {
-                    label: "Awaiting Assignment",
-                    color:
-                      "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30",
-                    icon: Truck,
-                  },
-                  ACCEPTED: {
-                    label: "Appraiser Assigned",
-                    color:
-                      "bg-lime-400/10 text-lime-400 border border-lime-400/30",
-                    icon: User,
-                  },
-                  IN_PROGRESS: {
-                    label: "Inspection In Progress",
-                    color:
-                      "bg-purple-500/10 text-purple-400 border border-purple-500/30",
-                    icon: Camera,
-                  },
-                  SUBMITTED: {
-                    label: "Photos Submitted",
-                    color:
-                      "bg-orange-500/10 text-orange-400 border border-orange-500/30",
-                    icon: FileText,
-                  },
-                  UNDER_REVIEW: {
-                    label: "Under Review",
-                    color:
-                      "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30",
-                    icon: Clock,
-                  },
-                  COMPLETED: {
-                    label: "Completed",
-                    color:
-                      "bg-lime-400/10 text-lime-400 border border-lime-400/30",
-                    icon: CheckCircle,
-                  },
-                  CANCELLED: {
-                    label: "Cancelled",
-                    color:
-                      "bg-red-500/10 text-red-400 border border-red-500/30",
-                    icon: AlertTriangle,
-                  },
-                  FAILED: {
-                    label: "Failed",
-                    color:
-                      "bg-red-500/10 text-red-400 border border-red-500/30",
-                    icon: AlertTriangle,
-                  },
-                };
                 const status = jobStatusConfig[job.status] || {
                   label: job.status,
-                  color: "bg-gray-700/50 text-gray-300 border border-gray-600",
+                  color:
+                    "bg-gray-700/50 text-[var(--foreground)] border border-[var(--border)]",
                   icon: Clock,
                 };
                 const StatusIcon = status.icon;
@@ -1406,7 +813,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                       <div className="flex items-center gap-3 text-sm">
                         <Clock className="w-4 h-4 text-lime-400" />
                         <div>
-                          <p className="text-gray-400 font-mono uppercase tracking-wider text-xs">
+                          <p className="text-[var(--muted-foreground)] font-mono uppercase tracking-wider text-xs">
                             Due by
                           </p>
                           <p className="font-medium text-white">
@@ -1427,7 +834,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
                     {/* Progress indicator */}
                     <div className="space-y-2">
-                      <div className="flex items-center text-xs text-gray-500">
+                      <div className="flex items-center text-xs text-[var(--muted-foreground)]">
                         {[
                           "DISPATCHED",
                           "ACCEPTED",
@@ -1472,7 +879,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                           );
                         })}
                       </div>
-                      <div className="flex justify-between text-xs text-gray-500 font-mono">
+                      <div className="flex justify-between text-xs text-[var(--muted-foreground)] font-mono">
                         <span>Assigned</span>
                         <span>Complete</span>
                       </div>
@@ -1483,7 +890,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Upgrade to Certified - Only show if not CERTIFIED and status is READY */}
+          {/* Upgrade to Certified */}
           {appraisal.requestedType !== "CERTIFIED_APPRAISAL" &&
             appraisal.status === "READY" && (
               <div className="bg-gradient-to-br from-lime-400/10 to-lime-400/5 clip-notch border border-lime-400/30 p-6">
@@ -1491,7 +898,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                   <Award className="w-5 h-5 text-lime-400" />
                   Need a Certified Appraisal?
                 </h2>
-                <p className="text-sm text-gray-400 mb-4">
+                <p className="text-sm text-[var(--muted-foreground)] mb-4">
                   Get a USPAP-compliant appraisal signed by a licensed
                   appraiser. Bank-ready for refinancing, lending, or legal
                   purposes.
@@ -1503,7 +910,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                   <FileText className="w-4 h-4" />
                   Request Certified Appraisal
                 </Link>
-                <p className="text-xs text-gray-500 mt-2 text-center">
+                <p className="text-xs text-[var(--muted-foreground)] mt-2 text-center">
                   Starting at ${PRICING.CERTIFIED} • 72 hour delivery
                 </p>
               </div>
@@ -1511,7 +918,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
 
           {/* Share Report */}
           {report && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
               <h2 className="text-lg font-semibold text-white mb-4">
                 Share Report
               </h2>
@@ -1525,7 +932,6 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                       setLinkCopied(true);
                       setTimeout(() => setLinkCopied(false), 2000);
                     } else {
-                      // Create a new share link and copy it
                       const result = await shareMutation.mutateAsync({
                         reportId: report.id,
                         expiresInDays: 7,
@@ -1537,7 +943,7 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                     }
                   }}
                   disabled={shareMutation.isPending}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-700 clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[var(--border)] clip-notch hover:bg-[var(--secondary)] text-white font-mono text-sm uppercase tracking-wider disabled:opacity-50"
                 >
                   {linkCopied ? (
                     <>
@@ -1558,14 +964,14 @@ export default function AppraisalDetailPage({ params }: PageProps) {
                 </button>
                 <button
                   onClick={() => setIsEmailModalOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-700 clip-notch hover:bg-gray-800 text-white font-mono text-sm uppercase tracking-wider"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[var(--border)] clip-notch hover:bg-[var(--secondary)] text-white font-mono text-sm uppercase tracking-wider"
                 >
                   <Mail className="w-4 h-4" />
                   Email Report
                 </button>
               </div>
               {existingShareLink && (
-                <p className="text-xs text-gray-400 mt-3">
+                <p className="text-xs text-[var(--muted-foreground)] mt-3">
                   Active link expires{" "}
                   {new Date(existingShareLink.expiresAt).toLocaleDateString()}
                 </p>
@@ -1574,9 +980,9 @@ export default function AppraisalDetailPage({ params }: PageProps) {
           )}
 
           {/* Need Help */}
-          <div className="bg-gray-800/50 clip-notch border border-gray-700 p-6">
+          <div className="bg-[var(--secondary)]/50 clip-notch border border-[var(--border)] p-6">
             <h2 className="font-semibold text-white mb-2">Need Help?</h2>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-[var(--muted-foreground)] mb-4">
               Have questions about this appraisal or need a different report
               type?
             </p>

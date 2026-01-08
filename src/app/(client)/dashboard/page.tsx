@@ -22,8 +22,30 @@ import {
   Edit3,
 } from "lucide-react";
 import { trpc } from "@/shared/lib/trpc";
-import { AreaChart, DonutChart } from "@/shared/components/charts";
+import dynamic from "next/dynamic";
+
+// Lazy load charts for better initial page load
+const AreaChart = dynamic(
+  () => import("@/shared/components/charts").then((mod) => mod.AreaChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-48 bg-[var(--secondary)] animate-pulse clip-notch" />
+    ),
+  },
+);
+const DonutChart = dynamic(
+  () => import("@/shared/components/charts").then((mod) => mod.DonutChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-48 w-48 bg-[var(--secondary)] animate-pulse rounded-full mx-auto" />
+    ),
+  },
+);
 import { Skeleton } from "@/shared/components/ui/Skeleton";
+import { StatusBadge } from "@/shared/components/ui/StatusBadge";
+import { StatCard, MetricCard } from "@/shared/components/ui/StatCard";
 import { cn } from "@/shared/lib/utils";
 
 export default function ClientDashboard() {
@@ -195,7 +217,7 @@ export default function ClientDashboard() {
                   <Link
                     key={warning.id}
                     href={`/appraisals/${warning.id}`}
-                    className="flex items-center justify-between text-sm text-gray-300 hover:text-white transition-colors"
+                    className="flex items-center justify-between text-sm text-[var(--foreground)] hover:text-white transition-colors"
                   >
                     <span className="truncate max-w-[200px]">
                       {warning.address}
@@ -230,7 +252,7 @@ export default function ClientDashboard() {
                 <h3 className="font-mono text-label uppercase tracking-wider text-blue-400">
                   {drafts.length} INCOMPLETE DRAFT{drafts.length > 1 ? "S" : ""}
                 </h3>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-[var(--muted-foreground)] mt-1">
                   Complete payment to start processing
                 </p>
               </div>
@@ -259,7 +281,7 @@ export default function ClientDashboard() {
           <h1 className="text-display-sm font-bold text-white tracking-tight">
             Dashboard
           </h1>
-          <p className="mt-1 text-body-sm text-gray-400">
+          <p className="mt-1 text-body-sm text-[var(--muted-foreground)]">
             Welcome back. Here&apos;s an overview of your appraisal activity.
           </p>
         </div>
@@ -268,7 +290,7 @@ export default function ClientDashboard() {
           className={cn(
             "inline-flex items-center gap-2",
             "px-4 py-2.5",
-            "bg-lime-400 text-gray-900",
+            "bg-lime-400 text-black",
             "font-mono text-sm font-semibold uppercase tracking-wider",
             "clip-notch",
             "hover:bg-lime-300 transition-colors",
@@ -285,7 +307,7 @@ export default function ClientDashboard() {
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="bg-gray-900 border border-gray-800 p-6 clip-notch"
+              className="bg-[var(--card)] border border-[var(--border)] p-6 clip-notch"
             >
               <Skeleton className="h-4 w-24 mb-2" />
               <Skeleton className="h-8 w-16" />
@@ -352,10 +374,10 @@ export default function ClientDashboard() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Weekly Trend Chart */}
-        <div className="lg:col-span-2 bg-gray-900 border border-gray-800 p-6 clip-notch">
-          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
-          <h2 className="font-mono text-label uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+        <div className="lg:col-span-2 bg-[var(--card)] border border-[var(--border)] p-6 clip-notch">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)]" />
+          <h2 className="font-mono text-label uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
             WEEKLY ACTIVITY
           </h2>
@@ -369,10 +391,10 @@ export default function ClientDashboard() {
         </div>
 
         {/* Type Distribution */}
-        <div className="relative bg-gray-900 border border-gray-800 p-6 clip-notch">
-          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-gray-700" />
-          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-gray-700" />
-          <h2 className="font-mono text-label uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+        <div className="relative bg-[var(--card)] border border-[var(--border)] p-6 clip-notch">
+          <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-[var(--border)]" />
+          <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-[var(--border)]" />
+          <h2 className="font-mono text-label uppercase tracking-wider text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             REPORT TYPES
           </h2>
@@ -381,12 +403,12 @@ export default function ClientDashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="relative bg-gray-900 border border-gray-800 clip-notch">
+      <div className="relative bg-[var(--card)] border border-[var(--border)] clip-notch">
         <div className="absolute -top-px -left-px w-3 h-3 border-l border-t border-lime-400" />
         <div className="absolute -bottom-px -right-px w-3 h-3 border-r border-b border-lime-400" />
 
-        <div className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-          <h2 className="font-mono text-label uppercase tracking-wider text-gray-400">
+        <div className="border-b border-[var(--border)] px-6 py-4 flex items-center justify-between">
+          <h2 className="font-mono text-label uppercase tracking-wider text-[var(--muted-foreground)]">
             RECENT APPRAISALS
           </h2>
           <Link
@@ -397,7 +419,7 @@ export default function ClientDashboard() {
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-        <div className="divide-y divide-gray-800/50">
+        <div className="divide-y divide-[var(--border)]/50">
           {isLoading ? (
             <div className="px-6 py-4 space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -415,8 +437,10 @@ export default function ClientDashboard() {
             </div>
           ) : appraisals?.items?.length === 0 ? (
             <div className="px-6 py-12 text-center">
-              <FileText className="mx-auto h-12 w-12 text-gray-700" />
-              <p className="mt-4 text-gray-400">No appraisals yet</p>
+              <FileText className="mx-auto h-12 w-12 text-[var(--muted)]" />
+              <p className="mt-4 text-[var(--muted-foreground)]">
+                No appraisals yet
+              </p>
               <Link
                 href="/appraisals/new"
                 className="mt-4 inline-flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300 font-mono uppercase tracking-wider"
@@ -430,19 +454,19 @@ export default function ClientDashboard() {
               <Link
                 key={appraisal.id}
                 href={`/appraisals/${appraisal.id}`}
-                className="flex items-center justify-between px-6 py-4 hover:bg-gray-800/50 transition-colors"
+                className="flex items-center justify-between px-6 py-4 hover:bg-[var(--secondary)]/50 transition-colors"
               >
                 <div>
                   <p className="font-medium text-white">
                     {appraisal.property.addressLine1}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-[var(--muted-foreground)]">
                     {appraisal.property.city}, {appraisal.property.state}
                   </p>
                 </div>
                 <div className="text-right">
                   <StatusBadge status={appraisal.status} />
-                  <p className="mt-1 text-sm text-gray-500 font-mono">
+                  <p className="mt-1 text-sm text-[var(--muted-foreground)] font-mono">
                     {new Date(appraisal.createdAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -452,116 +476,5 @@ export default function ClientDashboard() {
         </div>
       </div>
     </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  accentColor,
-}: {
-  label: string;
-  value: number | string;
-  icon: React.ElementType;
-  accentColor: "lime" | "yellow" | "green" | "blue";
-}) {
-  const colors = {
-    lime: "text-lime-400 border-lime-400",
-    yellow: "text-yellow-400 border-yellow-400",
-    green: "text-green-400 border-green-400",
-    blue: "text-blue-400 border-blue-400",
-  };
-
-  return (
-    <div className="relative group bg-gray-900 border border-gray-800 p-6 clip-notch hover:border-gray-700 transition-colors">
-      <div
-        className={cn(
-          "absolute -top-px -left-px w-2 h-2 border-l border-t",
-          colors[accentColor],
-        )}
-      />
-      <div
-        className={cn(
-          "absolute -bottom-px -right-px w-2 h-2 border-r border-b opacity-30 group-hover:opacity-100 transition-opacity",
-          colors[accentColor],
-        )}
-      />
-
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="font-mono text-label uppercase tracking-wider text-gray-500 mb-2">
-            {label}
-          </p>
-          <p className="text-display-sm font-bold text-white tracking-tight">
-            {value}
-          </p>
-        </div>
-        <Icon className={cn("w-5 h-5", colors[accentColor].split(" ")[0])} />
-      </div>
-    </div>
-  );
-}
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  accentColor,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  accentColor: "cyan" | "lime" | "emerald";
-}) {
-  const colors = {
-    cyan: "text-cyan-400 bg-cyan-400/10",
-    lime: "text-lime-400 bg-lime-400/10",
-    emerald: "text-emerald-400 bg-emerald-400/10",
-  };
-
-  return (
-    <div className="bg-gray-900 border border-gray-800 p-4 clip-notch-sm">
-      <div className="flex items-center gap-3">
-        <div className={cn("p-2 clip-notch-sm", colors[accentColor])}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <div>
-          <p className="font-mono text-label uppercase tracking-wider text-gray-500">
-            {label}
-          </p>
-          <p className="text-xl font-bold text-white">{value}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { bg: string; text: string }> = {
-    READY: { bg: "bg-lime-400/10 border-lime-400/30", text: "text-lime-400" },
-    RUNNING: { bg: "bg-blue-500/10 border-blue-500/30", text: "text-blue-400" },
-    FAILED: { bg: "bg-red-500/10 border-red-500/30", text: "text-red-400" },
-    DRAFT: { bg: "bg-gray-500/10 border-gray-500/30", text: "text-gray-400" },
-    QUEUED: {
-      bg: "bg-yellow-500/10 border-yellow-500/30",
-      text: "text-yellow-400",
-    },
-  };
-
-  const { bg, text } = config[status] || config.DRAFT;
-
-  return (
-    <span
-      className={cn(
-        "inline-flex px-2 py-0.5",
-        "font-mono text-label uppercase tracking-wider",
-        "border clip-notch-sm",
-        bg,
-        text,
-      )}
-    >
-      {status}
-    </span>
   );
 }

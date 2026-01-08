@@ -27,7 +27,18 @@ import {
   DollarSign,
 } from "lucide-react";
 import { trpc } from "@/shared/lib/trpc";
-import { MapView } from "@/shared/components/common/MapView";
+import dynamic from "next/dynamic";
+
+// Lazy load MapView to avoid SSR issues and improve initial load
+const MapView = dynamic(
+  () => import("@/shared/components/common/MapView").then((mod) => mod.MapView),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 bg-[var(--secondary)] animate-pulse clip-notch" />
+    ),
+  },
+);
 import { useToast } from "@/shared/components/ui/Toast";
 import { Skeleton } from "@/shared/components/ui/Skeleton";
 
@@ -229,11 +240,11 @@ export default function OrderDetailPage() {
           </div>
           <div className="flex items-center gap-2">
             <Skeleton className="h-9 w-36 rounded-full" />
-            <Skeleton className="h-9 w-9 rounded-lg" />
+            <Skeleton className="h-9 w-9 clip-notch-sm" />
           </div>
         </div>
         {/* Hero card skeleton */}
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+        <div className="bg-[var(--card)] clip-notch border border-[var(--border)] overflow-hidden">
           <div className="grid md:grid-cols-2">
             <Skeleton className="h-[300px] w-full" />
             <div className="p-6 space-y-4">
@@ -252,7 +263,7 @@ export default function OrderDetailPage() {
           </div>
         </div>
         {/* Timeline skeleton */}
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+        <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
           <Skeleton className="h-6 w-36 mb-4" />
           <div className="flex items-center justify-between">
             {[1, 2, 3, 4].map((i) => (
@@ -424,7 +435,7 @@ export default function OrderDetailPage() {
         <div className="flex items-start gap-4">
           <Link
             href="/orders"
-            className="p-2 hover:bg-[var(--secondary)] rounded-lg transition-colors print:hidden"
+            className="p-2 hover:bg-[var(--secondary)] clip-notch-sm transition-colors print:hidden"
             aria-label="Back to orders"
           >
             <ArrowLeft className="w-5 h-5 text-[var(--foreground)]" />
@@ -470,14 +481,14 @@ export default function OrderDetailPage() {
                 e.stopPropagation();
                 setShowActionsMenu(!showActionsMenu);
               }}
-              className="p-2 hover:bg-[var(--secondary)] rounded-lg transition-colors"
+              className="p-2 hover:bg-[var(--secondary)] clip-notch-sm transition-colors"
               aria-label="More actions"
             >
               <MoreVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
             </button>
 
             {showActionsMenu && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg z-20 overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--card)] border border-[var(--border)] clip-notch-sm shadow-lg z-20 overflow-hidden">
                 <button
                   onClick={handleShare}
                   className="w-full px-4 py-3 text-left text-sm text-[var(--foreground)] hover:bg-[var(--secondary)] flex items-center gap-3 transition-colors"
@@ -506,7 +517,7 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Hero Card: Map + Property Info */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+      <div className="bg-[var(--card)] clip-notch border border-[var(--border)] overflow-hidden">
         <div className="grid md:grid-cols-2">
           {/* Map */}
           {order.property?.latitude && order.property?.longitude ? (
@@ -535,7 +546,7 @@ export default function OrderDetailPage() {
           {/* Property Info */}
           <div className="p-6">
             <div className="flex items-start gap-3 mb-4">
-              <div className="p-2 bg-[var(--primary)]/10 rounded-lg">
+              <div className="p-2 bg-[var(--primary)]/10 clip-notch-sm">
                 <Home className="w-5 h-5 text-[var(--primary)]" />
               </div>
               <div>
@@ -601,7 +612,7 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Status Timeline */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 sm:p-6">
+      <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-4 sm:p-6">
         <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">
           Order Progress
         </h2>
@@ -658,7 +669,7 @@ export default function OrderDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Appraiser Info */}
         {order.assignedAppraiser && (
-          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+          <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
             <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide mb-3">
               Appraiser
             </h3>
@@ -688,7 +699,7 @@ export default function OrderDetailPage() {
         {(accessContact?.name ||
           accessContact?.phone ||
           order.specialInstructions) && (
-          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+          <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
             <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide mb-3">
               Property Contact
             </h3>
@@ -711,7 +722,7 @@ export default function OrderDetailPage() {
                 </a>
               )}
               {order.specialInstructions && (
-                <div className="p-3 bg-[var(--secondary)] rounded-lg mt-2">
+                <div className="p-3 bg-[var(--secondary)] clip-notch-sm mt-2">
                   <p className="text-xs text-[var(--muted-foreground)] mb-1">
                     Access Notes
                   </p>
@@ -727,7 +738,7 @@ export default function OrderDetailPage() {
 
       {/* Evidence Gallery */}
       {Array.isArray(order.evidence) && order.evidence.length > 0 && (
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 print:break-inside-avoid">
+        <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6 print:break-inside-avoid">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[var(--foreground)]">
               Photos ({order.evidence.length})
@@ -750,7 +761,7 @@ export default function OrderDetailPage() {
               <button
                 key={item.id}
                 onClick={() => handleOpenPhoto(index)}
-                className="aspect-square bg-[var(--muted)] rounded-lg overflow-hidden relative group focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
+                className="aspect-square bg-[var(--muted)] clip-notch-sm overflow-hidden relative group focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
               >
                 <img
                   src={item.fileUrl}
@@ -772,7 +783,7 @@ export default function OrderDetailPage() {
             {order.evidence.length > 8 && (
               <button
                 onClick={() => handleOpenPhoto(8)}
-                className="aspect-square bg-[var(--muted)] rounded-lg overflow-hidden relative flex items-center justify-center"
+                className="aspect-square bg-[var(--muted)] clip-notch-sm overflow-hidden relative flex items-center justify-center"
               >
                 <div className="text-center">
                   <p className="text-2xl font-bold text-[var(--foreground)]">
@@ -793,7 +804,7 @@ export default function OrderDetailPage() {
         {order.status === "COMPLETED" && order.appraisalRequestId && (
           <Link
             href={`/appraisals/${order.appraisalRequestId}`}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium clip-notch-sm hover:bg-[var(--primary)]/90 transition-colors"
           >
             <FileText className="w-4 h-4" />
             View Report
@@ -802,7 +813,7 @@ export default function OrderDetailPage() {
         {canCancel && (
           <button
             onClick={() => setShowCancelModal(true)}
-            className="px-4 py-2 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors"
+            className="px-4 py-2 text-red-400 border border-red-500/30 clip-notch-sm hover:bg-red-500/10 transition-colors"
           >
             Cancel Order
           </button>
@@ -812,14 +823,15 @@ export default function OrderDetailPage() {
       {/* Cancel Order Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--card)] rounded-xl w-full max-w-md p-6 animate-in fade-in zoom-in-95">
+          <div className="bg-[var(--card)] clip-notch w-full max-w-md p-6 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-[var(--foreground)]">
                 Cancel Order
               </h2>
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="p-2 hover:bg-[var(--secondary)] rounded-lg transition-colors"
+                className="p-2 hover:bg-[var(--secondary)] clip-notch-sm transition-colors"
+                aria-label="Close cancel modal"
               >
                 <X className="w-5 h-5 text-[var(--muted-foreground)]" />
               </button>
@@ -836,7 +848,7 @@ export default function OrderDetailPage() {
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="Please provide a reason for cancellation..."
-                className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 rows={3}
               />
             </div>
@@ -844,14 +856,14 @@ export default function OrderDetailPage() {
               <button
                 onClick={() => setShowCancelModal(false)}
                 disabled={cancelOrder.isPending}
-                className="flex-1 px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] text-[var(--foreground)] transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2 border border-[var(--border)] clip-notch-sm hover:bg-[var(--secondary)] text-[var(--foreground)] transition-colors disabled:opacity-50"
               >
                 Keep Order
               </button>
               <button
                 onClick={handleCancelOrder}
                 disabled={cancelOrder.isPending}
-                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-red-500 text-white clip-notch-sm hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {cancelOrder.isPending ? (
                   <>
@@ -878,7 +890,7 @@ export default function OrderDetailPage() {
           >
             <button
               onClick={() => setShowGalleryModal(false)}
-              className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors z-10"
+              className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 clip-notch-sm transition-colors z-10"
               aria-label="Close gallery"
             >
               <X className="w-6 h-6 text-white" />
@@ -916,10 +928,10 @@ export default function OrderDetailPage() {
                     order.evidence[selectedPhotoIndex]?.category ||
                     `Photo ${selectedPhotoIndex + 1}`
                   }
-                  className="w-full max-h-[75vh] object-contain rounded-lg"
+                  className="w-full max-h-[75vh] object-contain clip-notch-sm"
                 />
                 {order.evidence[selectedPhotoIndex]?.category && (
-                  <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/70 rounded-lg">
+                  <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/70 clip-notch-sm">
                     <p className="text-sm text-white">
                       {order.evidence[selectedPhotoIndex].category}
                     </p>
@@ -933,7 +945,7 @@ export default function OrderDetailPage() {
                   <button
                     key={item.id}
                     onClick={() => setSelectedPhotoIndex(index)}
-                    className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
+                    className={`w-16 h-16 clip-notch-sm overflow-hidden flex-shrink-0 transition-all ${
                       index === selectedPhotoIndex
                         ? "ring-2 ring-white ring-offset-2 ring-offset-black"
                         : "opacity-50 hover:opacity-100"
@@ -964,7 +976,7 @@ export default function OrderDetailPage() {
                         `photo-${selectedPhotoIndex + 1}`,
                     )
                   }
-                  className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:opacity-90 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-black font-medium clip-notch-sm hover:opacity-90 transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   Download

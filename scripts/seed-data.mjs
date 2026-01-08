@@ -460,6 +460,107 @@ async function main() {
         stories: null,
       },
     }),
+    // NEW PROPERTIES for realistic job distribution
+    // Austin - near Oracle campus
+    prisma.property.create({
+      data: {
+        addressLine1: "2100 E Riverside Dr",
+        city: "Austin",
+        county: "Travis",
+        state: "TX",
+        zipCode: "78741",
+        addressFull: "2100 E Riverside Dr, Austin, TX 78741",
+        latitude: 30.2396,
+        longitude: -97.7244,
+        propertyType: "MULTI_FAMILY",
+        yearBuilt: 2019,
+        sqft: 3200,
+        lotSizeSqft: 4500,
+        bedrooms: 4,
+        bathrooms: 3,
+        stories: 2,
+      },
+    }),
+    // Austin - South Lamar
+    prisma.property.create({
+      data: {
+        addressLine1: "4500 S Lamar Blvd",
+        city: "Austin",
+        county: "Travis",
+        state: "TX",
+        zipCode: "78745",
+        addressFull: "4500 S Lamar Blvd, Austin, TX 78745",
+        latitude: 30.2234,
+        longitude: -97.7958,
+        propertyType: "SINGLE_FAMILY",
+        yearBuilt: 2005,
+        sqft: 1850,
+        lotSizeSqft: 6500,
+        bedrooms: 3,
+        bathrooms: 2,
+        stories: 1,
+      },
+    }),
+    // Dallas - Forest Lane
+    prisma.property.create({
+      data: {
+        addressLine1: "7800 Forest Ln",
+        city: "Dallas",
+        county: "Dallas",
+        state: "TX",
+        zipCode: "75243",
+        addressFull: "7800 Forest Ln, Dallas, TX 75243",
+        latitude: 32.9156,
+        longitude: -96.7497,
+        propertyType: "SINGLE_FAMILY",
+        yearBuilt: 1995,
+        sqft: 2200,
+        lotSizeSqft: 8000,
+        bedrooms: 4,
+        bathrooms: 2.5,
+        stories: 2,
+      },
+    }),
+    // Dallas - Oak Lawn
+    prisma.property.create({
+      data: {
+        addressLine1: "3200 Oak Lawn Ave",
+        city: "Dallas",
+        county: "Dallas",
+        state: "TX",
+        zipCode: "75219",
+        addressFull: "3200 Oak Lawn Ave, Dallas, TX 75219",
+        latitude: 32.8108,
+        longitude: -96.8121,
+        propertyType: "TOWNHOUSE",
+        yearBuilt: 2018,
+        sqft: 2400,
+        lotSizeSqft: 2200,
+        bedrooms: 3,
+        bathrooms: 2.5,
+        stories: 3,
+      },
+    }),
+    // Houston - Heights
+    prisma.property.create({
+      data: {
+        addressLine1: "1200 Heights Blvd",
+        city: "Houston",
+        county: "Harris",
+        state: "TX",
+        zipCode: "77008",
+        addressFull: "1200 Heights Blvd, Houston, TX 77008",
+        latitude: 29.7949,
+        longitude: -95.3989,
+        propertyType: "SINGLE_FAMILY",
+        yearBuilt: 1925,
+        sqft: 2100,
+        lotSizeSqft: 5500,
+        bedrooms: 3,
+        bathrooms: 2,
+        stories: 2,
+      },
+    }),
   ]);
   console.log(`✅ Created ${properties.length} properties`);
 
@@ -743,217 +844,639 @@ async function main() {
   console.log(`✅ Created ${appraisalRequests.length} appraisal requests`);
 
   // ============================================
-  // JOBS
+  // JOBS - Realistic distribution for appraiser dashboard
   // ============================================
-  console.log("\nCreating jobs...");
+  console.log("\nCreating jobs with realistic distribution...");
+
+  // Properties indices:
+  // 0: 1234 Oak Hill Dr, Austin | 1: 567 Congress Ave, Austin | 2: 890 Barton Springs Rd, Austin
+  // 3: 4521 Preston Rd, Dallas | 4: 2100 McKinney Ave, Dallas | 5: 3456 Westheimer Rd, Houston
+  // 6: 789 Memorial Dr, Houston | 7: 1122 River Walk, San Antonio | 8: 5678 Camp Bowie Blvd, Fort Worth
+  // 9: FM 2222, Austin | 10: 2100 E Riverside Dr, Austin | 11: 4500 S Lamar Blvd, Austin
+  // 12: 7800 Forest Ln, Dallas | 13: 3200 Oak Lawn Ave, Dallas | 14: 1200 Heights Blvd, Houston
+
   const jobs = await Promise.all([
-    // Completed job
+    // ========== DISPATCHED - UNASSIGNED (5 jobs) - CRITICAL FOR AVAILABLE JOBS ==========
+    // Job 0: Austin - S Lamar (for appraiser@truplat.app to accept)
     prisma.job.create({
       data: {
         jobType: "ONSITE_PHOTOS",
-        propertyId: properties[3].id,
-        organizationId: orgs[1].id,
-        appraisalRequestId: appraisalRequests[1].id,
-        assignedAppraiserId: appraisers[1].id,
-        scope:
-          "Capture exterior photos (front, back, sides), interior photos of all rooms, kitchen appliances, HVAC system, and any visible damage or repairs needed.",
-        accessContact: {
-          name: "Property Manager",
-          phone: "(214) 555-8888",
-          email: "pm@propertymanage.com",
-        },
-        schedulingWindow: {
-          preferredDays: ["Monday", "Tuesday", "Wednesday"],
-          preferredTimes: ["9AM-12PM", "1PM-5PM"],
-        },
+        propertyId: properties[11].id, // 4500 S Lamar Blvd
+        organizationId: orgs[0].id,
+        assignedAppraiserId: null, // CRITICAL: Must be null for available jobs
+        scope: "Standard residential inspection. Capture exterior (front, back, sides), interior of all rooms, kitchen, bathrooms, and any visible issues.",
+        accessContact: { name: "Owner Maria Santos", phone: "(512) 555-1111" },
+        schedulingWindow: { preferredDays: ["Monday", "Tuesday", "Wednesday"], preferredTimes: ["9AM-5PM"] },
         payoutAmount: 150,
-        status: "COMPLETED",
+        status: "DISPATCHED",
         statusHistory: [
-          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "DISPATCHED", at: new Date(Date.now() - 5.5 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "ACCEPTED", at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "IN_PROGRESS", at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "SUBMITTED", at: new Date(Date.now() - 3.5 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "COMPLETED", at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), matchedCount: 3 },
         ],
-        slaDueAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        dispatchedAt: new Date(Date.now() - 5.5 * 24 * 60 * 60 * 1000),
-        acceptedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        startedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-        submittedAt: new Date(Date.now() - 3.5 * 24 * 60 * 60 * 1000),
-        completedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        geofenceVerified: true,
+        slaDueAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
       },
     }),
-    // In progress job
+    // Job 1: Austin - Congress Ave (for appraiser@truplat.app to accept)
     prisma.job.create({
       data: {
         jobType: "ONSITE_PHOTOS",
-        propertyId: properties[4].id,
+        propertyId: properties[1].id, // 567 Congress Ave
+        organizationId: orgs[0].id,
+        assignedAppraiserId: null,
+        scope: "Condo unit inspection. Include building common areas, unit interior, views, and any condition issues.",
+        accessContact: { name: "Concierge Desk", phone: "(512) 555-2222", email: "concierge@congress567.com" },
+        schedulingWindow: { preferredDays: ["Any"], preferredTimes: ["10AM-6PM"] },
+        payoutAmount: 175,
+        status: "DISPATCHED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), matchedCount: 2 },
+        ],
+        slaDueAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+      },
+    }),
+    // Job 2: Austin - Oak Hill (for appraiser@truplat.app to accept)
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[0].id, // 1234 Oak Hill Dr
+        organizationId: orgs[0].id,
+        assignedAppraiserId: null,
+        scope: "Full property inspection for refinance. Document all rooms, exterior, garage, and yard.",
+        accessContact: { name: "Homeowner Tom Wilson", phone: "(512) 555-3333" },
+        schedulingWindow: { preferredDays: ["Saturday", "Sunday"], preferredTimes: ["10AM-4PM"] },
+        payoutAmount: 165,
+        status: "DISPATCHED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(), matchedCount: 4 },
+        ],
+        slaDueAt: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 18 * 60 * 60 * 1000),
+      },
+    }),
+    // Job 3: Dallas - Forest Ln (for sarah to accept)
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[12].id, // 7800 Forest Ln
         organizationId: orgs[1].id,
-        appraisalRequestId: appraisalRequests[4].id,
+        assignedAppraiserId: null,
+        scope: "Standard single family inspection for purchase loan.",
+        accessContact: { name: "Listing Agent", phone: "(214) 555-4444" },
+        schedulingWindow: { preferredDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], preferredTimes: ["9AM-5PM"] },
+        payoutAmount: 160,
+        status: "DISPATCHED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), matchedCount: 2 },
+        ],
+        slaDueAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
+      },
+    }),
+    // Job 4: Houston - Heights (for james to accept)
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[14].id, // 1200 Heights Blvd
+        organizationId: orgs[2].id,
+        assignedAppraiserId: null,
+        scope: "Historic home inspection. Document period features, recent updates, and any structural concerns.",
+        accessContact: { name: "Owner Jake Miller", phone: "(713) 555-5555" },
+        schedulingWindow: { preferredDays: ["Wednesday", "Thursday"], preferredTimes: ["10AM-2PM"] },
+        payoutAmount: 185,
+        status: "DISPATCHED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), matchedCount: 3 },
+        ],
+        slaDueAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+
+    // ========== PENDING_DISPATCH (2 jobs) ==========
+    // Job 5: Austin - E Riverside (new, waiting dispatch)
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[10].id, // 2100 E Riverside Dr
+        organizationId: orgs[0].id,
+        scope: "Multi-family inspection. Document each unit, common areas, parking, and exterior.",
+        accessContact: { name: "Property Manager", phone: "(512) 555-6666" },
+        schedulingWindow: { preferredDays: ["Monday", "Tuesday"], preferredTimes: ["9AM-12PM"] },
+        payoutAmount: 225,
+        status: "PENDING_DISPATCH",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+        ],
+        slaDueAt: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+      },
+    }),
+    // Job 6: Dallas - Oak Lawn (new, certified appraisal waiting)
+    prisma.job.create({
+      data: {
+        jobType: "CERTIFIED_APPRAISAL",
+        propertyId: properties[13].id, // 3200 Oak Lawn Ave
+        organizationId: orgs[1].id,
+        scope: "Full certified appraisal for townhouse. Detailed analysis required.",
+        accessContact: { name: "Seller Agent", phone: "(214) 555-7777" },
+        schedulingWindow: { preferredDays: ["Any"], preferredTimes: ["10AM-4PM"] },
+        payoutAmount: 450,
+        status: "PENDING_DISPATCH",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 30 * 60 * 1000).toISOString() },
+        ],
+        slaDueAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+      },
+    }),
+
+    // ========== ACCEPTED (3 jobs) ==========
+    // Job 7: San Antonio - appraiser@truplat.app
+    prisma.job.create({
+      data: {
+        jobType: "CERTIFIED_APPRAISAL",
+        propertyId: properties[7].id, // 1122 River Walk
+        organizationId: orgs[0].id,
+        assignedAppraiserId: appraisers[0].id,
+        scope: "Full certified appraisal for townhouse in River Walk area.",
+        accessContact: { name: "Owner", phone: "(210) 555-8888" },
+        schedulingWindow: { preferredDays: ["Saturday"], preferredTimes: ["10AM-2PM"] },
+        payoutAmount: 400,
+        status: "ACCEPTED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "ACCEPTED", at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), userId: appraisers[0].id },
+        ],
+        slaDueAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000),
+        acceptedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+    // Job 8: Dallas - Preston Rd - sarah
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[3].id, // 4521 Preston Rd
+        organizationId: orgs[1].id,
         assignedAppraiserId: appraisers[1].id,
-        scope:
-          "Commercial property inspection. Capture all office spaces, common areas, parking structure, and building systems.",
-        accessContact: {
-          name: "Building Security",
-          phone: "(214) 555-9999",
-          email: "security@building.com",
-        },
-        schedulingWindow: {
-          preferredDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          preferredTimes: ["8AM-6PM"],
-        },
+        scope: "Luxury home inspection for Highland Park property.",
+        accessContact: { name: "Homeowner", phone: "(214) 555-9999" },
+        schedulingWindow: { preferredDays: ["Tomorrow"], preferredTimes: ["11AM-3PM"] },
+        payoutAmount: 200,
+        status: "ACCEPTED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "ACCEPTED", at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), userId: appraisers[1].id },
+        ],
+        slaDueAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000),
+        acceptedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      },
+    }),
+    // Job 9: Fort Worth - appraiser@truplat.app
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[8].id, // 5678 Camp Bowie Blvd
+        organizationId: orgs[0].id,
+        assignedAppraiserId: appraisers[0].id,
+        scope: "Older home inspection. Document condition and any updates.",
+        accessContact: { name: "Listing Agent", phone: "(817) 555-0000" },
+        schedulingWindow: { preferredDays: ["Friday"], preferredTimes: ["9AM-12PM"] },
+        payoutAmount: 155,
+        status: "ACCEPTED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "ACCEPTED", at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), userId: appraisers[0].id },
+        ],
+        slaDueAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        acceptedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
+      },
+    }),
+
+    // ========== IN_PROGRESS (3 jobs) ==========
+    // Job 10: Austin - Barton Springs - appraiser@truplat.app (WORKING NOW)
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[2].id, // 890 Barton Springs Rd
+        organizationId: orgs[0].id,
+        assignedAppraiserId: appraisers[0].id,
+        scope: "Commercial property inspection - retail space.",
+        accessContact: { name: "Store Manager", phone: "(512) 555-1234" },
+        schedulingWindow: { preferredDays: ["Tuesday", "Thursday"], preferredTimes: ["6AM-8AM", "8PM-10PM"] },
         payoutAmount: 250,
         status: "IN_PROGRESS",
         statusHistory: [
           { status: "PENDING_DISPATCH", at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
           { status: "DISPATCHED", at: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString() },
           { status: "ACCEPTED", at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "IN_PROGRESS", at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
+          { status: "IN_PROGRESS", at: new Date(Date.now() - 45 * 60 * 1000).toISOString() }, // Started 45 min ago
+        ],
+        slaDueAt: new Date(Date.now() + 6 * 60 * 60 * 1000), // Due in 6 hours
+        dispatchedAt: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000),
+        acceptedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        startedAt: new Date(Date.now() - 45 * 60 * 1000),
+        geofenceVerified: true,
+      },
+    }),
+    // Job 11: Dallas - McKinney Ave - sarah
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[4].id, // 2100 McKinney Ave
+        organizationId: orgs[1].id,
+        appraisalRequestId: appraisalRequests[4].id,
+        assignedAppraiserId: appraisers[1].id,
+        scope: "Commercial property - office suite inspection.",
+        accessContact: { name: "Building Security", phone: "(214) 555-5678" },
+        schedulingWindow: { preferredDays: ["Weekdays"], preferredTimes: ["8AM-6PM"] },
+        payoutAmount: 225,
+        status: "IN_PROGRESS",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "ACCEPTED", at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "IN_PROGRESS", at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString() },
+        ],
+        slaDueAt: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000),
+        acceptedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        startedAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
+        geofenceVerified: true,
+      },
+    }),
+    // Job 12: Houston - Westheimer - james
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[5].id, // 3456 Westheimer Rd
+        organizationId: orgs[2].id,
+        assignedAppraiserId: appraisers[2].id,
+        scope: "Multi-family duplex inspection.",
+        accessContact: { name: "Property Owner", phone: "(713) 555-6789" },
+        schedulingWindow: { preferredDays: ["Monday", "Wednesday", "Friday"], preferredTimes: ["9AM-5PM"] },
+        payoutAmount: 200,
+        status: "IN_PROGRESS",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "ACCEPTED", at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "IN_PROGRESS", at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
         ],
         slaDueAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
         dispatchedAt: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000),
         acceptedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        startedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      },
-    }),
-    // Accepted job waiting to start
-    prisma.job.create({
-      data: {
-        jobType: "CERTIFIED_APPRAISAL",
-        propertyId: properties[8].id,
-        organizationId: orgs[0].id,
-        assignedAppraiserId: appraisers[0].id,
-        scope:
-          "Full certified appraisal required. Include detailed property inspection, neighborhood analysis, and comparable sales review.",
-        accessContact: {
-          name: "Homeowner John Doe",
-          phone: "(817) 555-1234",
-        },
-        schedulingWindow: {
-          preferredDays: ["Saturday"],
-          preferredTimes: ["10AM-2PM"],
-        },
-        payoutAmount: 400,
-        status: "ACCEPTED",
-        statusHistory: [
-          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "DISPATCHED", at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "ACCEPTED", at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-        ],
-        slaDueAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-        dispatchedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        acceptedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      },
-    }),
-    // Dispatched job waiting for acceptance
-    prisma.job.create({
-      data: {
-        jobType: "ONSITE_PHOTOS",
-        propertyId: properties[5].id,
-        organizationId: orgs[2].id,
-        assignedAppraiserId: appraisers[2].id,
-        scope: "Multi-family property inspection. Document each unit, common areas, and exterior.",
-        accessContact: {
-          name: "Property Owner",
-          phone: "(713) 555-5555",
-        },
-        schedulingWindow: {
-          preferredDays: ["Monday", "Wednesday", "Friday"],
-          preferredTimes: ["9AM-5PM"],
-        },
-        payoutAmount: 200,
-        status: "DISPATCHED",
-        statusHistory: [
-          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() },
-          { status: "DISPATCHED", at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() },
-        ],
-        slaDueAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        dispatchedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
-      },
-    }),
-    // Pending dispatch job
-    prisma.job.create({
-      data: {
-        jobType: "ONSITE_PHOTOS",
-        propertyId: properties[2].id,
-        organizationId: orgs[0].id,
-        scope: "Commercial property - retail space inspection required.",
-        accessContact: {
-          name: "Store Manager",
-          phone: "(512) 555-7777",
-        },
-        schedulingWindow: {
-          preferredDays: ["Tuesday", "Thursday"],
-          preferredTimes: ["6AM-8AM", "8PM-10PM"],
-          notes: "Outside business hours only",
-        },
-        payoutAmount: 175,
-        status: "PENDING_DISPATCH",
-        statusHistory: [
-          { status: "PENDING_DISPATCH", at: new Date().toISOString() },
-        ],
-        slaDueAt: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
-      },
-    }),
-    // Submitted job under review
-    prisma.job.create({
-      data: {
-        jobType: "CERTIFIED_APPRAISAL",
-        propertyId: properties[6].id,
-        organizationId: orgs[2].id,
-        appraisalRequestId: appraisalRequests[2].id,
-        assignedAppraiserId: appraisers[2].id,
-        scope: "Full certified appraisal for luxury property. Detailed analysis required.",
-        accessContact: {
-          name: "Estate Manager",
-          phone: "(713) 555-0001",
-          email: "estate@luxury.com",
-        },
-        schedulingWindow: {
-          preferredDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          preferredTimes: ["10AM-4PM"],
-        },
-        payoutAmount: 500,
-        status: "UNDER_REVIEW",
-        statusHistory: [
-          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "DISPATCHED", at: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "ACCEPTED", at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "IN_PROGRESS", at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "SUBMITTED", at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() },
-          { status: "UNDER_REVIEW", at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
-        ],
-        slaDueAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        dispatchedAt: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000),
-        acceptedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-        startedAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000),
-        submittedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+        startedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
         geofenceVerified: true,
       },
     }),
+
+    // ========== SUBMITTED (1 job) ==========
+    // Job 13: appraiser@truplat.app - just submitted
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[9].id, // FM 2222 Land
+        organizationId: orgs[0].id,
+        assignedAppraiserId: appraisers[0].id,
+        scope: "Vacant land inspection. Document boundaries, terrain, access, and surroundings.",
+        accessContact: { name: "Land Owner", phone: "(512) 555-9876" },
+        schedulingWindow: { preferredDays: ["Any"], preferredTimes: ["Daylight hours"] },
+        payoutAmount: 175,
+        status: "SUBMITTED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 3.5 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "ACCEPTED", at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "IN_PROGRESS", at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "SUBMITTED", at: new Date(Date.now() - 30 * 60 * 1000).toISOString() }, // Submitted 30 min ago
+        ],
+        slaDueAt: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 3.5 * 24 * 60 * 60 * 1000),
+        acceptedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        startedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        submittedAt: new Date(Date.now() - 30 * 60 * 1000),
+        geofenceVerified: true,
+      },
+    }),
+
+    // ========== UNDER_REVIEW (1 job) ==========
+    // Job 14: Houston - Memorial Dr - james
+    prisma.job.create({
+      data: {
+        jobType: "CERTIFIED_APPRAISAL",
+        propertyId: properties[6].id, // 789 Memorial Dr
+        organizationId: orgs[2].id,
+        appraisalRequestId: appraisalRequests[2].id,
+        assignedAppraiserId: appraisers[2].id,
+        scope: "Full certified appraisal for luxury property.",
+        accessContact: { name: "Estate Manager", phone: "(713) 555-0001", email: "estate@luxury.com" },
+        schedulingWindow: { preferredDays: ["Weekdays"], preferredTimes: ["10AM-4PM"] },
+        payoutAmount: 500,
+        status: "UNDER_REVIEW",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "ACCEPTED", at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "IN_PROGRESS", at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "SUBMITTED", at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "UNDER_REVIEW", at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+        ],
+        slaDueAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000),
+        acceptedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+        startedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        geofenceVerified: true,
+      },
+    }),
+
+    // ========== COMPLETED (4 jobs) ==========
+    // Job 15: Completed 3 days ago - appraiser@truplat.app
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[0].id, // 1234 Oak Hill Dr (reuse for history)
+        organizationId: orgs[0].id,
+        appraisalRequestId: appraisalRequests[0].id,
+        assignedAppraiserId: appraisers[0].id,
+        scope: "Standard residential inspection.",
+        accessContact: { name: "Homeowner", phone: "(512) 555-1111" },
+        schedulingWindow: { preferredDays: ["Any"], preferredTimes: ["9AM-5PM"] },
+        payoutAmount: 150,
+        status: "COMPLETED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "ACCEPTED", at: new Date(Date.now() - 5.5 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "IN_PROGRESS", at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "SUBMITTED", at: new Date(Date.now() - 3.5 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "COMPLETED", at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+        ],
+        slaDueAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+        acceptedAt: new Date(Date.now() - 5.5 * 24 * 60 * 60 * 1000),
+        startedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+        submittedAt: new Date(Date.now() - 3.5 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        geofenceVerified: true,
+      },
+    }),
+    // Job 16: Completed 5 days ago - sarah
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[3].id, // 4521 Preston Rd
+        organizationId: orgs[1].id,
+        appraisalRequestId: appraisalRequests[1].id,
+        assignedAppraiserId: appraisers[1].id,
+        scope: "Premium property inspection.",
+        accessContact: { name: "Owner", phone: "(214) 555-2222" },
+        schedulingWindow: { preferredDays: ["Weekdays"], preferredTimes: ["10AM-4PM"] },
+        payoutAmount: 175,
+        status: "COMPLETED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "ACCEPTED", at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "IN_PROGRESS", at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "SUBMITTED", at: new Date(Date.now() - 5.5 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "COMPLETED", at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+        ],
+        slaDueAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+        acceptedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        startedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+        submittedAt: new Date(Date.now() - 5.5 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        geofenceVerified: true,
+      },
+    }),
+    // Job 17: Completed 7 days ago - appraiser@truplat.app
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[1].id, // 567 Congress Ave
+        organizationId: orgs[0].id,
+        assignedAppraiserId: appraisers[0].id,
+        scope: "Downtown condo inspection.",
+        accessContact: { name: "Owner", phone: "(512) 555-3333" },
+        schedulingWindow: { preferredDays: ["Any"], preferredTimes: ["10AM-6PM"] },
+        payoutAmount: 165,
+        status: "COMPLETED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "ACCEPTED", at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "IN_PROGRESS", at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "SUBMITTED", at: new Date(Date.now() - 7.5 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "COMPLETED", at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+        ],
+        slaDueAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        acceptedAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000),
+        startedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+        submittedAt: new Date(Date.now() - 7.5 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        geofenceVerified: true,
+      },
+    }),
+    // Job 18: Completed 10 days ago - james
+    prisma.job.create({
+      data: {
+        jobType: "CERTIFIED_APPRAISAL",
+        propertyId: properties[5].id, // 3456 Westheimer Rd
+        organizationId: orgs[2].id,
+        assignedAppraiserId: appraisers[2].id,
+        scope: "Multi-family certified appraisal.",
+        accessContact: { name: "Property Manager", phone: "(713) 555-4444" },
+        schedulingWindow: { preferredDays: ["Weekdays"], preferredTimes: ["9AM-5PM"] },
+        payoutAmount: 400,
+        status: "COMPLETED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "ACCEPTED", at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "IN_PROGRESS", at: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "SUBMITTED", at: new Date(Date.now() - 10.5 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "COMPLETED", at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
+        ],
+        slaDueAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000),
+        acceptedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+        startedAt: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000),
+        submittedAt: new Date(Date.now() - 10.5 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        geofenceVerified: true,
+      },
+    }),
+
+    // ========== CANCELLED (1 job) ==========
+    // Job 19: Cancelled job
+    prisma.job.create({
+      data: {
+        jobType: "ONSITE_PHOTOS",
+        propertyId: properties[9].id, // FM 2222 Land
+        organizationId: orgs[0].id,
+        scope: "Land inspection - CANCELLED",
+        accessContact: { name: "Owner", phone: "(512) 555-0000" },
+        schedulingWindow: { preferredDays: ["Any"], preferredTimes: ["Daylight hours"] },
+        payoutAmount: 150,
+        status: "CANCELLED",
+        statusHistory: [
+          { status: "PENDING_DISPATCH", at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "DISPATCHED", at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString() },
+          { status: "CANCELLED", at: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString(), reason: "Property access denied by owner" },
+        ],
+        slaDueAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+        dispatchedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+      },
+    }),
   ]);
+
   console.log(`✅ Created ${jobs.length} jobs`);
+  console.log("   - 5 DISPATCHED (unassigned - available for acceptance)");
+  console.log("   - 2 PENDING_DISPATCH");
+  console.log("   - 3 ACCEPTED");
+  console.log("   - 3 IN_PROGRESS");
+  console.log("   - 1 SUBMITTED");
+  console.log("   - 1 UNDER_REVIEW");
+  console.log("   - 4 COMPLETED");
+  console.log("   - 1 CANCELLED");
 
   // ============================================
-  // EVIDENCE
+  // EVIDENCE - For IN_PROGRESS and COMPLETED jobs
   // ============================================
   console.log("\nCreating evidence...");
+  // Job indices:
+  // jobs[10] = IN_PROGRESS - appraiser@truplat.app (Barton Springs Commercial)
+  // jobs[11] = IN_PROGRESS - sarah (McKinney Ave Commercial)
+  // jobs[12] = IN_PROGRESS - james (Westheimer Multi-family)
+  // jobs[15] = COMPLETED - appraiser@truplat.app (Oak Hill, 3 days ago)
+  // jobs[16] = COMPLETED - sarah (Preston Rd, 5 days ago)
+  // jobs[17] = COMPLETED - appraiser@truplat.app (Congress Ave, 7 days ago)
+  // jobs[18] = COMPLETED - james (Westheimer, 10 days ago)
+
   const evidence = await Promise.all([
+    // === Evidence for IN_PROGRESS job 10 (Barton Springs Commercial - appraiser@truplat.app) ===
     prisma.evidence.create({
       data: {
-        jobId: jobs[0].id,
+        jobId: jobs[10].id,
+        mediaType: "PHOTO",
+        fileName: "commercial_front.jpg",
+        fileSize: 2456789,
+        mimeType: "image/jpeg",
+        fileUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=200",
+        latitude: 30.2598,
+        longitude: -97.7566,
+        capturedAt: new Date(Date.now() - 30 * 60 * 1000), // 30 min ago
+        integrityHash: "sha256-comm001",
+        verified: true,
+        category: "front",
+        notes: "Retail storefront from street",
+      },
+    }),
+    prisma.evidence.create({
+      data: {
+        jobId: jobs[10].id,
+        mediaType: "PHOTO",
+        fileName: "commercial_interior.jpg",
+        fileSize: 1987654,
+        mimeType: "image/jpeg",
+        fileUrl: "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=200",
+        latitude: 30.2598,
+        longitude: -97.7566,
+        capturedAt: new Date(Date.now() - 25 * 60 * 1000),
+        integrityHash: "sha256-comm002",
+        verified: true,
+        category: "interior",
+        notes: "Main retail floor",
+      },
+    }),
+
+    // === Evidence for IN_PROGRESS job 11 (McKinney Commercial - sarah) ===
+    prisma.evidence.create({
+      data: {
+        jobId: jobs[11].id,
+        mediaType: "PHOTO",
+        fileName: "office_lobby.jpg",
+        fileSize: 1876543,
+        mimeType: "image/jpeg",
+        fileUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=200",
+        latitude: 32.7942,
+        longitude: -96.8009,
+        capturedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+        integrityHash: "sha256-office001",
+        verified: true,
+        category: "entrance",
+        notes: "Building lobby",
+      },
+    }),
+    prisma.evidence.create({
+      data: {
+        jobId: jobs[11].id,
+        mediaType: "PHOTO",
+        fileName: "office_suite.jpg",
+        fileSize: 2123456,
+        mimeType: "image/jpeg",
+        fileUrl: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=200",
+        latitude: 32.7942,
+        longitude: -96.8009,
+        capturedAt: new Date(Date.now() - 1.5 * 60 * 60 * 1000),
+        integrityHash: "sha256-office002",
+        verified: true,
+        category: "interior",
+        notes: "Office suite 800",
+      },
+    }),
+
+    // === Evidence for IN_PROGRESS job 12 (Westheimer Multi-family - james) ===
+    prisma.evidence.create({
+      data: {
+        jobId: jobs[12].id,
+        mediaType: "PHOTO",
+        fileName: "duplex_front.jpg",
+        fileSize: 2345678,
+        mimeType: "image/jpeg",
+        fileUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200",
+        latitude: 29.7419,
+        longitude: -95.4619,
+        capturedAt: new Date(Date.now() - 1.5 * 60 * 60 * 1000),
+        integrityHash: "sha256-duplex001",
+        verified: true,
+        category: "front",
+        notes: "Front elevation of duplex",
+      },
+    }),
+
+    // === Evidence for COMPLETED job 15 (Oak Hill - appraiser@truplat.app, 3 days ago) ===
+    prisma.evidence.create({
+      data: {
+        jobId: jobs[15].id,
         mediaType: "PHOTO",
         fileName: "front_exterior.jpg",
         fileSize: 2456789,
         mimeType: "image/jpeg",
         fileUrl: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800",
         thumbnailUrl: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=200",
-        latitude: 32.8382,
-        longitude: -96.8018,
+        latitude: 30.2291,
+        longitude: -97.8467,
         capturedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-        integrityHash: "sha256-abc123def456",
+        integrityHash: "sha256-oak001",
         verified: true,
         category: "front",
         notes: "Front exterior view from street",
@@ -961,17 +1484,17 @@ async function main() {
     }),
     prisma.evidence.create({
       data: {
-        jobId: jobs[0].id,
+        jobId: jobs[15].id,
         mediaType: "PHOTO",
         fileName: "kitchen.jpg",
         fileSize: 1987654,
         mimeType: "image/jpeg",
         fileUrl: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800",
         thumbnailUrl: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200",
-        latitude: 32.8382,
-        longitude: -96.8018,
+        latitude: 30.2291,
+        longitude: -97.8467,
         capturedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-        integrityHash: "sha256-def456ghi789",
+        integrityHash: "sha256-oak002",
         verified: true,
         category: "kitchen",
         notes: "Kitchen with updated appliances",
@@ -979,54 +1502,150 @@ async function main() {
     }),
     prisma.evidence.create({
       data: {
-        jobId: jobs[0].id,
+        jobId: jobs[15].id,
         mediaType: "PHOTO",
         fileName: "living_room.jpg",
         fileSize: 2123456,
         mimeType: "image/jpeg",
         fileUrl: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800",
         thumbnailUrl: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200",
-        latitude: 32.8382,
-        longitude: -96.8018,
+        latitude: 30.2291,
+        longitude: -97.8467,
         capturedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-        integrityHash: "sha256-ghi789jkl012",
+        integrityHash: "sha256-oak003",
         verified: true,
         category: "living_room",
       },
     }),
     prisma.evidence.create({
       data: {
-        jobId: jobs[0].id,
+        jobId: jobs[15].id,
         mediaType: "PHOTO",
         fileName: "backyard.jpg",
         fileSize: 2567890,
         mimeType: "image/jpeg",
         fileUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800",
         thumbnailUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200",
-        latitude: 32.8382,
-        longitude: -96.8018,
+        latitude: 30.2291,
+        longitude: -97.8467,
         capturedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-        integrityHash: "sha256-jkl012mno345",
+        integrityHash: "sha256-oak004",
         verified: true,
         category: "back",
       },
     }),
+
+    // === Evidence for COMPLETED job 16 (Preston Rd - sarah, 5 days ago) ===
     prisma.evidence.create({
       data: {
-        jobId: jobs[1].id,
+        jobId: jobs[16].id,
         mediaType: "PHOTO",
-        fileName: "office_entrance.jpg",
+        fileName: "luxury_front.jpg",
+        fileSize: 2654321,
+        mimeType: "image/jpeg",
+        fileUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=200",
+        latitude: 32.8382,
+        longitude: -96.8018,
+        capturedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+        integrityHash: "sha256-pres001",
+        verified: true,
+        category: "front",
+        notes: "Highland Park luxury home front",
+      },
+    }),
+    prisma.evidence.create({
+      data: {
+        jobId: jobs[16].id,
+        mediaType: "PHOTO",
+        fileName: "luxury_kitchen.jpg",
+        fileSize: 2345678,
+        mimeType: "image/jpeg",
+        fileUrl: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=200",
+        latitude: 32.8382,
+        longitude: -96.8018,
+        capturedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+        integrityHash: "sha256-pres002",
+        verified: true,
+        category: "kitchen",
+        notes: "Gourmet kitchen",
+      },
+    }),
+
+    // === Evidence for COMPLETED job 17 (Congress Ave - appraiser@truplat.app, 7 days ago) ===
+    prisma.evidence.create({
+      data: {
+        jobId: jobs[17].id,
+        mediaType: "PHOTO",
+        fileName: "condo_exterior.jpg",
         fileSize: 1876543,
         mimeType: "image/jpeg",
-        fileUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800",
-        thumbnailUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=200",
-        latitude: 32.7942,
-        longitude: -96.8009,
-        capturedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-        integrityHash: "sha256-mno345pqr678",
+        fileUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=200",
+        latitude: 30.2672,
+        longitude: -97.7431,
+        capturedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+        integrityHash: "sha256-cong001",
         verified: true,
-        category: "entrance",
-        notes: "Main building entrance",
+        category: "front",
+        notes: "Building exterior",
+      },
+    }),
+    prisma.evidence.create({
+      data: {
+        jobId: jobs[17].id,
+        mediaType: "PHOTO",
+        fileName: "condo_view.jpg",
+        fileSize: 2234567,
+        mimeType: "image/jpeg",
+        fileUrl: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=200",
+        latitude: 30.2672,
+        longitude: -97.7431,
+        capturedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+        integrityHash: "sha256-cong002",
+        verified: true,
+        category: "interior",
+        notes: "Unit interior with downtown view",
+      },
+    }),
+
+    // === Evidence for COMPLETED job 18 (Westheimer certified - james, 10 days ago) ===
+    prisma.evidence.create({
+      data: {
+        jobId: jobs[18].id,
+        mediaType: "PHOTO",
+        fileName: "multifamily_front.jpg",
+        fileSize: 2456789,
+        mimeType: "image/jpeg",
+        fileUrl: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=200",
+        latitude: 29.7419,
+        longitude: -95.4619,
+        capturedAt: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000),
+        integrityHash: "sha256-west001",
+        verified: true,
+        category: "front",
+        notes: "Multi-family building front",
+      },
+    }),
+    prisma.evidence.create({
+      data: {
+        jobId: jobs[18].id,
+        mediaType: "PHOTO",
+        fileName: "multifamily_unit1.jpg",
+        fileSize: 1987654,
+        mimeType: "image/jpeg",
+        fileUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=200",
+        latitude: 29.7419,
+        longitude: -95.4619,
+        capturedAt: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000),
+        integrityHash: "sha256-west002",
+        verified: true,
+        category: "interior",
+        notes: "Unit A interior",
       },
     }),
   ]);

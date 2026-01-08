@@ -70,19 +70,29 @@ export function ConfidenceMeter({
         {normalizedScore >= 85
           ? "High confidence based on strong comparable data."
           : normalizedScore >= 70
-          ? "Good confidence with solid market data available."
-          : normalizedScore >= 55
-          ? "Moderate confidence. Consider on-site verification."
-          : "Low confidence due to limited data. On-site inspection recommended."}
+            ? "Good confidence with solid market data available."
+            : normalizedScore >= 55
+              ? "Moderate confidence. Consider on-site verification."
+              : "Low confidence due to limited data. On-site inspection recommended."}
       </p>
     </div>
   );
 
   const meter = (
     <div className={cn("flex items-center gap-2", className)}>
-      <div className={cn("rounded-full overflow-hidden", colorConfig.bg, sizeConfig.height, sizeConfig.width)}>
+      <div
+        className={cn(
+          "rounded-full overflow-hidden",
+          colorConfig.bg,
+          sizeConfig.height,
+          sizeConfig.width,
+        )}
+      >
         <div
-          className={cn("h-full rounded-full transition-all duration-500", colorConfig.bar)}
+          className={cn(
+            "h-full rounded-full transition-all duration-500",
+            colorConfig.bar,
+          )}
           style={{ width: `${normalizedScore}%` }}
         />
       </div>
@@ -114,14 +124,36 @@ interface ConfidenceDisplayProps {
   className?: string;
 }
 
-export function ConfidenceDisplay({ score, className }: ConfidenceDisplayProps) {
+export function ConfidenceDisplay({
+  score,
+  className,
+}: ConfidenceDisplayProps) {
   const normalizedScore = Math.min(Math.max(score, 0), 100);
 
   const getLevel = () => {
-    if (normalizedScore >= 85) return { label: "High Confidence", color: "green", description: "Strong comparable data supports this valuation." };
-    if (normalizedScore >= 70) return { label: "Good Confidence", color: "blue", description: "Solid market data available for this property." };
-    if (normalizedScore >= 55) return { label: "Moderate Confidence", color: "yellow", description: "Consider ordering an on-site inspection." };
-    return { label: "Low Confidence", color: "red", description: "On-site inspection strongly recommended." };
+    if (normalizedScore >= 85)
+      return {
+        label: "High Confidence",
+        color: "green",
+        description: "Strong comparable data supports this valuation.",
+      };
+    if (normalizedScore >= 70)
+      return {
+        label: "Good Confidence",
+        color: "blue",
+        description: "Solid market data available for this property.",
+      };
+    if (normalizedScore >= 55)
+      return {
+        label: "Moderate Confidence",
+        color: "yellow",
+        description: "Consider ordering an on-site inspection.",
+      };
+    return {
+      label: "Low Confidence",
+      color: "red",
+      description: "On-site inspection strongly recommended.",
+    };
   };
 
   const level = getLevel();
@@ -134,7 +166,13 @@ export function ConfidenceDisplay({ score, className }: ConfidenceDisplayProps) 
   };
 
   return (
-    <div className={cn("p-4 rounded-xl border", colors[level.color as keyof typeof colors], className)}>
+    <div
+      className={cn(
+        "p-4 clip-notch border",
+        colors[level.color as keyof typeof colors],
+        className,
+      )}
+    >
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-medium">{level.label}</span>
         <span className="text-2xl font-bold">{normalizedScore}%</span>

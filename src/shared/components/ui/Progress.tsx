@@ -41,7 +41,7 @@ export function Progress({
     <div className={cn("w-full", className)}>
       {(showLabel || label) && (
         <div className="flex justify-between mb-1.5">
-          <span className="font-mono text-label uppercase tracking-wider text-gray-500">
+          <span className="font-mono text-label uppercase tracking-wider text-[var(--muted-foreground)]">
             {label || "Progress"}
           </span>
           {showLabel && (
@@ -53,7 +53,7 @@ export function Progress({
       )}
       <div
         className={cn(
-          "w-full bg-gray-800 overflow-hidden",
+          "w-full bg-[var(--muted)] overflow-hidden",
           // Rectangular, no rounded corners - Ledger style
           sizes[size],
         )}
@@ -120,7 +120,7 @@ export function CircularProgress({
     >
       <svg className="transform -rotate-90" width={size} height={size}>
         <circle
-          className="text-gray-800"
+          className="text-[var(--muted)]"
           strokeWidth={strokeWidth}
           stroke="currentColor"
           fill="transparent"

@@ -890,11 +890,11 @@ export default function MapPage() {
 
         {/* Error State */}
         {loadError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-20">
+          <div className="absolute inset-0 flex items-center justify-center bg-[var(--card)] z-20">
             <div className="text-center p-8">
               <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
               <h2 className="text-xl font-bold text-white mb-2">Map Error</h2>
-              <p className="text-gray-400 mb-4">{loadError}</p>
+              <p className="text-[var(--muted-foreground)] mb-4">{loadError}</p>
               <button
                 onClick={() => window.location.reload()}
                 className="px-4 py-2 bg-lime-400 text-black font-mono text-sm uppercase clip-notch hover:bg-lime-300"
@@ -926,7 +926,7 @@ export default function MapPage() {
           {/* Search */}
           <div className="relative">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 z-10"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] z-10"
               aria-hidden="true"
             />
             <input
@@ -950,7 +950,7 @@ export default function MapPage() {
               aria-expanded={searchOpen && searchQuery.length >= 5}
               aria-controls="search-results"
               aria-busy={searchAddresses.isLoading}
-              className="w-full sm:w-48 md:w-64 pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 clip-notch-sm shadow-lg text-sm font-mono text-white placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+              className="w-full sm:w-48 md:w-64 pl-10 pr-4 py-3 bg-[var(--card)] border border-[var(--border)] clip-notch-sm shadow-lg text-sm font-mono text-white placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
             />
             {/* Search Results Dropdown */}
             {searchOpen && searchQuery.length >= 5 && (
@@ -958,11 +958,11 @@ export default function MapPage() {
                 id="search-results"
                 role="listbox"
                 aria-label="Search results"
-                className="absolute top-full left-0 right-0 mt-1 bg-gray-900 border border-gray-700 clip-notch-sm shadow-xl overflow-hidden z-50 max-h-60 overflow-y-auto"
+                className="absolute top-full left-0 right-0 mt-1 bg-[var(--card)] border border-[var(--border)] clip-notch-sm shadow-xl overflow-hidden z-50 max-h-60 overflow-y-auto"
               >
                 {searchAddresses.isLoading ? (
                   <div
-                    className="flex items-center gap-2 px-4 py-3 text-gray-400"
+                    className="flex items-center gap-2 px-4 py-3 text-[var(--muted-foreground)]"
                     role="status"
                   >
                     <Loader2
@@ -979,12 +979,12 @@ export default function MapPage() {
                         role="option"
                         aria-selected={index === 0}
                         onClick={() => handleAddressSelect(result)}
-                        className="w-full text-left px-4 py-3 hover:bg-gray-800 border-b border-gray-800 last:border-b-0 transition-colors focus:bg-gray-800 focus:outline-none"
+                        className="w-full text-left px-4 py-3 hover:bg-[var(--secondary)] border-b border-[var(--border)] last:border-b-0 transition-colors focus:bg-[var(--secondary)] focus:outline-none"
                       >
                         <p className="text-sm font-medium text-white">
                           {result.address}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-[var(--muted-foreground)]">
                           {result.city}, {result.state} {result.zipCode}
                         </p>
                       </button>
@@ -992,8 +992,10 @@ export default function MapPage() {
                   </div>
                 ) : (
                   <div className="px-4 py-3 text-center">
-                    <p className="text-sm text-gray-400">No results found</p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      No results found
+                    </p>
+                    <p className="text-xs text-[var(--muted-foreground)] mt-1">
                       Try a different address or check spelling
                     </p>
                   </div>
@@ -1003,10 +1005,10 @@ export default function MapPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="flex gap-1 bg-gray-900 border border-gray-800 p-1 clip-notch-sm shadow-lg">
+          <div className="flex gap-1 bg-[var(--card)] border border-[var(--border)] p-1 clip-notch-sm shadow-lg">
             <button
               onClick={handleGeolocate}
-              className="p-2 text-gray-400 hover:text-lime-400 hover:bg-gray-800 clip-notch-sm transition-colors"
+              className="p-2 text-[var(--muted-foreground)] hover:text-lime-400 hover:bg-[var(--secondary)] clip-notch-sm transition-colors"
               aria-label="Go to my location"
               title="My Location"
             >
@@ -1014,7 +1016,7 @@ export default function MapPage() {
             </button>
             <button
               onClick={handleFullscreen}
-              className="p-2 text-gray-400 hover:text-lime-400 hover:bg-gray-800 clip-notch-sm transition-colors"
+              className="p-2 text-[var(--muted-foreground)] hover:text-lime-400 hover:bg-[var(--secondary)] clip-notch-sm transition-colors"
               aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
               title="Fullscreen"
             >
@@ -1022,7 +1024,7 @@ export default function MapPage() {
             </button>
             <button
               onClick={handleShare}
-              className="p-2 text-gray-400 hover:text-lime-400 hover:bg-gray-800 clip-notch-sm transition-colors"
+              className="p-2 text-[var(--muted-foreground)] hover:text-lime-400 hover:bg-[var(--secondary)] clip-notch-sm transition-colors"
               aria-label="Share map location"
               title="Share"
             >
@@ -1033,7 +1035,7 @@ export default function MapPage() {
 
         {/* View Tabs */}
         <div
-          className="absolute top-4 right-16 z-10 flex bg-gray-900 border border-gray-800 clip-notch shadow-lg overflow-hidden"
+          className="absolute top-4 right-16 z-10 flex bg-[var(--card)] border border-[var(--border)] clip-notch shadow-lg overflow-hidden"
           role="tablist"
           aria-label="Map view options"
         >
@@ -1056,7 +1058,7 @@ export default function MapPage() {
                 className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2.5 text-xs md:text-sm font-mono uppercase tracking-wider transition-colors ${
                   activeTab === tab.id
                     ? "bg-lime-400 text-black"
-                    : "text-gray-400 hover:bg-gray-800"
+                    : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
                 }`}
               >
                 <Icon className="w-4 h-4" aria-hidden="true" />
@@ -1068,7 +1070,7 @@ export default function MapPage() {
 
         {/* Base Layer Switcher */}
         <div
-          className="absolute bottom-8 left-4 z-10 flex gap-1 bg-gray-900 border border-gray-800 p-1 clip-notch shadow-lg"
+          className="absolute bottom-8 left-4 z-10 flex gap-1 bg-[var(--card)] border border-[var(--border)] p-1 clip-notch shadow-lg"
           role="group"
           aria-label="Map style options"
         >
@@ -1077,7 +1079,7 @@ export default function MapPage() {
             className={`p-2 clip-notch-sm transition-colors ${
               baseLayer === "streets"
                 ? "bg-lime-400 text-black"
-                : "text-gray-400 hover:bg-gray-800"
+                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
             }`}
             aria-label="Streets map view"
             aria-pressed={baseLayer === "streets"}
@@ -1089,7 +1091,7 @@ export default function MapPage() {
             className={`p-2 clip-notch-sm transition-colors ${
               baseLayer === "satellite"
                 ? "bg-lime-400 text-black"
-                : "text-gray-400 hover:bg-gray-800"
+                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
             }`}
             aria-label="Satellite map view"
             aria-pressed={baseLayer === "satellite"}
@@ -1101,7 +1103,7 @@ export default function MapPage() {
             className={`p-2 clip-notch-sm transition-colors ${
               baseLayer === "hybrid"
                 ? "bg-lime-400 text-black"
-                : "text-gray-400 hover:bg-gray-800"
+                : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
             }`}
             aria-label="Hybrid map view"
             aria-pressed={baseLayer === "hybrid"}
@@ -1115,12 +1117,12 @@ export default function MapPage() {
           isLoaded &&
           !jobsLoading &&
           !jobsData?.length && (
-            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 px-6 py-4 bg-gray-900 border border-gray-800 clip-notch shadow-lg text-center max-w-sm">
-              <Briefcase className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 px-6 py-4 bg-[var(--card)] border border-[var(--border)] clip-notch shadow-lg text-center max-w-sm">
+              <Briefcase className="w-8 h-8 text-[var(--muted-foreground)] mx-auto mb-2" />
               <p className="text-sm text-white font-medium">
                 No jobs in this area
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-[var(--muted-foreground)] mt-1">
                 Pan or zoom the map to find available jobs
               </p>
             </div>
@@ -1130,12 +1132,12 @@ export default function MapPage() {
           isLoaded &&
           !appraisersLoading &&
           !appraisersData?.length && (
-            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 px-6 py-4 bg-gray-900 border border-gray-800 clip-notch shadow-lg text-center max-w-sm">
-              <Users className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 px-6 py-4 bg-[var(--card)] border border-[var(--border)] clip-notch shadow-lg text-center max-w-sm">
+              <Users className="w-8 h-8 text-[var(--muted-foreground)] mx-auto mb-2" />
               <p className="text-sm text-white font-medium">
                 No appraisers in this area
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-[var(--muted-foreground)] mt-1">
                 Expand your view to find available appraisers
               </p>
             </div>
@@ -1166,12 +1168,12 @@ export default function MapPage() {
         {activeTab === "parcels" &&
           isLoaded &&
           (map.current?.getZoom() || 0) < 13 && (
-            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 px-6 py-4 bg-gray-900 border border-lime-400/30 clip-notch shadow-lg text-center">
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 px-6 py-4 bg-[var(--card)] border border-lime-400/30 clip-notch shadow-lg text-center">
               <MapPin className="w-6 h-6 text-lime-400 mx-auto mb-2" />
               <p className="text-sm text-white font-medium">
                 Zoom in to see parcels
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-[var(--muted-foreground)] mt-1">
                 Parcel boundaries appear at zoom level 13+
               </p>
             </div>
@@ -1217,7 +1219,7 @@ export default function MapPage() {
       {/* Job Details Panel */}
       {selectedJob && (
         <div
-          className="absolute bottom-20 left-4 z-20 w-full sm:w-80 max-w-[calc(100vw-2rem)] bg-gray-900 border border-gray-800 clip-notch shadow-xl"
+          className="absolute bottom-20 left-4 z-20 w-full sm:w-80 max-w-[calc(100vw-2rem)] bg-[var(--card)] border border-[var(--border)] clip-notch shadow-xl"
           role="dialog"
           aria-labelledby="job-details-title"
         >
@@ -1238,24 +1240,26 @@ export default function MapPage() {
               </div>
               <button
                 onClick={() => setSelectedJob(null)}
-                className="p-1 text-gray-400 hover:text-white"
+                className="p-1 text-[var(--muted-foreground)] hover:text-white"
                 aria-label="Close job details"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="flex items-start gap-2 mb-3">
-              <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+              <MapPin className="w-4 h-4 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0" />
               <div>
                 <h3 id="job-details-title" className="font-medium text-white">
                   {selectedJob.address}
                 </h3>
-                <p className="text-sm text-gray-400">{selectedJob.city}</p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  {selectedJob.city}
+                </p>
               </div>
             </div>
             <div className="space-y-2 mb-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500 flex items-center gap-1">
+                <span className="text-[var(--muted-foreground)] flex items-center gap-1">
                   <Briefcase className="w-3.5 h-3.5" />
                   {selectedJob.jobType.replace(/_/g, " ")}
                 </span>
@@ -1265,13 +1269,13 @@ export default function MapPage() {
                 </span>
               </div>
               {selectedJob.slaDueAt && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
                   <Calendar className="w-3.5 h-3.5" />
                   Due: {new Date(selectedJob.slaDueAt).toLocaleDateString()}
                 </div>
               )}
               {selectedJob.assignedAppraiser && (
-                <div className="text-xs text-gray-400">
+                <div className="text-xs text-[var(--muted-foreground)]">
                   Assigned: {selectedJob.assignedAppraiser}
                 </div>
               )}
@@ -1290,7 +1294,7 @@ export default function MapPage() {
       {/* Appraiser Details Panel */}
       {selectedAppraiser && (
         <div
-          className="absolute bottom-20 left-4 z-20 w-full sm:w-80 max-w-[calc(100vw-2rem)] bg-gray-900 border border-gray-800 clip-notch shadow-xl"
+          className="absolute bottom-20 left-4 z-20 w-full sm:w-80 max-w-[calc(100vw-2rem)] bg-[var(--card)] border border-[var(--border)] clip-notch shadow-xl"
           role="dialog"
           aria-labelledby="appraiser-details-title"
         >
@@ -1308,7 +1312,7 @@ export default function MapPage() {
                     {selectedAppraiser.name}
                   </h3>
                   {selectedAppraiser.licenseNumber && (
-                    <p className="text-xs text-gray-400 flex items-center gap-1">
+                    <p className="text-xs text-[var(--muted-foreground)] flex items-center gap-1">
                       <Award className="w-3 h-3" />
                       {selectedAppraiser.licenseNumber}
                     </p>
@@ -1317,7 +1321,7 @@ export default function MapPage() {
               </div>
               <button
                 onClick={() => setSelectedAppraiser(null)}
-                className="p-1 text-gray-400 hover:text-white"
+                className="p-1 text-[var(--muted-foreground)] hover:text-white"
                 aria-label="Close appraiser details"
               >
                 <X className="w-4 h-4" />
@@ -1327,24 +1331,30 @@ export default function MapPage() {
             <div className="space-y-3 mb-4">
               {/* Stats */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="p-2 bg-gray-800/50 rounded">
+                <div className="p-2 bg-[var(--secondary)]/50 rounded">
                   <p className="text-lg font-bold text-white font-mono">
                     {selectedAppraiser.completedJobs}
                   </p>
-                  <p className="text-xs text-gray-500">Jobs completed</p>
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    Jobs completed
+                  </p>
                 </div>
-                <div className="p-2 bg-gray-800/50 rounded">
+                <div className="p-2 bg-[var(--secondary)]/50 rounded">
                   <p className="text-lg font-bold text-lime-400 font-mono">
                     {selectedAppraiser.coverageRadiusMiles} mi
                   </p>
-                  <p className="text-xs text-gray-500">Coverage radius</p>
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    Coverage radius
+                  </p>
                 </div>
               </div>
 
               {/* Rating */}
               {selectedAppraiser.rating && (
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-500">Rating:</span>
+                  <span className="text-[var(--muted-foreground)]">
+                    Rating:
+                  </span>
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
                       <div
@@ -1364,11 +1374,11 @@ export default function MapPage() {
               )}
 
               {/* Contact Info */}
-              <div className="space-y-2 pt-2 border-t border-gray-800">
+              <div className="space-y-2 pt-2 border-t border-[var(--border)]">
                 {selectedAppraiser.email && (
                   <a
                     href={`mailto:${selectedAppraiser.email}`}
-                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-lime-400 transition-colors"
+                    className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-lime-400 transition-colors"
                   >
                     <Mail className="w-4 h-4" />
                     {selectedAppraiser.email}
@@ -1377,7 +1387,7 @@ export default function MapPage() {
                 {selectedAppraiser.phone && (
                   <a
                     href={`tel:${selectedAppraiser.phone}`}
-                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-lime-400 transition-colors"
+                    className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-lime-400 transition-colors"
                   >
                     <Phone className="w-4 h-4" />
                     {selectedAppraiser.phone}

@@ -13,6 +13,10 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, label, error, hint, id, ...props }, ref) => {
     const generatedId = useId();
     const textareaId = id || generatedId;
+    const errorId = error ? `${textareaId}-error` : undefined;
+    const hintId = hint && !error ? `${textareaId}-hint` : undefined;
+    const describedBy =
+      [errorId, hintId].filter(Boolean).join(" ") || undefined;
 
     return (
       <div className="w-full">
@@ -49,20 +53,24 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
               "border-red-500 focus:border-red-500 focus:ring-red-500/20",
             className,
           )}
-          aria-invalid={error ? "true" : "false"}
-          aria-describedby={error ? `${textareaId}-error` : undefined}
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={describedBy}
           {...props}
         />
         {error && (
           <p
-            id={`${textareaId}-error`}
+            id={errorId}
             className="mt-2 text-caption text-red-500 font-mono"
+            role="alert"
           >
             {error}
           </p>
         )}
         {hint && !error && (
-          <p className="mt-2 text-caption text-[var(--muted-foreground)]">
+          <p
+            id={hintId}
+            className="mt-2 text-caption text-[var(--muted-foreground)]"
+          >
             {hint}
           </p>
         )}

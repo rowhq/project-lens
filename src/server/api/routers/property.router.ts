@@ -8,6 +8,7 @@ import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
+  clientProcedure,
 } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import * as mapbox from "@/shared/lib/mapbox";
@@ -41,7 +42,7 @@ export const propertyRouter = createTRPCRouter({
       z.object({
         query: z.string().min(3),
         limit: z.number().min(1).max(10).default(5),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       // First try Mapbox for geocoding suggestions
@@ -101,7 +102,7 @@ export const propertyRouter = createTRPCRouter({
     .input(
       z.object({
         address: z.string().min(5),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       try {
@@ -126,7 +127,7 @@ export const propertyRouter = createTRPCRouter({
 
         // Validate it's in a supported county
         const isSupported = SUPPORTED_COUNTIES.some(
-          (c) => c.toLowerCase() === result.county.toLowerCase()
+          (c) => c.toLowerCase() === result.county.toLowerCase(),
         );
 
         return {
@@ -164,7 +165,7 @@ export const propertyRouter = createTRPCRouter({
         address: z.string(),
         county: z.string(),
         state: z.string(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { county, state } = input;
@@ -178,7 +179,7 @@ export const propertyRouter = createTRPCRouter({
       }
 
       const isSupported = SUPPORTED_COUNTIES.some(
-        (c) => c.toLowerCase() === county.toLowerCase()
+        (c) => c.toLowerCase() === county.toLowerCase(),
       );
 
       if (!isSupported) {
@@ -246,7 +247,7 @@ export const propertyRouter = createTRPCRouter({
         bedrooms: z.number().optional(),
         bathrooms: z.number().optional(),
         stories: z.number().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const addressFull = [
@@ -301,7 +302,7 @@ export const propertyRouter = createTRPCRouter({
         city: z.string(),
         state: z.string().default("TX"),
         zipCode: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       try {
@@ -351,7 +352,8 @@ export const propertyRouter = createTRPCRouter({
         console.error("ATTOM fetch error:", error);
         return {
           success: false,
-          message: "Failed to fetch property details. The service may be temporarily unavailable.",
+          message:
+            "Failed to fetch property details. The service may be temporarily unavailable.",
           data: null,
         };
       }
@@ -369,7 +371,7 @@ export const propertyRouter = createTRPCRouter({
         zipCode: z.string().optional(),
         radius: z.number().min(0.5).max(5).default(1),
         limit: z.number().min(3).max(15).default(6),
-      })
+      }),
     )
     .query(async ({ input }) => {
       try {
@@ -403,7 +405,7 @@ export const propertyRouter = createTRPCRouter({
     .input(
       z.object({
         zipCode: z.string(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       try {
@@ -442,7 +444,7 @@ export const propertyRouter = createTRPCRouter({
         width: z.number().min(100).max(1280).default(600),
         height: z.number().min(100).max(1280).default(400),
         zoom: z.number().min(10).max(18).default(15),
-      })
+      }),
     )
     .query(({ input }) => {
       try {
@@ -459,5 +461,150 @@ export const propertyRouter = createTRPCRouter({
       } catch (error) {
         return { url: null };
       }
+    }),
+
+  /**
+   * List properties for the client's organization (from appraisals)
+   */
+  listMyProperties: clientProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).default(50),
+        cursor: z.string().optional(),
+        search: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Get properties that have appraisals from this organization
+      const properties = await ctx.prisma.property.findMany({
+        where: {
+          appraisalRequests: {
+            some: {
+              organizationId: ctx.organization!.id,
+            },
+          },
+          ...(input.search
+            ? {
+                OR: [
+                  {
+                    addressFull: {
+                      contains: input.search,
+                      mode: "insensitive",
+                    },
+                  },
+                  { city: { contains: input.search, mode: "insensitive" } },
+                  { county: { contains: input.search, mode: "insensitive" } },
+                ],
+              }
+            : {}),
+        },
+        include: {
+          appraisalRequests: {
+            where: { organizationId: ctx.organization!.id },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: {
+              id: true,
+              status: true,
+              createdAt: true,
+              referenceCode: true,
+              report: {
+                select: {
+                  id: true,
+                  valueEstimate: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              appraisalRequests: {
+                where: { organizationId: ctx.organization!.id },
+              },
+            },
+          },
+        },
+        orderBy: { updatedAt: "desc" },
+        take: input.limit + 1,
+        ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
+      });
+
+      // Check if there are more results
+      let nextCursor: string | undefined = undefined;
+      if (properties.length > input.limit) {
+        const nextItem = properties.pop();
+        nextCursor = nextItem?.id;
+      }
+
+      return {
+        items: properties.map((p) => ({
+          id: p.id,
+          addressFull: p.addressFull,
+          addressLine1: p.addressLine1,
+          city: p.city,
+          county: p.county,
+          state: p.state,
+          zipCode: p.zipCode,
+          propertyType: p.propertyType,
+          latitude: p.latitude,
+          longitude: p.longitude,
+          yearBuilt: p.yearBuilt,
+          sqft: p.sqft,
+          bedrooms: p.bedrooms,
+          bathrooms: p.bathrooms,
+          totalAppraisals: p._count.appraisalRequests,
+          latestAppraisal: p.appraisalRequests[0] || null,
+          latestValue: p.appraisalRequests[0]?.report?.valueEstimate || null,
+        })),
+        nextCursor,
+      };
+    }),
+
+  /**
+   * Get property details with appraisal history for client
+   */
+  getMyPropertyDetails: clientProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const property = await ctx.prisma.property.findUnique({
+        where: { id: input.id },
+        include: {
+          appraisalRequests: {
+            where: { organizationId: ctx.organization!.id },
+            orderBy: { createdAt: "desc" },
+            include: {
+              report: {
+                select: {
+                  id: true,
+                  valueEstimate: true,
+                  confidenceScore: true,
+                  generatedAt: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!property) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Property not found",
+        });
+      }
+
+      // Verify the organization has at least one appraisal for this property
+      if (property.appraisalRequests.length === 0) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You don't have access to this property",
+        });
+      }
+
+      return {
+        ...property,
+        totalAppraisals: property.appraisalRequests.length,
+        appraisalHistory: property.appraisalRequests,
+      };
     }),
 });

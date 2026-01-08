@@ -353,10 +353,28 @@ export default function SettingsPage() {
       return;
     }
 
+    // Password strength validation
+    const passwordErrors: string[] = [];
     if (newPassword.length < 8) {
+      passwordErrors.push("at least 8 characters");
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      passwordErrors.push("one uppercase letter");
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      passwordErrors.push("one lowercase letter");
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      passwordErrors.push("one number");
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword)) {
+      passwordErrors.push("one special character");
+    }
+
+    if (passwordErrors.length > 0) {
       toast.error(
-        "Password too short",
-        "Password must be at least 8 characters.",
+        "Password too weak",
+        `Password must contain ${passwordErrors.join(", ")}.`,
       );
       return;
     }
@@ -389,7 +407,7 @@ export default function SettingsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-gray-400">
+        <p className="text-[var(--muted-foreground)]">
           Manage your account settings and preferences
         </p>
       </div>
@@ -407,7 +425,7 @@ export default function SettingsPage() {
                   className={`w-full flex items-center gap-3 px-4 py-3 clip-notch-sm text-left transition-colors font-mono text-sm ${
                     activeTab === tab.id
                       ? "bg-lime-400/10 text-lime-400 border border-lime-400/30"
-                      : "text-gray-400 hover:bg-gray-800"
+                      : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -422,7 +440,7 @@ export default function SettingsPage() {
         <div className="flex-1">
           {/* Profile Tab */}
           {activeTab === "profile" && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
               <h2 className="text-lg font-semibold text-white mb-6">
                 Profile Information
               </h2>
@@ -437,7 +455,7 @@ export default function SettingsPage() {
                   />
                 ) : (
                   <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center">
-                    <User className="w-10 h-10 text-gray-400" />
+                    <User className="w-10 h-10 text-[var(--muted-foreground)]" />
                   </div>
                 )}
                 <div>
@@ -465,7 +483,7 @@ export default function SettingsPage() {
                       </>
                     )}
                   </button>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-sm text-[var(--muted-foreground)] mt-1">
                     JPG, PNG, WebP, GIF up to 2MB
                   </p>
                 </div>
@@ -483,7 +501,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handleProfileFieldChange(setFirstName, e.target.value)
                     }
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                   />
                 </div>
                 <div>
@@ -496,7 +514,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handleProfileFieldChange(setLastName, e.target.value)
                     }
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                   />
                 </div>
                 <div>
@@ -508,7 +526,7 @@ export default function SettingsPage() {
                     type="email"
                     value={session?.user?.email || ""}
                     disabled
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-800 text-gray-400 font-mono text-sm"
+                    className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--secondary)] text-[var(--muted-foreground)] font-mono text-sm"
                   />
                 </div>
                 <div>
@@ -523,7 +541,7 @@ export default function SettingsPage() {
                       handleProfileFieldChange(setJobTitle, e.target.value)
                     }
                     placeholder="Loan Officer"
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                   />
                 </div>
                 <div className="col-span-2">
@@ -538,12 +556,12 @@ export default function SettingsPage() {
                       handleProfileFieldChange(setLocation, e.target.value)
                     }
                     placeholder="Austin, TX"
-                    className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                   />
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-gray-800 flex items-center gap-4">
+              <div className="mt-6 pt-6 border-t border-[var(--border)] flex items-center gap-4">
                 <button
                   onClick={handleSaveProfile}
                   disabled={updateProfile.isPending || !profileDirty}
@@ -562,7 +580,7 @@ export default function SettingsPage() {
                   )}
                 </button>
                 {profileDirty && (
-                  <span className="text-sm text-gray-400">
+                  <span className="text-sm text-[var(--muted-foreground)]">
                     You have unsaved changes
                   </span>
                 )}
@@ -574,7 +592,7 @@ export default function SettingsPage() {
           {activeTab === "team" && (
             <div className="space-y-6">
               {/* Team Status */}
-              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 bg-lime-400/10 clip-notch-sm flex items-center justify-center">
                     <Users className="w-6 h-6 text-lime-400" />
@@ -583,7 +601,7 @@ export default function SettingsPage() {
                     <h2 className="text-lg font-semibold text-white">
                       Team Members
                     </h2>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-[var(--muted-foreground)]">
                       {teamStatus?.activeMembers || 1} active member
                       {(teamStatus?.activeMembers || 1) !== 1 ? "s" : ""}
                       {teamStatus?.pendingInvitations
@@ -601,7 +619,7 @@ export default function SettingsPage() {
                       Why invite team members?
                     </span>
                   </div>
-                  <ul className="space-y-2 text-sm text-gray-300">
+                  <ul className="space-y-2 text-sm text-[var(--foreground)]">
                     <li className="flex items-center gap-2">
                       <Check className="w-4 h-4 text-lime-400" />
                       Collaborate on property valuations
@@ -623,7 +641,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Invite Form */}
-              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
                 <div className="flex items-center gap-2 mb-6">
                   <UserPlus className="w-5 h-5 text-lime-400" />
                   <h2 className="text-lg font-semibold text-white">
@@ -641,7 +659,7 @@ export default function SettingsPage() {
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
                       placeholder="colleague@company.com"
-                      className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                      className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
                     />
                   </div>
 
@@ -655,7 +673,7 @@ export default function SettingsPage() {
                         value={inviteFirstName}
                         onChange={(e) => setInviteFirstName(e.target.value)}
                         placeholder="John"
-                        className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                        className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
                       />
                     </div>
                     <div>
@@ -667,7 +685,7 @@ export default function SettingsPage() {
                         value={inviteLastName}
                         onChange={(e) => setInviteLastName(e.target.value)}
                         placeholder="Doe"
-                        className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm placeholder:text-gray-500 focus:outline-none focus:border-lime-400/50"
+                        className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-lime-400/50"
                       />
                     </div>
                   </div>
@@ -699,8 +717,8 @@ export default function SettingsPage() {
 
               {/* Team Page Link (if team exists) */}
               {teamStatus?.showTeamPage && (
-                <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
-                  <p className="text-gray-400 mb-4">
+                <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
+                  <p className="text-[var(--muted-foreground)] mb-4">
                     Need to manage existing team members, change roles, or
                     remove members?
                   </p>
@@ -718,7 +736,7 @@ export default function SettingsPage() {
 
           {/* Notifications Tab */}
           {activeTab === "notifications" && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
               <h2 className="text-lg font-semibold text-white mb-6">
                 Notification Settings
               </h2>
@@ -758,11 +776,13 @@ export default function SettingsPage() {
                     ].map((item) => (
                       <label
                         key={item.id}
-                        className="flex items-center justify-between p-4 border border-gray-800 clip-notch-sm hover:bg-gray-800 cursor-pointer"
+                        className="flex items-center justify-between p-4 border border-[var(--border)] clip-notch-sm hover:bg-[var(--secondary)] cursor-pointer"
                       >
                         <div>
                           <p className="font-medium text-white">{item.label}</p>
-                          <p className="text-sm text-gray-400">{item.desc}</p>
+                          <p className="text-sm text-[var(--muted-foreground)]">
+                            {item.desc}
+                          </p>
                         </div>
                         <input
                           type="checkbox"
@@ -802,11 +822,13 @@ export default function SettingsPage() {
                     ].map((item) => (
                       <label
                         key={item.id}
-                        className="flex items-center justify-between p-4 border border-gray-800 clip-notch-sm hover:bg-gray-800 cursor-pointer"
+                        className="flex items-center justify-between p-4 border border-[var(--border)] clip-notch-sm hover:bg-[var(--secondary)] cursor-pointer"
                       >
                         <div>
                           <p className="font-medium text-white">{item.label}</p>
-                          <p className="text-sm text-gray-400">{item.desc}</p>
+                          <p className="text-sm text-[var(--muted-foreground)]">
+                            {item.desc}
+                          </p>
                         </div>
                         <input
                           type="checkbox"
@@ -828,7 +850,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-gray-800 flex items-center gap-4">
+              <div className="mt-6 pt-6 border-t border-[var(--border)] flex items-center gap-4">
                 <button
                   onClick={handleSaveNotifications}
                   disabled={
@@ -849,7 +871,7 @@ export default function SettingsPage() {
                   )}
                 </button>
                 {notificationsDirty && (
-                  <span className="text-sm text-gray-400">
+                  <span className="text-sm text-[var(--muted-foreground)]">
                     You have unsaved changes
                   </span>
                 )}
@@ -860,7 +882,7 @@ export default function SettingsPage() {
           {/* Security Tab */}
           {activeTab === "security" && (
             <div className="space-y-6">
-              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
                 <h2 className="text-lg font-semibold text-white mb-6">
                   Password
                 </h2>
@@ -873,7 +895,7 @@ export default function SettingsPage() {
                       type="password"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                      className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                     />
                   </div>
                   <div>
@@ -884,11 +906,82 @@ export default function SettingsPage() {
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                      className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                     />
-                    <p className="text-xs text-gray-400 mt-1">
-                      Must be at least 8 characters
-                    </p>
+                    {newPassword && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex gap-1">
+                          {[
+                            newPassword.length >= 8,
+                            /[A-Z]/.test(newPassword),
+                            /[a-z]/.test(newPassword),
+                            /[0-9]/.test(newPassword),
+                            /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+                              newPassword,
+                            ),
+                          ].map((met, i) => (
+                            <div
+                              key={i}
+                              className={`h-1 flex-1 rounded ${met ? "bg-lime-400" : "bg-gray-700"}`}
+                            />
+                          ))}
+                        </div>
+                        <div className="text-xs text-[var(--muted-foreground)] space-y-0.5">
+                          <p
+                            className={
+                              newPassword.length >= 8 ? "text-lime-400" : ""
+                            }
+                          >
+                            {newPassword.length >= 8 ? "✓" : "○"} 8+ characters
+                          </p>
+                          <p
+                            className={
+                              /[A-Z]/.test(newPassword) ? "text-lime-400" : ""
+                            }
+                          >
+                            {/[A-Z]/.test(newPassword) ? "✓" : "○"} Uppercase
+                            letter
+                          </p>
+                          <p
+                            className={
+                              /[a-z]/.test(newPassword) ? "text-lime-400" : ""
+                            }
+                          >
+                            {/[a-z]/.test(newPassword) ? "✓" : "○"} Lowercase
+                            letter
+                          </p>
+                          <p
+                            className={
+                              /[0-9]/.test(newPassword) ? "text-lime-400" : ""
+                            }
+                          >
+                            {/[0-9]/.test(newPassword) ? "✓" : "○"} Number
+                          </p>
+                          <p
+                            className={
+                              /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+                                newPassword,
+                              )
+                                ? "text-lime-400"
+                                : ""
+                            }
+                          >
+                            {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+                              newPassword,
+                            )
+                              ? "✓"
+                              : "○"}{" "}
+                            Special character
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {!newPassword && (
+                      <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                        Must contain 8+ chars, uppercase, lowercase, number,
+                        special char
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-white mb-1">
@@ -898,7 +991,7 @@ export default function SettingsPage() {
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                      className="w-full px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                     />
                     {confirmPassword && newPassword !== confirmPassword && (
                       <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
@@ -908,7 +1001,13 @@ export default function SettingsPage() {
                     )}
                     {confirmPassword &&
                       newPassword === confirmPassword &&
-                      newPassword.length >= 8 && (
+                      newPassword.length >= 8 &&
+                      /[A-Z]/.test(newPassword) &&
+                      /[a-z]/.test(newPassword) &&
+                      /[0-9]/.test(newPassword) &&
+                      /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+                        newPassword,
+                      ) && (
                         <p className="text-xs text-green-500 mt-1 flex items-center gap-1">
                           <Check className="w-3 h-3" />
                           Passwords match
@@ -922,7 +1021,11 @@ export default function SettingsPage() {
                       !currentPassword ||
                       !newPassword ||
                       newPassword !== confirmPassword ||
-                      newPassword.length < 8
+                      newPassword.length < 8 ||
+                      !/[A-Z]/.test(newPassword) ||
+                      !/[a-z]/.test(newPassword) ||
+                      !/[0-9]/.test(newPassword) ||
+                      !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword)
                     }
                     className="flex items-center gap-2 px-6 py-2 bg-lime-400 text-black font-mono text-sm uppercase tracking-wider clip-notch hover:bg-lime-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -941,19 +1044,21 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+              <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">
                   Active Sessions
                 </h2>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 border border-gray-800 clip-notch-sm bg-green-500/5">
+                  <div className="flex items-center justify-between p-4 border border-[var(--border)] clip-notch-sm bg-green-500/5">
                     <div className="flex items-center gap-3">
-                      <Monitor className="w-5 h-5 text-gray-400" />
+                      <Monitor className="w-5 h-5 text-[var(--muted-foreground)]" />
                       <div>
                         <p className="font-medium text-white">
                           Current Session
                         </p>
-                        <p className="text-sm text-gray-400">This device</p>
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                          This device
+                        </p>
                       </div>
                     </div>
                     <span className="text-green-500 text-sm font-medium">
@@ -974,7 +1079,7 @@ export default function SettingsPage() {
 
           {/* Preferences Tab */}
           {activeTab === "preferences" && (
-            <div className="bg-gray-900 clip-notch border border-gray-800 p-6">
+            <div className="bg-[var(--card)] clip-notch border border-[var(--border)] p-6">
               <h2 className="text-lg font-semibold text-white mb-6">
                 Preferences
               </h2>
@@ -989,7 +1094,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handlePreferenceChange("language", e.target.value)
                     }
-                    className="w-full max-w-xs px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full max-w-xs px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                   >
                     <option value="en-US">English (US)</option>
                     <option value="es">Espanol</option>
@@ -1005,7 +1110,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handlePreferenceChange("timezone", e.target.value)
                     }
-                    className="w-full max-w-xs px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full max-w-xs px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                   >
                     <option value="America/Chicago">Central Time (CT)</option>
                     <option value="America/New_York">Eastern Time (ET)</option>
@@ -1025,7 +1130,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handlePreferenceChange("dateFormat", e.target.value)
                     }
-                    className="w-full max-w-xs px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full max-w-xs px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                   >
                     <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                     <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -1042,7 +1147,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handlePreferenceChange("currency", e.target.value)
                     }
-                    className="w-full max-w-xs px-4 py-2 border border-gray-700 clip-notch-sm bg-gray-900 text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
+                    className="w-full max-w-xs px-4 py-2 border border-[var(--border)] clip-notch-sm bg-[var(--card)] text-white font-mono text-sm focus:outline-none focus:border-lime-400/50"
                   >
                     <option value="USD">USD ($)</option>
                   </select>
@@ -1105,7 +1210,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-gray-800 flex items-center gap-4">
+              <div className="mt-6 pt-6 border-t border-[var(--border)] flex items-center gap-4">
                 <button
                   onClick={handleSavePreferences}
                   disabled={savingPreferences || !preferencesDirty}
@@ -1124,7 +1229,7 @@ export default function SettingsPage() {
                   )}
                 </button>
                 {preferencesDirty && (
-                  <span className="text-sm text-gray-400">
+                  <span className="text-sm text-[var(--muted-foreground)]">
                     You have unsaved changes
                   </span>
                 )}
